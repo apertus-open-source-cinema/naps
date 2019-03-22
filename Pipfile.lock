@@ -1,0 +1,25 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "3e52c4b55925f8babdcd953e7110984eedad3c5cbe296793ced9ae79427168c1"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "3.7"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "nmigen": {
+            "git": "https://github.com/m-labs/nmigen.git",
+            "ref": "d69a4e29a8e2492dc916d0c7e42d9337c8c6d4c5"
+        }
+    },
+    "develop": {}
+}

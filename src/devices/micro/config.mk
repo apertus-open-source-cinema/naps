@@ -1,0 +1,1 @@
+PART_NAME ?= xc7z010clg400-1

@@ -60,6 +60,10 @@ class Top:
 
     def elaborate(self, platform):
         m = Module()
+
+        # TODO: only for testing
+        m.d.comb += self.ws2812.eq(self.encoder.push)
+
         return m
 
     def get_ports(self):

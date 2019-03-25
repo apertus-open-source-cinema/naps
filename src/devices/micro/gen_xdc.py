@@ -37,6 +37,13 @@ def get_pin_by_net_name(net_name):
     row = z_turn_lite_mapping[z_turn_lite_mapping.net_name == net_name]
     return unwrap(row.fpga_pin)
 
+def get_io_standart(net_name):
+    (bank, index, polarity) = re.match("(\d{2})_(\d{1,2})([pn]?)", net_name).groups()
+    if polarity:
+        return "LVCMOS33"
+    else:
+        return "TMDS_33"
+
 
 if __name__ == "__main__":
     top = Top()
@@ -46,10 +53,12 @@ if __name__ == "__main__":
         if port.nbits == 1:
             net = get_net_by_signal(port.name)
             fpga_pin = get_pin_by_net_name(net)
-            print(port.name, "=>", net, "=>", fpga_pin)
+            io_standard = get_io_standart(net)
+            print("set_property -dict { PACKAGE_PIN %s IOSTANDARD %s } [get_ports { %s }]; " % (fpga_pin, io_standard, port.name))
         else:
             for i in range(port.nbits):
                 name = port.name + "[%d]" % i
                 net = get_net_by_signal(name)
                 fpga_pin = get_pin_by_net_name(net)
-                print(port.name, "=>", net, "=>", fpga_pin)
+                io_standard = get_io_standart(net)
+                print("set_property -dict { PACKAGE_PIN %s IOSTANDARD %s } [get_ports { %s }]; " % (fpga_pin, io_standard, name))

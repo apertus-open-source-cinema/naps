@@ -4,3 +4,5 @@
 __pycache__/
 *.pyc
 build/
+usage_statistics_webtalk.html
+usage_statistics_webtalk.xml

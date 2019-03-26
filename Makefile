@@ -20,7 +20,7 @@ build/verilog.v: $(shell find src/)
 build/top.edif: build/verilog.v
 	@echo -e "\n--- synthesizing design using yosys ---"
 
-	yosys -l build/yosys_synth.log -p "read_verilog $<; synth_xilinx -top top; hilomap -hicell VCC P -locell GND G; write_edif -nogndvcc $@" -q
+	yosys -l build/yosys_synth.log -p "read_verilog $<; synth_xilinx -top top; opt; hilomap -hicell VCC P -locell GND G; write_edif -nogndvcc $@" -q
 
 build/top.xdc: src/devices/$(DEVICE)/gen_xdc.py
 	@echo -e "\n--- generating constraints file ---"

@@ -37,7 +37,7 @@ class Top:
         m.submodules += ws2812
         for led in ws2812.parallel_in:
             for color in led:
-                color = 255
+                m.d.comb += color.eq(255)
 
         return m
 

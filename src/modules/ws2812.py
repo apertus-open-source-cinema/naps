@@ -64,7 +64,7 @@ class Ws2812Phy:
 
         max_pattern_length = max([sum(pattern) for pattern in self.patterns])
         counter = Signal(max=max_pattern_length)
-        with m.If(counter == self.patterns[0][1]):
+        with m.If(counter == self.patterns[buffered_pattern][1]):
             m.d.sync += [
                 counter.eq(0),
                 self.done.eq(1),
@@ -77,7 +77,7 @@ class Ws2812Phy:
                 self.done.eq(0),
             ]
 
-        with m.If(counter > self.patterns[0][0]):
+        with m.If(counter > self.patterns[buffered_pattern][0]):
             m.d.sync += self.out.eq(0)
         with m.Else():
             m.d.sync += self.out.eq(1)

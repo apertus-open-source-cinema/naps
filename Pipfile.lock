@@ -18,7 +18,7 @@
     "default": {
         "nmigen": {
             "git": "https://github.com/m-labs/nmigen.git",
-            "ref": "d69a4e29a8e2492dc916d0c7e42d9337c8c6d4c5"
+            "ref": "3c95299c4e3b77c15c5407e54b9c03e5e8e5c2dc"
         },
         "numpy": {
             "hashes": [

@@ -10,11 +10,12 @@ check: build/top.edif build/top.xdc
 all: build/top.bit
 
 
-build/verilog.v: $(shell find src/*.py)
+.DELETE_ON_ERROR:
+build/verilog.v: $(shell find src/)
 	@echo "--- elaborating nMigen design ---"
 
 	mkdir -p $(@D)
-	pipenv run python src/top.py generate -tv > $@ || rm $@
+	pipenv run python src/top.py generate -tv > $@
 
 build/top.edif: build/verilog.v
 	@echo -e "\n--- synthesizing design using yosys ---"
@@ -24,7 +25,7 @@ build/top.edif: build/verilog.v
 build/top.xdc: src/devices/$(DEVICE)/gen_xdc.py
 	@echo -e "\n--- generating constraints file ---"
 
-	pipenv run python src/devices/$(DEVICE)/gen_xdc.py > $@ || rm $@
+	pipenv run python src/devices/$(DEVICE)/gen_xdc.py > $@
 
 build/top.bit: build/top.edif build/top.xdc
 	@echo -e "\n --- PnR using vivado ---"

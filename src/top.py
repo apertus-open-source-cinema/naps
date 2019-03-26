@@ -3,7 +3,8 @@ from nmigen.cli import main
 
 from util import anarchy
 from util.util import flatten_records
-
+from modules.ws2812 import Ws2812
+import common.layouts as layouts
 
 class Top:
     """The top entity of the gateware.
@@ -13,47 +14,18 @@ class Top:
     """
 
     def __init__(self):
-        self.sensor = Record([
-            ("shutter", 1),
-            ("trigger", 1),
-            ("clk", 1),
-            ("reset", 1),
-            ("lvds", 4),
-            ("lvds_clk", 1),
-        ])
+        self.sensor = Record(layouts.ar0330)
+        self.i2c = Record(layouts.i2c)  # i2c also somehow belongs to the image sensor. it is shared globally
 
-        # i2c also somehow belongs to the image sensor. it is shared globally
-        self.i2c = Record([
-            ("sda", 1),
-            ("scl", 1)
-        ])
-
-        self.plugin_n = Record([
-            ("lvds", 6),
-            ("gpio", 8),
-            ("i2c", [
-                ("sda", 1),
-                ("scl", 1)
-            ]),
-        ])
-        self.plugin_s = Record([
-            ("lvds", 6),
-            ("gpio", 8),
-            ("i2c", [
-                ("sda", 1),
-                ("scl", 1)
-            ]),
-        ])
+        self.plugin_n = Record(layouts.plugin_module)
+        self.plugin_s = Record(layouts.plugin_module)
 
         self.pmod_n = Signal(8)
         self.pmod_s = Signal(8)
         self.pmod_e = Signal(4)
 
         self.ws2812 = Signal()
-        self.encoder = Record([
-            ("push", 1),
-            ("graycode", 2)
-        ])
+        self.encoder = Record(layouts.encoder)
 
         # as the very last step, assign the out of tree resources
         anarchy.add_params(self)
@@ -61,8 +33,11 @@ class Top:
     def elaborate(self, platform):
         m = Module()
 
-        # TODO: only for testing
-        m.d.comb += self.ws2812.eq(self.encoder.push)
+        ws2812 = Ws2812(self.ws2812, led_number=3)
+        m.submodules += ws2812
+        for led in ws2812.parallel_in:
+            for color in led:
+                color = 255
 
         return m
 

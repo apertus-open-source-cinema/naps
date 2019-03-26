@@ -18,7 +18,10 @@ def unwrap(df):
 
 
 micro_mapping = pd.read_csv("micro_r2.csv", skip_blank_lines=True, comment='#')
+
+
 def get_net_by_signal(signal):
+    signal = signal.replace("__", ".")
     bank_io = micro_mapping[micro_mapping.name == signal].bank_io
     try:
         return unwrap(bank_io)
@@ -30,6 +33,8 @@ def get_net_by_signal(signal):
 
 
 z_turn_lite_mapping = pd.read_csv("z_turn_lite.csv", skip_blank_lines=True, comment='#')
+
+
 def get_pin_by_net_name(net_name):
     (bank, index, polarity) = re.match("(\d{2})_(\d{1,2})([pn]?)", net_name).groups()
     polarity = polarity or "P"
@@ -37,12 +42,13 @@ def get_pin_by_net_name(net_name):
     row = z_turn_lite_mapping[z_turn_lite_mapping.net_name == net_name]
     return unwrap(row.fpga_pin)
 
+
 def get_io_standart(net_name):
     (bank, index, polarity) = re.match("(\d{2})_(\d{1,2})([pn]?)", net_name).groups()
     if polarity:
-        return "LVCMOS33"
+        return "LVCMOS18"  # single ended signals
     else:
-        return "TMDS_33"
+        return "DIFF_SSTL18_I"  # LVDS signals
 
 
 if __name__ == "__main__":
@@ -54,11 +60,13 @@ if __name__ == "__main__":
             net = get_net_by_signal(port.name)
             fpga_pin = get_pin_by_net_name(net)
             io_standard = get_io_standart(net)
-            print("set_property -dict { PACKAGE_PIN %s IOSTANDARD %s } [get_ports { %s }]; " % (fpga_pin, io_standard, port.name))
+            print("set_property -dict { PACKAGE_PIN %s IOSTANDARD %s } [get_ports { %s }]; " % (
+            fpga_pin, io_standard, port.name))
         else:
             for i in range(port.nbits):
                 name = port.name + "[%d]" % i
                 net = get_net_by_signal(name)
                 fpga_pin = get_pin_by_net_name(net)
                 io_standard = get_io_standart(net)
-                print("set_property -dict { PACKAGE_PIN %s IOSTANDARD %s } [get_ports { %s }]; " % (fpga_pin, io_standard, name))
+                print("set_property -dict { PACKAGE_PIN %s IOSTANDARD %s } [get_ports { %s }]; " % (
+                fpga_pin, io_standard, name))

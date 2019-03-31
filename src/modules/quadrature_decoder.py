@@ -8,6 +8,7 @@ class QuadratureDecoder:
     Counts the number of detents and outputs them parallel until it is reset.
 
     See https://en.wikipedia.org/wiki/Incremental_encoder#Quadrature_decoder for details.
+    This implementation dies if there are errors in the quadrature input.
     """
 
     def __init__(self, quadrature):
@@ -29,7 +30,6 @@ class QuadratureDecoder:
                 transitions = [[int("".join(state), base=2) for state in transition] for transition in transitions]
 
                 for last, current in transitions:
-                    with m.If(last_quadrature == last):
-                        with m.If(self.quadrature == current):
-                            m.d.sync += self.parallel.eq(self.parallel + (0 if reverse else 1))
+                    with m.If((last_quadrature == last) & (self.quadrature == current)):
+                        m.d.sync += self.parallel.eq(self.parallel + (0 if reverse else 1))
         return m

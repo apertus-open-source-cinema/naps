@@ -17,8 +17,7 @@ class Ws2812:
     def elaborate(self, platform):
         m = Module()
 
-        phy = Ws2812Phy(self.out)
-        m.submodules += phy
+        phy = m.submodules.ws2812__phy = Ws2812Phy(self.out)
 
         with m.FSM(reset="RESET") as fsm:
             with m.State("RESET"):

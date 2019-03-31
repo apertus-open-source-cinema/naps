@@ -35,11 +35,9 @@ class Top:
     def elaborate(self, platform):
         m = Module()
 
-        quadrature_decoder = QuadratureDecoder(self.encoder.quadrature)
-        m.submodules += quadrature_decoder
+        quadrature_decoder = m.submodules.quadrature_decoder = QuadratureDecoder(self.encoder.quadrature)
 
-        ws2812 = Ws2812(self.ws2812, led_number=3)
-        m.submodules += ws2812
+        ws2812 = m.submodules.ws2812 = Ws2812(self.ws2812, led_number=3)
         for led in ws2812.parallel_in:
             for color in led:
                 m.d.comb += color.eq(quadrature_decoder.parallel)

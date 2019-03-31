@@ -23,5 +23,5 @@ plugin_module = [
 
 encoder = [
     ("push", 1),
-    ("graycode", 2)
+    ("quadrature", 2)
 ]

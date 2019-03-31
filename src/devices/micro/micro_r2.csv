@@ -71,6 +71,6 @@ bank_io,name
 34_7n,pmod_e[3]
 
 35_23p,ws2812
-35_23n,encoder.graycode[0]
-34_21n,encoder.graycode[1]
+35_23n,encoder.quadrature[0]
+34_21n,encoder.quadrature[1]
 34_21p,encoder.push

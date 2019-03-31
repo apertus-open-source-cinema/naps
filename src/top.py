@@ -1,10 +1,12 @@
 from nmigen import *
 from nmigen.cli import main
 
+from modules.quadrature_decoder import QuadratureDecoder
 from util import anarchy
 from util.util import flatten_records
 from modules.ws2812 import Ws2812
 import common.layouts as layouts
+
 
 class Top:
     """The top entity of the gateware.
@@ -33,17 +35,20 @@ class Top:
     def elaborate(self, platform):
         m = Module()
 
+        quadrature_decoder = QuadratureDecoder(self.encoder.quadrature)
+        m.submodules += quadrature_decoder
+
         ws2812 = Ws2812(self.ws2812, led_number=3)
         m.submodules += ws2812
         for led in ws2812.parallel_in:
             for color in led:
-                m.d.comb += color.eq(255)
+                m.d.comb += color.eq(quadrature_decoder.parallel)
 
         return m
 
     def get_ports(self):
         signals_records = [prop for prop in map(lambda name: getattr(self, name), dir(self)) if
-                isinstance(prop, Signal) or isinstance(prop, Record)]
+                           isinstance(prop, Signal) or isinstance(prop, Record)]
         return flatten_records(signals_records)
 
 

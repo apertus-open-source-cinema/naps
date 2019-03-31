@@ -17,9 +17,8 @@ class Ws2812:
     def elaborate(self, platform):
         m = Module()
 
-        phy = Ws2812Phy()
+        phy = Ws2812Phy(self.out)
         m.submodules += phy
-        m.d.sync += self.out.eq(phy.out)
 
         with m.FSM(reset="RESET") as fsm:
             with m.State("RESET"):
@@ -50,17 +49,21 @@ class Ws2812Phy:
     Reset is send when the output is more than 1000 cycles LOW.
     """
 
-    def __init__(self, patterns=[(5, 18), (18, 5), (1023, 0)]):
+    def __init__(self, out, patterns=[(5, 18), (18, 5), (1023, 0)]):
         self.patterns = Array(Array(x for x in pattern) for pattern in patterns)
 
         self.pattern = Signal(max=len(patterns))
-        self.out = Signal()
+        self.out = out
         self.done = Signal()
 
     def elaborate(self, platform):
         m = Module()
 
         buffered_pattern = Signal(len(self.pattern))
+
+        # stupid hack to work around a nMigen Bug (see https://github.com/m-labs/nmigen/issues/51)
+        dummy = Signal(max=len(self.patterns))
+        m.d.comb += buffered_pattern.eq(dummy)
 
         max_pattern_length = max([sum(pattern) for pattern in self.patterns])
         counter = Signal(max=max_pattern_length)
@@ -69,7 +72,7 @@ class Ws2812Phy:
                 counter.eq(0),
                 self.done.eq(1),
 
-                buffered_pattern.eq(self.pattern),
+                dummy.eq(self.pattern),
             ]
         with m.Else():
             m.d.sync += [

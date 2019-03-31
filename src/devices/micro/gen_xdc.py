@@ -52,9 +52,14 @@ def get_io_standart(net_name):
 
 
 if __name__ == "__main__":
+    print("set_property -dict { PACKAGE_PIN %s IOSTANDARD %s } [get_ports { %s }]; " % (
+        "B10", "LVCMOS33", "rst"))
+    print("set_property -dict { PACKAGE_PIN %s IOSTANDARD %s } [get_ports { %s }]; " % (
+        "E7", "LVCMOS33", "clk"))
+    print('create_clock -name clk -period "10" [get_pins "E7"]; \nset_input_jitter clk 0.3;')
+
     top = Top()
     ports = top.get_ports()
-
     for port in ports:
         if port.nbits == 1:
             net = get_net_by_signal(port.name)

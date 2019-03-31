@@ -22,7 +22,7 @@ build/top.edif: build/verilog.v
 
 	yosys -l build/yosys_synth.log -p "read_verilog $<; synth_xilinx -top top; opt; hilomap -hicell VCC P -locell GND G; write_edif -nogndvcc $@" -q
 
-build/top.xdc: src/devices/$(DEVICE)/gen_xdc.py
+build/top.xdc: src/devices/$(DEVICE)/gen_xdc.py build/verilog.v
 	@echo -e "\n--- generating constraints file ---"
 
 	pipenv run python src/devices/$(DEVICE)/gen_xdc.py > $@

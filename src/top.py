@@ -1,9 +1,10 @@
 from nmigen import *
 from nmigen.cli import main
 
+from modules.ps7.ps7 import Ps7
 from modules.quadrature_decoder import QuadratureDecoder
 from util import anarchy
-from util.util import flatten_records
+from util.nmigen_util import get_signals
 from modules.ws2812 import Ws2812
 import common.layouts as layouts
 
@@ -35,6 +36,8 @@ class Top:
     def elaborate(self, platform):
         m = Module()
 
+        ps7 = m.submodules.ps7_wrapper = Ps7()
+
         quadrature_decoder = m.submodules.quadrature_decoder = QuadratureDecoder(self.encoder.quadrature)
 
         ws2812 = m.submodules.ws2812 = Ws2812(self.ws2812, led_number=3)
@@ -44,12 +47,7 @@ class Top:
 
         return m
 
-    def get_ports(self):
-        signals_records = [prop for prop in map(lambda name: getattr(self, name), dir(self)) if
-                           isinstance(prop, Signal) or isinstance(prop, Record)]
-        return flatten_records(signals_records)
-
 
 if __name__ == "__main__":
     top = Top()
-    main(top, ports=top.get_ports())
+    main(top, ports=get_signals(top))

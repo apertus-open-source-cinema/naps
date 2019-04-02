@@ -19,7 +19,7 @@ class Ws2812:
 
         phy = m.submodules.ws2812__phy = Ws2812Phy(self.out)
 
-        with m.FSM(reset="RESET") as fsm:
+        with m.FSM(reset="RESET"):
             with m.State("RESET"):
                 m.d.sync += phy.pattern.eq(3)  # 3 is reset
                 with m.If(phy.done):
@@ -29,14 +29,19 @@ class Ws2812:
                 next_led = led_n + 1 if led_n > len(self.parallel_in) else 0
                 for color_n, color in enumerate(led):
                     next_color = color_n+1 if color_n > len(led) else 0
-                    for bit in range(color_n.bit_length()):
+                    for bit in range(len(color)):
                         next_bit = bit+1 if bit > len(color) else 0
                         with m.State("LED{}_COLOR{}_BIT{}".format(led_n, color_n, bit)):
                             m.d.sync += phy.pattern.eq(self.parallel_in[led_n][color_n][bit])
 
-                            with m.If(phy.done):
-                                "LED{}_COLOR{}_BIT{}".format(next_led, next_color, next_bit)
-
+                            if led_n == len(self.parallel_in) - 1 \
+                                    and color_n == len(led) - 1 \
+                                    and bit == len(color) - 1:
+                                with m.If(phy.done):
+                                    m.next = "RESET"
+                            else:
+                                with m.If(phy.done):
+                                    m.next = "LED{}_COLOR{}_BIT{}".format(next_led, next_color, next_bit)
         return m
 
 

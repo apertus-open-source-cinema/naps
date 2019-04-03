@@ -103,7 +103,7 @@ axi_acp_slave = [
     ("ARQOS", 4),
     ("ARREADY", 1),
     ("ARSIZE", 2),
-    ("ARUSER", 4),
+    ("ARUSER", 5),
     ("ARVALID", 1),
     ("AWADDR", 32),
     ("AWBURST", 2),

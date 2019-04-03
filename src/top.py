@@ -4,7 +4,7 @@ from nmigen.cli import main
 from modules.ps7.ps7 import Ps7
 from modules.quadrature_decoder import QuadratureDecoder
 from util import anarchy
-from util.nmigen_util import get_signals
+from util.nmigen import get_signals
 from modules.ws2812 import Ws2812
 import common.layouts as layouts
 

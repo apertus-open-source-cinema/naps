@@ -7,9 +7,11 @@ import sys
 import os
 import re
 
+
 sys.path.append(os.path.realpath("src"))
 os.chdir(os.path.dirname(__file__))
 from top import Top
+from util.nmigen import get_signals
 
 
 def unwrap(df):
@@ -59,7 +61,7 @@ if __name__ == "__main__":
     print('create_clock -name clk -period "10" [get_pins "E7"]; \nset_input_jitter clk 0.3;')
 
     top = Top()
-    ports = top.get_ports()
+    ports = get_signals(top)
     for port in ports:
         if port.nbits == 1:
             net = get_net_by_signal(port.name)

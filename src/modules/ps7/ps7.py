@@ -1,10 +1,10 @@
 from nmigen import *
 from nmigen.cli import main
 from modules.ps7 import layouts
-import pandas as pd
-from os import path
 
-from util.nmigen_util import get_signals
+from util import yosys
+from util.logger import log
+from util.nmigen import get_signals
 
 
 class Ps7:
@@ -20,14 +20,13 @@ class Ps7:
     def elaborate(self, platform):
         m = Module()
 
-        filename = path.join(path.dirname(__file__), "ps7_signals.csv")
-        ps7_signals = pd.read_csv(filename, skip_blank_lines=True, comment='#')
+        ps7_ports = yosys.get_module_ports("+/xilinx/cells_xtra.v", "PS7")
 
         named_ports = {
-            "{}_{}".format(row["direction"], row["name"]): self.find_signal(row["name"], row["width"])
-            for _, row in ps7_signals.iterrows()
+            "{}_{}".format(port["direction"], port["name"]): self.find_signal(port["name"], port["width"])
+            for port in ps7_ports
         }
-        m.submodules.ps7 = Instance("ps7", **named_ports)
+        m.submodules.ps7 = Instance("PS7", **named_ports)
 
         return m
 

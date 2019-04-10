@@ -63,8 +63,11 @@ class Ps7:
             signal = find_signal(s, int(index))
             if signal is not None:
                 return signal
+
+        class PortNotFoundException(Exception):
+            pass
         
-        raise(Exception("Could not find a port matching {}".format(s)))
+        raise(PortNotFoundException("Could not find a port matching {} on device {}".format(s, type(self).__name__)))
 
 
     def find_signal(self, name, width):

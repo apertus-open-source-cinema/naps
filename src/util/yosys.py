@@ -1,6 +1,6 @@
 import subprocess
 from json import loads
-import pandas as pd
+from util.logger import log
 
 
 def get_module_ports(verilog_path, module_name):
@@ -24,15 +24,13 @@ def get_module_ports(verilog_path, module_name):
         elif long_form == "inout": return "io"
         else: raise Exception("Bad direction: {}".format(long_form))
 
-    ports_list = []
-    for key in ports:
-        ports_list.append({
-            "name": key,
-            "direction": abbrev_direction(ports[key]["direction"]),
-            "width": len(ports[key]["bits"]),
-        })
+    for k, v in ports.items():
+        ports[k]["width"] = len(v["bits"])
+        del ports[k]["bits"]
 
-    return ports_list
+        ports[k]["direction"] = abbrev_direction(v["direction"])
+
+    return ports
 
 
 def yosys_script(commands):

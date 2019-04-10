@@ -4,6 +4,7 @@ from nmigen.cli import main
 from modules.ps7.ps7 import Ps7
 from modules.quadrature_decoder import QuadratureDecoder
 from util import anarchy
+from util.logger import log
 from util.nmigen import get_signals
 from modules.ws2812 import Ws2812
 import common.layouts as layouts
@@ -37,6 +38,8 @@ class Top:
         m = Module()
 
         ps7 = m.submodules.ps7_wrapper = Ps7()
+        m.d.comb += ClockSignal().eq(ps7.fclkclk0)
+        m.d.comb += ResetSignal().eq(~ps7.fclkresetn0)
 
         quadrature_decoder = m.submodules.quadrature_decoder = QuadratureDecoder(self.encoder.quadrature)
 

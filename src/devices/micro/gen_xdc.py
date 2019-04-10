@@ -54,12 +54,7 @@ def get_io_standart(net_name):
 
 
 if __name__ == "__main__":
-    print("set_property -dict { PACKAGE_PIN %s IOSTANDARD %s } [get_ports { %s }]; " % (
-        "B10", "LVCMOS33", "rst"))
-    print("set_property -dict { PACKAGE_PIN %s IOSTANDARD %s } [get_ports { %s }]; " % (
-        "E7", "LVCMOS33", "clk"))
-    print('create_clock -name clk -period "10" [get_pins "E7"]; \nset_input_jitter clk 0.3;')
-
+    print('create_clock -name clk -period "10" [get_ports "ps7_wrapper_FCLKCLK[0]"]; \nset_input_jitter clk 0.3;')
     top = Top()
     ports = get_signals(top)
     for port in ports:

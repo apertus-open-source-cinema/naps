@@ -32,7 +32,7 @@ build/top.xdc: src/devices/$(DEVICE)/gen_xdc.py build/verilog.v
 	pipenv run python src/devices/$(DEVICE)/gen_xdc.py > $@
 
 build/top.bin: build/top.bit
-	pipenv run python to_raw_bitstream.py -f $< $@
+	pipenv run python src/util/to_raw_bitstream.py -f $< $@
 
 build/top.bit: build/top.edif build/top.xdc
 	@echo -e "\n --- PnR using vivado ---"

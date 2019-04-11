@@ -1,12 +1,18 @@
-"""A singleton from which you can request clocks with an arbitrary speed"""
+"""A singleton from which you can request clocks with an arbitrary speed
+
+The clock manager itself is hardware independent, but it uses a hardware dependent clock solver to generate the
+clocking tree.
+"""
 
 import re
 from nmigen import *
 
+from .xilinx.clock_solver import ClockSolver
+
 clocks = {}
 
 
-def get_clock(requested_freq):
+def generate_clock(requested_freq):
     """Returns a clock with the requested frequency
 
     Possible frequency definitions include: `1Mhz`, `1e6`, `0.1 Ghz`
@@ -20,11 +26,20 @@ def get_clock(requested_freq):
     return clocks[requested_freq]
 
 
+def set_module_clock(module, requested_freq):
+    module.d.comb += ClockSignal().eq(generate_clock(requested_freq))
+
+
 def manage_clocks(module):
-    """Instanciates the clocking ressources (e.g. PLLs)"""
-    raise NotImplementedError
+    """Instanciates the clocking resources (e.g. PLLs)
+
+    This should be called exactly once from the top level after everything else
+    """
+    module.submodules.clock_solver = ClockSolver(clocks)
 
 
 def _freq_to_int(freq):
     match = re.match("([\d.]+) ?([gmk])(hz)?", freq.lower())
+    if not match:
+        raise ValueError("parameter {} could not be decoded as a frequency".format(freq))
     return int(float(match[1]) * ({"k": 1e3, "m": 1e6, "g": 1e9}[match[2]]))

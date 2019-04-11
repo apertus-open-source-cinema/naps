@@ -4,6 +4,7 @@ from nmigen.cli import main
 from modules.xilinx.blocks import Ps7, MMCM
 from modules.quadrature_decoder import QuadratureDecoder
 from modules import anarchy
+from modules import clock_manager
 from util.nmigen import get_signals
 from modules.ws2812 import Ws2812
 import devices.common.layouts as layouts
@@ -37,7 +38,6 @@ class Top:
         m = Module()
 
         ps7 = m.submodules.ps7_wrapper = Ps7()
-        mmcm0 = m.submodules.mmcm0 = MMCM()
 
         m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
         m.d.comb += ResetSignal().eq(~ps7.fclk.resetn[0])
@@ -49,6 +49,7 @@ class Top:
             for color in led:
                 m.d.comb += color.eq(quadrature_decoder.parallel)
 
+        clock_manager.manage_clocks(m)
         return m
 
 

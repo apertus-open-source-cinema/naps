@@ -1,6 +1,6 @@
 from nmigen import *
 
-from util.logger import log
+from modules.clock_manager import set_module_clock
 
 
 class Ws2812:
@@ -16,6 +16,7 @@ class Ws2812:
 
     def elaborate(self, platform):
         m = Module()
+        set_module_clock(m, "2Mhz")
 
         phy = m.submodules.ws2812__phy = Ws2812Phy(self.out)
 

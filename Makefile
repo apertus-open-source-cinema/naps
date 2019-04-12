@@ -1,11 +1,8 @@
 VIVADO ?= vivado
-
-
 DEVICE ?= micro
 include src/devices/$(DEVICE)/config.mk
 
-.DEFAULT_GOAL := all
-
+.DEFAULT_GOAL := check
 .PHONY: check
 check: build/top.edif build/top.xdc
 	@echo -e "\ncheck completed, all good :)"

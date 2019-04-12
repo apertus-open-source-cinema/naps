@@ -8,8 +8,9 @@ class XilinxBlackbox:
     """Wraps the a Xilinx ip as a convenient blackbox.
     """
 
-    def __init__(self):
+    def __init__(self, **kwargs):
         self.module = self.module or self.__class__.__name__
+        self.parameters = kwargs
         self.ports = yosys.get_module_ports("+/xilinx/cells_xtra.v", self.module)
         self.hierarchy = self._find_hierarchy(list(self.ports.keys()))
         self.signal_proxy = SignalProxy(self.hierarchy, self.ports, path=self.module)
@@ -23,9 +24,13 @@ class XilinxBlackbox:
             "{}_{}".format(self.ports[name]["direction"], name): signal
             for name, signal in self.signal_proxy.used_ports().items()
         }
-        m.submodules.instance = Instance(self.module, **named_ports)
+        parameters = {"p_{}".format(k): v for k, v in self.parameters.items()}
+        m.submodules.instance = Instance(self.module, **named_ports, **parameters)
 
         return m
+
+    def __getitem__(self, item):
+        return self.signal_proxy.__getitem__(item)
 
     def __getattr__(self, item):
         return self.signal_proxy.__getattr__(item)
@@ -93,6 +98,16 @@ class SignalProxy:
         for c in self.children.values():
             child_ports = {**child_ports, **c.used_ports()}
         return {**self._used_ports, **child_ports}
+
+    def __getitem__(self, item):
+        item = item.upper()
+        if item not in self.ports:
+            raise KeyError("{} not found in {}".format(item, self.path))
+
+        # do the real signal finding
+        if item not in self._used_ports:
+            self._used_ports[item] = Signal(self.ports[item]["width"], name=item)
+        return self._used_ports[item]
 
     def __getattr__(self, item):
         item = item.upper()

@@ -1,7 +1,7 @@
 from nmigen import *
 from nmigen.cli import main
 
-from modules.xilinx.blocks import Ps7, MMCM
+from modules.xilinx.blocks import Ps7, Mmcm
 from modules.quadrature_decoder import QuadratureDecoder
 from modules import anarchy
 from modules import clock_manager
@@ -49,7 +49,8 @@ class Top:
             for color in led:
                 m.d.comb += color.eq(quadrature_decoder.parallel)
 
-        clock_manager.manage_clocks(m)
+        clock_manager.generate_clock("10Mhz")
+        clock_manager.manage_clocks(m, "100 Mhz")
         return m
 
 

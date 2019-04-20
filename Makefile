@@ -37,7 +37,8 @@ build/top.bit: build/top.edif build/top.xdc
 	echo -e "read_xdc build/top.xdc\n read_edif $<\n link_design -part $(PART_NAME) -top top\n \
 	    opt_design\n place_design\n route_design\n report_utilization\n report_timing\n write_bitstream -force $@" \
 	    > build/vivado_pnr.tcl
-	time $(VIVADO) -mode batch -source build/vivado_pnr.tcl -log build/vivado_pnr.log -nojournal -tempDir /tmp/ > /dev/null
+	time $(VIVADO) -mode batch -source build/vivado_pnr.tcl -log build/vivado_pnr.log -nojournal -tempDir /tmp/ > /dev/null; \
+	EXIT=$$?; rm -f usage_statistics_webtalk.html usage_statistics_webtalk.xml; exit $$EXIT
 
 
 .PHONY: clean

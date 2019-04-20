@@ -1,6 +1,6 @@
 from nmigen import *
 
-from modules.clock_manager import set_module_clock
+from modules.managers.clock_manager import set_module_clock
 
 
 class Ws2812:

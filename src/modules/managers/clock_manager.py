@@ -7,7 +7,7 @@ clocking tree.
 import re
 from nmigen import *
 
-from .xilinx.clock_solver import ClockSolver
+from modules.xilinx.clock_solver import ClockSolver
 
 clocks = {}
 

@@ -1,10 +1,9 @@
 from nmigen import *
 from nmigen.cli import main
 
-from modules.xilinx.blocks import Ps7, Mmcm
+from modules.xilinx.blocks import Ps7
 from modules.quadrature_decoder import QuadratureDecoder
-from modules import anarchy
-from modules import clock_manager
+from modules.managers import anarchy_manager, clock_manager
 from util.nmigen import get_signals
 from modules.ws2812 import Ws2812
 import devices.common.layouts as layouts
@@ -32,7 +31,7 @@ class Top:
         self.encoder = Record(layouts.encoder)
 
         # as the very last step, assign the out of tree resources
-        anarchy.add_params(self)
+        anarchy_manager.add_params(self)
 
     def elaborate(self, platform):
         m = Module()

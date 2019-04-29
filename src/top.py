@@ -41,15 +41,16 @@ class Top:
         m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
         m.d.comb += ResetSignal().eq(~ps7.fclk.resetn[0])
 
+        m.d.comb += self.pmod_n[0].eq(ps7.fclk.clk[0])
+
         quadrature_decoder = m.submodules.quadrature_decoder = QuadratureDecoder(self.encoder.quadrature)
 
         ws2812 = m.submodules.ws2812 = Ws2812(self.ws2812, led_number=3)
         for led in ws2812.parallel_in:
             for color in led:
-                m.d.comb += color.eq(quadrature_decoder.parallel)
+                m.d.comb += color.eq(128)
 
-        clock_manager.generate_clock("10Mhz")
-        clock_manager.manage_clocks(m, "100 Mhz")
+        clock_manager.manage_clocks(m, ps7.fclk.clk[0], "100 Mhz")
         return m
 
 

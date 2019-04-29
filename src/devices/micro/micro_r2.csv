@@ -72,5 +72,5 @@ bank_io,name
 
 35_23p,ws2812
 35_23n,encoder.quadrature[0]
-34_21n,encoder.quadrature[1]
-34_21p,encoder.push
+35_21n,encoder.quadrature[1]
+35_21p,encoder.push

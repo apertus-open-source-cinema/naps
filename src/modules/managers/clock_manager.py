@@ -24,16 +24,19 @@ def generate_clock(requested_freq):
     return clocks[requested_freq]
 
 
-def set_module_clock(module, requested_freq):
-    module.d.comb += ClockSignal().eq(generate_clock(requested_freq))
+def module_clockdomain(module, requested_freq):
+    requested_freq = _freq_to_int(requested_freq)
+    domain_name = "f_{}_{}".format(requested_freq, hash(module))
+    module.domains += [ClockDomain(domain_name)]
+    return module.d[domain_name]
 
 
-def manage_clocks(module, f_in):
+def manage_clocks(module, clk, f_in):
     """Instanciates the clocking resources (e.g. PLLs)
 
     This should be called exactly once from the top level after everything else
     """
-    module.submodules.clock_solver = ClockSolver(clocks, module.d.clk, _freq_to_int(f_in))
+    module.submodules.clock_solver = ClockSolver(clocks, clk, _freq_to_int(f_in))
 
 
 def _freq_to_int(freq):

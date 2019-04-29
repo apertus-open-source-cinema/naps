@@ -1,6 +1,5 @@
 import subprocess
 from json import loads
-from util.logger import log
 
 
 def get_module_ports(verilog_path, module_name):

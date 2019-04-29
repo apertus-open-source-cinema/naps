@@ -16,7 +16,7 @@ build/verilog.v: $(shell find src/)
 	@echo "--- elaborating nMigen design ---"
 
 	mkdir -p $(@D)
-	pipenv run python src/top.py generate -tv > $@
+	pipenv run python src/top.py generate -tv $@
 
 build/top.edif: build/verilog.v
 	@echo -e "\n--- synthesizing design using yosys ---"

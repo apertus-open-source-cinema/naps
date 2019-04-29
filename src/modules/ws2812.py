@@ -1,6 +1,6 @@
 from nmigen import *
 
-from modules.managers.clock_manager import set_module_clock
+from modules.managers.clock_manager import module_clockdomain
 
 
 class Ws2812:
@@ -16,13 +16,13 @@ class Ws2812:
 
     def elaborate(self, platform):
         m = Module()
-        set_module_clock(m, "2Mhz")
+        sync = m.d.sync
 
         phy = m.submodules.ws2812__phy = Ws2812Phy(self.out)
 
         with m.FSM(reset="RESET"):
             with m.State("RESET"):
-                m.d.sync += phy.pattern.eq(3)  # 3 is reset
+                sync += phy.pattern.eq(3)  # 3 is reset
                 with m.If(phy.done):
                     m.next = "LED0_COLOR0_BIT0"
 
@@ -33,7 +33,7 @@ class Ws2812:
                     for bit in range(len(color)):
                         next_bit = bit+1 if bit > len(color) else 0
                         with m.State("LED{}_COLOR{}_BIT{}".format(led_n, color_n, bit)):
-                            m.d.sync += phy.pattern.eq(self.parallel_in[led_n][color_n][bit])
+                            sync += phy.pattern.eq(self.parallel_in[led_n][color_n][bit])
 
                             if led_n == len(self.parallel_in) - 1 \
                                     and color_n == len(led) - 1 \
@@ -55,6 +55,7 @@ class Ws2812Phy:
     """
 
     def __init__(self, out, patterns=[(5, 18), (18, 5), (1023, 0)]):
+        
         self.patterns = Array(Array(x for x in pattern) for pattern in patterns)
 
         self.pattern = Signal(max=len(patterns))
@@ -63,6 +64,7 @@ class Ws2812Phy:
 
     def elaborate(self, platform):
         m = Module()
+        sync = m.d.sync
 
         buffered_pattern = Signal(len(self.pattern))
 
@@ -73,21 +75,21 @@ class Ws2812Phy:
         max_pattern_length = max([sum(pattern) for pattern in self.patterns])
         counter = Signal(max=max_pattern_length)
         with m.If(counter == self.patterns[buffered_pattern][1]):
-            m.d.sync += [
+            sync += [
                 counter.eq(0),
                 self.done.eq(1),
 
                 dummy.eq(self.pattern),
             ]
         with m.Else():
-            m.d.sync += [
+            sync += [
                 counter.eq(counter+1),
                 self.done.eq(0),
             ]
 
         with m.If(counter > self.patterns[buffered_pattern][0]):
-            m.d.sync += self.out.eq(0)
+            sync += self.out.eq(0)
         with m.Else():
-            m.d.sync += self.out.eq(1)
+            sync += self.out.eq(1)
 
         return m

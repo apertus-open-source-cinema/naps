@@ -12,7 +12,7 @@ class ClockSolver:
         self.f_in = f_in
         self.in_clk = in_clk
         self.clocks = clocks.copy()
-        self.available_resources = ([Pll()] * 2) + ([Mmcm()] * 2)
+        self.available_resources = ([Mmcm()] * 2) + ([Pll()] * 2)
 
     def elaborate(self, platform):
         mod = Module()
@@ -22,13 +22,14 @@ class ClockSolver:
             frequencies = list(self.clocks.keys())[0:resource.CLOCK_COUNT]
 
             (m, d), dividers = ClockSolver._solve(resource, self.f_in, frequencies)
+            mod.d.comb += resource.get_in_clk().eq(self.in_clk)
             resource.set_vco(m, d)
             for d, f in zip(dividers, frequencies):
                 s = self.clocks[f]
                 clock = resource.get_clock(d)
                 mod.d.comb += s.eq(clock)
                 self.clocks.pop(f)
-                mod.submodules += resource
+                setattr(mod.submodules, "{}".format(resource.__class__.__name__), resource)
         return mod
 
     @staticmethod

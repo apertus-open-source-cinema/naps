@@ -1,7 +1,5 @@
 from nmigen import *
 
-from util.logger import log
-
 
 class QuadratureDecoder:
     """Decodes quadrature coding produced by a rotary encoder.

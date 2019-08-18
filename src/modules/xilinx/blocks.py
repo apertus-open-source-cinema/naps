@@ -16,6 +16,9 @@ class ClockingResource(XilinxBlackbox):
 
         self.next_clk = 0
 
+    def get_in_clk(self):
+        return self[self.__class__.IN_CLK]
+
     def set_vco(self, multiplier, divider):
         self.parameters[self.__class__.VCO_MULT_NAME] = multiplier
         self.parameters[self.__class__.VCO_DIV_NAME] = divider
@@ -34,9 +37,10 @@ class Mmcm(ClockingResource):
     CLOCK_COUNT = 7
     OUTPUT_DIV_STEP = 0.25
 
+    IN_CLK = "CLKIN1"
     VCO_MULT_NAME = "CLKFBOUT_MULT_F"
     VCO_DIV_NAME = "DIVCLK_DIVIDE"
-    OUT_DIV_NAME = "CLKOUT{}_DIVIDE"
+    OUT_DIV_NAME = "CLKOUT{}_DIVIDE_F"
     OUT_DIV_PORT = "CLKOUT{}"
 
 
@@ -44,10 +48,11 @@ class Pll(ClockingResource):
     module = "PLLE2_BASE"
     VCO_MIN = 800e6
     VCO_MAX = 1600e6
+    CLOCK_COUNT = 6
     OUTPUT_DIV_STEP = 1
 
-    CLOCK_COUNT = 6
-    VCO_MULT_NAME = "CLKFBOUT_MULT_F"
+    IN_CLK = "CLKIN1"
+    VCO_MULT_NAME = "CLKFBOUT_MULT"
     VCO_DIV_NAME = "DIVCLK_DIVIDE"
     OUT_DIV_NAME = "CLKOUT{}_DIVIDE"
     OUT_DIV_PORT = "CLKOUT{}"

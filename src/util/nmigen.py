@@ -1,4 +1,5 @@
 from nmigen import *
+from util.logger import log
 
 
 def flatten_nmigen_type(records):
@@ -31,5 +32,6 @@ def get_signals(module):
     :param module: The module to investigate
     :return A list of property Signals
     """
-    signals_records = [prop for prop in map(lambda name: getattr(module, name), dir(module)) if is_nmigen_type(prop)]
+    signals_records = [prop for prop in [getattr(module, name) for name in dir(module) if name[0] != "_"] if is_nmigen_type(prop)]
+    log(signals_records)
     return flatten_nmigen_type(signals_records)

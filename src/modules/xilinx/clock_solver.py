@@ -2,6 +2,7 @@
 
 from itertools import product
 from nmigen import *
+from util.logger import log
 
 from .blocks import Mmcm, Pll
 
@@ -15,7 +16,7 @@ class ClockSolver:
 
     def elaborate(self, platform):
         mod = Module()
-
+        
         while self.clocks:
             resource = self.available_resources.pop(0)
             frequencies = list(self.clocks.keys())[0:resource.CLOCK_COUNT]

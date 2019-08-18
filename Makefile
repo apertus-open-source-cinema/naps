@@ -16,7 +16,7 @@ build/verilog.v: $(shell find src/)
 	@echo "--- elaborating nMigen design ---"
 
 	mkdir -p $(@D)
-	pipenv run python src/top.py generate -tv > $@
+	python3.7 src/top.py generate -tv > $@
 
 build/top.edif: build/verilog.v
 	@echo -e "\n--- synthesizing design using yosys ---"
@@ -26,16 +26,16 @@ build/top.edif: build/verilog.v
 build/top.xdc: src/devices/$(DEVICE)/gen_xdc.py build/verilog.v
 	@echo -e "\n--- generating constraints file ---"
 
-	pipenv run python src/devices/$(DEVICE)/gen_xdc.py > $@
+	python3.7 src/devices/$(DEVICE)/gen_xdc.py > $@
 
 build/top.bin: build/top.bit
-	pipenv run python src/util/to_raw_bitstream.py -f $< $@
+	python3.7 src/util/to_raw_bitstream.py -f $< $@
 
 build/top.bit: build/top.edif build/top.xdc
 	@echo -e "\n --- PnR using vivado ---"
 
 	echo -e "read_xdc build/top.xdc\n read_edif $<\n link_design -part $(PART_NAME) -top top\n \
-	    opt_design\n place_design\n route_design\n report_utilization\n report_timing\n write_bitstream -force $@" \
+	    opt_design\n place_design\n route_design\n report_utilization\n report_timing\nwrite_checkpoint -force build/post_route\n write_bitstream -force $@" \
 	    > build/vivado_pnr.tcl
 	time $(VIVADO) -mode batch -source build/vivado_pnr.tcl -log build/vivado_pnr.log -nojournal -tempDir /tmp/ > /dev/null; \
 	EXIT=$$?; rm -f usage_statistics_webtalk.html usage_statistics_webtalk.xml; exit $$EXIT

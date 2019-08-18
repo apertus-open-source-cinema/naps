@@ -1,6 +1,7 @@
 from nmigen import *
+from nmigen.cli import main
 
-from modules.managers.clock_manager import set_module_clock
+# from modules.managers.clock_manager import set_module_clock
 
 
 class Ws2812:
@@ -16,7 +17,7 @@ class Ws2812:
 
     def elaborate(self, platform):
         m = Module()
-        set_module_clock(m, "2Mhz")
+#        set_module_clock(m, "2Mhz")
 
         phy = m.submodules.ws2812__phy = Ws2812Phy(self.out)
 
@@ -27,11 +28,11 @@ class Ws2812:
                     m.next = "LED0_COLOR0_BIT0"
 
             for led_n, led in enumerate(self.parallel_in):
-                next_led = led_n + 1 if led_n > len(self.parallel_in) else 0
+                next_led = led_n + 1 if led_n+1 < len(self.parallel_in) else 0
                 for color_n, color in enumerate(led):
-                    next_color = color_n+1 if color_n > len(led) else 0
+                    next_color = color_n+1 if color_n+1 < len(led) else 0
                     for bit in range(len(color)):
-                        next_bit = bit+1 if bit > len(color) else 0
+                        next_bit = bit+1 if bit+1 < len(color) else 0
                         with m.State("LED{}_COLOR{}_BIT{}".format(led_n, color_n, bit)):
                             m.d.sync += phy.pattern.eq(self.parallel_in[led_n][color_n][bit])
 
@@ -41,6 +42,7 @@ class Ws2812:
                                 with m.If(phy.done):
                                     m.next = "RESET"
                             else:
+                                print("LED{}_COLOR{}_BIT{}".format(led_n, color_n, bit), "->", "LED{}_COLOR{}_BIT{}".format(next_led, next_color, next_bit))
                                 with m.If(phy.done):
                                     m.next = "LED{}_COLOR{}_BIT{}".format(next_led, next_color, next_bit)
         return m
@@ -54,7 +56,7 @@ class Ws2812Phy:
     Reset is send when the output is more than 1000 cycles LOW.
     """
 
-    def __init__(self, out, patterns=[(5, 18), (18, 5), (1023, 0)]):
+    def __init__(self, out, patterns=[(7, 18), (18, 7), (1023, 0)]):
         self.patterns = Array(Array(x for x in pattern) for pattern in patterns)
 
         self.pattern = Signal(max=len(patterns))
@@ -91,3 +93,26 @@ class Ws2812Phy:
             m.d.sync += self.out.eq(1)
 
         return m
+
+
+if __name__ == "__main__":
+    from nmigen.back import pysim
+    out = Signal()
+    ws2812 = Ws2812(out, led_number=1)
+    main(ws2812)
+
+    with pysim.Simulator(ws2812,
+            vcd_file=open("ws2812.vcd", "w"),
+            gtkw_file=open("ws2812.gtkw", "w"),
+            traces=[out]) as sim:
+        sim.add_clock(500e-9)
+        def controller_proc():
+            for led in ws2812.parallel_in:
+                for color in led:
+                    yield color.eq(4)
+
+            for _ in range(65535):
+                yield
+                    
+        sim.add_sync_process(controller_proc())
+        sim.run_until(1000e-6, run_passive=False)

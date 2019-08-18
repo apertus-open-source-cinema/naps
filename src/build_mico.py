@@ -7,9 +7,11 @@ from modules.managers import anarchy_manager, clock_manager
 from util.nmigen import get_signals
 from modules.nws2812 import nWs2812
 import devices.common.layouts as layouts
+import devices.micro.layouts as micro_layouts
+from devices.micro.micro_r2 import MicroR2Platform
 
 
-class Top:
+class Top(Elaboratable):
     """The top entity of the gateware.
 
     Only instantiates the right parts and connects them.
@@ -17,7 +19,7 @@ class Top:
     """
 
     def __init__(self):
-        self.sensor = Record(layouts.ar0330)
+        self.sensor = Record(micro_layouts.ar0330)
         self.i2c = Record(layouts.i2c)  # i2c also somehow belongs to the image sensor. it is shared globally
 
         self.plugin_n = Record(layouts.plugin_module)
@@ -28,7 +30,7 @@ class Top:
         self.pmod_e = Signal(4)
 
         self.ws2812 = Signal()
-        self.encoder = Record(layouts.encoder)
+        self.encoder = Record(micro_layouts.encoder)
 
         self._clk = Signal()
 
@@ -68,5 +70,6 @@ class Top:
 
 
 if __name__ == "__main__":
-    top = Top()
-    main(top, ports=get_signals(top) + [top._clk])
+    m = Top()
+    p = MicroR2Platform()
+    p.build(m)

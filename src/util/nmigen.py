@@ -1,5 +1,4 @@
 from nmigen import *
-from util.logger import log
 
 
 def flatten_nmigen_type(records):

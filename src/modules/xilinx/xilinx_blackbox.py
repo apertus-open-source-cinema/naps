@@ -2,7 +2,6 @@ from nmigen import *
 import re
 
 from util import yosys
-from util.logger import log
 
 
 class XilinxBlackbox:

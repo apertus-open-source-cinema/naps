@@ -1,25 +1,20 @@
 [[source]]
-
 name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
 
-[dev-packages]
-
-flake8 = "*"
-
-
-[packages]
-
-pandas = "*"
-
-
 [requires]
-
 python_version = "3.7"
 
+[dev-packages]
+flake8 = "*"
+
+[packages]
+pandas = "*"
 
 [packages.nmigen]
-
 git = "https://github.com/m-labs/nmigen.git"
+
+[packages.nmigen-boards]
+git = "https://github.com/axiom-micro/nmigen-boards.git"

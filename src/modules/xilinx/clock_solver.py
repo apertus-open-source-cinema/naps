@@ -2,7 +2,6 @@
 
 from itertools import product
 from nmigen import *
-from util.logger import log
 
 from .blocks import Mmcm, Pll
 

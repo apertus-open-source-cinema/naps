@@ -6,7 +6,6 @@ clocking tree.
 
 import re
 from nmigen import *
-from util.logger import log
 
 from modules.xilinx.clock_solver import ClockSolver
 

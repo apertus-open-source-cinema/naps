@@ -11,7 +11,7 @@ class XilinxBlackbox(Elaboratable):
     def __init__(self, **kwargs):
         self.module = self.module or self.__class__.__name__
         self.parameters = kwargs
-        self.ports = yosys.get_module_ports("+/xilinx/cells_xtra.v", self.module)
+        self.ports = yosys.get_module_ports("+/xilinx/xc7_cells_xtra.v", self.module)
         self.hierarchy = self._find_hierarchy(list(self.ports.keys()))
         self.signal_proxy = SignalProxy(self.hierarchy, self.ports, path=self.module)
 

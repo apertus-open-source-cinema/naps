@@ -1,4 +1,5 @@
 from nmigen import *
+from nmigen.back import verilog
 from nmigen.cli import main
 
 from modules.xilinx.blocks import Ps7
@@ -9,7 +10,6 @@ from modules.nws2812 import nWs2812
 import devices.common.layouts as layouts
 import devices.micro.layouts as micro_layouts
 from devices.micro.micro_r2 import MicroR2Platform
-
 
 class Top(Elaboratable):
     """The top entity of the gateware.
@@ -35,28 +35,31 @@ class Top(Elaboratable):
         self._clk = Signal()
 
         # as the very last step, assign the out of tree resources
-        anarchy_manager.add_params(self)
+        # anarchy_manager.add_params(self)
 
-    def elaborate(self, platform):
+    def elaborate(self, plat):
         m = Module()
+
+#        m.d.comb += self._clk.eq(ClockSignal())
+
+        m.domains += ClockDomain("sync")
 
         ps7 = m.submodules.ps7_wrapper = Ps7()
 
-        m.d.comb += self._clk.eq(ClockSignal())
         m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
         m.d.comb += ResetSignal().eq(0)
 
         # quadrature_decoder = m.submodules.quadrature_decoder = QuadratureDecoder(self.encoder.quadrature)
 
         ws2812 = m.submodules.ws2812 = nWs2812()
-        m.d.comb += self.ws2812.eq(ws2812.out)
+        m.d.comb += plat.request("ws2812").eq(ws2812.out)
 
         m.d.comb += ws2812.input.eq(0xff000000ff000000ff)
 
         # clock_manager.generate_clock("10Mhz")
         # clock_manager.manage_clocks(m, "100 Mhz")
 
-        m.d.comb += self.pmod_n[0].eq(ps7.fclk.clk[0])
+#        m.d.comb += plat.request("ws2812").eq(ps7.fclk.clk[0])
 
         # quadrature_decoder = m.submodules.quadrature_decoder = QuadratureDecoder(self.encoder.quadrature)
 
@@ -70,6 +73,7 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    m = Top()
+    # frag = Top().elaborate(None)
+    # print(verilog.convert(frag, name="top"))
     p = MicroR2Platform()
-    p.build(m)
+    p.build(Top())

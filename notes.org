@@ -1,0 +1,234 @@
+
+
+* AXI3
+
+  burst based
+  independent transaction channels:
+  - read address
+  - read data
+  - write address
+  - write data
+  - write response
+
+  - address information ahead of actual data transfer
+  - multiple outstanding transactions
+  - out-of-order completion of transactions
+
+
+** Channels:
+   each has own VALID and READY signal
+   information source uses VALID signal to show valid information is available
+   sink uses READY signal to show when it can accept information
+
+   {read, write}-data channel also hat LAST signal that indicates transfer of final data item
+
+   data channel can be 2**3 to 2**10 wide
+
+   write response channel: 
+   - all write transactions require completion signaling on the write response channel, 
+   - completion is signaled only for complete transactions, not for each transfer in a transaction
+
+
+** Signals
+   ACLK       Global clock signal
+   - all signals are sampled on the rising edge of the global clock
+
+
+   ARESETn    Global reset signal, active low
+
+
+*** write address channel
+    Source: master
+    AWID        Write address ID, identification for the write address group
+    AWADDR      Write address, address of the first transfer in a write burst transaction
+    AWLEN       Burst length, exact number of *transfers* in a burst
+    AWSIZE      Burst size, size of each *transfer* in the burst
+    AWBURST     Burst type, determines how the address for each transfer within the burst is calculated
+    AWLOCK      Lock type, provides additional information about the atomic characteristics of the transfer (changes between AXI3 and AXI4!!!)
+    AWCACHE     Memory type
+    AWPROT      Protection type
+    AWQOS       Quality of serive (only in AXI4)
+    AWREGION    Region identifier (only in AXI4)
+    AWUSER      User signal (only in AXI4)
+    AWVALID     Write address valid -> signaling valid write address and control information
+
+    Source: slave
+    AWREADY     Write address ready -> slave is ready to accept an address + control information
+*** write data channel
+    Source: master
+    WID         Write ID, ID tag of write transfer data (only AXI3)
+    WDATA       Write data
+    WSTRB       Write strobes, indicates which byte lanes hold valid data, one bit per set of eight bits (byte)
+    WLAST       Write last, indicates the last transfer in a write burst
+    WUSER       User signal (only in AXI4)
+    WVALID      Write valid, valid write data and strobes are available
+
+    Source: slave
+    WREADY      Write ready, slave can accept write data
+*** write response channel
+    Source: slave
+    BID         Response ID, tag of the write response
+    BRESP       Write response, status of write transaction
+    BUSER       User signal (only in AXI4)
+    BVALID      Write response valid, slave is signaling a response
+    Source: master
+    BREADY      Response ready, master can accept response
+
+
+*** read address channel
+    Source: master
+    ARID        Read address ID, identification for the read address group
+    ARADDR      Read address, address of the first transfer in a read burst transaction
+    ARLEN       Burst length, exact number of *transfers* in a burst
+    ARSIZE      Burst size, size of each *transfer* in the burst
+    ARBURST     Burst type, determines how the address for each transfer within the burst is calculated
+    ARLOCK      Lock type, provides additional information about the atomic characteristics of the transfer (changes between AXI3 and AXI4!!!)
+    ARCACHE     Memory type
+    ARPROT      Protection type
+    ARQOS       Quality of serive (only in AXI4)
+    ARREGION    Region identifier (only in AXI4)
+    ARUSER      User signal (only in AXI4)
+    ARVALID     Read address valid -> signaling valid read address and control information
+
+    Source: slave
+    AWREADY     Read address ready -> slave is ready to accept an address + control information
+*** read data channel
+    Source: slave
+    RID         Read ID, ID tag of read transfer data 
+    RDATA       Read data
+    RRESP       Read response, indicates the status of the read transfer
+    RLAST       Read last, indicates the last transfer in a read burst
+    RUSER       User signal (only in AXI4)
+    RVALID      Read valid, valid read data and strobes are available
+
+    Source: master
+    RREADY      Read ready, slave can accept read data
+
+
+*** optional low-power interface
+    Source: clock controller
+    CSYSREQ     System exit low-power state request
+    Source: peripheral device
+    CSYSACK     Exit low-power state acknowledgement
+    CACTIVE     Clock active, peripheral requires its clock signal
+
+
+
+** Clock and reset
+   single clock signal ACLK, input signals are sampled on the rising edge of ACLK
+   All output signal changes must occur after the rising edge of ACLK
+
+   On master and slave interfaces there must be no combinatorial paths between input and output signals.        [WUT]
+
+   Reset can be asserted async, but deassertion must be synchronous with rising edge of ACLK
+   during reset:
+   master must drive ARVALID, AWVALID and WVALID LOW
+   slave must drive RVALID and BVALID LOW
+   all other signals can be driven to any value
+
+
+   earliest point where ARVALID, AWVALID or WVALID are allowed to be driven HIGH is at the rising ACLK edge after ARESETn is HIGH
+
+
+** channel handshake process
+   first source generate VALID signal, to indicate when the SIGNAL is valid
+   sink generate READY signal to indicate it can accept information
+
+   transfer occurs only when both VALID and READY signals are HIGH
+
+   source has to hold the SIGNAL until READY is asserted (both VALID and READY are high)
+
+   sink can assert READY before VALID
+   source *cannot* wait for READY
+   sink can deassert READY before VALID was asserted
+
+
+   for {read, write} data channels:
+   {R,W}LAST *must* be assert while driving the final {read, write} transfer in the burst
+
+
+** relationshpins between channels
+   write response must always follow the last write transfer in a write transaction of which it is a part of
+   read data must always follow the address to which the data relates
+
+   read transaction dependencies:
+   slave must wait for both ARVALID and ARREADY to be asserted before it aserts RVALID
+
+   write transaction dependencies:
+   write address and write data are independent, write data can be issued *before* write adddress (as opposed to in the read case, kinda obvious?)
+   BVALID can only be asserted after data is issued (whole data, so also WLAST), but could be before the address was issued (lol), 
+    this was removed in AXI4 and the address also has to be issued before BVALID, but the spec *strongly recommends* to also do this in AXI3 (lol)
+
+** transaction structure
+   The master begins a transaction / burst, by driving control information and the addres of the first byte in the transaction to the slave
+   as the burst progresses the slave has to calculate the addresses of the subsequent transfers in the burst
+
+   A burst must not cross a 4KB addres boundary (lol)
+
+   AXI3 supports burst lengths of 1 to 16 transfers, for all burst types
+   AXI4 supports 1 to 256 for INCR bursts and 1 to 15 for the others
+
+   burst length is defined as AxLEN[3:0] + 1 for AXI3 and AxLEN[7:0] + 1 for AXI4
+
+   wrapping bursts have to be 2^n , n ∈ [1, ..., 4]  long
+   early termination is not supported, but writes can be disabled by deasserting write strobes
+
+   The number of byte in a single transfer / beat is determined by 2^AxSIZE[2:0]
+   the size must not axceed the data bus widht of either agent in the transaction
+** burst types
+   type is specified by AxBURST[1:0]:
+   AxBURST[1:0]
+   0b00:        FIXED     The address is the same for every transfer in the burst, i.e. loading or emptying a FIFO
+   0b01:        INCR      Incrementing: the address for each trasfer of the burst is an increment of the address for the previous trasfer by the transfer size (in bytes)
+   0b10:        WRAP      (i don't understand this, but we don't need it)
+
+
+   The bursts do something strange: 
+   the first beat is written to the AxADDR, but all subsequent beats are written to floor(AxADDR / 2^AxSIZE) * 2^AxSIZE + (N - 1) * 2^AxSIZE
+
+   also for the first beat only the bytes needed to get to a aligned address are used
+
+** data read and write structure
+   WSTRB[n:0] signals when HIGH the byte lanes of the data bus that contain valid information
+
+   narrow transfers (transfers smaller then the bus width) are for the INCR and WRAP burst type transfered on different byte lanes each beat
+   only AxSIZE byte lanes are used in each beat and the used lanes move from 0 to n and wraps at N = lb(BUS_WIDTH)
+   the first beat starts its byte lanes at (addr % BUS_WIDTH) and goes to 
+
+
+** read and write response 
+   RRESP[1:0] for read transfers and BRESP[1:0] for write transfers
+   xRESP[1:0]   Response
+   0b00         OKAY          normal acess success, but exclusive access could have failed
+   0b01         EXOKAY        exclusive access okay
+   0b10         SLVERR        slave error
+   0b11         DECERR        decode error, generated typically by an interconnect, to indicate that there is no slave at the transaction address
+
+
+** transaction attributes
+   AxCACHE  Value  Transaction attribute
+   [0]      0      Non-bufferable
+   [0]      1      bufferable            any component can delay the transaction for any number of cycles
+   [1]      0      Non-cacheable         allocation of the transaction is permitted, RA and WA give additional hint information, for write: number of different writes can be merged together, 
+   [1]      1      cacheable             reads: contents of a loaction can be prefetched and used for multiple read transactions
+   [2]      0      No read-allocate 
+   [2]      1      read-allocate         read-allocation is recommended, but not mandatory
+   [3]      0      No write-allocate
+   [3]      1      write-allocate        write-allocation is recommended but not mandatory
+
+** transaction idenfifiers
+   a master can use AXI ID's to identify seperate transactions that must be returned in order
+
+   all transactions with a given AXI ID value must remain ordered, but there is no restriction on the ordering of transactions with different ID values
+
+   slave are required to reflect on the appropriate BID or RID response an AXI ID received from a master
+*** write interleaving
+    most slave do not support write interleaving and a master can only use write interleaving, if it knows the slave supports it
+
+
+
+
+
+
+
+

@@ -4,7 +4,7 @@ import re
 from util import yosys
 
 
-class XilinxBlackbox:
+class XilinxBlackbox(Elaboratable):
     """Wraps the a Xilinx ip as a convenient blackbox.
     """
 

@@ -13,7 +13,7 @@ def get_module_ports(verilog_path, module_name):
         "write_json"
     ])
     parsed_json = loads(json)
-    print(dumps(parsed_json, indent=2))
+#    print(dumps(parsed_json, indent=2))
     module = parsed_json["modules"][module_name]
     ports = module["ports"]
 

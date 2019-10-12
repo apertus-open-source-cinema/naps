@@ -17,6 +17,7 @@ class S7HDMIOutEncoderSerializer(Module):
         # # #
 
         data = Signal(10)
+        self.comb += data.eq(self.data)
 
         ce = Signal()
         self.sync.pix += ce.eq(~ResetSignal("pix"))

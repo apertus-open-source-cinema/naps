@@ -44,8 +44,9 @@ class TimingGenerator(Elaboratable):
     def __init__(self, width, height, refresh):
         self.video_timing = calculate_video_timing(width, height, refresh)
 
-        self.y = Signal(max=self.video_timing["hscan"] + 1)
-        self.x = Signal(max=self.video_timing["vscan"] + 1)
+
+        self.x = Signal(max=self.video_timing["hscan"] + 1)
+        self.y = Signal(max=self.video_timing["vscan"] + 1)
         self.active = Signal()
         self.hsync = Signal()
         self.vsync = Signal()
@@ -87,8 +88,8 @@ class XorPatternGenerator(Elaboratable):
 
         m.d.comb += [
             self.out.r.eq(self.x ^ self.y),
-            self.out.g.eq(self.x ^ self.y),
-            self.out.b.eq(self.x ^ self.y)
+            self.out.g.eq((self.x + 1) ^ self.y),
+            self.out.b.eq(self.x ^ (self.y + 1))
         ]
 
         return m

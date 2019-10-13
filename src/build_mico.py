@@ -15,7 +15,6 @@ class Top(Elaboratable):
 
         m.domains += ClockDomain("sync")
         ps7 = m.submodules.ps7_wrapper = Ps7()
-        plat.add_clock_constraint(ps7.fclk.clk, 100e6)
         m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
         m.d.comb += ResetSignal().eq(0)
 
@@ -23,7 +22,7 @@ class Top(Elaboratable):
         hdmi_ressource = plat.request("hdmi")
         m.d.comb += hdmi_ressource.output_enable.eq(True)
         m.d.comb += hdmi_ressource.vcc_enable.eq(True)
-        m.submodules += Hdmi(1920, 1080, 60, hdmi_ressource)
+        m.submodules.hdmi = Hdmi(640, 480, 30, hdmi_ressource)
 
         return m
 
@@ -33,14 +32,9 @@ if __name__ == "__main__":
 
     # connect the hdmi plugin module
     import devices.plugin_modules.hdmi as hdmi
-
     hdmi.connect(p, "plugin_n")
 
     from sys import argv
+    do_build = "check" not in argv
 
-    if len(argv) > 1:
-        assert argv[1] == "check"
-        frag = Top().elaborate(p)
-        verilog.convert(frag, name="top")
-    else:
-        p.build(Top())
+    p.build(Top(), do_build=do_build)

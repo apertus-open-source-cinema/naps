@@ -45,3 +45,10 @@ class MicroR2Platform(ZTurnLiteZ010Platform):
             Connector("pmod_s", 0, "97 95 89 85 - - 99 93 87 83 - -", conn=("expansion", 0), ),
             Connector("pmod_e", 0, "103 105 107 109 - -", conn=("expansion", 0), ),
         ])
+
+    def toolchain_prepare(self, fragment, name, **kwargs):
+        overrides = {
+            "add_constraints":
+                "create_clock -name clk100 -period 100.0 [get_nets ps7_wrapper_FCLKCLK[0]]"
+        }
+        return super().toolchain_prepare(fragment, name, **overrides, **kwargs)

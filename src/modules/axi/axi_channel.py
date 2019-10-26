@@ -1,33 +1,21 @@
 from nmigen import *
-from nmigen.back import rtlil, verilog, pysim
+from nmigen.back import verilog
 from nmigen.hdl.rec import Direction
 from enum import Enum
-
-# class AxiChannel:
-#     def __init__(self, payload):
-#         self.payload = payload
-#         self.valid = Signal()
-#         self.ready = Signal()
-#
-#
-# class AxiChannelSink:
-#     def elaborate(self):
-#
-#
-# class AxiChannelSource:
-#     def elaborate(self):
+from abc import ABC, abstractmethod
 
 
 class Response(Enum):
-    OKAY   = 0b00
+    OKAY = 0b00
     EXOKAY = 0b01
     SLVERR = 0b10
     DECERR = 0b11
 
+
 class BurstType(Enum):
     FIXED = 0b00
-    INCR  = 0b01
-    WRAP  = 0b10
+    INCR = 0b01
+    WRAP = 0b10
 
 
 # TODO(robin): are these directions right????
@@ -38,13 +26,15 @@ def axi_channel(payload, master_to_slave):
     else:
         return payload + [("valid", 1, Direction.FANOUT), ("ready", 1, Direction.FANIN)]
 
+
 # read address or write address channel
-def address_channel(*, addr_bits, lite, id_bits):
+def address_channel(*, addr_bits, lite, id_bits=None):
     layout = axi_channel([
         ("addr", addr_bits, Direction.FANIN),
     ], True)
 
     if not lite:
+        assert id_bits is not None, "id_bits is mandatory for full axi"
         layout += [
             ("id", id_bits, Direction.FANIN),
             ("burst", 2, Direction.FANIN),
@@ -52,50 +42,61 @@ def address_channel(*, addr_bits, lite, id_bits):
             ("size", 2, Direction.FANIN),
             ("prot", 3, Direction.FANIN)
         ]
+    else:
+        assert id_bits is None, "id_bits specified for axi lite. axi lite doesnt have transaction ids"
 
     return layout
 
-# read data or write data channel (for read data channel set read to true)
-def data_channel(*, data_bits, lite, read, id_bits):
-    direction = [Direction.FANIN, Direction.FANOUT]
 
+# read data or write data channel (for read data channel set read to true)
+def data_channel(*, data_bits, lite, read, id_bits=None):
     if read:
-        direction = direction[::-1]
+        direction = Direction.FANIN
+    else:
+        direction = Direction.FANOUT
 
     if lite:
         assert data_bits == 32, "xilinx zynq only support 32bit data widths in axi lite mode"
 
     layout = axi_channel([
-        ("data", data_bits, direction[0]),
+        ("data", data_bits, direction),
     ], ~read)
 
     if read:
-        layout += [("resp", 2, direction[0])]
+        layout += [("resp", 2, direction)]
     else:
-        ("strb", 4, direction[0]) # slaves can elect to ignore strobe in axi lite
+        layout += [("strb", 4, direction)]  # slaves can elect to ignore strobe in axi lite
 
     if not lite:
+        assert id_bits is not None, "id_bits is mandatory for full axi"
         layout += [
-            ("id", id_bits, direction[0]),
-            ("last", 1, direction[0]),
+            ("id", id_bits, direction),
+            ("last", 1, direction),
         ]
+    else:
+        assert id_bits is None, "id_bits specified for axi lite. axi lite doesnt have transaction ids"
 
     return layout
 
-def write_response_channel(*, lite, id_bits):
+
+def write_response_channel(*, lite, id_bits=None):
     layout = axi_channel([
         ("resp", 2, Direction.FANOUT)
     ], False)
 
     if not lite:
+        assert id_bits is not None, "id_bits is mandatory for full axi"
         layout += [
             ("id", id_bits, Direction.FANOUT),
         ]
+    else:
+        assert id_bits is None, "id_bits specified for axi lite. axi lite doesnt have transaction ids"
 
     return layout
 
+
 class Interface(Record):
-    def __init__(self, *, addr_bits, data_bits, lite, id_bits):
+    def __init__(self, *, addr_bits, data_bits, lite, id_bits=None):
         layout = [
             ("read_address", address_channel(addr_bits=addr_bits, lite=lite, id_bits=id_bits)),
             ("write_address", address_channel(addr_bits=addr_bits, lite=lite, id_bits=id_bits)),
@@ -109,8 +110,8 @@ class Interface(Record):
 
 class AxiLiteSlaveToFullBridge(Elaboratable):
     def __init__(self):
-        self.lite_bus = Interface(addr_bits = 32, data_bits = 32, lite = True, id_bits = 12)
-        self.full_bus = Interface(addr_bits = 32, data_bits = 32, lite = False, id_bits = 12)
+        self.lite_bus = Interface(addr_bits=32, data_bits=32, lite=True)
+        self.full_bus = Interface(addr_bits=32, data_bits=32, lite=False, id_bits=12)
 
     def elaborate(self, platform):
         m = Module()
@@ -132,19 +133,25 @@ class AxiLiteSlaveToFullBridge(Elaboratable):
         with m.Else():
             m.d.comb += self.full_bus.write_data.id.eq(write_id)
 
-
         m.d.comb += self.full_bus.read_data.last.eq(1)
 
         return m
 
 
-class AxiLiteSlave(Elaboratable):
-    def __init__(self, read_done, write_done, handle_read, handle_write):
-        self.bus = Interface(addr_bits = 32, data_bits = 32, lite = True, id_bits = 12) # 12 id bits for zynq
-        self.read_done = read_done
-        self.write_done = write_done
-        self.handle_read = handle_read
-        self.handle_write = handle_write
+class AxiLiteSlave(Elaboratable, ABC):
+    def __init__(self):
+        self.bus = Interface(addr_bits=32, data_bits=32, lite=True)
+        self.read_done = Signal()
+        self.write_done = Signal()
+
+    @abstractmethod
+    def handle_read(self, m, addr, data, resp):
+        pass
+
+    @abstractmethod
+    def handle_write(self, m, addr, data, resp):
+        pass
+
     def elaborate(self, platform):
         m = Module()
 
@@ -185,34 +192,23 @@ class AxiLiteSlave(Elaboratable):
 
         return m
 
-class AxiGPIO(Elaboratable):
+
+class AxiGPIO(AxiLiteSlave):
     def __init__(self, pins):
+        super().__init__()
         self.pins = pins
 
-        read_done = Signal()
-        write_done = Signal()
+    def handle_read(self, m, addr, data, resp):
+        m.d.sync += self.pins.bit_select(addr[30:], 1).eq(data[0])
+        m.d.sync += resp.eq(Response.OKAY)
+        m.d.sync += self.read_done.eq(1)
 
-        def handle_read(m, addr, data, resp):
-            pass
-            m.d.sync += self.pins.bit_select(addr[30:], 1).eq(data[0])
-            m.d.sync += resp.eq(Response.OKAY)
-            m.d.sync += read_done.eq(1)
+    def handle_write(self, m, addr, data, resp):
+        m.d.sync += data[0].eq(self.pins.bit_select(addr[30:], 1))
+        m.d.sync += resp.eq(Response.OKAY)
+        m.d.sync += self.write_done.eq(1)
 
-        def handle_write(m, addr, data, resp):
-            pass
-            m.d.sync += data[0].eq(self.pins.bit_select(addr[30:], 1))
-            m.d.sync += resp.eq(Response.OKAY)
-            m.d.sync += write_done.eq(1)
 
-        self.axi_slave = AxiLiteSlave(read_done, write_done, handle_read, handle_write)
-
-    def elaborate(self, platform):
-        m = Module()
-
-        m.submodules += self.axi_slave
-
-        return m
-
-pins = Signal(8)
-
-print(verilog.convert(AxiGPIO(pins)))
+if __name__ == "__main__":
+    pins = Signal(8)
+    print(verilog.convert(AxiGPIO(pins)))

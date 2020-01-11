@@ -1,6 +1,7 @@
 from nmigen import *
 from modules.vendor.litevideo_hdmi.s7 import S7HDMIOutPHY, S7HDMIOutClocking
 from util.cvt import calculate_video_timing
+from modules.managers.clock_manager import generate_clock
 
 
 class Hdmi(Elaboratable):
@@ -10,11 +11,14 @@ class Hdmi(Elaboratable):
     def __init__(self, width, height, refresh, pins):
         self.pins = pins
         self.width, self.height, self.refresh = width, height, refresh
+        self.pix_clk_freq = calculate_video_timing(width, height, refresh)["pxclk"] * 1e6
 
     def elaborate(self, plat):
         m = Module()
 
-        m.submodules.pll = S7HDMIOutClocking()
+        generate_clock(self.pix_clk_freq, "pix")
+        generate_clock(self.pix_clk_freq * 5, "pix5x")
+
         m.d.comb += self.pins.clock.eq(ClockSignal("pix"))
 
         t = m.submodules.timing_generator = DomainRenamer("pix")(TimingGenerator(self.width, self.height, self.refresh))

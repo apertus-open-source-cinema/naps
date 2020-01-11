@@ -12,27 +12,20 @@ from modules.xilinx.clock_solver import ClockSolver
 clocks = {}
 
 
-def generate_clock(requested_freq):
+def generate_clock(requested_freq, name):
     """Returns a clock with the requested frequency
 
     Possible frequency definitions include: `1Mhz`, `1e6`, `0.1 Ghz`
     """
     requested_freq = _freq_to_int(requested_freq)
 
-    if requested_freq not in clocks:
-        clocks[requested_freq] = Signal()
-    return clocks[requested_freq]
-
-
-def module_clockdomain(module, requested_freq):
-    requested_freq = _freq_to_int(requested_freq)
-    domain_name = "f_{}_{}".format(requested_freq, hash(module))
-    module.domains += [ClockDomain(domain_name)]
-    return module.d[domain_name]
+    if name not in clocks:
+        clocks[name] = requested_freq
+    return ClockSignal(name)
 
 
 def manage_clocks(module, clk, f_in):
-    """Instanciates the clocking resources (e.g. PLLs)
+    """Instantiates the clocking resources (e.g. PLLs)
 
     This should be called exactly once from the top level after everything else
     """

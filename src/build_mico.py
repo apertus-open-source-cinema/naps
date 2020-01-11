@@ -1,9 +1,9 @@
 from nmigen import *
-from nmigen.back import verilog
 
 from modules.xilinx.blocks import Ps7
 from devices.micro.micro_r2 import MicroR2Platform
 from modules.hdmi import Hdmi
+from modules.managers import clock_manager as cm
 
 
 class Top(Elaboratable):
@@ -18,11 +18,12 @@ class Top(Elaboratable):
         m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
         m.d.comb += ResetSignal().eq(0)
 
+        hdmi_plugin = plat.request("hdmi")
+        m.d.comb += hdmi_plugin.output_enable.eq(True)
+        m.d.comb += hdmi_plugin.vcc_enable.eq(True)
+        m.submodules.hdmi = Hdmi(640, 480, 30, hdmi_plugin)
 
-        hdmi_ressource = plat.request("hdmi")
-        m.d.comb += hdmi_ressource.output_enable.eq(True)
-        m.d.comb += hdmi_ressource.vcc_enable.eq(True)
-        m.submodules.hdmi = Hdmi(640, 480, 30, hdmi_ressource)
+        cm.manage_clocks(m, ClockSignal(), 100e6)
 
         return m
 

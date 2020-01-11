@@ -6,29 +6,46 @@ from nmigen import *
 from .blocks import Mmcm, Pll
 
 
-class ClockSolver:
+class ClockSolver(Elaboratable):
     def __init__(self, clocks, in_clk, f_in):
         self.f_in = f_in
         self.in_clk = in_clk
-        self.clocks = clocks.copy()
-        self.available_resources = ([Mmcm()] * 2) + ([Pll()] * 2)
+        self.clocks = clocks
+        self.available_resources = ([Mmcm] * 2) + ([Pll] * 2)
 
     def elaborate(self, platform):
         mod = Module()
-        
-        while self.clocks:
-            resource = self.available_resources.pop(0)
-            frequencies = list(self.clocks.keys())[0:resource.CLOCK_COUNT]
 
-            (m, d), dividers = ClockSolver._solve(resource, self.f_in, frequencies)
+        self.clocks = self.clocks.copy()
+
+        while self.clocks:
+            resource = self.available_resources.pop(0)()
+            frequencies = list(set(self.clocks.values()))[0:resource.CLOCK_COUNT]
+
+            (global_m, global_d), dividers = ClockSolver._solve(resource, self.f_in, frequencies)
             mod.d.comb += resource.get_in_clk().eq(self.in_clk)
-            resource.set_vco(m, d)
+            resource.set_vco(global_m, global_d)
             for d, f in zip(dividers, frequencies):
-                s = self.clocks[f]
+                # first, add a domain named after the requested frequency
                 clock = resource.get_clock(d)
-                mod.d.comb += s.eq(clock)
-                self.clocks.pop(f)
-                setattr(mod.submodules, "{}".format(resource.__class__.__name__), resource)
+                actual_freq = int(self.f_in * global_m / global_d / d)
+
+                frequency_domain = ClockDomain("clk{}".format(f))
+                mod.domains += frequency_domain
+                mod.d.comb += frequency_domain.clk.eq(clock)
+
+                # then assign the named domains to it
+                done = []
+                for name, freq in self.clocks.items():
+                    if freq == f:
+                        name_domain = ClockDomain(name)
+                        mod.domains += name_domain
+                        mod.d.comb += name_domain.clk.eq(ClockSignal("clk{}".format(f)))
+                        done.append(name)
+                        print("clock {}: \t\t {} actual; {} requested; {:10.0f}% off".format(name, actual_freq, freq, (1 - actual_freq / freq) * 100))
+                for name in done:
+                    self.clocks.pop(name)
+            setattr(mod.submodules, "{}".format(resource.__class__.__name__), resource)
         return mod
 
     @staticmethod

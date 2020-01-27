@@ -14,7 +14,7 @@ flake8 = "*"
 pandas = "*"
 
 [packages.nmigen]
-git = "https://github.com/m-labs/nmigen.git"
+git = "https://github.com/anuejn/nmigendas "
 
 [packages.nmigen-boards]
 git = "https://github.com/axiom-micro/nmigen-boards.git"

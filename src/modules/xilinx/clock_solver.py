@@ -16,7 +16,7 @@ class ClockSolver(Elaboratable):
     def elaborate(self, platform):
         mod = Module()
 
-        clocks = self.clocks.coppy()
+        clocks = self.clocks.copy()
 
         while clocks:
             resource = self.available_resources.pop(0)()

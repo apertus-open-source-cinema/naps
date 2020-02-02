@@ -3,7 +3,6 @@ name = "pypi"
 url = "https://pypi.org/simple"
 verify_ssl = true
 
-
 [requires]
 python_version = "3.8"
 
@@ -12,9 +11,6 @@ flake8 = "*"
 
 [packages]
 pandas = "*"
-
-[packages.nmigen]
-git = "https://github.com/anuejn/nmigendas "
-
-[packages.nmigen-boards]
-git = "https://github.com/axiom-micro/nmigen-boards.git"
+coverage = "*"
+nmigen = {git = "https://github.com/anuejn/nmigen"}
+nmigen-boards = {git = "https://github.com/axiom-micro/nmigen-boards.git"}

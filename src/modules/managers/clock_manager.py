@@ -8,7 +8,7 @@ import re
 from nmigen import *
 
 from modules.xilinx.clock_solver import ClockSolver
-from util.lazy_int import LazyInt
+from util.future_int import FutureInt
 
 clocks = {}
 
@@ -22,7 +22,7 @@ def generate_clock(requested_freq, name):
     requested_freq = _freq_to_int(requested_freq)
 
     if name not in clocks:
-        clocks[name] = (requested_freq, LazyInt())
+        clocks[name] = (requested_freq, FutureInt())
     return clocks[name][1]
 
 
@@ -35,7 +35,7 @@ def manage_clocks(module, clk, f_in):
 
 
 def _freq_to_int(freq):
-    if isinstance(freq, LazyInt):
+    if isinstance(freq, FutureInt):
         return freq
     try:
         return int(freq)

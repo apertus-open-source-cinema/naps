@@ -17,10 +17,13 @@ class ClockSolver(Elaboratable):
         mod = Module()
 
         clocks = self.clocks.copy()
+        desired_frequencies = list(set(clocks.values()))
+
 
         while clocks:
             resource = self.available_resources.pop(0)()
-            frequencies = list(set(clocks.values()))[0:resource.CLOCK_COUNT]
+            [0:resource.CLOCK_COUNT]
+
             (global_m, global_d), dividers = ClockSolver._solve(resource, self.f_in, clocks)
             mod.d.comb += resource.get_in_clk().eq(self.in_clk)
             resource.set_vco(global_m, global_d)

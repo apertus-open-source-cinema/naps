@@ -10,7 +10,7 @@ class TestClockingResource(ClockingResource):
     def __init__(self, input_freq):
         self.input_freq = input_freq
         self.vco_m = Var(range(1, 128), name="vco_m")
-        self.vco_d = Var(range(1, 128, 1), name="vco_d")
+        self.vco_d = Var(arange(1, 128, 0.25), name="vco_d")
         self.output_d = [Var(range(1, 128), name="output_d_{}".format(x)) for x in range(8)]
 
     def topology(self):

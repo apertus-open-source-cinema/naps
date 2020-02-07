@@ -1,6 +1,8 @@
 from abc import ABC, abstractmethod
+from typing import List, Tuple, Dict
 
 from varname import varname
+from functools import lru_cache
 
 __all__ = ["Var", "op"]
 
@@ -15,12 +17,28 @@ class Term(ABC, GenericOperatorOverloader):
         raise NotImplementedError
 
     @abstractmethod
-    def eval(self, **kwargs):
-        raise NotImplementedError
+    def _function_part(self):
+        pass
 
-    @abstractmethod
-    def eval_obj(self, mapping):
-        raise NotImplementedError
+    @lru_cache
+    def get_function(self, *parameter_order):
+        function_str, function_globals, function_vars = self._function_part()
+        lambda_str = "lambda {}: {}".format(
+            ", ".join(function_vars[p] for p in parameter_order),
+            function_str
+        )
+        fn = eval(lambda_str, function_globals)
+        return fn
+
+    def eval(self, **kwargs):
+        var_list = list(self.get_vars())
+        fn = self.get_function(*var_list)
+
+        arg_list = var_list[:]
+        for name, value in kwargs.items():
+            index = next((i for i, v in enumerate(var_list) if v.name == name))
+            arg_list[index] = value
+        return fn(*arg_list)
 
     def __eq__(self, other):
         return repr(self) == repr(other)
@@ -30,7 +48,8 @@ class Term(ABC, GenericOperatorOverloader):
         return id(self)
 
     def generic_operator(self, item, *, args, kwargs):
-        return Op(first_operand=self, operation=item, other_operands=args)
+        other_operands = [arg if isinstance(arg, Term) else Const(arg) for arg in args]
+        return Op(first_operand=self, operation=item, other_operands=other_operands)
 
 
 class Const(Term):
@@ -43,11 +62,19 @@ class Const(Term):
     def get_vars(self):
         return {}
 
-    def eval(self, **kwargs):
-        return self.value
-
-    def eval_obj(self, mapping):
-        return self.value
+    def _function_part(self):
+        if eval(str(self.value)) == self.value:
+            return (
+                str(self.value),
+                {},
+                {}
+            )
+        const_name = "const_{}".format(id(self))
+        return (
+            const_name,
+            {const_name: self.value},
+            {}
+        )
 
 
 class Var(Term):
@@ -61,13 +88,13 @@ class Var(Term):
     def get_vars(self):
         return {self}
 
-    def eval(self, mapping=None, **kwargs):
-        assert self.name in kwargs, "variable {} is not specified".format(self.name)
-        return kwargs[self.name]
-
-    def eval_obj(self, mapping):
-        assert self in mapping, "variable {} is not specified".format(self.name)
-        return mapping[self]
+    def _function_part(self):
+        var_name = "var_{}".format(id(self))
+        return (
+            var_name,
+            {},
+            {self: var_name}
+        )
 
 
 class Op(Term):
@@ -80,29 +107,31 @@ class Op(Term):
         return "<Op {} {}.{}({})>".format("INCOMPLETE" if self.other_operands is None else "", repr(self.first_operand),
                                           self.operation, ", ".join([repr(x) for x in self.other_operands]))
 
-    def __call__(self, *args, **kwargs):
-        assert (self.operation is not None) and (self.other_operands is None)
-        return Op(first_operand=self.first_operand, operation=self.operation, other_operands=args)
-
     def get_vars(self):
         return {*(self.first_operand.get_vars() if isinstance(self.first_operand, Term) else []),
                 *([var for x in self.other_operands for var in (x.get_vars() if isinstance(x, Term) else [])] or [])}
 
-    def eval(self, **kwargs):
-        other_operands = [x.eval(**kwargs) if isinstance(x, Term) else x for x in self.other_operands]
+    def _function_part(self):
+        all_operands = [*([self.first_operand] if self.first_operand else []), *self.other_operands]
+        resolved_operands = [operand._function_part() for operand in all_operands]
 
-        if self.first_operand is not None:
-            return getattr(self.first_operand.eval(**kwargs), self.operation)(*other_operands)
+        if self.first_operand:
+            fn_str = "{}.{}({})".format(
+                resolved_operands[0][0],
+                self.operation,
+                ", ".join(o[0] for o in resolved_operands[1:])
+            )
         else:
-            return self.operation(*other_operands)
+            fn_str = "{}({})".format(
+                self.operation,
+                ", ".join(o[0] for o in resolved_operands)
+            )
 
-    def eval_obj(self, mapping):
-        other_operands = [x.eval_obj(mapping) if isinstance(x, Term) else x for x in self.other_operands]
-
-        if self.first_operand is not None:
-            return getattr(self.first_operand.eval_obj(mapping), self.operation)(*other_operands)
-        else:
-            return self.operation(*other_operands)
+        return (
+            fn_str,
+            {k: v for operand in resolved_operands for k, v in operand[1].items()},
+            {k: v for operand in resolved_operands for k, v in operand[2].items()},
+        )
 
 
 class BuildOp:
@@ -114,10 +143,11 @@ class BuildOp:
         self.operation = operator
 
     def __getattr__(self, item):
-        return BuildOp(eval(item))
+        return BuildOp(item)
 
     def __call__(self, *args, **kwargs):
-        return Op(operation=self.operation, other_operands=args, first_operand=None)
+        other_operands = [arg if isinstance(arg, Term) else Const(arg) for arg in args]
+        return Op(operation=self.operation, other_operands=other_operands, first_operand=None)
 
 
 op = BuildOp(None)

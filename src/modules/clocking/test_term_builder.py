@@ -1,12 +1,13 @@
 import unittest
 
-from modules.clocking.term_builder import Var, op, Op
+from modules.clocking.term_builder import Var, op, Op, Const
 
 
 class TestTermBuilder(unittest.TestCase):
     def test_basic(self):
         a = Var(range(0, 1))
         self.assertEqual(a.get_vars(), {a})
+
 
     def test_var_repr(self):
         a = Var(range(0, 1))
@@ -21,8 +22,9 @@ class TestTermBuilder(unittest.TestCase):
         b = Var(range(0, 1))
         self.assertEqual((a * b).get_vars(), {a, b})
 
-    def test_op_builder(self):
-        self.assertEqual(op.round(1), Op(operation=round, first_operand=None, other_operands=[(1)]))
+    def test_get_function(self):
+        a = Var(range(0, 1))
+        self.assertEqual((a * 10).get_function(a)(10), 100)
 
     def test_eval(self):
         a = Var(range(0, 10))
@@ -40,3 +42,7 @@ class TestTermBuilder(unittest.TestCase):
         c = Var(range(0, 10))
         self.assertEqual((a * (b * c)).get_vars(), {a, b, c})
         self.assertEqual((a * b * c).get_vars(), {a, b, c})
+
+    # this is rather separate
+    def test_op_builder(self):
+        self.assertEqual(op.round(1), Op(operation="round", first_operand=None, other_operands=[Const(1)]))

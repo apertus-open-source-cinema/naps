@@ -28,11 +28,13 @@ def constraints_for_variables(constraints: List[Term], variables: Set[Var]) -> S
 
 
 def valid_common_variable_configurations(clocking_res: ClockingResource) -> Generator[Dict[Var, object], None, None]:
-    cv = common_variables(clocking_res)
-    cc = constraints_for_variables(clocking_res.validity_constraints(), cv)
+    cc = common_variables(clocking_res)
+    ccl = list(cc)
+    constraints = constraints_for_variables(clocking_res.validity_constraints(), cc)
+    constraint_functions = [c.get_function(*ccl) for c in constraints]
     return (
-        {var: val for var, val in zip(cv, x)} for x in product(*[v.iterator for v in cv])
-        if all([c.eval_obj({k: v for k, v in zip(cv, x)}) for c in cc])
+        {var: val for var, val in zip(ccl, x)} for x in product(*[v.iterator for v in ccl])
+        if all([c(*x) for c in constraint_functions])
     )
 
 

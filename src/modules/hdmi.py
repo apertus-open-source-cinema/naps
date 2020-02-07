@@ -1,7 +1,7 @@
 from nmigen import *
 from modules.vendor.litevideo_hdmi.s7 import S7HDMIOutPHY
 from util.cvt import calculate_video_timing
-from modules.managers.clock_manager import generate_clock
+from modules.clocking.clock_manager import generate_clock
 
 
 class Hdmi(Elaboratable):

@@ -5,10 +5,9 @@ clocking tree.
 """
 
 import re
-from nmigen import *
 
-from modules.xilinx.clock_solver import ClockSolver
-from util.future_int import FutureInt
+from modules.clocking.clock_solver import ClockSolver
+from modules.clocking.future_int import FutureInt
 
 clocks = {}
 

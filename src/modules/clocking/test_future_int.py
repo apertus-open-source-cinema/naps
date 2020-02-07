@@ -1,6 +1,6 @@
 import unittest
 
-from util.future_int import FutureInt, cache
+from modules.clocking.future_int import FutureInt, cache
 
 
 class TestLazyInt(unittest.TestCase):
@@ -33,6 +33,10 @@ class TestLazyInt(unittest.TestCase):
         a = FutureInt()
         b = FutureInt(a)
         self.assertEqual(a, b)
+
+    def test_unfulfilled_integer_inequal(self):
+        a = FutureInt()
+        self.assertNotEqual(a, 10)
 
 
 class TestCache(unittest.TestCase):

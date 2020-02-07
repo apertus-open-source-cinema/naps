@@ -3,7 +3,7 @@ from nmigen import *
 from modules.xilinx.blocks import Ps7
 from devices.micro.micro_r2_platform import MicroR2Platform
 from modules.hdmi import Hdmi
-from modules.managers import clock_manager as cm
+from modules.clocking import clock_manager as cm
 
 
 class Top(Elaboratable):

@@ -1,8 +1,6 @@
 from nmigen import *
 from nmigen.cli import main
 
-from modules.managers.clock_manager import module_clockdomain
-
 
 class Ws2812:
     """A driver for the popular digital ws2812 rgb leds

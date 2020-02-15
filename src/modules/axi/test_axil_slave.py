@@ -8,8 +8,12 @@ from nmigen.test.utils import FHDLTestCase
 from modules.axi.axil_slave import AxiLiteReg
 
 
+def any(iterator):
+    return reduce(lambda a, b: a | b, iterator)
+
+
 def PastAny(expr, clocks, domain=None):
-    return reduce(lambda a, b: a | b, [Past(expr, x, domain) for x in range(clocks)])
+    return any([Past(expr, x, domain) for x in range(clocks)])
 
 
 class AxiLiteCheck(Elaboratable):
@@ -47,7 +51,10 @@ class AxiLiteCheck(Elaboratable):
         m.d.comb += Assert(Rose(axi_bus.write_response.valid).implies(PastAny(is_written, clocks=self.max_latency)))
 
         # prove, that it answers, when it is addressed
-        m.d.comb += Assert(Rose(is_read, clocks=2).implies(axi_bus.read_data.valid))
+        m.d.comb += Assert(
+            any(Rose(is_read, clocks=x).implies(axi_bus.read_data.valid) for x in range(self.max_latency)))
+        m.d.comb += Assert(
+            any(Rose(is_written, clocks=x).implies(axi_bus.write_response.valid) for x in range(self.max_latency)))
 
         return m
 

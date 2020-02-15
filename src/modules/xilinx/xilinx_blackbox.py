@@ -28,6 +28,9 @@ class XilinxBlackbox(Elaboratable):
         parameters = {"p_{}".format(k): v for k, v in self.parameters.items()}
         m.submodules.instance = Instance(self.module, **named_ports, **parameters)
 
+        # print(named_ports)
+        # print(parameters)
+
         return m
 
     def __getitem__(self, item):

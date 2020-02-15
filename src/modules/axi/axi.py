@@ -105,31 +105,3 @@ class Interface(Record):
         super().__init__(layout, src_loc_at=1)
 
 
-class AxiLiteSlaveToFullBridge(Elaboratable):
-    def __init__(self):
-        self.lite_bus = Interface(addr_bits=32, data_bits=32, lite=True)
-        self.full_bus = Interface(addr_bits=32, data_bits=32, lite=False, id_bits=12)
-
-    def elaborate(self, platform):
-        m = Module()
-
-        m.d.comb += self.full_bus.connect(self.lite_bus)
-
-        read_id = Signal.like(self.full_bus.read_data.id)
-        write_id = Signal.like(self.full_bus.write_data.id)
-
-        with m.If(self.full_bus.read_address.valid):
-            m.d.comb += self.full_bus.read_data.id.eq(self.full_bus.read_address.id)
-            m.d.sync += read_id.eq(self.full_bus.read_address.id)
-        with m.Else():
-            m.d.comb += self.full_bus.read_data.id.eq(read_id)
-
-        with m.If(self.full_bus.write_address.valid):
-            m.d.comb += self.full_bus.write_data.id.eq(self.full_bus.write_address.id)
-            m.d.sync += write_id.eq(self.full_bus.write_address.id)
-        with m.Else():
-            m.d.comb += self.full_bus.write_data.id.eq(write_id)
-
-        m.d.comb += self.full_bus.read_data.last.eq(1)
-
-        return m

@@ -8,8 +8,9 @@ from devices.micro.micro_r2_platform import MicroR2Platform
 
 class Top(Elaboratable):
     def __init__(self):
-        reduced_layout = [("a", 8, Direction.FANIN), ("b", 12, Direction.FANOUT)]
-        full_layout = [*reduced_layout, ("c", 8, Direction.FANIN)]
+        pass
+        # reduced_layout = [("a", 8, Direction.FANIN), ("b", 12, Direction.FANOUT)]
+        # full_layout = [*reduced_layout, ("c", 8, Direction.FANIN)]
         # self.a = Record(full_layout)
         # self.b = Record(reduced_layout)
 
@@ -19,52 +20,53 @@ class Top(Elaboratable):
         m.domains += ClockDomain("sync")
         ps7 = m.submodules.ps7_wrapper = Ps7()
 
-        # m.submodules.axi_reg = reg = AxiLiteReg(width=8, base_address=0x4000_0000)
+        m.submodules.axi_reg = reg = AxiLiteReg(width=8, base_address=0x4000_0000)
         # print(reg.bus)
         # print(ps7.maxigp[0].hierarchy)
 
         axi_port = ps7.maxigp[0]
 
-        # m.d.comb += ClockSignal().eq(axi_port.aclk)
-        # m.d.comb += ResetSignal().eq(~axi_port.aresetn)
-        # m.d.comb += reg.bus.read_address.addr.eq(axi_port.araddr)
-        # m.d.comb += reg.bus.read_address.valid.eq(axi_port.arvalid)
-        # m.d.comb += axi_port.arready.eq(reg.bus.read_address.ready)
+        m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
+        m.d.comb += axi_port.aclk.eq(ClockSignal())
+        m.d.comb += ResetSignal().eq(~axi_port.aresetn)
+        m.d.comb += reg.bus.read_address.addr.eq(axi_port.araddr)
+        m.d.comb += reg.bus.read_address.valid.eq(axi_port.arvalid)
+        m.d.comb += axi_port.arready.eq(reg.bus.read_address.ready)
 
-        # m.d.comb += reg.bus.write_address.addr.eq(axi_port.awaddr)
-        # m.d.comb += reg.bus.write_address.valid.eq(axi_port.awvalid)
-        # m.d.comb += axi_port.awready.eq(reg.bus.write_address.ready)
+        m.d.comb += reg.bus.write_address.addr.eq(axi_port.awaddr)
+        m.d.comb += reg.bus.write_address.valid.eq(axi_port.awvalid)
+        m.d.comb += axi_port.awready.eq(reg.bus.write_address.ready)
 
-        # m.d.comb += axi_port.rdata.eq(reg.bus.read_data.data)
-        # m.d.comb += axi_port.rre.sp.eq(reg.bus.read_data.resp)
-        # m.d.comb += axi_port.rvalid.eq(reg.bus.read_data.valid)
-        # m.d.comb += reg.bus.read_data.ready.eq(axi_port.rre.ady)
+        m.d.comb += axi_port.rdata.eq(reg.bus.read_data.data)
+        m.d.comb += axi_port.rre.sp.eq(reg.bus.read_data.resp)
+        m.d.comb += axi_port.rvalid.eq(reg.bus.read_data.valid)
+        m.d.comb += reg.bus.read_data.ready.eq(axi_port.rre.ady)
 
-        # m.d.comb += reg.bus.write_data.data.eq(axi_port.wdata)
-        # m.d.comb += reg.bus.write_data.valid.eq(axi_port.wvalid)
-        # m.d.comb += reg.bus.write_data.strb.eq(axi_port.wstrb)
-        # m.d.comb += axi_port.wready.eq(reg.bus.write_data.ready)
+        m.d.comb += reg.bus.write_data.data.eq(axi_port.wdata)
+        m.d.comb += reg.bus.write_data.valid.eq(axi_port.wvalid)
+        m.d.comb += reg.bus.write_data.strb.eq(axi_port.wstrb)
+        m.d.comb += axi_port.wready.eq(reg.bus.write_data.ready)
 
-        # m.d.comb += axi_port.bre.sp.eq(reg.bus.write_response.resp)
-        # m.d.comb += axi_port.bvalid.eq(reg.bus.write_response.valid)
-        # m.d.comb += reg.bus.write_response.ready.eq(axi_port.bre.ady)
+        m.d.comb += axi_port.bre.sp.eq(reg.bus.write_response.resp)
+        m.d.comb += axi_port.bvalid.eq(reg.bus.write_response.valid)
+        m.d.comb += reg.bus.write_response.ready.eq(axi_port.bre.ady)
 
-        # read_id = Signal.like(axi_port.rid)
+        read_id = Signal.like(axi_port.rid)
         write_id = Signal.like(axi_port.wid)
 
-        # with m.If(axi_port.arvalid):
-        #     m.d.comb += axi_port.rid.eq(axi_port.arid)
-        #    m.d.sync += read_id.eq(axi_port.arid)
-        # with m.Else():
-        #     m.d.comb += axi_port.rid.eq(read_id)
+        with m.If(axi_port.arvalid):
+            m.d.comb += axi_port.rid.eq(axi_port.arid)
+            m.d.sync += read_id.eq(axi_port.arid)
+        with m.Else():
+            m.d.comb += axi_port.rid.eq(read_id)
 
         with m.If(axi_port.awvalid):
-            m.d.comb += axi_port.wid.eq(axi_port.awid)
-        #    m.d.sync += write_id.eq(axi_port.awid)
-        # with m.Else():
-        #     m.d.comb += axi_port.wid.eq(write_id)
+            m.d.comb += axi_port.bid.eq(axi_port.awid)
+            m.d.sync += write_id.eq(axi_port.awid)
+        with m.Else():
+            m.d.comb += axi_port.bid.eq(write_id)
 
-        # m.d.comb += axi_port.rlast.eq(1)
+        m.d.comb += axi_port.rlast.eq(1)
 
 
         # m.d.comb += reg.bus.
@@ -82,4 +84,4 @@ if __name__ == "__main__":
     # print(verilog.convert(dut))
 
     p = MicroR2Platform()
-    p.build(Top(), do_build=False)
+    p.build(Top(), do_build=True)

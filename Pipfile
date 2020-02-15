@@ -16,3 +16,5 @@ nmigen = {git = "https://github.com/anuejn/nmigen"}
 nmigen-boards = {git = "https://github.com/axiom-micro/nmigen-boards.git"}
 python-varname = "*"
 numba = "*"
+pytest = "*"
+pytest-pycharm = "*"

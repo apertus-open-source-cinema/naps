@@ -5,7 +5,7 @@ __all__ = ["MicroZedZ020Platform"]
 
 
 class MicroZedZ020Platform(Xilinx7SeriesPlatform):
-    device = "xc7z010"
+    device = "xc7z020"
     package = "clg400"
     speed = "1"
     resources = []

@@ -23,7 +23,7 @@ class AxiLiteSlave(Elaboratable, ABC):
     def elaborate(self, platform):
         m = Module()
 
-        addr = Signal.like(self.bus.read_address.addr)
+        addr = Signal.like(self.bus.read_address.value)
 
         with m.FSM():
             with m.State("IDLE"):
@@ -31,13 +31,13 @@ class AxiLiteSlave(Elaboratable, ABC):
                 m.d.comb += self.bus.write_address.ready.eq(1)
 
                 with m.If(self.bus.read_address.valid):
-                    m.d.sync += addr.eq(self.bus.read_address.addr)
+                    m.d.sync += addr.eq(self.bus.read_address.value)
                     m.next = "READ"
                 with m.Elif(self.bus.write_address.valid):
-                    m.d.sync += addr.eq(self.bus.write_address.addr)
+                    m.d.sync += addr.eq(self.bus.write_address.value)
                     m.next = "WRITE"
             with m.State("READ"):
-                self.handle_read(m, addr, self.bus.read_data.data, self.bus.read_data.resp)
+                self.handle_read(m, addr, self.bus.read_data.value, self.bus.read_data.resp)
                 with m.If(self.read_done):
                     m.d.sync += self.read_done.eq(0)
                     m.next = "READ_DONE"
@@ -48,12 +48,13 @@ class AxiLiteSlave(Elaboratable, ABC):
                     m.next = "IDLE"
             with m.State("WRITE"):
                 with m.If(self.bus.write_data.valid):
-                    self.handle_write(m, addr, self.bus.write_data.data, self.bus.write_response.resp)
+                    self.handle_write(m, addr, self.bus.write_data.value, self.bus.write_response.resp)
                     with m.If(self.write_done):
                         m.d.sync += self.write_done.eq(0)
                         m.next = "WRITE_DONE"
             with m.State("WRITE_DONE"):
                 m.d.comb += self.bus.write_response.valid.eq(1)
+                m.d.comb += self.bus.write_data.ready.eq(1)
                 with m.If(self.bus.write_response.ready):
                     m.next = "IDLE"
 
@@ -63,7 +64,7 @@ class AxiLiteSlave(Elaboratable, ABC):
 class AxiLiteReg(AxiLiteSlave):
     def __init__(self, *, width, base_address):
         super().__init__()
-        assert width <= len(self.bus.read_data)
+        assert width <= len(self.bus.read_data.value)
         self.reg = Signal(width)
         self.base_address = base_address
 

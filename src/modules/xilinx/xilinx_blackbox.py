@@ -13,9 +13,10 @@ class XilinxBlackbox(Elaboratable):
         self.parameters = kwargs
         self.ports = yosys.get_module_ports("+/xilinx/cells_xtra.v", self.module)
         self.hierarchy = self._find_hierarchy(list(self.ports.keys()))
+        # print(self.hierarchy)
         self.signal_proxy = SignalProxy(self.hierarchy, self.ports, path=self.module)
 
-        assert type(self) != "Blackbox", "Do not instantiate `XilinxBlackbox` directly. Use its subclasses!"
+        assert type(self) != "XilinxBlackbox", "Do not instantiate `XilinxBlackbox` directly. Use its subclasses!"
 
     def elaborate(self, platform):
         m = Module()
@@ -100,9 +101,13 @@ class SignalProxy:
         return {**self._used_ports, **child_ports}
 
     def __getitem__(self, item):
+        if isinstance(item, int):
+            item = str(item)
+
         item = item.upper()
         if item not in self.ports:
-            raise KeyError("{} not found in {}".format(item, self.path))
+            return getattr(self, item)
+            # raise KeyError("{} not found in {}".format(item, self.path))
 
         # do the real signal finding
         if item not in self._used_ports:

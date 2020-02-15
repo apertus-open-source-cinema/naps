@@ -1,8 +1,6 @@
 from nmigen import *
-from nmigen.back import verilog
 from nmigen.hdl.rec import Direction
 from enum import Enum
-from abc import ABC, abstractmethod
 
 
 class Response(Enum):
@@ -19,7 +17,6 @@ class BurstType(Enum):
 
 
 # TODO(robin): are these directions right????
-
 def axi_channel(payload, master_to_slave):
     if master_to_slave:
         return payload + [("valid", 1, Direction.FANIN), ("ready", 1, Direction.FANOUT)]
@@ -136,79 +133,3 @@ class AxiLiteSlaveToFullBridge(Elaboratable):
         m.d.comb += self.full_bus.read_data.last.eq(1)
 
         return m
-
-
-class AxiLiteSlave(Elaboratable, ABC):
-    def __init__(self):
-        self.bus = Interface(addr_bits=32, data_bits=32, lite=True)
-        self.read_done = Signal()
-        self.write_done = Signal()
-
-    @abstractmethod
-    def handle_read(self, m, addr, data, resp):
-        pass
-
-    @abstractmethod
-    def handle_write(self, m, addr, data, resp):
-        pass
-
-    def elaborate(self, platform):
-        m = Module()
-
-        addr = Signal.like(self.bus.read_address.addr)
-
-        # read state machine
-        with m.FSM() as fsm:
-            with m.State("IDLE"):
-                m.d.comb += self.bus.read_address.ready.eq(1)
-                m.d.comb += self.bus.write_address.ready.eq(1)
-
-                with m.If(self.bus.read_address.valid):
-                    m.d.sync += addr.eq(self.bus.read_address.addr)
-                    m.next = "READ"
-                with m.Elif(self.bus.write_address.valid):
-                    m.d.sync += addr.eq(self.bus.write_address.addr)
-                    m.next = "WRITE"
-            with m.State("READ"):
-                self.handle_read(m, addr, self.bus.read_data.data, self.bus.read_data.resp)
-                with m.If(self.read_done):
-                    m.d.sync += self.read_done.eq(0)
-                    m.next = "READ_DONE"
-            with m.State("READ_DONE"):
-                m.d.comb += self.bus.read_data.valid.eq(1)
-
-                with m.If(self.bus.read_data.ready):
-                    m.next = "IDLE"
-            with m.State("WRITE"):
-                with m.If(self.bus.write_data.valid):
-                    self.handle_write(m, addr, self.bus.write_data.data, self.bus.write_response.resp)
-                    with m.If(self.write_done):
-                        m.d.sync += self.write_done.eq(0)
-                        m.next = "WRITE_DONE"
-            with m.State("WRITE_DONE"):
-                m.d.comb += self.bus.write_response.valid.eq(1)
-                with m.If(self.bus.write_response.ready):
-                    m.next = "IDLE"
-
-        return m
-
-
-class AxiGPIO(AxiLiteSlave):
-    def __init__(self, pins):
-        super().__init__()
-        self.pins = pins
-
-    def handle_read(self, m, addr, data, resp):
-        m.d.sync += self.pins.bit_select(addr[30:], 1).eq(data[0])
-        m.d.sync += resp.eq(Response.OKAY)
-        m.d.sync += self.read_done.eq(1)
-
-    def handle_write(self, m, addr, data, resp):
-        m.d.sync += data[0].eq(self.pins.bit_select(addr[30:], 1))
-        m.d.sync += resp.eq(Response.OKAY)
-        m.d.sync += self.write_done.eq(1)
-
-
-if __name__ == "__main__":
-    pins = Signal(8)
-    print(verilog.convert(AxiGPIO(pins)))

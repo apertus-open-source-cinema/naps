@@ -27,7 +27,7 @@ def axi_channel(payload, master_to_slave):
 # read address or write address channel
 def address_channel(*, addr_bits, lite, id_bits=None):
     layout = axi_channel([
-        ("addr", addr_bits, Direction.FANIN),
+        ("value", addr_bits, Direction.FANIN),
     ], True)
 
     if not lite:
@@ -56,7 +56,7 @@ def data_channel(*, data_bits, lite, read, id_bits=None):
         assert data_bits == 32, "xilinx zynq only support 32bit data widths in axi lite mode"
 
     layout = axi_channel([
-        ("data", data_bits, direction),
+        ("value", data_bits, direction),
     ], ~read)
 
     if read:
@@ -96,8 +96,9 @@ class Interface(Record):
     def __init__(self, *, addr_bits, data_bits, lite, id_bits=None):
         layout = [
             ("read_address", address_channel(addr_bits=addr_bits, lite=lite, id_bits=id_bits)),
-            ("write_address", address_channel(addr_bits=addr_bits, lite=lite, id_bits=id_bits)),
             ("read_data", data_channel(data_bits=data_bits, read=True, lite=lite, id_bits=id_bits)),
+
+            ("write_address", address_channel(addr_bits=addr_bits, lite=lite, id_bits=id_bits)),
             ("write_data", data_channel(data_bits=data_bits, read=False, lite=lite, id_bits=id_bits)),
             ("write_response", write_response_channel(lite=lite, id_bits=id_bits)),
         ]

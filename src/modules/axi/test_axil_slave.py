@@ -5,7 +5,7 @@ from nmigen.asserts import *
 
 from nmigen.test.utils import FHDLTestCase
 
-from modules.axi.axil_slave import AxiLiteReg
+from modules.axi.axil_reg import AxiLiteReg
 
 
 def any(iterator):
@@ -56,6 +56,9 @@ class AxiLiteCheck(Elaboratable):
         m.d.comb += Assert(
             any(Rose(is_written, clocks=x).implies(axi_bus.write_response.valid) for x in range(self.max_latency)))
 
+        # TODO: prove that the outputs dont change after they settled
+
+        # TODO: prove, that everything goes to the initial state after reset (is this nescessary for nmigen designs?)
         return m
 
 

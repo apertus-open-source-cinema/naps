@@ -5,7 +5,9 @@ from nmigen.asserts import *
 
 from nmigen.test.utils import FHDLTestCase
 
+from modules.axi.axil_i2c import AxiLiteI2c
 from modules.axi.axil_reg import AxiLiteReg
+from modules.vendor.glasgow_i2c.i2c import _DummyPads
 
 
 def any(iterator):
@@ -26,7 +28,6 @@ class AxiLiteCheck(Elaboratable):
         m = Module()
         m.submodules.dut = dut = self.dut
         axi_bus = dut.bus
-        print(axi_bus)
 
         is_read = Signal()
         m.d.comb += is_read.eq(
@@ -63,8 +64,19 @@ class AxiLiteCheck(Elaboratable):
 
 
 class TestAxiLiteSlave(FHDLTestCase):
-    def test_valid_axil(self):
+    def test_axil_reg(self):
         base_address = 0x42
         axil_slave = AxiLiteReg(width=8, base_address=base_address)
         valid_address_range = range(base_address, base_address + 1)
+        self.assertFormal(AxiLiteCheck(axil_slave, valid_address_range, max_latency=4), mode="bmc", depth=20)
+
+    def test_axil_i2c(self):
+        # TODO: How can this pass? it odesnt answer!
+        base_address = 0x42
+        addr_bytes = 2
+        pads = _DummyPads()
+        axil_slave = AxiLiteI2c(pads, clock_divider=1, base_address=base_address, address_bytes=addr_bytes)
+        valid_address_range = range(base_address, base_address+2**(8*addr_bytes))
+        print(valid_address_range)
+
         self.assertFormal(AxiLiteCheck(axil_slave, valid_address_range, max_latency=4), mode="bmc", depth=20)

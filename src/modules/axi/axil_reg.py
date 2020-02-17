@@ -1,28 +1,31 @@
+from modules.axi.axil_slave import AxiLiteSlave
 from .axi import Response
-from .axil_slave import AxiLiteSlave, AxiLiteSlaveToFullBridge
 from nmigen import *
-from nmigen.back import verilog
 
-class AxiLiteReg(AxiLiteSlave):
+
+class AxiLiteReg(Elaboratable):
     def __init__(self, *, width, base_address):
-        super().__init__()
-        assert width <= len(self.bus.read_data)
         self.reg = Signal(width)
-        self.base_address = base_address
 
-    def handle_read(self, m, addr, data, resp):
-        with m.If(addr == self.base_address):
-            m.d.sync += data.eq(self.reg)
-            m.d.sync += resp.eq(Response.OKAY)
-            m.d.sync += self.read_done.eq(1)
+        self.axi = AxiLiteSlave(
+            address_range=range(base_address, base_address + 1),
+            handle_read=self.handle_read,
+            handle_write=self.handle_write
+        )
+        self.bus = self.axi.bus
 
-    def handle_write(self, m, addr, data, resp):
-        with m.If(addr == self.base_address):
-            m.d.sync += self.reg.eq(data)
-            m.d.sync += resp.eq(Response.OKAY)
-            m.d.sync += self.write_done.eq(1)
+        assert width <= len(self.bus.read_data)
 
+    def elaborate(self, platform):
+        # TODO: is this evil?
+        return self.axi
 
-if __name__ == "__main__":
-    pins = Signal(8)
-    print(verilog.convert(AxiLiteReg(width=8, base_address=0x00000000)))
+    def handle_read(self, m, addr, data, resp, read_done):
+        m.d.sync += data.eq(self.reg)
+        m.d.sync += resp.eq(Response.OKAY)
+        read_done()
+
+    def handle_write(self, m, addr, data, resp, write_done):
+        m.d.sync += self.reg.eq(data)
+        m.d.sync += resp.eq(Response.OKAY)
+        write_done()

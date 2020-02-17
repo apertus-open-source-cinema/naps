@@ -7,18 +7,20 @@ from modules.axi.axi import Response, Interface
 
 
 class AxiLiteSlave(Elaboratable, ABC):
-    def __init__(self):
+    def __init__(self, *, handle_read, handle_write, address_range):
+        """
+        A simple (low performance) axi lite slave
+        :param handle_read: the callback to insert logic for the read state
+        :param handle_write: the callback to insert logic for the write state
+        :param address_range: the address space of the axi slave
+        """
+        assert address_range.start < address_range.stop
+        self.address_range = address_range
+        assert callable(handle_read) and callable(handle_write)
+        self.handle_read = handle_read
+        self.handle_write = handle_write
+
         self.bus = Interface(addr_bits=32, data_bits=32, lite=True)
-        self.read_done = Signal()
-        self.write_done = Signal()
-
-    @abstractmethod
-    def handle_read(self, m, addr, data, resp):
-        pass
-
-    @abstractmethod
-    def handle_write(self, m, addr, data, resp):
-        pass
 
     def elaborate(self, platform):
         m = Module()
@@ -30,28 +32,36 @@ class AxiLiteSlave(Elaboratable, ABC):
                 m.d.comb += self.bus.read_address.ready.eq(1)
                 m.d.comb += self.bus.write_address.ready.eq(1)
 
-                with m.If(self.bus.read_address.valid):
-                    m.d.sync += addr.eq(self.bus.read_address.value)
+                def in_range(signal, range):
+                    return (signal >= range.start) & (signal < range.stop)
+
+                with m.If(self.bus.read_address.valid & in_range(self.bus.read_address.value, self.address_range)):
+                    m.d.sync += addr.eq(self.bus.read_address.value - self.address_range.start)
                     m.next = "READ"
-                with m.Elif(self.bus.write_address.valid):
-                    m.d.sync += addr.eq(self.bus.write_address.value)
+                with m.Elif(self.bus.write_address.valid & in_range(self.bus.write_address.value, self.address_range)):
+                    m.d.sync += addr.eq(self.bus.write_address.value - self.address_range.start)
                     m.next = "WRITE"
+
             with m.State("READ"):
-                self.handle_read(m, addr, self.bus.read_data.value, self.bus.read_data.resp)
-                with m.If(self.read_done):
-                    m.d.sync += self.read_done.eq(0)
+                read_done = Signal()
+                def set_read_done(): m.d.sync += read_done.eq(1)
+                self.handle_read(m, addr, self.bus.read_data.value, self.bus.read_data.resp, set_read_done)
+                with m.If(read_done):
+                    m.d.sync += read_done.eq(0)
                     m.next = "READ_DONE"
             with m.State("READ_DONE"):
                 m.d.comb += self.bus.read_data.valid.eq(1)
-
                 with m.If(self.bus.read_data.ready):
                     m.next = "IDLE"
+
             with m.State("WRITE"):
-                m.d.comb += self.bus.write_data.ready.eq(self.write_done)
+                write_done = Signal()
+                m.d.comb += self.bus.write_data.ready.eq(write_done)
                 with m.If(self.bus.write_data.valid):
-                    self.handle_write(m, addr, self.bus.write_data.value, self.bus.write_response.resp)
-                    with m.If(self.write_done):
-                        m.d.sync += self.write_done.eq(0)
+                    def set_write_done(): m.d.sync += write_done.eq(1)
+                    self.handle_write(m, addr, self.bus.write_data.value, self.bus.write_response.resp, set_write_done)
+                    with m.If(write_done):
+                        m.d.sync += write_done.eq(0)
                         m.next = "WRITE_DONE"
             with m.State("WRITE_DONE"):
                 m.d.comb += self.bus.write_response.valid.eq(1)
@@ -61,7 +71,6 @@ class AxiLiteSlave(Elaboratable, ABC):
 
         return m
 
-# def connect_lossy()
 
 class AxiLiteSlaveToFullBridge(Elaboratable):
     def __init__(self):

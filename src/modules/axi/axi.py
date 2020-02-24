@@ -103,6 +103,11 @@ class Interface(Record):
             ("write_response", write_response_channel(lite=lite, id_bits=id_bits)),
         ]
 
+        self.addr_bits = addr_bits
+        self.data_bits = data_bits
+        self.is_lite = lite
+        self.id_bits = id_bits
+
         super().__init__(layout, src_loc_at=1)
 
 

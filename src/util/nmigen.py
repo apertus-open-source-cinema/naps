@@ -1,3 +1,5 @@
+from contextlib import contextmanager
+
 from nmigen import *
 
 
@@ -31,6 +33,10 @@ def get_signals(module):
     :param module: The module to investigate
     :return A list of property Signals
     """
-    signals_records = [prop for prop in [getattr(module, name) for name in dir(module) if name[0] != "_"] if is_nmigen_type(prop)]
-    log(signals_records)
+    signals_records = [prop for prop in [getattr(module, name) for name in dir(module) if name[0] != "_"] if
+                       is_nmigen_type(prop)]
     return flatten_nmigen_type(signals_records)
+
+
+def generate_states(str_pattern, n, next_state):
+    return ((i, str_pattern.format(i), str_pattern.format(i) if i < n else next_state) for i in range(n))

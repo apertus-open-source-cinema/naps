@@ -10,12 +10,12 @@ from modules.axi.axil_reg import AxiLiteReg
 from modules.vendor.glasgow_i2c.i2c import _DummyPads
 
 
-def any(iterator):
+def nAny(iterator):
     return reduce(lambda a, b: a | b, iterator)
 
 
 def PastAny(expr, clocks, domain=None):
-    return any([Past(expr, x, domain) for x in range(clocks)])
+    return nAny([Past(expr, x, domain) for x in range(clocks)])
 
 
 class AxiLiteCheck(Elaboratable):
@@ -53,10 +53,10 @@ class AxiLiteCheck(Elaboratable):
 
         # prove, that it answers, when it is addressed
         m.d.comb += Assert(
-            any(Rose(is_read, clocks=x).implies(axi_bus.read_data.valid) for x in range(self.max_latency)))
+            nAny(Rose(is_read, clocks=x).implies(axi_bus.read_data.valid) for x in range(self.max_latency)))
         m.d.comb += Assert(
-            any(Rose(is_written, clocks=x).implies(axi_bus.write_response.valid) for x in range(self.max_latency)))
-
+            nAny(Rose(is_written, clocks=x).implies(axi_bus.write_response.valid) for x in range(self.max_latency)))
+        m.d.comb += Assert(~Rose(is_read, clocks=15))
         # TODO: prove that the outputs dont change after they settled
 
         # TODO: prove, that everything goes to the initial state after reset (is this nescessary for nmigen designs?)

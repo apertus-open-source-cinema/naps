@@ -33,14 +33,17 @@ class AxiLiteI2c(Elaboratable):
         with m.FSM():
             with m.State("initial"):
                 with m.If(~i2c.busy):
+                    m.d.comb += i2c.start.eq(1)
                     m.next = "address_0"
 
             for i, state, next_state in generate_states("address_{}", self.addr_bytes, "data_0"):
                 with m.State(state):
-                    with m.If(~i2c.busy):
-                        if i == 0:
-                            m.d.comb += i2c.start.eq(1)
-                        m.d.comb += i2c.data_i.eq(addr[i * 8:(i + 1) * 8])
+                    with m.FSM():
+                        with m.State("wait"):
+                            with m.If(~i2c.busy):
+                                m.next = "write"
+                            with m.State("write"):
+                                m.d.comb += i2c.data_i.eq(addr[i * 8:(i + 1) * 8])
                         m.next = next_state
 
             for i, state, next_state in generate_states("data_{}", self.bus.data_bits // 8, "end"):
@@ -59,13 +62,12 @@ class AxiLiteI2c(Elaboratable):
         with m.FSM():
             with m.State("initial"):
                 with m.If(~i2c.busy):
+                    m.d.comb += i2c.start.eq(1)
                     m.next = "address_0"
 
             for i, state, next_state in generate_states("address_{}", self.addr_bytes, "data_0"):
                 with m.State(state):
                     with m.If(~i2c.busy):
-                        if i == 0:
-                            m.d.comb += i2c.start.eq(1)
                         m.d.comb += i2c.data_i.eq(addr[i*8:(i+1)*8])
                         m.next = next_state
 

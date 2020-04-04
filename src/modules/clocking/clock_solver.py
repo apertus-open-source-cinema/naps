@@ -18,7 +18,7 @@ Set[Var], Set[Term]):
     cost = [constraint_cost(c, examined) for c in constraints_list]
 
     # TODO: dont dispatch twice
-    cheapest = next(c for cost, c in sorted(zip(cost, constraints_list)))
+    cheapest = next(c for cost, c in sorted(zip(cost, constraints_list)) if not c.vars().issubset(variables_for_constraints(set(*examined.keys()))))
     return constraints_for_variables(constraints_pool, cheapest.vars())
 
     excluded_vars = {v for k in examined for v in k}
@@ -36,6 +36,7 @@ Set[Var], Set[Term]):
 
 def constraint_cost(term, examined):
     vars = term.vars()
+    print(f'{term=}{examined=}')
     to_use_examined = {k: v for k, v in examined.items() if set(k).issubset(vars)}
     new_variables = list(vars.difference({y for x in to_use_examined.keys() for y in x}))
 
@@ -94,7 +95,6 @@ def solve_minlp(constraints: Set[Term], keep_percent=10):
 
     examined = {}
     while not {v for k in examined.keys() for v in k} == variables_for_constraints(constraints):
-        print(examined)
         terms = dispatch_constraints(constraints, examined)
         assert terms
         variables = variables_for_constraints(terms)
@@ -112,6 +112,6 @@ def solve_minlp(constraints: Set[Term], keep_percent=10):
                          sorted_ranked_solutions[0:int(len(sorted_ranked_solutions) * (keep_percent / 100))]]
         else:
             solutions = valid_solutions
-        non_lazy_solutions = list(solutions)
-        print(len(non_lazy_solutions))
-        examined[tuple(variables)] = non_lazy_solutions
+        list_solutions = list(solutions)
+        print(len(list_solutions))
+        examined[tuple(variables)] = list_solutions

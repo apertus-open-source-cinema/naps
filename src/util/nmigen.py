@@ -39,4 +39,4 @@ def get_signals(module):
 
 
 def generate_states(str_pattern, n, next_state):
-    return ((i, str_pattern.format(i), str_pattern.format(i) if i < n else next_state) for i in range(n))
+    return ((i, str_pattern.format(i), str_pattern.format(i + 1) if i <= n else next_state) for i in range(n))

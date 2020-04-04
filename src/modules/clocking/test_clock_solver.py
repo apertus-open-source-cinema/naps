@@ -29,7 +29,7 @@ class TestClockSolver(TestCase):
         self.assertEqual(
             solver.variables_for_constraints(
                 solver.dispatch_constraints(
-                    {*cr.topology(), *cr.validity_constraints()}, set()
+                    {*cr.topology(), *cr.validity_constraints()}, {}
                 )
             ),
             {cr.vco_d, cr.vco_m}
@@ -50,9 +50,9 @@ class TestClockSolver(TestCase):
         cr = TestClockingResource(100e6)
         port_a, port_b, port_c, *_ = cr.topology()
         constraints = [
-            op.pow(port_a - 100e6, 2) * (-1),
+            op.pow(port_a - 100e6, 2),
             port_a < 50e6,
             port_b == port_a / 2,
             port_c == port_a + port_b
         ]
-        solver.solve_minlp({*cr.validity_constraints(), *cr.topology(), *constraints})
+        solver.solve_minlp({*cr.validity_constraints(), *constraints})

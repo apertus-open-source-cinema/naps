@@ -4,7 +4,6 @@ from modules.xilinx.xilinx_blackbox import XilinxBlackbox
 
 
 class XilinxClockingResource(XilinxBlackbox, ClockingResource):
-
     def __init__(self, in_clk_freq, **kwargs):
         super().__init__(**kwargs)
         assert hasattr(self.__class__, "VCO_MIN")

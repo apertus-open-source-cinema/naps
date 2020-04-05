@@ -1,5 +1,3 @@
-from abc import ABC
-
 from .xilinx_blackbox import XilinxBlackbox
 
 

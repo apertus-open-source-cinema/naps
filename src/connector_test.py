@@ -1,13 +1,10 @@
 from nmigen import *
-from nmigen.back import verilog
 from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
-from nmigen.hdl.rec import Direction
 
 from modules.axi.axil_reg import AxiLiteReg
 from modules.axi.helper import downgrade_axi_to_axi_lite, axi_slave_on_master
 from modules.xilinx.blocks import Ps7, Oserdes, RawPll, Bufg, Idelay, IdelayCtl, Iserdes
 from devices.micro.micro_r2_platform import MicroR2Platform
-from modules.xilinx.clocking import Pll
 
 
 class Top(Elaboratable):
@@ -35,7 +32,7 @@ class Top(Elaboratable):
         pll = m.submodules.pll = RawPll(startup_wait=False, ref_jitter1=0.01, clkin1_period=8.0, clkfbout_mult=8, divclk_divide=1,
                                         clkout0_divide=16, clkout0_phase=0.0,
                                         clkout1_divide=4, clkout1_phase=0.0)
-        m.d.comb += pll.clk.in_[1].eq(ps7.fclk.clk[1])
+        m.d.comb += pll.clk.in1.eq(ps7.fclk.clk[1])
         m.d.comb += pll.clk.fbin.eq(pll.clk.fbout)
         bufg_serdes = m.submodules.bufg_serdes = Bufg()
         m.d.comb += bufg_serdes.i.eq(pll.clk.out[0])
@@ -45,6 +42,7 @@ class Top(Elaboratable):
         m.d.comb += bufg_serdes_4x.i.eq(pll.clk.out[1])
         m.domains += ClockDomain("serdes_4x")
         m.d.comb += ClockSignal("serdes_4x").eq(bufg_serdes_4x.o)
+
 
 
         # axi setup
@@ -117,13 +115,14 @@ class Top(Elaboratable):
         )
         m.d.comb += iserdes.ddly.eq(idelay_out)
         m.d.comb += iserdes.ce[1].eq(1)
-        m.d.comb += iserdes.clk.self.eq(ClockSignal("serdes_4x"))
-        m.d.comb += iserdes.clk.b.eq(~ClockSignal("serdes_4x"))
+        m.d.comb += iserdes.clk.eq(ClockSignal("serdes_4x"))
+        m.d.comb += iserdes.clkb.eq(~ClockSignal("serdes_4x"))
         m.d.comb += iserdes.rst.eq(ResetSignal("serdes"))
-        m.d.comb += iserdes.clk.div.eq(ClockSignal("serdes"))
+        m.d.comb += iserdes.clkdiv.eq(ClockSignal("serdes"))
         #m.d.comb += iserdes.bitslip.eq(0) # TODO: AXI
         iserdes_out = Signal(8)
         m.d.comb += iserdes_out.eq(Cat(iserdes.q[i] for i in range(1, 9)))
+
 
         ## check logic
 
@@ -136,4 +135,4 @@ if __name__ == "__main__":
     # print(verilog.convert(dut))
 
     p = MicroR2Platform()
-    p.build(Top(), do_build=True)
+    p.build(Top(), do_build=False)

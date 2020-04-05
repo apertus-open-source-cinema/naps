@@ -96,12 +96,12 @@ class Top(Elaboratable):
         )
         m.d.comb += idelay.c.eq(ClockSignal())
         #m.d.comb += idelay.ld.eq() # TODO Axi reg
-        m.d.comb += idelay.ldPipeEn.eq(0)
+        m.d.comb += idelay.ldpipeen.eq(0)
         m.d.comb += idelay.ce.eq(0)
         # m.d.comb += idelay.increment.eq(0) TODO: this port does not exist
         #m.d.comb += idelay.cntValueIn.eq() # TODO Axi reg
         #m.d.comb += lal.eq(idelay.cntValueOut) # TODO Axi reg
-        m.d.comb += idelay.iDataIn.eq(loopback.rx)
+        m.d.comb += idelay.idatain.eq(loopback.rx)
         idelay_out = Signal()
         m.d.comb += idelay_out.eq(idelay.data.out)
 

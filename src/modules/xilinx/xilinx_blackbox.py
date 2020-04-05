@@ -146,8 +146,7 @@ class XilinxBlackbox(Elaboratable):
                     if isinstance(children, str):
                         return "{}: Signal # {}".format(to_signal_name(hierarchy_name), children)
                     elif all(c.isdigit() for c in children.keys()):
-                        classes = "\n".join(
-                            [gen_class(k, v) if isinstance(v, dict) else "" for k, v in children.items()])
+                        classes = "\n".join(gen_class(k, v) for k, v in children.items() if isinstance(v, dict))
                         max_element = max(int(x) for x in children.keys())
                         tuple_inner = ", ".join(
                             "None" if not str(i) in children
@@ -155,7 +154,7 @@ class XilinxBlackbox(Elaboratable):
                             else "Signal"
                             for i in range(max_element+1)
                         )
-                        return "{}\nTuple[{}]".format(classes, tuple_inner)
+                        return "{}\n{} : Tuple[{}]".format(classes, to_signal_name(hierarchy_name), tuple_inner)
                     else:
                         return "{class_str}\n{name} : {class_name}".format(
                             class_str=gen_class(hierarchy_name, children),

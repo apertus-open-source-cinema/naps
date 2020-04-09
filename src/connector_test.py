@@ -1,5 +1,3 @@
-from functools import lru_cache
-
 from nmigen import *
 from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
@@ -17,17 +15,17 @@ class Top(Elaboratable):
         platform.add_resources([
             Resource("loopback", 0,
                      # high speed serial lanes
-                     Subsignal("tx", DiffPairs("7", "1", dir='o', conn=("pmod", "north")), Attrs(IOSTANDARD="LVDS_25")),
-                     Subsignal("rx", DiffPairs("8", "2", dir='i', conn=("pmod", "north")), Attrs(IOSTANDARD="LVDS_25")),
+                     Subsignal("tx", DiffPairs("1", "7", dir='o', conn=("pmod", "south")), Attrs(IOSTANDARD="LVDS_25")),
+                     Subsignal("rx", DiffPairs("8", "2", dir='i', conn=("pmod", "south")), Attrs(IOSTANDARD="LVDS_25")),
                      )
         ])
 
     memory_map = {}
     next_addr = 0x4000_0000
 
-    @lru_cache(maxsize=1024)  # for always emitting the same signal for the same name
-    def axi_reg(self, name, width=8, writable=True):
+    def axi_reg(self, name, width=32, writable=True):
         reg = axi_slave_on_master(self.m, self.axi_port, AxiLiteReg(width=width, base_address=self.next_addr, writable=writable, name=name))
+        assert name not in self.memory_map
         self.memory_map[name] = self.next_addr
         self.next_addr += 4
         return reg.reg
@@ -40,8 +38,8 @@ class Top(Elaboratable):
 
         # clock_setup: the serdes clockdomain has double the frequency of fclk1
         m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
-        pll = m.submodules.pll = RawPll(startup_wait=False, ref_jitter1=0.01, clkin1_period=8.0, clkfbout_mult=8,
-                                        divclk_divide=1,
+        pll = m.submodules.pll = RawPll(startup_wait=False, ref_jitter1=0.01, clkin1_period=8.0,
+                                        clkfbout_mult=8, divclk_divide=1,
                                         clkout0_divide=16, clkout0_phase=0.0,
                                         clkout1_divide=4, clkout1_phase=0.0)
         m.d.comb += pll.clk.in1.eq(ps7.fclk.clk[1])
@@ -63,12 +61,13 @@ class Top(Elaboratable):
         downgrade_axi_to_axi_lite(m, axi_port)
 
         self.connect_loopback_ressource(plat)
-        self.axi_reg("test")
-        m.d.comb += self.axi_reg("test_sink", writable=False).eq(0x42)
+        self.axi_reg("rw_test")
+        test_counter_reg = self.axi_reg("test_counter", writable=False)
+        m.d.sync += test_counter_reg.eq(test_counter_reg+1)
 
         # make the design resettable via a axi register
-        reset = self.axi_reg("reset", width=1)
-        for domain in ["sync", "serdes", "serdes_4x"]:
+        reset = self.axi_reg("reset_serdes", width=1)
+        for domain in ["serdes", "serdes_4x"]:
             m.d.comb += ResetSignal(domain).eq(reset)
 
         # loopback
@@ -88,15 +87,18 @@ class Top(Elaboratable):
         m.d.comb += oserdes.clk.eq(ClockSignal("serdes_4x"))
         m.d.comb += oserdes.clkdiv.eq(ClockSignal("serdes"))
         m.d.comb += oserdes.rst.eq(ResetSignal("serdes"))
-        m.d.comb += Cat(oserdes.d[i] for i in range(1, 9)).eq(to_oserdes)
+        m.d.comb += Cat(oserdes.d[i] for i in reversed(range(1, 9))).eq(to_oserdes) # reversed is needed!!1
         m.d.comb += loopback.tx.eq(oserdes.oq)
 
         ## reciver side
+        bufg_idelay_refclk = m.submodules.bufg_idelay_refclk = Bufg()
+        m.d.comb += bufg_idelay_refclk.i.eq(pll.clk.out[2])
         m.domains += ClockDomain("idelay_refclk")
-        m.d.comb += ClockSignal("idelay_refclk").eq(ps7.fclk.clk[2])
+        m.d.comb += ClockSignal("idelay_refclk").eq(bufg_idelay_refclk.o)
         idelay_ctl = m.submodules.idelay_ctl = IdelayCtl()
-        m.d.comb += idelay_ctl.refclk.eq(ClockSignal("idelay_refclk"))
-        m.d.comb += idelay_ctl.rst.eq(ResetSignal("idelay_refclk"))
+        m.d.comb += self.axi_reg("idelay_crl_rdy", writable=False, width=1).eq(idelay_ctl.rdy)
+        m.d.comb += idelay_ctl.refclk.eq(ClockSignal("serdes_4x"))
+        m.d.comb += idelay_ctl.rst.eq(ResetSignal("serdes_4x"))
         idelay = m.submodules.idelay = Idelay(
             delay_src="iDataIn",
             signal_pattern="data",
@@ -107,13 +109,13 @@ class Top(Elaboratable):
             idelay_type="var_load",
             idelay_value=0
         )
-        m.d.comb += idelay.c.eq(ClockSignal())
-        m.d.comb += idelay.ld.eq(self.axi_reg("idelay_ld"))
+        m.d.comb += idelay.c.eq(ClockSignal())  # this is really the clock to which the control inputs are syncronous!
+        m.d.comb += idelay.ld.eq(self.axi_reg("idelay_ld", width=1))
         m.d.comb += idelay.ldpipeen.eq(0)
         m.d.comb += idelay.ce.eq(0)
         m.d.comb += idelay.inc.eq(0)
-        m.d.comb += idelay.cntvalue.in_.eq(self.axi_reg("idelay_cntvaluein"))
-        m.d.comb += self.axi_reg("idelay_cntvalueout", writable=False).eq(idelay.cntvalue.out)
+        m.d.comb += idelay.cntvalue.in_.eq(self.axi_reg("idelay_cntvaluein", width=5))
+        m.d.comb += self.axi_reg("idelay_cntvalueout", width=5, writable=False).eq(idelay.cntvalue.out)
         m.d.comb += idelay.idatain.eq(loopback.rx)
         idelay_out = Signal()
         m.d.comb += idelay_out.eq(idelay.data.out)
@@ -136,19 +138,22 @@ class Top(Elaboratable):
         m.d.comb += from_iserdes.eq(Cat(iserdes.q[i] for i in range(1, 9)))
 
         ## check logic
-        last_received = self.axi_reg("last_received", writable=False)
+        last_received = self.axi_reg("last_received", width=8, writable=False)
 
         current_state = self.axi_reg("current_state", writable=False)
-        training_cycles = self.axi_reg("trainig_cycles", writable=False)
-        sliped_bits = self.axi_reg("sliped_bits", writable=False)
-        error_cnt = self.axi_reg("error_cnt", 32, writable=False)
-        success_cnt = self.axi_reg("error_cnt", 32, writable=False)
+        training_cycles = self.axi_reg("training_cycles", writable=False)
+        slipped_bits = self.axi_reg("slipped_bits", writable=False)
+        error_cnt = self.axi_reg("error_cnt", writable=False)
+        success_cnt = self.axi_reg("success_cnt", writable=False)
+        last_current_out = self.axi_reg("last_current_out", width=24, writable=False)
+        test_pattern = self.axi_reg("test_patern", width=8, writable=True)
 
         with m.FSM(domain="serdes"):
             with m.State("TRAINING"):
                 m.d.comb += current_state.eq(0)
                 # start the link with correcting for the bitslip
-                m.d.serdes += to_oserdes.eq(0b00001111)
+                training_pattern = 0b00001111
+                m.d.serdes += to_oserdes.eq(training_pattern)
                 since_bitslip = Signal(2)
                 m.d.serdes += training_cycles.eq(training_cycles+1)
                 with m.If(iserdes.bitslip == 1):
@@ -156,25 +161,39 @@ class Top(Elaboratable):
                     m.d.serdes += since_bitslip.eq(0)
                 with m.Elif(since_bitslip < 3):
                     m.d.serdes += since_bitslip.eq(since_bitslip + 1)
-                with m.Elif(from_iserdes != 0b00001111):
+                with m.Elif(from_iserdes != training_pattern):
                     m.d.serdes += iserdes.bitslip.eq(1)
-                    m.d.serdes += sliped_bits.eq(sliped_bits+1)
+                    m.d.serdes += slipped_bits.eq(slipped_bits+1)
                 with m.Else():
                     m.d.serdes += to_oserdes.eq(0x00)
                     m.next = "RUNNING"
             with m.State("RUNNING"):
                 m.d.comb += current_state.eq(1)
 
-                m.d.serdes += to_oserdes.eq(to_oserdes+1)
-                m.d.serdes += last_received.eq(from_iserdes)
-                with m.If(from_iserdes == (last_received+1)[0:8]):
-                    m.d.serdes += success_cnt.eq(success_cnt+1)
+                with m.If(test_pattern):
+                    m.d.serdes += to_oserdes.eq(test_pattern)
+                    with m.If(from_iserdes == test_pattern):
+                        m.d.serdes += success_cnt.eq(success_cnt+1)
+                    with m.Else():
+                        m.d.serdes += error_cnt.eq(error_cnt+1)
                 with m.Else():
-                    m.d.serdes += error_cnt.eq(error_cnt+1)
+                    m.d.serdes += to_oserdes.eq(to_oserdes+1)
+                    with m.If(from_iserdes == (last_received+1)[0:8]):
+                        m.d.serdes += success_cnt.eq(success_cnt+1)
+                    with m.Else():
+                        m.d.serdes += error_cnt.eq(error_cnt+1)
+
+                m.d.serdes += last_received.eq(from_iserdes)
+                m.d.comb += last_current_out.eq(Cat(last_received, from_iserdes, to_oserdes))
+
 
         # write the memory map
         with open("build/memorymap.csv", "w") as f:
             f.write("\n".join("{},\t0x{:06x}".format(k, v) for k, v in self.memory_map.items()))
+        with open("build/regs.sh", "w") as f:
+            f.write("\n".join("export r_{}=0x{:06x}".format(k, v) for k, v in self.memory_map.items()))
+            f.write("\n\n")
+            f.write("\n".join("echo {}: $(devmem2 0x{:06x} | sed -r 's|.*: (.*)|\\1|' | tail -n1)".format(k, v) for k, v in self.memory_map.items()))
 
         return m
 

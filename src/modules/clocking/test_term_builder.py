@@ -1,9 +1,6 @@
 import unittest
 
 from modules.clocking.term_builder import Var, op, Op, Const
-import numpy
-
-numpy.set_printoptions(threshold=5)
 
 
 class TestTermBuilder(unittest.TestCase):

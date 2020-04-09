@@ -8,13 +8,14 @@ python_version = "3.8"
 
 [dev-packages]
 flake8 = "*"
+coverage = "*"
+pytest = "*"
+vcd = "*"
+pytest-pycharm = "*"
 
 [packages]
-pandas = "*"
-coverage = "*"
-nmigen = {git = "https://github.com/anuejn/nmigen"}
-nmigen-boards = {git = "https://github.com/axiom-micro/nmigen-boards.git"}
+nmigen = {git = "https://github.com/nmigen/nmigen.git"}
+nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
+nmigen-soc = {git = "https://github.com/nmigen/nmigen-soc.git"}
+jinja2 = "*"
 python-varname = "*"
-numba = "*"
-pytest = "*"
-pytest-pycharm = "*"

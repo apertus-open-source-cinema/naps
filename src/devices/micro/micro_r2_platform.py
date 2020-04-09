@@ -1,6 +1,11 @@
+import os
+import subprocess
+
 from nmigen.build import Resource, Subsignal, Pins, DiffPairs, Connector, Attrs
 from ..common.layouts import gen_plugin_connector
 from nmigen_boards.zturn_lite_z010 import ZTurnLiteZ010Platform
+
+from ..common.program_bitstream_camera import program_bitstream_camera
 
 
 class MicroR2Platform(ZTurnLiteZ010Platform):
@@ -53,3 +58,8 @@ class MicroR2Platform(ZTurnLiteZ010Platform):
                 "create_clock -name clk100 -period 100.0 [get_nets ps7_wrapper_FCLKCLK[0]]"
         }
         return super().toolchain_prepare(fragment, name, **overrides, **kwargs)
+
+    def toolchain_program(self, products, name, **kwargs):
+        bitstream = products.get("{}.bit".format(name))
+        camera_host = kwargs["host"] if "host" in kwargs else os.getenv("CAMERA_HOST")
+        program_bitstream_camera(camera_host, bitstream)

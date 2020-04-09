@@ -1,10 +1,8 @@
 from nmigen import *
-from nmigen.back import verilog
-from nmigen.hdl.rec import Direction
-
-from modules.axi.axil_reg import AxiLiteReg, AxiLiteSlaveToFullBridge
+from modules.axi.axil_reg import AxiLiteReg
 from modules.xilinx.blocks import Ps7
 from devices.micro.micro_r2_platform import MicroR2Platform
+
 
 class Top(Elaboratable):
     def __init__(self):
@@ -29,20 +27,20 @@ class Top(Elaboratable):
         m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
         m.d.comb += axi_port.aclk.eq(ClockSignal())
         m.d.comb += ResetSignal().eq(~axi_port.aresetn)
-        m.d.comb += reg.bus.read_address.addr.eq(axi_port.araddr)
+        m.d.comb += reg.bus.read_address.value.eq(axi_port.araddr)
         m.d.comb += reg.bus.read_address.valid.eq(axi_port.arvalid)
         m.d.comb += axi_port.arready.eq(reg.bus.read_address.ready)
 
-        m.d.comb += reg.bus.write_address.addr.eq(axi_port.awaddr)
+        m.d.comb += reg.bus.write_address.value.eq(axi_port.awaddr)
         m.d.comb += reg.bus.write_address.valid.eq(axi_port.awvalid)
         m.d.comb += axi_port.awready.eq(reg.bus.write_address.ready)
 
-        m.d.comb += axi_port.rdata.eq(reg.bus.read_data.data)
+        m.d.comb += axi_port.rdata.eq(reg.bus.read_data.value)
         m.d.comb += axi_port.rre.sp.eq(reg.bus.read_data.resp)
         m.d.comb += axi_port.rvalid.eq(reg.bus.read_data.valid)
         m.d.comb += reg.bus.read_data.ready.eq(axi_port.rre.ady)
 
-        m.d.comb += reg.bus.write_data.data.eq(axi_port.wdata)
+        m.d.comb += reg.bus.write_data.value.eq(axi_port.wdata)
         m.d.comb += reg.bus.write_data.valid.eq(axi_port.wvalid)
         m.d.comb += reg.bus.write_data.strb.eq(axi_port.wstrb)
         m.d.comb += axi_port.wready.eq(reg.bus.write_data.ready)
@@ -68,13 +66,9 @@ class Top(Elaboratable):
 
         m.d.comb += axi_port.rlast.eq(1)
 
-
         # m.d.comb += reg.bus.
         # m.d.comb += self.a.a.eq(self.a.b)
         # m.d.comb += self.a.connect(self.b, exclude = {"c"})
-
-
-
 
         return m
 

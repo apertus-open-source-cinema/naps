@@ -1,3 +1,5 @@
+from functools import lru_cache
+
 from nmigen import *
 from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
@@ -15,21 +17,31 @@ class Top(Elaboratable):
         platform.add_resources([
             Resource("loopback", 0,
                      # high speed serial lanes
-                     Subsignal("tx", DiffPairs("1", "7", dir='o', conn=("pmod", "north")), Attrs(IOSTANDARD="LVDS_25")),
-                     Subsignal("rx", DiffPairs("2", "8", dir='i', conn=("pmod", "north")), Attrs(IOSTANDARD="LVDS_25")),
+                     Subsignal("tx", DiffPairs("7", "1", dir='o', conn=("pmod", "north")), Attrs(IOSTANDARD="LVDS_25")),
+                     Subsignal("rx", DiffPairs("8", "2", dir='i', conn=("pmod", "north")), Attrs(IOSTANDARD="LVDS_25")),
                      )
         ])
 
+    memory_map = {}
+    next_addr = 0x4000_0000
+
+    @lru_cache(maxsize=1024)  # for always emitting the same signal for the same name
+    def axi_reg(self, name, width=8, writable=True):
+        reg = axi_slave_on_master(self.m, self.axi_port, AxiLiteReg(width=width, base_address=self.next_addr, writable=writable, name=name))
+        self.memory_map[name] = self.next_addr
+        self.next_addr += 4
+        return reg.reg
+
     def elaborate(self, plat: MicroR2Platform):
-        m = Module()
+        m = self.m = Module()
 
         m.domains += ClockDomain("sync")
         ps7 = m.submodules.ps7_wrapper = Ps7()
 
-
         # clock_setup: the serdes clockdomain has double the frequency of fclk1
         m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
-        pll = m.submodules.pll = RawPll(startup_wait=False, ref_jitter1=0.01, clkin1_period=8.0, clkfbout_mult=8, divclk_divide=1,
+        pll = m.submodules.pll = RawPll(startup_wait=False, ref_jitter1=0.01, clkin1_period=8.0, clkfbout_mult=8,
+                                        divclk_divide=1,
                                         clkout0_divide=16, clkout0_phase=0.0,
                                         clkout1_divide=4, clkout1_phase=0.0)
         m.d.comb += pll.clk.in1.eq(ps7.fclk.clk[1])
@@ -44,25 +56,26 @@ class Top(Elaboratable):
         m.d.comb += ClockSignal("serdes_4x").eq(bufg_serdes_4x.o)
 
 
-
         # axi setup
-        axi_port = ps7.maxigp[0]
+        axi_port = self.axi_port = ps7.maxigp[0]
         m.d.comb += axi_port.aclk.eq(ClockSignal())
         m.d.comb += ResetSignal().eq(~axi_port.aresetn)
         downgrade_axi_to_axi_lite(m, axi_port)
 
-        test_reg1 = axi_slave_on_master(m, axi_port, AxiLiteReg(width=8, base_address=0x4000_0000))
-        test_reg2 = axi_slave_on_master(m, axi_port, AxiLiteReg(width=8, base_address=0x4000_0001))
-        m.d.comb += test_reg1.reg.eq(test_reg2.reg)
+        self.connect_loopback_ressource(plat)
+        self.axi_reg("test")
+        m.d.comb += self.axi_reg("test_sink", writable=False).eq(0x42)
 
+        # make the design resettable via a axi register
+        reset = self.axi_reg("reset", width=1)
+        for domain in ["sync", "serdes", "serdes_4x"]:
+            m.d.comb += ResetSignal(domain).eq(reset)
 
         # loopback
-        self.connect_loopback_ressource(plat)
         loopback = plat.request("loopback")
 
         ## sender side
-        counter = Signal(8)
-        m.d.serdes += counter.eq(counter+1)
+        to_oserdes = Signal(8)
 
         oserdes = m.submodules.oserdes = Oserdes(
             data_width=8,
@@ -75,7 +88,7 @@ class Top(Elaboratable):
         m.d.comb += oserdes.clk.eq(ClockSignal("serdes_4x"))
         m.d.comb += oserdes.clkdiv.eq(ClockSignal("serdes"))
         m.d.comb += oserdes.rst.eq(ResetSignal("serdes"))
-        m.d.comb += Cat(oserdes.d[i] for i in range(1, 9)).eq(counter)
+        m.d.comb += Cat(oserdes.d[i] for i in range(1, 9)).eq(to_oserdes)
         m.d.comb += loopback.tx.eq(oserdes.oq)
 
         ## reciver side
@@ -95,12 +108,12 @@ class Top(Elaboratable):
             idelay_value=0
         )
         m.d.comb += idelay.c.eq(ClockSignal())
-        #m.d.comb += idelay.ld.eq() # TODO Axi reg
+        m.d.comb += idelay.ld.eq(self.axi_reg("idelay_ld"))
         m.d.comb += idelay.ldpipeen.eq(0)
         m.d.comb += idelay.ce.eq(0)
-        # m.d.comb += idelay.increment.eq(0) TODO: this port does not exist
-        #m.d.comb += idelay.cntValueIn.eq() # TODO Axi reg
-        #m.d.comb += lal.eq(idelay.cntValueOut) # TODO Axi reg
+        m.d.comb += idelay.inc.eq(0)
+        m.d.comb += idelay.cntvalue.in_.eq(self.axi_reg("idelay_cntvaluein"))
+        m.d.comb += self.axi_reg("idelay_cntvalueout", writable=False).eq(idelay.cntvalue.out)
         m.d.comb += idelay.idatain.eq(loopback.rx)
         idelay_out = Signal()
         m.d.comb += idelay_out.eq(idelay.data.out)
@@ -119,20 +132,50 @@ class Top(Elaboratable):
         m.d.comb += iserdes.clkb.eq(~ClockSignal("serdes_4x"))
         m.d.comb += iserdes.rst.eq(ResetSignal("serdes"))
         m.d.comb += iserdes.clkdiv.eq(ClockSignal("serdes"))
-        #m.d.comb += iserdes.bitslip.eq(0) # TODO: AXI
-        iserdes_out = Signal(8)
-        m.d.comb += iserdes_out.eq(Cat(iserdes.q[i] for i in range(1, 9)))
-
+        from_iserdes = Signal(8)
+        m.d.comb += from_iserdes.eq(Cat(iserdes.q[i] for i in range(1, 9)))
 
         ## check logic
+        last_received = self.axi_reg("last_received", writable=False)
 
+        current_state = self.axi_reg("current_state", writable=False)
+        training_cycles = self.axi_reg("trainig_cycles", writable=False)
+        error_cnt = self.axi_reg("error_cnt", 32, writable=False)
+        success_cnt = self.axi_reg("error_cnt", 32, writable=False)
+
+        with m.FSM(domain="serdes"):
+            with m.State("TRAINING"):
+                # start the link with correcting for the bitslip
+                m.d.sync += to_oserdes.eq(0b00001111)
+                m.d.comb += current_state.eq(0)
+                with m.If(from_iserdes != 0b00001111):
+                    m.d.comb += iserdes.bitslip.eq(1)
+                    m.d.sync += training_cycles.eq(training_cycles+1)
+                with m.Else():
+                    m.d.comb += iserdes.bitslip.eq(0)
+                    m.d.sync += to_oserdes.eq(0x00)
+                    m.next = "RUNNING"
+            with m.State("RUNNING"):
+                m.d.sync += to_oserdes.eq(to_oserdes+1)
+                m.d.sync += last_received.eq(from_iserdes)
+                with m.If(from_iserdes == last_received+1):
+                    m.d.sync += success_cnt.eq(success_cnt+1)
+                with m.Else():
+                    m.d.sync += error_cnt.eq(error_cnt+1)
+
+        # write the memory map
+        with open("build/memorymap.csv", "w") as f:
+            f.write("\n".join("{},\t0x{:06x}".format(k, v) for k, v in self.memory_map.items()))
 
         return m
 
 
 if __name__ == "__main__":
-    # dut = Top()
-    # print(verilog.convert(dut))
-
     p = MicroR2Platform()
-    p.build(Top(), do_build=False)
+    p.build(
+        Top(),
+        name="connector_test",
+        do_build=False,
+        do_program=True,
+        program_opts={"host": "10.42.0.1"},
+    )

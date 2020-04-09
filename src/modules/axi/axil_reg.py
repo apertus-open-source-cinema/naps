@@ -4,8 +4,9 @@ from nmigen import *
 
 
 class AxiLiteReg(Elaboratable):
-    def __init__(self, *, width, base_address):
-        self.reg = Signal(width)
+    def __init__(self, *, width, base_address, writable=True, name=None):
+        self.reg = Signal(width, name=name)
+        self.writable = writable
 
         self.axi = AxiLiteSlave(
             address_range=range(base_address, base_address + 1),
@@ -23,9 +24,10 @@ class AxiLiteReg(Elaboratable):
     def handle_read(self, m, addr, data, resp, read_done):
         m.d.sync += data.eq(self.reg)
         m.d.sync += resp.eq(Response.OKAY)
-        #read_done()
+        read_done()
 
     def handle_write(self, m, addr, data, resp, write_done):
-        m.d.sync += self.reg.eq(data)
+        if self.writable:
+            m.d.sync += self.reg.eq(data)
         m.d.sync += resp.eq(Response.OKAY)
-        #write_done()
+        write_done()

@@ -3,7 +3,6 @@ from unittest import TestCase
 import modules.clocking.clock_solver as solver
 from modules.clocking.clocking_ressource import ClockingResource
 from modules.clocking.term_builder import Var, Const, op
-from numpy import arange
 
 
 class TestClockingResource(ClockingResource):

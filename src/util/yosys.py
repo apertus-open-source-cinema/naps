@@ -52,4 +52,4 @@ def yosys_script(commands):
     :return: the stdout of yosys
     """
     commandline = 'yosys -q -p "{}"'.format(";\n".join(commands))
-    return subprocess.check_output(commandline, shell=True)
+    return subprocess.check_output(commandline, shell=True, stderr=subprocess.PIPE)

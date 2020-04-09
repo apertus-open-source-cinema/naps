@@ -140,28 +140,37 @@ class Top(Elaboratable):
 
         current_state = self.axi_reg("current_state", writable=False)
         training_cycles = self.axi_reg("trainig_cycles", writable=False)
+        sliped_bits = self.axi_reg("sliped_bits", writable=False)
         error_cnt = self.axi_reg("error_cnt", 32, writable=False)
         success_cnt = self.axi_reg("error_cnt", 32, writable=False)
 
         with m.FSM(domain="serdes"):
             with m.State("TRAINING"):
-                # start the link with correcting for the bitslip
-                m.d.sync += to_oserdes.eq(0b00001111)
                 m.d.comb += current_state.eq(0)
-                with m.If(from_iserdes != 0b00001111):
-                    m.d.comb += iserdes.bitslip.eq(1)
-                    m.d.sync += training_cycles.eq(training_cycles+1)
+                # start the link with correcting for the bitslip
+                m.d.serdes += to_oserdes.eq(0b00001111)
+                since_bitslip = Signal(2)
+                m.d.serdes += training_cycles.eq(training_cycles+1)
+                with m.If(iserdes.bitslip == 1):
+                    m.d.serdes += iserdes.bitslip.eq(0)
+                    m.d.serdes += since_bitslip.eq(0)
+                with m.Elif(since_bitslip < 3):
+                    m.d.serdes += since_bitslip.eq(since_bitslip + 1)
+                with m.Elif(from_iserdes != 0b00001111):
+                    m.d.serdes += iserdes.bitslip.eq(1)
+                    m.d.serdes += sliped_bits.eq(sliped_bits+1)
                 with m.Else():
-                    m.d.comb += iserdes.bitslip.eq(0)
-                    m.d.sync += to_oserdes.eq(0x00)
+                    m.d.serdes += to_oserdes.eq(0x00)
                     m.next = "RUNNING"
             with m.State("RUNNING"):
-                m.d.sync += to_oserdes.eq(to_oserdes+1)
-                m.d.sync += last_received.eq(from_iserdes)
-                with m.If(from_iserdes == last_received+1):
-                    m.d.sync += success_cnt.eq(success_cnt+1)
+                m.d.comb += current_state.eq(1)
+
+                m.d.serdes += to_oserdes.eq(to_oserdes+1)
+                m.d.serdes += last_received.eq(from_iserdes)
+                with m.If(from_iserdes == (last_received+1)[0:8]):
+                    m.d.serdes += success_cnt.eq(success_cnt+1)
                 with m.Else():
-                    m.d.sync += error_cnt.eq(error_cnt+1)
+                    m.d.serdes += error_cnt.eq(error_cnt+1)
 
         # write the memory map
         with open("build/memorymap.csv", "w") as f:
@@ -175,7 +184,7 @@ if __name__ == "__main__":
     p.build(
         Top(),
         name="connector_test",
-        do_build=False,
-        do_program=True,
+        do_build=True,
+        do_program=False,
         program_opts={"host": "10.42.0.1"},
     )

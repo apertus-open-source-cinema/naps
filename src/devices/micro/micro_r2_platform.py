@@ -62,4 +62,4 @@ class MicroR2Platform(ZTurnLiteZ010Platform):
     def toolchain_program(self, products, name, **kwargs):
         bitstream = products.get("{}.bit".format(name))
         camera_host = kwargs["host"] if "host" in kwargs else os.getenv("CAMERA_HOST")
-        program_bitstream_camera(camera_host, bitstream)
+        program_bitstream_camera(camera_host, bitstream, name)

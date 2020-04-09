@@ -26,6 +26,8 @@ class AxiLiteSlave(Elaboratable, ABC):
         m = Module()
 
         addr = Signal.like(self.bus.read_address.value)
+        read_out = Signal.like(self.bus.read_data.value)
+        resp_out = Signal.like(self.bus.read_data.resp)
 
         with m.FSM():
             with m.State("IDLE"):
@@ -43,13 +45,17 @@ class AxiLiteSlave(Elaboratable, ABC):
                     m.next = "WRITE"
 
             with m.State("READ"):
+                # Only write read and resp if we are in the READ state. Otherwise all bits are '0'.
+                # This allows us to simply or the data output of multiple axi slaves together.
                 read_done = Signal()
                 def set_read_done(): m.d.sync += read_done.eq(1)
-                self.handle_read(m, addr, self.bus.read_data.value, self.bus.read_data.resp, set_read_done)
+                self.handle_read(m, addr, read_out, resp_out, set_read_done)
                 with m.If(read_done):
                     m.d.sync += read_done.eq(0)
                     m.next = "READ_DONE"
             with m.State("READ_DONE"):
+                m.d.comb += self.bus.read_data.value.eq(read_out)
+                m.d.comb += self.bus.read_data.resp.eq(resp_out)
                 m.d.comb += self.bus.read_data.valid.eq(1)
                 with m.If(self.bus.read_data.ready):
                     m.next = "IDLE"

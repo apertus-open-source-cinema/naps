@@ -1,27 +1,37 @@
+from collections import defaultdict
+from functools import reduce
+
 from nmigen import Signal
 
 slave_num = 0
+
+
+def or_together(signal, name, internal_dict=defaultdict(list)):
+    internal_dict[name].append(signal)
+    return reduce(lambda acc, cur: acc | cur, internal_dict[name], Signal())
+
+
 def axi_slave_on_master(m, master, slave):
     m.d.comb += slave.bus.read_address.value.eq(master.araddr)
     m.d.comb += slave.bus.read_address.valid.eq(master.arvalid)
-    m.d.comb += master.arready.eq(slave.bus.read_address.ready)
+    m.d.comb += master.arready.eq(or_together(slave.bus.read_address.ready, "arready"))
 
     m.d.comb += slave.bus.write_address.value.eq(master.awaddr)
     m.d.comb += slave.bus.write_address.valid.eq(master.awvalid)
-    m.d.comb += master.awready.eq(slave.bus.write_address.ready)
+    m.d.comb += master.awready.eq(or_together(slave.bus.write_address.ready, "awready"))
 
-    m.d.comb += master.rdata.eq(slave.bus.read_data.value)
-    m.d.comb += master.rre.sp.eq(slave.bus.read_data.resp)
-    m.d.comb += master.rvalid.eq(slave.bus.read_data.valid)
+    m.d.comb += master.rdata.eq(or_together(slave.bus.read_data.value, "rdata"))
+    m.d.comb += master.rre.sp.eq(or_together(slave.bus.read_data.resp, "rresp"))
+    m.d.comb += master.rvalid.eq(or_together(slave.bus.read_data.valid, "rvalid"))
     m.d.comb += slave.bus.read_data.ready.eq(master.rre.ady)
 
     m.d.comb += slave.bus.write_data.value.eq(master.wdata)
     m.d.comb += slave.bus.write_data.valid.eq(master.wvalid)
     m.d.comb += slave.bus.write_data.strb.eq(master.wstrb)
-    m.d.comb += master.wready.eq(slave.bus.write_data.ready)
+    m.d.comb += master.wready.eq(or_together(slave.bus.write_data.ready, "wready"))
 
-    m.d.comb += master.bre.sp.eq(slave.bus.write_response.resp)
-    m.d.comb += master.bvalid.eq(slave.bus.write_response.valid)
+    m.d.comb += master.bre.sp.eq(or_together(slave.bus.write_response.resp, "bresp"))
+    m.d.comb += master.bvalid.eq(or_together(slave.bus.write_response.valid, "bvalid"))
     m.d.comb += slave.bus.write_response.ready.eq(master.bre.ady)
 
     global slave_num

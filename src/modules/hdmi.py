@@ -1,7 +1,6 @@
 from nmigen import *
 from modules.vendor.litevideo_hdmi.s7 import S7HDMIOutPHY, S7HDMIOutClocking
 from util.cvt import calculate_video_timing
-from modules.managers.clock_manager import generate_clock
 
 
 class Hdmi(Elaboratable):
@@ -12,14 +11,14 @@ class Hdmi(Elaboratable):
         self.pins = pins
         self.width, self.height, self.refresh = width, height, refresh
         self.pix_clk_freq = calculate_video_timing(width, height, refresh)["pxclk"] * 1e6
+        print("set fclk0 to {} mhz".format(self.pix_clk_freq / 1e6))
 
     def elaborate(self, plat):
         m = Module()
 
-        generate_clock(self.pix_clk_freq, "pix")
-        generate_clock(self.pix_clk_freq * 5, "pix5x")
-
-        m.d.comb += self.pins.clock.eq(ClockSignal("pix"))
+        plat.extra_lines += "echo 20000000 > /sys/class/fclk/fclk0/set_rate\n".format(self.pix_clk_freq)
+        plat.extra_lines += "echo 1 > /sys/class/fclk/fclk0/enable\n".format(self.pix_clk_freq)
+        m.submodules.pll = S7HDMIOutClocking()
 
         t = m.submodules.timing_generator = DomainRenamer("pix")(TimingGenerator(self.width, self.height, self.refresh))
         p = m.submodules.pattern_generator = DomainRenamer("pix")(XorPatternGenerator(self.width, self.height))
@@ -49,8 +48,8 @@ class TimingGenerator(Elaboratable):
         self.video_timing = calculate_video_timing(width, height, refresh)
 
 
-        self.x = Signal(max=self.video_timing["hscan"] + 1)
-        self.y = Signal(max=self.video_timing["vscan"] + 1)
+        self.x = Signal(range(self.video_timing["hscan"] + 1))
+        self.y = Signal(range(self.video_timing["vscan"] + 1))
         self.active = Signal()
         self.hsync = Signal()
         self.vsync = Signal()
@@ -79,8 +78,8 @@ class TimingGenerator(Elaboratable):
 
 class XorPatternGenerator(Elaboratable):
     def __init__(self, width, height):
-        self.x = Signal(max=width)
-        self.y = Signal(max=height)
+        self.x = Signal(range(width))
+        self.y = Signal(range(height))
         self.out = Record((
             ("r", 8),
             ("g", 8),

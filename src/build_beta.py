@@ -1,9 +1,9 @@
 from nmigen import *
 
+from devices.beta.beta_platform import BetaPlatform
 from modules.xilinx.blocks import Ps7
-from devices.micro.micro_r2 import MicroR2Platform
 from modules.hdmi import Hdmi
-from modules.managers import clock_manager as cm
+from modules.clocking import clock_manager as cm
 
 
 class Top(Elaboratable):
@@ -19,21 +19,14 @@ class Top(Elaboratable):
         m.d.comb += ResetSignal().eq(0)
 
         hdmi_plugin = plat.request("hdmi")
-        m.d.comb += hdmi_plugin.output_enable.eq(True)
-        m.d.comb += hdmi_plugin.vcc_enable.eq(True)
         m.submodules.hdmi = Hdmi(640, 480, 30, hdmi_plugin)
-
-        cm.manage_clocks(m, ClockSignal(), 100e6)
 
         return m
 
 
 if __name__ == "__main__":
-    p = MicroR2Platform()
+    p = BetaPlatform()
 
-    # connect the hdmi plugin module
-    import devices.plugin_modules.hdmi as hdmi
-    hdmi.connect(p, "plugin_n")
 
     from sys import argv
     do_build = "check" not in argv

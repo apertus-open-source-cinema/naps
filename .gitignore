@@ -8,3 +8,4 @@ usage_statistics_webtalk.html
 usage_statistics_webtalk.xml
 *.gtkw
 *.vcd
+spec_*/

@@ -5,23 +5,24 @@ clocking tree.
 """
 
 import re
-from nmigen import *
 
-from modules.xilinx.clock_solver import ClockSolver
+from modules.clocking.clock_solver import ClockSolver
+from modules.clocking.future_int import FutureInt
 
 clocks = {}
 
 
 def generate_clock(requested_freq, name):
-    """Returns a clock with the requested frequency
+    """Gerenates a clock with the requested frequency
+    Possible frequency definitions include: `1Mhz`, `1e6`, `0.1 Ghz` and LazyInt
 
-    Possible frequency definitions include: `1Mhz`, `1e6`, `0.1 Ghz`
+    :returns a LazyInt object, that represents the actual generated frequency
     """
     requested_freq = _freq_to_int(requested_freq)
 
     if name not in clocks:
-        clocks[name] = requested_freq
-    return ClockSignal(name)
+        clocks[name] = (requested_freq, FutureInt())
+    return clocks[name][1]
 
 
 def manage_clocks(module, clk, f_in):
@@ -33,6 +34,8 @@ def manage_clocks(module, clk, f_in):
 
 
 def _freq_to_int(freq):
+    if isinstance(freq, FutureInt):
+        return freq
     try:
         return int(freq)
     except ValueError:

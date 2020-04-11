@@ -1,0 +1,33 @@
+| Address Range              | CPUs and ACP | AXI_HP | Other Bus Masters | Notes                                                 |
+|----------------------------+--------------+--------+-------------------+-------------------------------------------------------|
+| 0000_0000 to 0003_FFFF     | OCM          | OCM    | OCM               | Address not filtered by SCU and OCM is mapped low     |
+|                            | DDR          | OCM    | OCM               | Address filtered by SCU and OCM is mapped low         |
+|                            | DDR          |        |                   | Address filtered by SCU and OCM is not mapped low     |
+|                            |              |        |                   | Address not filtered by SCU and OCM is not mapped low |
+|                            |              |        |                   |                                                       |
+| 0004_0000 to 0007_FFFF     | DDR          |        |                   | Address filtered by SCU                               |
+|                            |              |        |                   | Address not filtered by SCU                           |
+|                            |              |        |                   |                                                       |
+| 0008_0000 to 000F_FFFF     | DDR          | DDR    | DDR               | Address filtered by SCU                               |
+|                            |              | DDR    | DDR               | Address not filtered by SCU(3)                        |
+|                            |              |        |                   |                                                       |
+| 0010_0000 to 3FFF_FFFF     | DDR          | DDR    | DDR               | Accessible to all interconnect masters                |
+| 4000_0000 to 7FFF_FFFF     | PL           |        | PL                | General Purpose Port #0 to the PL, M_AXI_GP0          |
+| 8000_0000 to BFFF_FFFF     | PL           |        | PL                | General Purpose Port #1 to the PL, M_AXI_GP1          |
+| E000_0000 to E02F_FFFF     | IOP          |        | IOP               | I/O Peripheral registers, see Table 4-6               |
+| E100_0000 to E5FF_FFFF     | SMC          |        | SMC               | SMC Memories, see Table 4-5                           |
+| F800_0000 to F800_0BFF     | SLCR         |        | SLCR              | SLCR registers, see Table 4-3                         |
+| F800_1000 to F880_FFFF     | PS           |        | PS                | PS System registers, see Table 4-7                    |
+| F890_0000 to F8F0_2FFF     | CPU          |        | CPU               | Private registers, see Table 4-4                      |
+| FC00_0000 to FDFF_FFFF     | Quad-SPI     |        | Quad-SPI          | Quad-SPIlinear address for linear mode                |
+| FFFC_0000 to FFFF_FFFF     | OCM          | OCM    | OCM               | OCM is mapped high                                    |
+|                            |              |        |                   | OCM is not mapped high                                |
+|                            |              |        |                   |                                                       |
+| C000_0000 to DFFF_FFFF     |              |        |                   | Reserved                                              |
+| E030_0000 to E0FF_FFFF     |              |        |                   | Reserved                                              |
+| E600_0000 to F7FF_FFFF     |              |        |                   | Reserved                                              |
+| F800_0C00 to F800_0FFF     |              |        |                   | Reserved                                              |
+| F881_0000 to F889_0FFF     |              |        |                   | Reserved                                              |
+| F8F0_3000 to FBFF_FFFF     |              |        |                   | Reserved                                              |
+| FE00_0000 to FFFB_FFFF     |              |        |                   | Reserved                                              |
+| F889_E000 to F88F_FFFF     |              |        |                   | Reserved                                              |

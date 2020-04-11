@@ -1,3 +1,6 @@
+import inspect
+from textwrap import dedent, indent
+
 from nmigen import *
 import re
 
@@ -11,11 +14,12 @@ class XilinxBlackbox(Elaboratable):
     def __init__(self, **kwargs):
         self.module = self.module or self.__class__.__name__
         self.parameters = kwargs
-        self.ports = yosys.get_module_ports("+/xilinx/cells_xtra.v", self.module)
+        self.ports = yosys.get_module_ports(("+/xilinx/cells_xtra.v", "+/xilinx/cells_sim.v"), self.module)
         self.hierarchy = self._find_hierarchy(list(self.ports.keys()))
+        self._generate_stub_file()
         self.signal_proxy = SignalProxy(self.hierarchy, self.ports, path=self.module)
 
-        assert type(self) != "Blackbox", "Do not instantiate `XilinxBlackbox` directly. Use its subclasses!"
+        assert type(self) != "XilinxBlackbox", "Do not instantiate `XilinxBlackbox` directly. Use its subclasses!"
 
     def elaborate(self, platform):
         m = Module()
@@ -24,8 +28,21 @@ class XilinxBlackbox(Elaboratable):
             "{}_{}".format(self.ports[name]["direction"], name): signal
             for name, signal in self.signal_proxy.used_ports().items()
         }
-        parameters = {"p_{}".format(k): v for k, v in self.parameters.items()}
+
+        def legalize_parameter(parameter):
+            if isinstance(parameter, bool):
+                return "{}".format(parameter).upper()
+            elif isinstance(parameter, str):
+                return parameter.upper()
+            else:
+                return parameter
+
+        legalized_parameters = {k: legalize_parameter(v) for k, v in self.parameters.items()}
+        parameters = {"p_{}".format(k.upper()): v for k, v in legalized_parameters.items()}
         m.submodules.instance = Instance(self.module, **named_ports, **parameters)
+
+        # print(named_ports)
+        # print(parameters)
 
         return m
 
@@ -40,24 +57,36 @@ class XilinxBlackbox(Elaboratable):
         if isinstance(names, str): return names
 
         hierarchy = names.copy()
-        for n, signal_name in names.items():
+        for hierarchy_name, full_name in names.items():
             added = False
-            for h_name in reversed(list(hierarchy.keys())):
-                common_start = self._common_start(n, h_name)
-                match = re.match("([A-Z2]{3,})\d?|(\d)", common_start)
+            for merge_candidate_name in reversed(list(hierarchy.keys())):
+                common_start = self._common_start(hierarchy_name, merge_candidate_name)
 
-                if match:
-                    prefix = match[1] or match[2]
-                    strip = lambda s: s.replace(prefix, "")
-
-                    if isinstance(hierarchy[h_name], str):
-                        children = {strip(n): signal_name, strip(h_name): hierarchy[h_name]}
+                prefix = None
+                if match := re.match("\\d", common_start):
+                    prefix = match[0]
+                elif match := re.match("[A-Z0-9]+", common_start):
+                    if len(match[0]) >= 3:
+                        prefix = match[0]
                     else:
-                        children = {strip(n): signal_name, **{strip(k): v for k, v in hierarchy[h_name].items()}}
+                        children = self.potential_children(match[0], merge_candidate_name, hierarchy, hierarchy_name,
+                                                           full_name)
+                        if all(c[:1].isdigit() for c in children.keys()) and len(
+                                set(c[:1] for c in children.keys())) > 1:
+                            prefix = match[0]
 
-                    del hierarchy[h_name]
+                if prefix:
+                    children = self.potential_children(prefix, merge_candidate_name, hierarchy, hierarchy_name,
+                                                       full_name)
+                    if "" in children.keys():
+                        continue
+
+                    if prefix in hierarchy and isinstance(hierarchy[prefix], str):
+                        continue
+
+                    del hierarchy[merge_candidate_name]
                     try:
-                        del hierarchy[n]
+                        del hierarchy[hierarchy_name]
                     except KeyError:
                         pass
 
@@ -65,12 +94,94 @@ class XilinxBlackbox(Elaboratable):
                     added = True
                     break
             if not added:
-                hierarchy[n] = signal_name
+                hierarchy[hierarchy_name] = full_name
 
         if "" in list(hierarchy.keys()):
             return list(hierarchy.values())[0]
 
         return {k: self._find_hierarchy(v) for k, v in hierarchy.items()}
+
+    @staticmethod
+    def potential_children(common_start, merge_candidate_name, hierarchy, hierarchy_name, full_name):
+        strip = lambda s: s.replace(common_start, "")
+        children = None
+        if isinstance(hierarchy[merge_candidate_name], str):
+            children = {strip(hierarchy_name): full_name, strip(merge_candidate_name): hierarchy[merge_candidate_name]}
+        else:
+            children = {strip(hierarchy_name): full_name,
+                        **{strip(k): v for k, v in hierarchy[merge_candidate_name].items()}}
+        return children
+
+    def _generate_stub_file(self):
+        stub_filename = "{}i".format(inspect.getfile(self.__class__))
+        autogen_begin_marker = "## begin autogenerated stub for class {class_name} by xilinx_blackbox.py DO NOT EDIT ##".format(
+            class_name=self.__class__.__name__)
+        autogen_end_marker = "## end autogenerated stub for class {class_name} by xilinx_blackbox.py ##".format(
+            class_name=self.__class__.__name__)
+
+        # remove (potentially existing) stubs
+        try:
+            with open(stub_filename, "r") as f:
+                text = f.read()
+                new_text = re.sub("{}.*{}".format(re.escape(autogen_begin_marker), re.escape(autogen_end_marker)), "",
+                                  text, flags=re.M + re.S)
+            with open(stub_filename, "w") as f:
+                f.write(new_text.strip())
+        except FileNotFoundError:
+            pass
+
+        # generate a new stub
+        with open(stub_filename, "a") as f:
+            def gen_class_body(hierarchy_part):
+                to_class_name = lambda x: "_{}".format(x.lower().capitalize())
+
+                def gen_class(class_name, children):
+                    return "class {class_name}:\n{class_body}".format(
+                        class_name=to_class_name(class_name),
+                        class_body=indent(gen_class_body(children), "    ")
+                    )
+
+                def gen_single_child(children, hierarchy_name):
+                    to_signal_name = lambda name: 'in_' if name.lower() == 'in' else name.lower()
+                    if isinstance(children, str):
+                        return "{}: Signal # {}".format(to_signal_name(hierarchy_name), children)
+                    elif all(c.isdigit() for c in children.keys()):
+                        classes = "\n".join(gen_class(k, v) for k, v in children.items() if isinstance(v, dict))
+                        max_element = max(int(x) for x in children.keys())
+                        tuple_inner = ", ".join(
+                            "None" if not str(i) in children
+                            else "_{}".format(i) if isinstance(children[str(i)], dict)
+                            else "Signal"
+                            for i in range(max_element+1)
+                        )
+                        return "{}\n{} : Tuple[{}]".format(classes, to_signal_name(hierarchy_name), tuple_inner)
+                    else:
+                        return "{class_str}\n{name} : {class_name}".format(
+                            class_str=gen_class(hierarchy_name, children),
+                            name=to_signal_name(hierarchy_name),
+                            class_name=to_class_name(hierarchy_name)
+                        )
+
+                return "\n".join(
+                    gen_single_child(v, k)
+                    for k, v in hierarchy_part.items()
+                )
+
+            f.write(dedent("""
+                {autogen_begin_marker}
+                from nmigen import Signal
+                from typing import Tuple
+                class {class_name}:
+                    def __init__(**kwargs):
+                        pass
+                {class_body}
+                
+                {autogen_end_marker}
+            """).format(
+                class_name=self.__class__.__name__,
+                autogen_begin_marker=autogen_begin_marker,
+                class_body=indent(gen_class_body(self.hierarchy), "    "),
+                autogen_end_marker=autogen_end_marker))
 
     @staticmethod
     def _common_start(a, b):
@@ -100,9 +211,13 @@ class SignalProxy:
         return {**self._used_ports, **child_ports}
 
     def __getitem__(self, item):
+        if isinstance(item, int):
+            item = str(item)
+
         item = item.upper()
         if item not in self.ports:
-            raise KeyError("{} not found in {}".format(item, self.path))
+            return getattr(self, item)
+            # raise KeyError("{} not found in {}".format(item, self.path))
 
         # do the real signal finding
         if item not in self._used_ports:
@@ -110,6 +225,12 @@ class SignalProxy:
         return self._used_ports[item]
 
     def __getattr__(self, item):
+        if item.startswith("__"):
+            return
+
+        if item == "in_":
+            item = "in"
+
         item = item.upper()
 
         if item not in self.hierarchy:
@@ -117,7 +238,7 @@ class SignalProxy:
         requested = self.hierarchy[item]
         if isinstance(requested, dict):
             if item not in self.children:
-                self.children[item] = SignalProxy(requested, self.ports, path="{}/{}".format(self.path, item))
+                self.children[item] = SignalProxy(requested, self.ports, path="{}.{}".format(self.path, item))
             return self.children[item]
 
         # do the real signal finding

@@ -83,14 +83,14 @@ class S7HDMIOutClocking(Module):
                 i_RST=Constant(0), o_LOCKED=mmcm_locked,
 
                 # VCO
-                p_REF_JITTER1=0.01, p_CLKIN1_PERIOD=10.0,
-                p_CLKFBOUT_MULT_F=60.0, p_CLKFBOUT_PHASE=0.000, p_DIVCLK_DIVIDE=1,
+                p_REF_JITTER1=0.01, p_CLKIN1_PERIOD=50.0,
+                p_CLKFBOUT_MULT_F=34.625, p_CLKFBOUT_PHASE=0.000, p_DIVCLK_DIVIDE=1,
                 i_CLKIN1=ClockSignal("sync"), i_CLKFBIN=mmcm_fb, o_CLKFBOUT=mmcm_fb,
 
                 # CLK0
-                p_CLKOUT0_DIVIDE_F=60.0, p_CLKOUT0_PHASE=0.000, o_CLKOUT0=mmcm_clk0,
+                p_CLKOUT0_DIVIDE_F=5.0, p_CLKOUT0_PHASE=0.000, o_CLKOUT0=mmcm_clk0,
                 # CLK1
-                p_CLKOUT1_DIVIDE=12, p_CLKOUT1_PHASE=0.000, o_CLKOUT1=mmcm_clk1,
+                p_CLKOUT1_DIVIDE=1, p_CLKOUT1_PHASE=0.000, o_CLKOUT1=mmcm_clk1,
 
             ),
             Instance("BUFG", i_I=mmcm_clk0, o_O=self.cd_pix.clk),

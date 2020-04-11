@@ -24,7 +24,8 @@ class Top(Elaboratable):
     next_addr = 0x4000_0000
 
     def axi_reg(self, name, width=32, writable=True):
-        reg = axi_slave_on_master(self.m, self.axi_port, AxiLiteReg(width=width, base_address=self.next_addr, writable=writable, name=name))
+        reg = axi_slave_on_master(self.m, self.axi_port,
+                                  AxiLiteReg(width=width, base_address=self.next_addr, writable=writable, name=name))
         assert name not in self.memory_map
         self.memory_map[name] = self.next_addr
         self.next_addr += 4
@@ -53,7 +54,6 @@ class Top(Elaboratable):
         m.domains += ClockDomain("serdes_4x")
         m.d.comb += ClockSignal("serdes_4x").eq(bufg_serdes_4x.o)
 
-
         # axi setup
         axi_port = self.axi_port = ps7.maxigp[0]
         m.d.comb += axi_port.aclk.eq(ClockSignal())
@@ -63,7 +63,7 @@ class Top(Elaboratable):
         self.connect_loopback_ressource(plat)
         self.axi_reg("rw_test")
         test_counter_reg = self.axi_reg("test_counter", writable=False)
-        m.d.sync += test_counter_reg.eq(test_counter_reg+1)
+        m.d.sync += test_counter_reg.eq(test_counter_reg + 1)
 
         # make the design resettable via a axi register
         reset = self.axi_reg("reset_serdes", width=1)
@@ -87,7 +87,7 @@ class Top(Elaboratable):
         m.d.comb += oserdes.clk.eq(ClockSignal("serdes_4x"))
         m.d.comb += oserdes.clkdiv.eq(ClockSignal("serdes"))
         m.d.comb += oserdes.rst.eq(ResetSignal("serdes"))
-        m.d.comb += Cat(oserdes.d[i] for i in reversed(range(1, 9))).eq(to_oserdes) # reversed is needed!!1
+        m.d.comb += Cat(oserdes.d[i] for i in reversed(range(1, 9))).eq(to_oserdes)  # reversed is needed!!1
         m.d.comb += loopback.tx.eq(oserdes.oq)
 
         ## reciver side
@@ -155,7 +155,7 @@ class Top(Elaboratable):
                 training_pattern = 0b00001111
                 m.d.serdes += to_oserdes.eq(training_pattern)
                 since_bitslip = Signal(2)
-                m.d.serdes += training_cycles.eq(training_cycles+1)
+                m.d.serdes += training_cycles.eq(training_cycles + 1)
                 with m.If(iserdes.bitslip == 1):
                     m.d.serdes += iserdes.bitslip.eq(0)
                     m.d.serdes += since_bitslip.eq(0)
@@ -163,7 +163,7 @@ class Top(Elaboratable):
                     m.d.serdes += since_bitslip.eq(since_bitslip + 1)
                 with m.Elif(from_iserdes != training_pattern):
                     m.d.serdes += iserdes.bitslip.eq(1)
-                    m.d.serdes += slipped_bits.eq(slipped_bits+1)
+                    m.d.serdes += slipped_bits.eq(slipped_bits + 1)
                 with m.Else():
                     m.d.serdes += to_oserdes.eq(0x00)
                     m.next = "RUNNING"
@@ -173,27 +173,30 @@ class Top(Elaboratable):
                 with m.If(test_pattern):
                     m.d.serdes += to_oserdes.eq(test_pattern)
                     with m.If(from_iserdes == test_pattern):
-                        m.d.serdes += success_cnt.eq(success_cnt+1)
+                        m.d.serdes += success_cnt.eq(success_cnt + 1)
                     with m.Else():
-                        m.d.serdes += error_cnt.eq(error_cnt+1)
+                        m.d.serdes += error_cnt.eq(error_cnt + 1)
                 with m.Else():
-                    m.d.serdes += to_oserdes.eq(to_oserdes+1)
-                    with m.If(from_iserdes == (last_received+1)[0:8]):
-                        m.d.serdes += success_cnt.eq(success_cnt+1)
+                    m.d.serdes += to_oserdes.eq(to_oserdes + 1)
+                    with m.If(from_iserdes == (last_received + 1)[0:8]):
+                        m.d.serdes += success_cnt.eq(success_cnt + 1)
                     with m.Else():
-                        m.d.serdes += error_cnt.eq(error_cnt+1)
+                        m.d.serdes += error_cnt.eq(error_cnt + 1)
 
                 m.d.serdes += last_received.eq(from_iserdes)
                 m.d.comb += last_current_out.eq(Cat(last_received, from_iserdes, to_oserdes))
 
-
         # write the memory map
-        with open("build/memorymap.csv", "w") as f:
-            f.write("\n".join("{},\t0x{:06x}".format(k, v) for k, v in self.memory_map.items()))
-        with open("build/regs.sh", "w") as f:
-            f.write("\n".join("export r_{}=0x{:06x}".format(k, v) for k, v in self.memory_map.items()))
-            f.write("\n\n")
-            f.write("\n".join("echo {}: $(devmem2 0x{:06x} | sed -r 's|.*: (.*)|\\1|' | tail -n1)".format(k, v) for k, v in self.memory_map.items()))
+        plat.add_file(
+            "regs.csv",
+            "\n".join("{},\t0x{:06x}".format(k, v) for k, v in self.memory_map.items())
+        )
+        plat.add_file(
+            "regs.sh",
+            "\n".join("export r_{}=0x{:06x}".format(k, v) for k, v in self.memory_map.items()) + "\n\n" +
+            "\n".join("echo {}: $(devmem2 0x{:06x} | sed -r 's|.*: (.*)|\\1|' | tail -n1)".format(k, v) for k, v in
+                        self.memory_map.items())
+        )
 
         return m
 
@@ -204,6 +207,5 @@ if __name__ == "__main__":
         Top(),
         name="connector_test",
         do_build=True,
-        do_program=False,
-        program_opts={"host": "10.42.0.1"},
+        do_program=True,
     )

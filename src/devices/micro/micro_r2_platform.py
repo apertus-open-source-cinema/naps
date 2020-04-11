@@ -62,6 +62,4 @@ class MicroR2Platform(ZTurnLiteZ010Platform):
         return super().toolchain_prepare(fragment, name, **overrides, **kwargs)
 
     def toolchain_program(self, products, name, **kwargs):
-        bitstream = products.get("{}.bit".format(name))
-        camera_host = kwargs["host"] if "host" in kwargs else os.getenv("CAMERA_HOST")
-        program_bitstream_camera(camera_host, bitstream, name)
+        program_bitstream_camera(products, name, **kwargs)

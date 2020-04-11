@@ -25,7 +25,7 @@ class Top(Elaboratable):
 
     def axi_reg(self, name, width=32, writable=True):
         reg = axi_slave_on_master(self.m, self.axi_port,
-                                  AxiLiteReg(width=width, base_address=self.next_addr, writable=writable, name=name))
+                                  DomainRenamer("axi")(AxiLiteReg(width=width, base_address=self.next_addr, writable=writable, name=name)))
         assert name not in self.memory_map
         self.memory_map[name] = self.next_addr
         self.next_addr += 4
@@ -55,8 +55,10 @@ class Top(Elaboratable):
         m.d.comb += ClockSignal("serdes_4x").eq(bufg_serdes_4x.o)
 
         # axi setup
+        m.domains += ClockDomain("axi")
+        m.d.comb += ClockSignal("axi").eq(ClockSignal())
         axi_port = self.axi_port = ps7.maxigp[0]
-        m.d.comb += axi_port.aclk.eq(ClockSignal())
+        m.d.comb += axi_port.aclk.eq(ClockSignal("axi"))
         m.d.comb += ResetSignal().eq(~axi_port.aresetn)
         downgrade_axi_to_axi_lite(m, axi_port)
 
@@ -67,7 +69,7 @@ class Top(Elaboratable):
 
         # make the design resettable via a axi register
         reset = self.axi_reg("reset_serdes", width=1)
-        for domain in ["serdes", "serdes_4x"]:
+        for domain in ["sync", "serdes", "serdes_4x"]:
             m.d.comb += ResetSignal(domain).eq(reset)
 
         # loopback
@@ -97,8 +99,8 @@ class Top(Elaboratable):
         m.d.comb += ClockSignal("idelay_refclk").eq(bufg_idelay_refclk.o)
         idelay_ctl = m.submodules.idelay_ctl = IdelayCtl()
         m.d.comb += self.axi_reg("idelay_crl_rdy", writable=False, width=1).eq(idelay_ctl.rdy)
-        m.d.comb += idelay_ctl.refclk.eq(ClockSignal("serdes_4x"))
-        m.d.comb += idelay_ctl.rst.eq(ResetSignal("serdes_4x"))
+        m.d.comb += idelay_ctl.refclk.eq(ClockSignal("idelay_refclk"))
+        m.d.comb += idelay_ctl.rst.eq(ResetSignal("idelay_refclk"))
         idelay = m.submodules.idelay = Idelay(
             delay_src="iDataIn",
             signal_pattern="data",

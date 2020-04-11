@@ -47,7 +47,7 @@ class Mmcm(XilinxClockingResource):
     VCO_MIN = 600e6
     VCO_MAX = 1200e6
     CLOCK_COUNT = 7
-    OUTPUT_DIV_STEP = 0.25
+    OUTPUT_DIV_STEP = 0.125
 
     IN_CLK = "CLKIN1"
     VCO_MULT_NAME = "CLKFBOUT_MULT_F"

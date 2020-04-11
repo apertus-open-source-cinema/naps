@@ -1,7 +1,6 @@
 from nmigen import *
-from modules.vendor.litevideo_hdmi.s7 import S7HDMIOutPHY
+from modules.vendor.litevideo_hdmi.s7 import S7HDMIOutPHY, S7HDMIOutClocking
 from util.cvt import calculate_video_timing
-from modules.clocking.clock_manager import generate_clock
 
 
 class Hdmi(Elaboratable):
@@ -12,15 +11,14 @@ class Hdmi(Elaboratable):
         self.pins = pins
         self.width, self.height, self.refresh = width, height, refresh
         self.pix_clk_freq = calculate_video_timing(width, height, refresh)["pxclk"] * 1e6
+        print("set fclk0 to {} mhz".format(self.pix_clk_freq / 1e6))
 
     def elaborate(self, plat):
         m = Module()
 
-        pix_clk = generate_clock(self.pix_clk_freq, "pix")
-        print(pix_clk)
-        generate_clock(pix_clk * 5, "pix5x")
-
-        m.d.comb += self.pins.clock.eq(ClockSignal("pix"))
+        plat.extra_lines += "echo 20000000 > /sys/class/fclk/fclk0/set_rate\n".format(self.pix_clk_freq)
+        plat.extra_lines += "echo 1 > /sys/class/fclk/fclk0/enable\n".format(self.pix_clk_freq)
+        m.submodules.pll = S7HDMIOutClocking()
 
         t = m.submodules.timing_generator = DomainRenamer("pix")(TimingGenerator(self.width, self.height, self.refresh))
         p = m.submodules.pattern_generator = DomainRenamer("pix")(XorPatternGenerator(self.width, self.height))

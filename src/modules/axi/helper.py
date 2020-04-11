@@ -47,13 +47,13 @@ def downgrade_axi_to_axi_lite(m, axi_port):
 
     with m.If(axi_port.arvalid):
         m.d.comb += axi_port.rid.eq(axi_port.arid)
-        m.d.sync += read_id.eq(axi_port.arid)
+        m.d.axi += read_id.eq(axi_port.arid)
     with m.Else():
         m.d.comb += axi_port.rid.eq(read_id)
 
     with m.If(axi_port.awvalid):
         m.d.comb += axi_port.bid.eq(axi_port.awid)
-        m.d.sync += write_id.eq(axi_port.awid)
+        m.d.axi += write_id.eq(axi_port.awid)
     with m.Else():
         m.d.comb += axi_port.bid.eq(write_id)
 

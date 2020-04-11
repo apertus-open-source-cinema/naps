@@ -21,17 +21,12 @@ class Top(Elaboratable):
         hdmi_plugin = plat.request("hdmi")
         m.submodules.hdmi = Hdmi(640, 480, 30, hdmi_plugin)
 
-        cm.manage_clocks(m, ClockSignal(), 100e6)
-
         return m
 
 
 if __name__ == "__main__":
     p = BetaPlatform()
 
-    # connect the hdmi plugin module
-    import devices.plugin_modules.hdmi as hdmi
-    hdmi.hdmi_plugin_connect(p, "north", only_highspeed=True)
 
     from sys import argv
     do_build = "check" not in argv

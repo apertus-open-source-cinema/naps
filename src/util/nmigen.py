@@ -1,4 +1,6 @@
+from collections import defaultdict
 from contextlib import contextmanager
+from functools import reduce
 
 from nmigen import *
 
@@ -40,3 +42,17 @@ def get_signals(module):
 
 def generate_states(str_pattern, n, next_state):
     return ((i, str_pattern.format(i), str_pattern.format(i + 1) if i <= n else next_state) for i in range(n))
+
+
+def connect_together(signal, name, internal_dict=defaultdict(list), operation="|"):
+    """
+    This function can be used as a hack to connect multiple signals which are not all known at a single point of
+    time with a logical or. This is e.g. useful when we want to connect busses in an ad-hoc way.
+    :param operation: the logical operation which connects the signals. normally either | or &
+    :param signal: The signal to add to the collection of or-ed Signals
+    :param name: The name to which the current signal should be or-ed. Pay attention to create a really unique name here.
+    :param internal_dict: DONT OVERWRITE THIS (internally used mapping of name to signals)
+    :return: The 'oring' of signals with the same name until now
+    """
+    internal_dict[name].append(signal)
+    return reduce(lambda acc, cur: eval("acc {} cur".format(operation)), internal_dict[name], Signal())

@@ -3,7 +3,7 @@ from abc import abstractmethod, ABC
 from nmigen import *
 from nmigen.back import verilog
 
-from modules.axi.axi import Response, Interface
+from modules.axi.axi import Response, AxiInterface
 
 
 class AxiLiteSlave(Elaboratable, ABC):
@@ -20,7 +20,7 @@ class AxiLiteSlave(Elaboratable, ABC):
         self.handle_read = handle_read
         self.handle_write = handle_write
 
-        self.bus = Interface(addr_bits=32, data_bits=32, lite=True)
+        self.bus = AxiInterface(master=False, addr_bits=32, data_bits=32, lite=True)
 
     def elaborate(self, platform):
         m = Module()
@@ -48,7 +48,9 @@ class AxiLiteSlave(Elaboratable, ABC):
                 # Only write read and resp if we are in the READ state. Otherwise all bits are '0'.
                 # This allows us to simply or the data output of multiple axi slaves together.
                 read_done = Signal()
+
                 def set_read_done(): m.d.sync += read_done.eq(1)
+
                 self.handle_read(m, addr, read_out, resp_out, set_read_done)
                 with m.If(read_done):
                     m.d.sync += read_done.eq(0)
@@ -65,6 +67,7 @@ class AxiLiteSlave(Elaboratable, ABC):
                 m.d.comb += self.bus.write_data.ready.eq(write_done)
                 with m.If(self.bus.write_data.valid):
                     def set_write_done(): m.d.sync += write_done.eq(1)
+
                     self.handle_write(m, addr, self.bus.write_data.value, self.bus.write_response.resp, set_write_done)
                     with m.If(write_done):
                         m.d.sync += write_done.eq(0)
@@ -74,35 +77,5 @@ class AxiLiteSlave(Elaboratable, ABC):
                 m.d.comb += self.bus.write_data.ready.eq(1)
                 with m.If(self.bus.write_response.ready):
                     m.next = "IDLE"
-
-        return m
-
-
-class AxiLiteSlaveToFullBridge(Elaboratable):
-    def __init__(self):
-        self.lite_bus = Interface(addr_bits=32, data_bits=32, lite=True)
-        self.full_bus = Interface(addr_bits=32, data_bits=32, lite=False, id_bits=12)
-
-    def elaborate(self, platform):
-        m = Module()
-
-        m.d.comb += self.full_bus.connect(self.lite_bus, exclude = { "read_address": { "id": True }, "write_address": { "id": True }, "read_data": { "id": True }, "write_data": { "id": True }, "write_response": { "id": True } })
-
-        read_id = Signal.like(self.full_bus.read_data.id)
-        write_id = Signal.like(self.full_bus.write_data.id)
-
-        with m.If(self.full_bus.read_address.valid):
-            m.d.comb += self.full_bus.read_data.id.eq(self.full_bus.read_address.id)
-            m.d.sync += read_id.eq(self.full_bus.read_address.id)
-        with m.Else():
-            m.d.comb += self.full_bus.read_data.id.eq(read_id)
-
-        with m.If(self.full_bus.write_address.valid):
-            m.d.comb += self.full_bus.write_data.id.eq(self.full_bus.write_address.id)
-            m.d.sync += write_id.eq(self.full_bus.write_address.id)
-        with m.Else():
-            m.d.comb += self.full_bus.write_data.id.eq(write_id)
-
-        m.d.comb += self.full_bus.read_data.last.eq(1)
 
         return m

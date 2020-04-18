@@ -1,8 +1,9 @@
 from nmigen import *
 from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
-from modules.axi.axil_reg import AxiLiteReg
-from modules.axi.helper import downgrade_axi_to_axi_lite, axi_slave_on_master
+from modules.axi.axi import AxiInterface
+from modules.axi.axil_csr import AxilCsrBank
+from modules.axi.full_to_lite import AxiFullToLiteBridge
 from modules.xilinx.blocks import Ps7, Oserdes, RawPll, Bufg, Idelay, IdelayCtl, Iserdes
 from devices.micro.micro_r2_platform import MicroR2Platform
 
@@ -20,16 +21,6 @@ class Top(Elaboratable):
                      )
         ])
 
-    memory_map = {}
-    next_addr = 0x4000_0000
-
-    def axi_reg(self, name, width=32, writable=True):
-        reg = axi_slave_on_master(self.m, self.axi_port,
-                                  DomainRenamer("axi")(AxiLiteReg(width=width, base_address=self.next_addr, writable=writable, name=name)))
-        assert name not in self.memory_map
-        self.memory_map[name] = self.next_addr
-        self.next_addr += 4
-        return reg.reg
 
     def elaborate(self, plat: MicroR2Platform):
         m = self.m = Module()
@@ -57,18 +48,20 @@ class Top(Elaboratable):
         # axi setup
         m.domains += ClockDomain("axi")
         m.d.comb += ClockSignal("axi").eq(ClockSignal())
-        axi_port = self.axi_port = ps7.maxigp[0]
-        m.d.comb += axi_port.aclk.eq(ClockSignal("axi"))
-        m.d.comb += ResetSignal().eq(~axi_port.aresetn)
-        downgrade_axi_to_axi_lite(m, axi_port)
+        axi_full_port: AxiInterface = ps7.get_axi_master_gp(1)
+        m.submodules.axi_full_interconnect = axi_full_port.get_interconnect_submodule()
+        m.d.comb += axi_full_port.clk.eq(ClockSignal("axi"))
+
+        axi_lite_bridge = m.submodules.axi_lite_bridge = AxiFullToLiteBridge(axi_full_port)
+        csr = m.submodules.csr = AxilCsrBank(axi_lite_bridge.lite_master)
 
         self.connect_loopback_ressource(plat)
-        self.axi_reg("rw_test")
-        test_counter_reg = self.axi_reg("test_counter", writable=False)
+        csr.reg("rw_test")
+        test_counter_reg = csr.reg("test_counter", writable=False)
         m.d.sync += test_counter_reg.eq(test_counter_reg + 1)
 
         # make the design resettable via a axi register
-        reset = self.axi_reg("reset_serdes", width=1)
+        reset = csr.reg("reset_serdes", width=1)
         for domain in ["sync", "serdes", "serdes_4x"]:
             m.d.comb += ResetSignal(domain).eq(reset)
 
@@ -98,7 +91,7 @@ class Top(Elaboratable):
         m.domains += ClockDomain("idelay_refclk")
         m.d.comb += ClockSignal("idelay_refclk").eq(bufg_idelay_refclk.o)
         idelay_ctl = m.submodules.idelay_ctl = IdelayCtl()
-        m.d.comb += self.axi_reg("idelay_crl_rdy", writable=False, width=1).eq(idelay_ctl.rdy)
+        m.d.comb += csr.reg("idelay_crl_rdy", writable=False, width=1).eq(idelay_ctl.rdy)
         m.d.comb += idelay_ctl.refclk.eq(ClockSignal("idelay_refclk"))
         m.d.comb += idelay_ctl.rst.eq(ResetSignal("idelay_refclk"))
         idelay = m.submodules.idelay = Idelay(
@@ -112,12 +105,12 @@ class Top(Elaboratable):
             idelay_value=0
         )
         m.d.comb += idelay.c.eq(ClockSignal())  # this is really the clock to which the control inputs are syncronous!
-        m.d.comb += idelay.ld.eq(self.axi_reg("idelay_ld", width=1))
+        m.d.comb += idelay.ld.eq(csr.reg("idelay_ld", width=1))
         m.d.comb += idelay.ldpipeen.eq(0)
         m.d.comb += idelay.ce.eq(0)
         m.d.comb += idelay.inc.eq(0)
-        m.d.comb += idelay.cntvalue.in_.eq(self.axi_reg("idelay_cntvaluein", width=5))
-        m.d.comb += self.axi_reg("idelay_cntvalueout", width=5, writable=False).eq(idelay.cntvalue.out)
+        m.d.comb += idelay.cntvalue.in_.eq(csr.reg("idelay_cntvaluein", width=5))
+        m.d.comb += csr.reg("idelay_cntvalueout", width=5, writable=False).eq(idelay.cntvalue.out)
         m.d.comb += idelay.idatain.eq(loopback.rx)
         idelay_out = Signal()
         m.d.comb += idelay_out.eq(idelay.data.out)
@@ -140,15 +133,15 @@ class Top(Elaboratable):
         m.d.comb += from_iserdes.eq(Cat(iserdes.q[i] for i in range(1, 9)))
 
         ## check logic
-        last_received = self.axi_reg("last_received", width=8, writable=False)
+        last_received = csr.reg("last_received", width=8, writable=False)
 
-        current_state = self.axi_reg("current_state", writable=False)
-        training_cycles = self.axi_reg("training_cycles", writable=False)
-        slipped_bits = self.axi_reg("slipped_bits", writable=False)
-        error_cnt = self.axi_reg("error_cnt", writable=False)
-        success_cnt = self.axi_reg("success_cnt", writable=False)
-        last_current_out = self.axi_reg("last_current_out", width=24, writable=False)
-        test_pattern = self.axi_reg("test_patern", width=8, writable=True)
+        current_state = csr.reg("current_state", writable=False)
+        training_cycles = csr.reg("training_cycles", writable=False)
+        slipped_bits = csr.reg("slipped_bits", writable=False)
+        error_cnt = csr.reg("error_cnt", writable=False)
+        success_cnt = csr.reg("success_cnt", writable=False)
+        last_current_out = csr.reg("last_current_out", width=24, writable=False)
+        test_pattern = csr.reg("test_patern", width=8, writable=True)
 
         with m.FSM(domain="serdes"):
             with m.State("TRAINING"):
@@ -187,18 +180,6 @@ class Top(Elaboratable):
 
                 m.d.serdes += last_received.eq(from_iserdes)
                 m.d.comb += last_current_out.eq(Cat(last_received, from_iserdes, to_oserdes))
-
-        # write the memory map
-        plat.add_file(
-            "regs.csv",
-            "\n".join("{},\t0x{:06x}".format(k, v) for k, v in self.memory_map.items())
-        )
-        plat.add_file(
-            "regs.sh",
-            "\n".join("export r_{}=0x{:06x}".format(k, v) for k, v in self.memory_map.items()) + "\n\n" +
-            "\n".join("echo {}: $(devmem2 0x{:06x} | sed -r 's|.*: (.*)|\\1|' | tail -n1)".format(k, v) for k, v in
-                        self.memory_map.items())
-        )
 
         return m
 

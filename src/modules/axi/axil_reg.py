@@ -15,7 +15,7 @@ class AxiLiteReg(Elaboratable):
         )
         self.bus = self.axi.bus
 
-        assert width <= len(self.bus.read_data)
+        assert width <= len(self.bus.read_data.value)
 
     def elaborate(self, platform):
         # TODO: is this evil?

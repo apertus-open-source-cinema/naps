@@ -23,7 +23,7 @@ def copy_to_camera(source, destination, host="10.42.0.1", user="operator", passw
 def program_bitstream_camera(build_products, name, **kwargs):
     print("\n\nprogramming camera...")
     bitstream_name = "{}.bit".format(name)
-    with build_products.extract(bitstream_name, "regs.sh") as (bitstream_file, regs_file):
+    with build_products.extract(bitstream_name, "mmap/regs.sh") as (bitstream_file, regs_file):
         copy_to_camera(bitstream_file, "~/{}".format(bitstream_name), **kwargs)
         copy_to_camera(regs_file, "~/regs.sh", **kwargs)
 

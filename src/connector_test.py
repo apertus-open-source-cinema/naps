@@ -4,6 +4,7 @@ from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 from modules.axi.axi import AxiInterface
 from modules.axi.axil_csr import AxilCsrBank
 from modules.axi.full_to_lite import AxiFullToLiteBridge
+from modules.axi.interconnect import AxiInterconnect
 from modules.xilinx.blocks import Ps7, Oserdes, RawPll, Bufg, Idelay, IdelayCtl, Iserdes
 from devices.micro.micro_r2_platform import MicroR2Platform
 
@@ -21,9 +22,8 @@ class Top(Elaboratable):
                      )
         ])
 
-
     def elaborate(self, plat: MicroR2Platform):
-        m = self.m = Module()
+        m = Module()
 
         m.domains += ClockDomain("sync")
         ps7 = m.submodules.ps7_wrapper = Ps7()
@@ -49,7 +49,6 @@ class Top(Elaboratable):
         m.domains += ClockDomain("axi")
         m.d.comb += ClockSignal("axi").eq(ClockSignal())
         axi_full_port: AxiInterface = ps7.get_axi_master_gp(1)
-        m.submodules.axi_full_interconnect = axi_full_port.get_interconnect_submodule()
         m.d.comb += axi_full_port.clk.eq(ClockSignal("axi"))
 
         axi_lite_bridge = m.submodules.axi_lite_bridge = AxiFullToLiteBridge(axi_full_port)
@@ -190,5 +189,5 @@ if __name__ == "__main__":
         Top(),
         name="connector_test",
         do_build=True,
-        do_program=True,
+        do_program=False,
     )

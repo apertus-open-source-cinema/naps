@@ -66,6 +66,28 @@ class WriteResponseChannel(Bundle):
 
 
 class AxiInterface(Bundle):
+    @staticmethod
+    def like(model, master=None, lite=None):
+        """
+        Create an AxiInterface shaped like a given model.
+        :type model: AxiInterface
+        :param model: the model after which the axi port should be created
+        :type master: bool
+        :param master: overrides the master property of the model
+        :param lite: overrides the lite property of the model. Only works for creating an AXI lite inteface from an AXI full interface.
+        :return:
+        """
+        if lite is not None:
+            assert model.is_master or lite, "cant make up id_bits out of thin air"
+
+        return AxiInterface(
+            addr_bits=model.addr_bits,
+            data_bits=model.data_bits,
+            lite=lite if lite is not None else model.is_lite,
+            id_bits=None if (lite is not None and lite) else model.id_bits,
+            master=master if master is not None else model.is_master
+        )
+
     def __init__(self, *, addr_bits, data_bits, master, lite, id_bits=None):
         """
         Constructs a Record holding all the signals for axi (lite)
@@ -96,93 +118,64 @@ class AxiInterface(Bundle):
         self.is_master = master
         if master:
             self.clk = Signal()
-            self.interconnect = None
             self.num_slaves = 0
         self.addr_bits = addr_bits
         self.data_bits = data_bits
         self.is_lite = lite
         self.id_bits = id_bits
 
-    def get_interconnect_submodule(self):
-        assert self.is_master
-        if not self.interconnect:
-            self.interconnect = Module()
-        return self.interconnect
-
     def connect_slave(self, slave):
         """
-        Connects an AXI slave to this AXI master. Calling this method requires self to be an AXI master and slave to be
-        a slave. Also both busses must be AXI lite (at the moment). This function returns an interconnect, that MUST be
-        added to the parents submodules
+        Connects an AXI slave to this AXI master. Can only be used a single time since every other case requires some kind
+        of AXI inteconnect.
+
+        usage example:
+        >>> stmts += master.connect_slave(slave)
+
         :type slave: AxiInterface
         :param slave: the slave to connect.
-        :returns the module to connect the slaves
+        :returns the list of
         """
         assert self.is_master
         master = self
         assert not slave.is_master
         assert master.is_lite == slave.is_lite
         full = not master.is_lite
+        assert self.num_slaves == 0, "Only one Slave can be added to an AXI master without an interconnect"
 
-        if full and self.num_slaves != 0:
-            raise NotImplemented("Interconnect logic is unimplemented for full axi")
+        stmts = []
 
-        m = self.get_interconnect_submodule()
-
-        if self.num_slaves != 0:
-            def a(**kwargs):
-                assert len(kwargs.keys()) == 1
-                name, signal = list(kwargs.items())[0]
-                return connect_together(signal, "{}_{}".format(repr(self), name), operation='&')
-
-            conditional = m.If
-        else:
-            # if we are the first slave, jut connect everything stupid together
-            def a(**kwargs):
-                assert len(kwargs.keys()) == 1
-                name, signal = list(kwargs.items())[0]
-                return signal
-
-            @contextmanager
-            def conditional(ignored_condition):
-                try:
-                    yield
-                finally:
-                    pass
-
-        m.d.comb += slave.read_address.value.eq(master.read_address.value)
-        m.d.comb += slave.read_address.valid.eq(master.read_address.valid)
+        stmts += [slave.read_address.value.eq(master.read_address.value)]
+        stmts += [slave.read_address.valid.eq(master.read_address.valid)]
         if full:
-            m.d.comb += slave.read_address.id.eq(master.read_address.id)
-        m.d.comb += master.read_address.ready.eq(a(rar=slave.read_address.ready))
+            stmts += [slave.read_address.id.eq(master.read_address.id)]
+        stmts += [master.read_address.ready.eq(slave.read_address.ready)]
 
-        with conditional(slave.read_data.valid):
-            m.d.comb += master.read_data.value.eq(slave.read_data.value)
-            m.d.comb += master.read_data.valid.eq(slave.read_data.valid)
-            m.d.comb += master.read_data.resp.eq(slave.read_data.resp)
-            if full:
-                m.d.comb += master.read_data.id.eq(slave.read_data.id)
-            m.d.comb += slave.read_data.ready.eq(master.read_data.ready)
-
-        m.d.comb += slave.write_address.value.eq(master.write_address.value)
-        m.d.comb += slave.write_address.valid.eq(master.write_address.valid)
+        stmts += [master.read_data.value.eq(slave.read_data.value)]
+        stmts += [master.read_data.valid.eq(slave.read_data.valid)]
+        stmts += [master.read_data.resp.eq(slave.read_data.resp)]
         if full:
-            m.d.comb += slave.write_address.id.eq(master.write_address.id)
-        m.d.comb += master.write_address.ready.eq(a(war=slave.write_address.ready))
+            stmts += [master.read_data.id.eq(slave.read_data.id)]
+        stmts += [slave.read_data.ready.eq(master.read_data.ready)]
 
-        with conditional(slave.write_data.valid):
-            m.d.comb += slave.write_data.value.eq(master.write_data.value)
-            m.d.comb += slave.write_data.valid.eq(master.write_data.valid)
-            m.d.comb += slave.write_data.strb.eq(master.write_data.strb)
-            if full:
-                m.d.comb += slave.write_data.id.eq(slave.write_data.id)
-            m.d.comb += master.write_data.ready.eq(slave.write_data.ready)
+        stmts += [slave.write_address.value.eq(master.write_address.value)]
+        stmts += [slave.write_address.valid.eq(master.write_address.valid)]
+        if full:
+            stmts += [slave.write_address.id.eq(master.write_address.id)]
+        stmts += [master.write_address.ready.eq(slave.write_address.ready)]
 
-        with conditional(slave.write_response.valid):
-            m.d.comb += master.write_response.resp.eq(slave.write_response.resp)
-            m.d.comb += master.write_response.valid.eq(slave.write_response.valid)
-            if full:
-                m.d.comb += master.write_response.id.eq(slave.write_response.id)
-            m.d.comb += slave.write_response.ready.eq(master.write_response.ready)
+        stmts += [slave.write_data.value.eq(master.write_data.value)]
+        stmts += [slave.write_data.valid.eq(master.write_data.valid)]
+        stmts += [slave.write_data.strb.eq(master.write_data.strb)]
+        if full:
+            stmts += [slave.write_data.id.eq(slave.write_data.id)]
+        stmts += [master.write_data.ready.eq(slave.write_data.ready)]
+
+        stmts += [master.write_response.resp.eq(slave.write_response.resp)]
+        stmts += [master.write_response.valid.eq(slave.write_response.valid)]
+        if full:
+            stmts += [master.write_response.id.eq(slave.write_response.id)]
+        stmts += [slave.write_response.ready.eq(master.write_response.ready)]
 
         self.num_slaves += 1
+        return stmts

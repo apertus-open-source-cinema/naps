@@ -2,44 +2,49 @@ from nmigen import *
 
 from modules.axi.axi import AxiInterface
 from modules.axi.axil_reg import AxiLiteReg
+from modules.axi.interconnect import AxiInterconnect
 
 
 class AxilCsrBank(Elaboratable):
     def __init__(self, axil_master: AxiInterface, base_address=0x4000_0000):
-        self.axil_master = axil_master
-        self.next_address = base_address
-        self.slave_num = 0
-        self.memory_map = {}
+        self._axil_master = axil_master
+        self._next_address = base_address
+        self._memory_map = {}
+        self._axi_regs = []
 
-        self.frozen = False
-        self.m = Module()
+        self._frozen = False
 
     def reg(self, name, width=32, writable=True):
-        assert not self.frozen
-        assert name not in self.memory_map
+        assert not self._frozen
+        assert name not in self._memory_map
 
-        axil_reg = AxiLiteReg(width=width, base_address=self.next_address, writable=writable, name=name)
-        setattr(self.m.submodules, "axi_reg#{}".format(self.slave_num), axil_reg)
-        self.axil_master.connect_slave(axil_reg.bus)
-        self.memory_map[name] = self.next_address
+        reg = AxiLiteReg(width=width, base_address=self._next_address, writable=writable, name=name)
+        self._axi_regs.append(reg)
+        self._memory_map[name] = self._next_address
 
-        self.slave_num += 1
-        self.next_address += 4
-        return axil_reg.reg
+        self._next_address += 4
+        return reg.reg
 
     def elaborate(self, platform):
-        self.frozen = True
+        self._frozen = True
 
-        # write the memory map
+        m = Module()
+
+        interconnect = m.submodules.interconnect = AxiInterconnect(self._axil_master)
+
+        for i, reg in enumerate(self._axi_regs):
+            setattr(m.submodules, "axi_reg#{}".format(i), reg)
+            interconnect.get_port().connect_slave(reg.bus)
+
         platform.add_file(
             "mmap/regs.csv",
-            "\n".join("{},\t0x{:06x}".format(k, v) for k, v in self.memory_map.items())
+            "\n".join("{},\t0x{:06x}".format(k, v) for k, v in self._memory_map.items())
         )
         platform.add_file(
             "mmap/regs.sh",
-            "\n".join("export r_{}=0x{:06x}".format(k, v) for k, v in self.memory_map.items()) + "\n\n" +
+            "\n".join("export r_{}=0x{:06x}".format(k, v) for k, v in self._memory_map.items()) + "\n\n" +
             "\n".join("echo {}: $(devmem2 0x{:06x} | sed -r 's|.*: (.*)|\\1|' | tail -n1)".format(k, v) for k, v in
-                      self.memory_map.items())
+                      self._memory_map.items())
         )
 
-        return self.m
+        return m

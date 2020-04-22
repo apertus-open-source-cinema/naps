@@ -6,16 +6,14 @@ from modules.axi.axi import AxiInterface
 class AxiFullToLiteBridge(Elaboratable):
     def __init__(self, full_master : AxiInterface):
         assert full_master.is_master and not full_master.is_lite
-        self.full_master = full_master
-        self.lite_master = AxiInterface(master=True, addr_bits=full_master.addr_bits, data_bits=full_master.data_bits, lite=True)
+        self._full_master = full_master
+        self.lite_master = AxiInterface.like(full_master, lite=True)
 
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.lite_interconnect = self.lite_master.get_interconnect_submodule()
-
-        full_slave = AxiInterface(master=False, addr_bits=self.full_master.addr_bits, data_bits=self.full_master.data_bits, lite=False, id_bits=self.full_master.id_bits)
-        self.full_master.connect_slave(full_slave)
+        full_slave = AxiInterface.like(self._full_master, master=False)
+        self._full_master.connect_slave(full_slave)
 
         read_id = Signal.like(full_slave.read_data.id)
         write_id = Signal.like(full_slave.write_data.id)

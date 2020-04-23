@@ -33,7 +33,7 @@ class AxilCsrBank(Elaboratable):
         interconnect = m.submodules.interconnect = AxiInterconnect(self._axil_master)
 
         for name, reg in self._axi_regs.items():
-            setattr(m.submodules, "axi_reg_{}".format(name), reg)
+            setattr(m.submodules, "{}_csr".format(name), reg)
             m.d.comb += interconnect.get_port().connect_slave(reg.bus)
 
         platform.add_file(

@@ -8,18 +8,19 @@ class AxiLiteReg(Elaboratable):
         self.reg = Signal(width, name=name)
         self.writable = writable
 
-        self.axi = AxiLiteSlave(
+        self.axi_slave = AxiLiteSlave(
             address_range=range(base_address, base_address + 1),
             handle_read=self.handle_read,
             handle_write=self.handle_write
         )
-        self.bus = self.axi.bus
+        self.axi = self.axi_slave.axi
 
-        assert width <= len(self.bus.read_data.value)
+        assert width <= len(self.axi.read_data.value)
 
     def elaborate(self, platform):
-        # TODO: is this evil?
-        return self.axi
+        m = Module()
+        m.submodules.axi_slave = self.axi_slave
+        return m
 
     def handle_read(self, m, addr, data, resp, read_done):
         m.d.sync += data.eq(self.reg)

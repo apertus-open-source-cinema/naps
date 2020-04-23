@@ -2,6 +2,7 @@ from collections import defaultdict
 from contextlib import contextmanager
 from functools import reduce
 import operator
+from typing import Iterator
 
 from nmigen import *
 
@@ -57,3 +58,16 @@ def connect_together(signal, name, internal_dict=defaultdict(list), operation=op
     """
     internal_dict[name].append(signal)
     return reduce(operation, internal_dict[name])
+
+
+def iterator_with_if_elif(iterator: Iterator, module: Module) -> Iterator:
+    """
+    A helper to build a priority encoder using If / Elif constructs
+    :param iterator: the iterator contaianing all the elements
+    :param module: the module from which m.If and m.Elif are sourced
+    """
+    for i, elem in enumerate(iterator):
+        yield (
+            module.If if i == 0 else module.Elif,
+            elem
+        )

@@ -20,28 +20,28 @@ class AxiLiteSlave(Elaboratable, ABC):
         self.handle_read = handle_read
         self.handle_write = handle_write
 
-        self.bus = AxiInterface(master=False, addr_bits=32, data_bits=32, lite=True)
+        self.axi = AxiInterface(master=False, addr_bits=32, data_bits=32, lite=True)
 
     def elaborate(self, platform):
         m = Module()
 
-        addr = Signal.like(self.bus.read_address.value)
-        read_out = Signal.like(self.bus.read_data.value)
-        resp_out = Signal.like(self.bus.read_data.resp)
+        addr = Signal.like(self.axi.read_address.value)
+        read_out = Signal.like(self.axi.read_data.value)
+        resp_out = Signal.like(self.axi.read_data.resp)
 
         with m.FSM():
             with m.State("IDLE"):
-                m.d.comb += self.bus.read_address.ready.eq(1)
-                m.d.comb += self.bus.write_address.ready.eq(1)
+                m.d.comb += self.axi.read_address.ready.eq(1)
+                m.d.comb += self.axi.write_address.ready.eq(1)
 
                 def in_range(signal, range):
                     return (signal >= range.start) & (signal < range.stop)
 
-                with m.If(self.bus.read_address.valid & in_range(self.bus.read_address.value, self.address_range)):
-                    m.d.sync += addr.eq(self.bus.read_address.value - self.address_range.start)
+                with m.If(self.axi.read_address.valid & in_range(self.axi.read_address.value, self.address_range)):
+                    m.d.sync += addr.eq(self.axi.read_address.value - self.address_range.start)
                     m.next = "READ"
-                with m.Elif(self.bus.write_address.valid & in_range(self.bus.write_address.value, self.address_range)):
-                    m.d.sync += addr.eq(self.bus.write_address.value - self.address_range.start)
+                with m.Elif(self.axi.write_address.valid & in_range(self.axi.write_address.value, self.address_range)):
+                    m.d.sync += addr.eq(self.axi.write_address.value - self.address_range.start)
                     m.next = "WRITE"
 
             with m.State("READ"):
@@ -56,26 +56,26 @@ class AxiLiteSlave(Elaboratable, ABC):
                     m.d.sync += read_done.eq(0)
                     m.next = "READ_DONE"
             with m.State("READ_DONE"):
-                m.d.comb += self.bus.read_data.value.eq(read_out)
-                m.d.comb += self.bus.read_data.resp.eq(resp_out)
-                m.d.comb += self.bus.read_data.valid.eq(1)
-                with m.If(self.bus.read_data.ready):
+                m.d.comb += self.axi.read_data.value.eq(read_out)
+                m.d.comb += self.axi.read_data.resp.eq(resp_out)
+                m.d.comb += self.axi.read_data.valid.eq(1)
+                with m.If(self.axi.read_data.ready):
                     m.next = "IDLE"
 
             with m.State("WRITE"):
                 write_done = Signal()
-                m.d.comb += self.bus.write_data.ready.eq(write_done)
-                with m.If(self.bus.write_data.valid):
+                m.d.comb += self.axi.write_data.ready.eq(write_done)
+                with m.If(self.axi.write_data.valid):
                     def set_write_done(): m.d.sync += write_done.eq(1)
 
-                    self.handle_write(m, addr, self.bus.write_data.value, self.bus.write_response.resp, set_write_done)
+                    self.handle_write(m, addr, self.axi.write_data.value, self.axi.write_response.resp, set_write_done)
                     with m.If(write_done):
                         m.d.sync += write_done.eq(0)
                         m.next = "WRITE_DONE"
             with m.State("WRITE_DONE"):
-                m.d.comb += self.bus.write_response.valid.eq(1)
-                m.d.comb += self.bus.write_data.ready.eq(1)
-                with m.If(self.bus.write_response.ready):
+                m.d.comb += self.axi.write_response.valid.eq(1)
+                m.d.comb += self.axi.write_data.ready.eq(1)
+                with m.If(self.axi.write_response.ready):
                     m.next = "IDLE"
 
         return m

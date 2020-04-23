@@ -34,7 +34,7 @@ class AxilCsrBank(Elaboratable):
 
         for name, reg in self._axi_regs.items():
             setattr(m.submodules, "{}_csr".format(name), reg)
-            m.d.comb += interconnect.get_port().connect_slave(reg.bus)
+            m.d.comb += interconnect.get_port().connect_slave(reg.axi)
 
         platform.add_file(
             "mmap/regs.csv",

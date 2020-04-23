@@ -4,9 +4,9 @@ from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 from modules.axi.axi import AxiInterface
 from modules.axi.axil_csr import AxilCsrBank
 from modules.axi.full_to_lite import AxiFullToLiteBridge
-from modules.xilinx.blocks import Ps7, Oserdes, RawPll, Bufg, Idelay, IdelayCtl, Iserdes
+from modules.xilinx.Ps7 import Ps7
+from modules.xilinx.blocks import Oserdes, RawPll, Bufg, Idelay, IdelayCtl, Iserdes
 from devices.micro.micro_r2_platform import MicroR2Platform
-from util.size_estimation import print_module_sizes
 
 
 class Top(Elaboratable):

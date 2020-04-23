@@ -24,45 +24,45 @@ class AddressChannel(Bundle):
     def __init__(self, addr_bits, lite, id_bits, **kwargs):
         super().__init__(**kwargs)
 
-        self.ready = self.Signal()
-        self.valid = self.Signal()
-        self.value = self.Signal(addr_bits)
+        self.ready = Signal()
+        self.valid = Signal()
+        self.value = Signal(addr_bits)
 
         if not lite:
-            self.id = self.Signal(id_bits)
-            self.burst = self.Signal(2)
-            self.len = self.Signal(4)
-            self.size = self.Signal(2)
-            self.prot = self.Signal(3)
+            self.id = Signal(id_bits)
+            self.burst = Signal(2)
+            self.len = Signal(4)
+            self.size = Signal(2)
+            self.prot = Signal(3)
 
 
 class DataChannel(Bundle):
     def __init__(self, data_bits, read, lite, id_bits, **kwargs):
         super().__init__(**kwargs)
 
-        self.ready = self.Signal()
-        self.valid = self.Signal()
-        self.value = self.Signal(data_bits)
+        self.ready = Signal()
+        self.valid = Signal()
+        self.value = Signal(data_bits)
         if read:
-            self.resp = self.Signal(2)
+            self.resp = Signal(2)
         else:
-            self.strb = self.Signal(4)
+            self.strb = Signal(4)
 
         if not lite:
-            self.last = self.Signal()
-            self.id = self.Signal(id_bits)
+            self.last = Signal()
+            self.id = Signal(id_bits)
 
 
 class WriteResponseChannel(Bundle):
     def __init__(self, lite, id_bits, **kwargs):
         super().__init__(**kwargs)
 
-        self.ready = self.Signal()
-        self.valid = self.Signal()
-        self.resp = self.Signal(2)
+        self.ready = Signal()
+        self.valid = Signal()
+        self.resp = Signal(2)
 
         if not lite:
-            self.id = self.Signal(id_bits)
+            self.id = Signal(id_bits)
 
 
 class AxiInterface(Bundle):
@@ -109,17 +109,17 @@ class AxiInterface(Bundle):
 
         # signals
         lite_args = {"lite": lite, "id_bits": id_bits}
-        self.read_address = AddressChannel(addr_bits, parent_name=self.name, **lite_args)
-        self.read_data = DataChannel(data_bits, read=True, parent_name=self.name, **lite_args)
+        self.read_address = AddressChannel(addr_bits, **lite_args)
+        self.read_data = DataChannel(data_bits, read=True, **lite_args)
 
-        self.write_address = AddressChannel(addr_bits, parent_name=self.name, **lite_args)
-        self.write_data = DataChannel(data_bits, read=False, parent_name=self.name, **lite_args)
-        self.write_response = WriteResponseChannel(parent_name=self.name, **lite_args)
+        self.write_address = AddressChannel(addr_bits, **lite_args)
+        self.write_data = DataChannel(data_bits, read=False, **lite_args)
+        self.write_response = WriteResponseChannel(**lite_args)
 
         # metadata
         self.is_master = master
         if master:
-            self.clk = self.Signal()
+            self.clk = Signal()
             self.num_slaves = 0
         self.addr_bits = addr_bits
         self.data_bits = data_bits

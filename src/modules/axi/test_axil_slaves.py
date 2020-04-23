@@ -27,7 +27,7 @@ class AxiLiteCheck(Elaboratable):
     def elaborate(self, platform):
         m = Module()
         m.submodules.dut = dut = self.dut
-        axi_bus = dut.bus
+        axi_bus = dut.axi
 
         is_read = Signal()
         m.d.comb += is_read.eq(

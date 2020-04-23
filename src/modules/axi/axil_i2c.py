@@ -13,17 +13,17 @@ class AxiLiteI2c(Elaboratable):
         self.pads = pads
 
         self.i2c = I2CInitiator(self.pads, period_cyc=self.clock_divider)
-        self.axi = AxiLiteSlave(
+        self.axi_slave = AxiLiteSlave(
             address_range=range(base_address, base_address + 2 ** (8 * address_bytes)),
             handle_read=self.handle_read,
             handle_write=self.handle_write
         )
-        self.bus = self.axi.bus
+        self.axi = self.axi_slave.axi
 
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.axi = self.axi
+        m.submodules.axi_slave = self.axi_slave
         m.submodules.i2c = self.i2c
 
         return m
@@ -46,7 +46,7 @@ class AxiLiteI2c(Elaboratable):
                                 m.d.comb += i2c.data_i.eq(addr[i * 8:(i + 1) * 8])
                         m.next = next_state
 
-            for i, state, next_state in generate_states("data_{}", self.bus.data_bits // 8, "end"):
+            for i, state, next_state in generate_states("data_{}", self.axi.data_bits // 8, "end"):
                 with m.State(state):
                     with m.If(~i2c.busy):
                         m.d.comb += data[i * 8:(i + 1) * 8].eq(i2c.data_o)
@@ -71,7 +71,7 @@ class AxiLiteI2c(Elaboratable):
                         m.d.comb += i2c.data_i.eq(addr[i*8:(i+1)*8])
                         m.next = next_state
 
-            for i, state, next_state in generate_states("data_{}", self.bus.data_bits // 8, "end"):
+            for i, state, next_state in generate_states("data_{}", self.axi.data_bits // 8, "end"):
                 with m.State(state):
                     with m.If(~i2c.busy):
                         m.d.comb += i2c.data_i.eq(data[i * 8:(i + 1) * 8])

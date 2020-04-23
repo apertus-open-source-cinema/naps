@@ -17,27 +17,29 @@ class AxiFullToLiteBridge(Elaboratable):
 
         lite_master = self.lite_master
 
-        m.d.comb += [lite_master.read_address.value.eq(full_slave.read_address.value)]
-        m.d.comb += [lite_master.read_address.valid.eq(full_slave.read_address.valid)]
-        m.d.comb += [full_slave.read_address.ready.eq(lite_master.read_address.ready)]
+        m.d.comb += [
+            lite_master.read_address.value.eq(full_slave.read_address.value),
+            lite_master.read_address.valid.eq(full_slave.read_address.valid),
+            full_slave.read_address.ready.eq(lite_master.read_address.ready),
 
-        m.d.comb += [full_slave.read_data.value.eq(lite_master.read_data.value)]
-        m.d.comb += [full_slave.read_data.valid.eq(lite_master.read_data.valid)]
-        m.d.comb += [full_slave.read_data.resp.eq(lite_master.read_data.resp)]
-        m.d.comb += [lite_master.read_data.ready.eq(full_slave.read_data.ready)]
+            full_slave.read_data.value.eq(lite_master.read_data.value),
+            full_slave.read_data.valid.eq(lite_master.read_data.valid),
+            full_slave.read_data.resp.eq(lite_master.read_data.resp),
+            lite_master.read_data.ready.eq(full_slave.read_data.ready),
 
-        m.d.comb += [lite_master.write_address.value.eq(full_slave.write_address.value)]
-        m.d.comb += [lite_master.write_address.valid.eq(full_slave.write_address.valid)]
-        m.d.comb += [full_slave.write_address.ready.eq(lite_master.write_address.ready)]
+            lite_master.write_address.value.eq(full_slave.write_address.value),
+            lite_master.write_address.valid.eq(full_slave.write_address.valid),
+            full_slave.write_address.ready.eq(lite_master.write_address.ready),
 
-        m.d.comb += [lite_master.write_data.value.eq(full_slave.write_data.value)]
-        m.d.comb += [lite_master.write_data.valid.eq(full_slave.write_data.valid)]
-        m.d.comb += [lite_master.write_data.strb.eq(full_slave.write_data.strb)]
-        m.d.comb += [full_slave.write_data.ready.eq(lite_master.write_data.ready)]
+            lite_master.write_data.value.eq(full_slave.write_data.value),
+            lite_master.write_data.valid.eq(full_slave.write_data.valid),
+            lite_master.write_data.strb.eq(full_slave.write_data.strb),
+            full_slave.write_data.ready.eq(lite_master.write_data.ready),
 
-        m.d.comb += [full_slave.write_response.resp.eq(lite_master.write_response.resp)]
-        m.d.comb += [full_slave.write_response.valid.eq(lite_master.write_response.valid)]
-        m.d.comb += [lite_master.write_response.ready.eq(full_slave.write_response.ready)]
+            full_slave.write_response.resp.eq(lite_master.write_response.resp),
+            full_slave.write_response.valid.eq(lite_master.write_response.valid),
+            lite_master.write_response.ready.eq(full_slave.write_response.ready),
+        ]
 
         # fake the id tracking
         read_id = Signal.like(full_slave.read_data.id)

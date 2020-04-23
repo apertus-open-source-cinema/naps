@@ -15,7 +15,7 @@ def get_module_sizes(module, *args, **kwargs):
         
         expose top
         
-        synth_xilinx
+        synth_xilinx -abc9
     """.format(rtlil_text)
 
     popen = subprocess.Popen(["yosys", "-s", "-"],

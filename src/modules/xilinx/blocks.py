@@ -7,7 +7,7 @@ class Ps7(XilinxBlackbox):
     module = "PS7"
 
     def get_axi_master_gp(self, number) -> AxiInterface:
-        bus = axi.AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=4, master=True)
+        bus = axi.AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=4, master=True, parent_name="ps7_maxigp{}".format(number))
         ps7_port = self.maxigp[number]
         # replacing the Signals from the original interface is a bit ugly but works since we have just created it
         # and are therefore sure, that there are no other references to them

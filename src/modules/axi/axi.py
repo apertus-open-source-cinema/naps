@@ -21,53 +21,53 @@ class BurstType(Enum):
 
 
 class AddressChannel(Bundle):
-    def __init__(self, addr_bits, lite, id_bits):
-        super().__init__()
+    def __init__(self, addr_bits, lite, id_bits, **kwargs):
+        super().__init__(**kwargs)
 
-        self.ready = Signal()
-        self.valid = Signal()
-        self.value = Signal(addr_bits)
+        self.ready = self.Signal()
+        self.valid = self.Signal()
+        self.value = self.Signal(addr_bits)
 
         if not lite:
-            self.id = Signal(id_bits)
-            self.burst = Signal(2)
-            self.len = Signal(4)
-            self.size = Signal(2)
-            self.prot = Signal(3)
+            self.id = self.Signal(id_bits)
+            self.burst = self.Signal(2)
+            self.len = self.Signal(4)
+            self.size = self.Signal(2)
+            self.prot = self.Signal(3)
 
 
 class DataChannel(Bundle):
-    def __init__(self, data_bits, read, lite, id_bits):
-        super().__init__()
+    def __init__(self, data_bits, read, lite, id_bits, **kwargs):
+        super().__init__(**kwargs)
 
-        self.ready = Signal()
-        self.valid = Signal()
-        self.value = Signal(data_bits)
+        self.ready = self.Signal()
+        self.valid = self.Signal()
+        self.value = self.Signal(data_bits)
         if read:
-            self.resp = Signal(2)
+            self.resp = self.Signal(2)
         else:
-            self.strb = Signal(4)
+            self.strb = self.Signal(4)
 
         if not lite:
-            self.last = Signal()
-            self.id = Signal(id_bits)
+            self.last = self.Signal()
+            self.id = self.Signal(id_bits)
 
 
 class WriteResponseChannel(Bundle):
-    def __init__(self, lite, id_bits):
-        super().__init__()
+    def __init__(self, lite, id_bits, **kwargs):
+        super().__init__(**kwargs)
 
-        self.ready = Signal()
-        self.valid = Signal()
-        self.resp = Signal(2)
+        self.ready = self.Signal()
+        self.valid = self.Signal()
+        self.resp = self.Signal(2)
 
         if not lite:
-            self.id = Signal(id_bits)
+            self.id = self.Signal(id_bits)
 
 
 class AxiInterface(Bundle):
     @staticmethod
-    def like(model, master=None, lite=None):
+    def like(model, master=None, lite=None, **kwargs):
         """
         Create an AxiInterface shaped like a given model.
         :type model: AxiInterface
@@ -85,10 +85,12 @@ class AxiInterface(Bundle):
             data_bits=model.data_bits,
             lite=lite if lite is not None else model.is_lite,
             id_bits=None if (lite is not None and lite) else model.id_bits,
-            master=master if master is not None else model.is_master
+            master=master if master is not None else model.is_master,
+            name="axi",
+            **kwargs
         )
 
-    def __init__(self, *, addr_bits, data_bits, master, lite, id_bits=None):
+    def __init__(self, *, addr_bits, data_bits, master, lite, id_bits=None, **kwargs):
         """
         Constructs a Record holding all the signals for axi (lite)
 
@@ -98,7 +100,7 @@ class AxiInterface(Bundle):
         :param id_bits: the number of bits for the id signal of full axi. do not specify if :param lite is True.
         :param master: whether the record represents a master or a slave
         """
-        super().__init__()
+        super().__init__(**kwargs)
 
         if id_bits:
             assert not lite, "there is no id tracking with axi lite"
@@ -107,17 +109,17 @@ class AxiInterface(Bundle):
 
         # signals
         lite_args = {"lite": lite, "id_bits": id_bits}
-        self.read_address = AddressChannel(addr_bits, **lite_args)
-        self.read_data = DataChannel(data_bits, read=True, **lite_args)
+        self.read_address = AddressChannel(addr_bits, parent_name=self.name, **lite_args)
+        self.read_data = DataChannel(data_bits, read=True, parent_name=self.name, **lite_args)
 
-        self.write_address = AddressChannel(addr_bits, **lite_args)
-        self.write_data = DataChannel(data_bits, read=False, **lite_args)
-        self.write_response = WriteResponseChannel(**lite_args)
+        self.write_address = AddressChannel(addr_bits, parent_name=self.name, **lite_args)
+        self.write_data = DataChannel(data_bits, read=False, parent_name=self.name, **lite_args)
+        self.write_response = WriteResponseChannel(parent_name=self.name, **lite_args)
 
         # metadata
         self.is_master = master
         if master:
-            self.clk = Signal()
+            self.clk = self.Signal()
             self.num_slaves = 0
         self.addr_bits = addr_bits
         self.data_bits = data_bits

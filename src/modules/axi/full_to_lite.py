@@ -13,7 +13,7 @@ class AxiFullToLiteBridge(Elaboratable):
         m = Module()
 
         full_slave = AxiInterface.like(self._full_master, master=False)
-        self._full_master.connect_slave(full_slave)
+        m.d.comb += self._full_master.connect_slave(full_slave)
 
         read_id = Signal.like(full_slave.read_data.id)
         write_id = Signal.like(full_slave.write_data.id)

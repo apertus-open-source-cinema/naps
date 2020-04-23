@@ -10,7 +10,7 @@ class AxilCsrBank(Elaboratable):
         self._axil_master = axil_master
         self._next_address = base_address
         self._memory_map = {}
-        self._axi_regs = []
+        self._axi_regs = {}
 
         self._frozen = False
 
@@ -19,7 +19,7 @@ class AxilCsrBank(Elaboratable):
         assert name not in self._memory_map
 
         reg = AxiLiteReg(width=width, base_address=self._next_address, writable=writable, name=name)
-        self._axi_regs.append(reg)
+        self._axi_regs[name] = reg
         self._memory_map[name] = self._next_address
 
         self._next_address += 4
@@ -32,9 +32,9 @@ class AxilCsrBank(Elaboratable):
 
         interconnect = m.submodules.interconnect = AxiInterconnect(self._axil_master)
 
-        for i, reg in enumerate(self._axi_regs):
-            setattr(m.submodules, "axi_reg#{}".format(i), reg)
-            interconnect.get_port().connect_slave(reg.bus)
+        for name, reg in self._axi_regs.items():
+            setattr(m.submodules, "axi_reg_{}".format(name), reg)
+            m.d.comb += interconnect.get_port().connect_slave(reg.bus)
 
         platform.add_file(
             "mmap/regs.csv",

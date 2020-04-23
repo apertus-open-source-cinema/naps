@@ -4,26 +4,17 @@ from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 from modules.axi.axi import AxiInterface
 from modules.axi.axil_csr import AxilCsrBank
 from modules.axi.full_to_lite import AxiFullToLiteBridge
-from modules.axi.interconnect import AxiInterconnect
 from modules.xilinx.blocks import Ps7, Oserdes, RawPll, Bufg, Idelay, IdelayCtl, Iserdes
 from devices.micro.micro_r2_platform import MicroR2Platform
+from util.size_estimation import print_module_sizes
 
 
 class Top(Elaboratable):
     def __init__(self):
         pass
 
-    def connect_loopback_ressource(self, platform):
-        platform.add_resources([
-            Resource("loopback", 0,
-                     # high speed serial lanes
-                     Subsignal("tx", DiffPairs("1", "7", dir='o', conn=("pmod", "south")), Attrs(IOSTANDARD="LVDS_25")),
-                     Subsignal("rx", DiffPairs("8", "2", dir='i', conn=("pmod", "south")), Attrs(IOSTANDARD="LVDS_25")),
-                     )
-        ])
-
     def elaborate(self, plat: MicroR2Platform):
-        m = Module()
+        m = self.module = Module()
 
         m.domains += ClockDomain("sync")
         ps7 = m.submodules.ps7_wrapper = Ps7()
@@ -54,7 +45,6 @@ class Top(Elaboratable):
         axi_lite_bridge = m.submodules.axi_lite_bridge = AxiFullToLiteBridge(axi_full_port)
         csr = m.submodules.csr = AxilCsrBank(axi_lite_bridge.lite_master)
 
-        self.connect_loopback_ressource(plat)
         csr.reg("rw_test")
         test_counter_reg = csr.reg("test_counter", writable=False)
         m.d.sync += test_counter_reg.eq(test_counter_reg + 1)
@@ -183,11 +173,25 @@ class Top(Elaboratable):
         return m
 
 
+def connect_loopback_ressource(platform):
+    platform.add_resources([
+        Resource("loopback", 0,
+                 # high speed serial lanes
+                 Subsignal("tx", DiffPairs("1", "7", dir='o', conn=("pmod", "south")), Attrs(IOSTANDARD="LVDS_25")),
+                 Subsignal("rx", DiffPairs("8", "2", dir='i', conn=("pmod", "south")), Attrs(IOSTANDARD="LVDS_25")),
+                 )
+    ])
+
+
 if __name__ == "__main__":
     p = MicroR2Platform()
+    connect_loopback_ressource(p)
+    top = Top()
+
+    # print_module_sizes(top, platform=p)
     p.build(
-        Top(),
+        top,
         name="connector_test",
-        do_build=True,
+        do_build=False,
         do_program=False,
     )

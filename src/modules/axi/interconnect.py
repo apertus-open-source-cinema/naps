@@ -2,7 +2,7 @@ from nmigen import *
 
 from modules.axi.axi import AxiInterface
 from modules.axi.axil_reg import AxiLiteReg
-from util.nmigen import connect_together
+from util.nmigen import connect_together, operator
 
 
 class AxiInterconnect(Elaboratable):
@@ -58,7 +58,7 @@ class AxiInterconnect(Elaboratable):
             def a(**kwargs):
                 assert len(kwargs.keys()) == 1
                 name, signal = list(kwargs.items())[0]
-                return connect_together(signal, "{}2{}_{}".format(repr(self), repr(downstream_port), name), operation='&')
+                return connect_together(signal, "{}2{}_{}".format(repr(self), repr(downstream_port), name), operation=operator.and_)
 
             uplink = self._uplink_axi_master
             m.d.comb += downstream_port.read_address.value.eq(uplink.read_address.value)

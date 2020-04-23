@@ -63,17 +63,21 @@ class XilinxBlackbox(Elaboratable):
                 common_start = self._common_start(hierarchy_name, merge_candidate_name)
 
                 prefix = None
-                if match := re.match("\\d", common_start):
+                match = re.match("\\d", common_start)
+                if match:
                     prefix = match[0]
-                elif match := re.match("[A-Z0-9]+", common_start):
-                    if len(match[0]) >= 3:
-                        prefix = match[0]
-                    else:
-                        children = self.potential_children(match[0], merge_candidate_name, hierarchy, hierarchy_name,
-                                                           full_name)
-                        if all(c[:1].isdigit() for c in children.keys()) and len(
-                                set(c[:1] for c in children.keys())) > 1:
+                else:
+                    match = re.match("[A-Z0-9]+", common_start)
+
+                    if match:
+                        if len(match[0]) >= 3:
                             prefix = match[0]
+                        else:
+                            children = self.potential_children(match[0], merge_candidate_name, hierarchy, hierarchy_name,
+                                                            full_name)
+                            if all(c[:1].isdigit() for c in children.keys()) and len(
+                                    set(c[:1] for c in children.keys())) > 1:
+                                prefix = match[0]
 
                 if prefix:
                     children = self.potential_children(prefix, merge_candidate_name, hierarchy, hierarchy_name,

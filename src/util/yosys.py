@@ -3,7 +3,7 @@ from functools import lru_cache
 from json import loads, dumps
 
 
-@lru_cache
+@lru_cache()
 def parse_yosys_json(verilog_paths):
     json = yosys_script([
         "\n".join("read_verilog {}".format(path) for path in verilog_paths),

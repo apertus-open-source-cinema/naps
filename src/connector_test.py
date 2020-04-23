@@ -189,9 +189,13 @@ if __name__ == "__main__":
     top = Top()
 
     # print_module_sizes(top, platform=p)
-    p.build(
-        top,
-        name="connector_test",
-        do_build=True,
-        do_program=False,
-    )
+    from util.nmigen import hierarchy_to_dot
+    with open("test.json", "w") as f:
+        f.write(hierarchy_to_dot(top, p))
+
+    # p.build(
+    #     top,
+    #     name="connector_test",
+    #     do_build=True,
+    #     do_program=False,
+    # )

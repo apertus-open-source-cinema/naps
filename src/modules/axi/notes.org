@@ -100,9 +100,7 @@
     RLAST       Read last, indicates the last transfer in a read burst
     RUSER       User signal (only in AXI4)
     RVALID      Read valid, valid read data are available
-    The read channel has no strobe signal!
-
-    Source: master
+    The read channel has no strobe signal    Source: master
     RREADY      Read ready, slave can accept read data
 
 

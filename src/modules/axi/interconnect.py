@@ -3,8 +3,7 @@ from functools import reduce
 from nmigen import *
 
 from modules.axi.axi import AxiInterface
-from modules.axi.axil_reg import AxiLiteReg
-from util.nmigen import connect_together, operator, iterator_with_if_elif
+from util.nmigen import iterator_with_if_elif
 
 
 class AxiInterconnect(Elaboratable):
@@ -25,16 +24,17 @@ class AxiInterconnect(Elaboratable):
 
         :return: A new AxiInterface shaped after the upstream port.
         """
-        downstream_master = AxiInterface.like(self._uplink_axi_master)
+        downstream_master = AxiInterface.like(self._uplink_axi_master, name="axi_interconnect_downstream")
         self._downstream_ports.append(downstream_master)
         return downstream_master
 
     def elaborate(self, platform):
         m = Module()
 
-        # beware: the following works only for axi lite!
+        uplink = AxiInterface.like(self._uplink_axi_master, master=False, name="uplink_slave")
+        m.d.comb += self._uplink_axi_master.connect_slave(uplink)
 
-        uplink = self._uplink_axi_master
+        # beware: the following works only for axi lite!
 
         for downstream_port in self._downstream_ports:
             m.d.comb += downstream_port.read_address.value.eq(uplink.read_address.value)

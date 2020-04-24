@@ -56,7 +56,14 @@ class AxiHpWriter(Elaboratable):
             m.d.comb += addr_fifo.w_en.eq(self.address_generator.addr)
             m.d.comb += data_fifo.w_data.eq(self.data)
 
-        burst_position = Signal(range(self.burst_length))
-        
+        with m.FSM():
+            with m.State("IDLE"):
+                pass
+            with m.State("TRANSFER"):
+                burst_position = Signal(range(self.burst_length), reset=0)
+                with m.If(burst_position < 16):
+                    m.d.sync += burst_position.eq(burst_position+1)
+                with m.Else():
+                    m.next = "IDLE"
 
         return m

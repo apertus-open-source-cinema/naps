@@ -83,9 +83,10 @@ class WriteResponseChannel(Bundle):
 
 class AxiInterface(Bundle):
     @staticmethod
-    def like(model, master=None, lite=None, **kwargs):
+    def like(model, master=None, lite=None, name="axi", **kwargs):
         """
         Create an AxiInterface shaped like a given model.
+        :param name: the name of the resulting axi port
         :type model: AxiInterface
         :param model: the model after which the axi port should be created
         :type master: bool
@@ -102,7 +103,7 @@ class AxiInterface(Bundle):
             lite=lite if lite is not None else model.is_lite,
             id_bits=None if (lite is not None and lite) else model.id_bits,
             master=master if master is not None else model.is_master,
-            name="axi",
+            name=name,
             **kwargs
         )
 

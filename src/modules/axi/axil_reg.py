@@ -5,14 +5,15 @@ from nmigen import *
 
 class AxiLiteReg(Elaboratable):
     def __init__(self, *, width, base_address, writable=True, name=None):
-        self.reg = Signal(width, name=name)
+        self.reg = Signal(width, name="{}_csr_reg".format(name))
         self.writable = writable
+        self.name = name
 
         self.axi_slave = AxiLiteSlave(
             address_range=range(base_address, base_address + 1),
             handle_read=self.handle_read,
             handle_write=self.handle_write,
-            bundle_name=name
+            bundle_name="{}_csr_axi".format(name)
         )
         self.axi = self.axi_slave.axi
 
@@ -20,7 +21,7 @@ class AxiLiteReg(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        m.submodules.axi_slave = self.axi_slave
+        setattr(m.submodules, "{}_csr_axil_slave".format(self.name), self.axi_slave)
         return m
 
     def handle_read(self, m, addr, data, resp, read_done):

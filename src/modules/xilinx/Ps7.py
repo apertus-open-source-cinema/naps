@@ -4,7 +4,7 @@ import modules.xilinx.blocks as blocks
 
 class Ps7(blocks.Ps7):
     def get_axi_master_gp(self, number) -> AxiInterface:
-        bus = AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=4, master=True)
+        bus = AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=0, master=True)
         ps7_port = self.maxigp[number]
         # replacing the Signals from the original interface is a bit ugly but works since we have just created it
         # and are therefore sure, that there are no other references to them

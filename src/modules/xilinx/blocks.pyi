@@ -31,7 +31,7 @@ class Ps7:
             p: Signal # DDRDQSP
         dqs : _Dqs
     ddr : _Ddr
-    class _3:
+    class _Dma_3:
         aclk: Signal # DMA3ACLK
         daready: Signal # DMA3DAREADY
         datype: Signal # DMA3DATYPE
@@ -41,7 +41,7 @@ class Ps7:
         drtype: Signal # DMA3DRTYPE
         drvalid: Signal # DMA3DRVALID
         rstn: Signal # DMA3RSTN
-    class _2:
+    class _Dma_2:
         aclk: Signal # DMA2ACLK
         daready: Signal # DMA2DAREADY
         datype: Signal # DMA2DATYPE
@@ -51,7 +51,7 @@ class Ps7:
         drtype: Signal # DMA2DRTYPE
         drvalid: Signal # DMA2DRVALID
         rstn: Signal # DMA2RSTN
-    class _1:
+    class _Dma_1:
         aclk: Signal # DMA1ACLK
         daready: Signal # DMA1DAREADY
         datype: Signal # DMA1DATYPE
@@ -61,7 +61,7 @@ class Ps7:
         drtype: Signal # DMA1DRTYPE
         drvalid: Signal # DMA1DRVALID
         rstn: Signal # DMA1RSTN
-    class _0:
+    class _Dma_0:
         aclk: Signal # DMA0ACLK
         daready: Signal # DMA0DAREADY
         datype: Signal # DMA0DATYPE
@@ -71,27 +71,27 @@ class Ps7:
         drtype: Signal # DMA0DRTYPE
         drvalid: Signal # DMA0DRVALID
         rstn: Signal # DMA0RSTN
-    dma : Tuple[_0, _1, _2, _3]
+    dma : Tuple[_Dma_0, _Dma_1, _Dma_2, _Dma_3]
     class _Emio:
         sramintin: Signal # EMIOSRAMINTIN
         class _Wdt:
             clki: Signal # EMIOWDTCLKI
             rsto: Signal # EMIOWDTRSTO
         wdt : _Wdt
-        class _0:
+        class _Usb_0:
             portindctl: Signal # EMIOUSB0PORTINDCTL
             class _Vbuspwr:
                 fault: Signal # EMIOUSB0VBUSPWRFAULT
                 select: Signal # EMIOUSB0VBUSPWRSELECT
             vbuspwr : _Vbuspwr
-        class _1:
+        class _Usb_1:
             portindctl: Signal # EMIOUSB1PORTINDCTL
             class _Vbuspwr:
                 fault: Signal # EMIOUSB1VBUSPWRFAULT
                 select: Signal # EMIOUSB1VBUSPWRSELECT
             vbuspwr : _Vbuspwr
-        usb : Tuple[_0, _1]
-        class _0:
+        usb : Tuple[_Usb_0, _Usb_1]
+        class _Uart_0:
             tx: Signal # EMIOUART0TX
             rx: Signal # EMIOUART0RX
             rtsn: Signal # EMIOUART0RTSN
@@ -100,7 +100,7 @@ class Ps7:
             dsrn: Signal # EMIOUART0DSRN
             dcdn: Signal # EMIOUART0DCDN
             ctsn: Signal # EMIOUART0CTSN
-        class _1:
+        class _Uart_1:
             tx: Signal # EMIOUART1TX
             rx: Signal # EMIOUART1RX
             rtsn: Signal # EMIOUART1RTSN
@@ -109,20 +109,20 @@ class Ps7:
             dsrn: Signal # EMIOUART1DSRN
             dcdn: Signal # EMIOUART1DCDN
             ctsn: Signal # EMIOUART1CTSN
-        uart : Tuple[_0, _1]
-        class _0:
+        uart : Tuple[_Uart_0, _Uart_1]
+        class _Ttc_0:
             waveo: Signal # EMIOTTC0WAVEO
             clki: Signal # EMIOTTC0CLKI
-        class _1:
+        class _Ttc_1:
             waveo: Signal # EMIOTTC1WAVEO
             clki: Signal # EMIOTTC1CLKI
-        ttc : Tuple[_0, _1]
+        ttc : Tuple[_Ttc_0, _Ttc_1]
         class _Trace:
             clk: Signal # EMIOTRACECLK
             ctl: Signal # EMIOTRACECTL
             data: Signal # EMIOTRACEDATA
         trace : _Trace
-        class _0:
+        class _Spi_0:
             stn: Signal # EMIOSPI0STN
             sson: Signal # EMIOSPI0SSON
             ssntn: Signal # EMIOSPI0SSNTN
@@ -137,7 +137,7 @@ class Ps7:
                 o: Signal # EMIOSPI0SCLKO
                 tn: Signal # EMIOSPI0SCLKTN
             sclk : _Sclk
-        class _1:
+        class _Spi_1:
             stn: Signal # EMIOSPI1STN
             sson: Signal # EMIOSPI1SSON
             ssntn: Signal # EMIOSPI1SSNTN
@@ -152,8 +152,8 @@ class Ps7:
                 o: Signal # EMIOSPI1SCLKO
                 tn: Signal # EMIOSPI1SCLKTN
             sclk : _Sclk
-        spi : Tuple[_0, _1]
-        class _0:
+        spi : Tuple[_Spi_0, _Spi_1]
+        class _Sdio_0:
             wp: Signal # EMIOSDIO0WP
             led: Signal # EMIOSDIO0LED
             clkfb: Signal # EMIOSDIO0CLKFB
@@ -173,7 +173,7 @@ class Ps7:
                 pow: Signal # EMIOSDIO0BUSPOW
                 volt: Signal # EMIOSDIO0BUSVOLT
             bus : _Bus
-        class _1:
+        class _Sdio_1:
             wp: Signal # EMIOSDIO1WP
             led: Signal # EMIOSDIO1LED
             clkfb: Signal # EMIOSDIO1CLKFB
@@ -193,7 +193,7 @@ class Ps7:
                 pow: Signal # EMIOSDIO1BUSPOW
                 volt: Signal # EMIOSDIO1BUSVOLT
             bus : _Bus
-        sdio : Tuple[_0, _1]
+        sdio : Tuple[_Sdio_0, _Sdio_1]
         class _Pjtagt:
             ck: Signal # EMIOPJTAGTCK
             di: Signal # EMIOPJTAGTDI
@@ -201,7 +201,7 @@ class Ps7:
             dtn: Signal # EMIOPJTAGTDTN
             ms: Signal # EMIOPJTAGTMS
         pjtagt : _Pjtagt
-        class _0:
+        class _I2c_0:
             class _Sda:
                 i: Signal # EMIOI2C0SDAI
                 o: Signal # EMIOI2C0SDAO
@@ -212,7 +212,7 @@ class Ps7:
                 o: Signal # EMIOI2C0SCLO
                 tn: Signal # EMIOI2C0SCLTN
             scl : _Scl
-        class _1:
+        class _I2c_1:
             class _Sda:
                 i: Signal # EMIOI2C1SDAI
                 o: Signal # EMIOI2C1SDAO
@@ -223,13 +223,13 @@ class Ps7:
                 o: Signal # EMIOI2C1SCLO
                 tn: Signal # EMIOI2C1SCLTN
             scl : _Scl
-        i2c : Tuple[_0, _1]
+        i2c : Tuple[_I2c_0, _I2c_1]
         class _Gpio:
             i: Signal # EMIOGPIOI
             o: Signal # EMIOGPIOO
             tn: Signal # EMIOGPIOTN
         gpio : _Gpio
-        class _0:
+        class _Enet_0:
             extintin: Signal # EMIOENET0EXTINTIN
             class _Sof:
                 rx: Signal # EMIOENET0SOFRX
@@ -271,7 +271,7 @@ class Ps7:
                     n: Signal # EMIOENET0GMIITXEN
                 txe : _Txe
             gmii : _Gmii
-        class _1:
+        class _Enet_1:
             extintin: Signal # EMIOENET1EXTINTIN
             class _Sof:
                 rx: Signal # EMIOENET1SOFRX
@@ -313,18 +313,18 @@ class Ps7:
                     n: Signal # EMIOENET1GMIITXEN
                 txe : _Txe
             gmii : _Gmii
-        enet : Tuple[_0, _1]
-        class _0:
+        enet : Tuple[_Enet_0, _Enet_1]
+        class _Can_0:
             class _Phy:
                 rx: Signal # EMIOCAN0PHYRX
                 tx: Signal # EMIOCAN0PHYTX
             phy : _Phy
-        class _1:
+        class _Can_1:
             class _Phy:
                 rx: Signal # EMIOCAN1PHYRX
                 tx: Signal # EMIOCAN1PHYTX
             phy : _Phy
-        can : Tuple[_0, _1]
+        can : Tuple[_Can_0, _Can_1]
     emio : _Emio
     class _Event:
         o: Signal # EVENTEVENTO
@@ -361,7 +361,7 @@ class Ps7:
         p2f: Signal # IRQP2F
         f2p: Signal # IRQF2P
     irq : _Irq
-    class _1:
+    class _Maxigp_1:
         aclk: Signal # MAXIGP1ACLK
         araddr: Signal # MAXIGP1ARADDR
         arburst: Signal # MAXIGP1ARBURST
@@ -410,7 +410,7 @@ class Ps7:
             sp: Signal # MAXIGP1RRESP
             ady: Signal # MAXIGP1RREADY
         rre : _Rre
-    class _0:
+    class _Maxigp_0:
         aclk: Signal # MAXIGP0ACLK
         araddr: Signal # MAXIGP0ARADDR
         arburst: Signal # MAXIGP0ARBURST
@@ -459,9 +459,9 @@ class Ps7:
             sp: Signal # MAXIGP0RRESP
             ady: Signal # MAXIGP0RREADY
         rre : _Rre
-    maxigp : Tuple[_0, _1]
+    maxigp : Tuple[_Maxigp_0, _Maxigp_1]
     class _Saxi:
-        class _0:
+        class _Hp_0:
             wvalid: Signal # SAXIHP0WVALID
             wstrb: Signal # SAXIHP0WSTRB
             wrissuecap1en: Signal # SAXIHP0WRISSUECAP1EN
@@ -516,7 +516,7 @@ class Ps7:
                 en: Signal # SAXIHP0ARLEN
                 ock: Signal # SAXIHP0ARLOCK
             arl : _Arl
-        class _1:
+        class _Hp_1:
             wvalid: Signal # SAXIHP1WVALID
             wstrb: Signal # SAXIHP1WSTRB
             wrissuecapen: Signal # SAXIHP1WRISSUECAP1EN
@@ -571,7 +571,7 @@ class Ps7:
                 en: Signal # SAXIHP1ARLEN
                 ock: Signal # SAXIHP1ARLOCK
             arl : _Arl
-        class _2:
+        class _Hp_2:
             wvalid: Signal # SAXIHP2WVALID
             wstrb: Signal # SAXIHP2WSTRB
             wrissuecap1en: Signal # SAXIHP2WRISSUECAP1EN
@@ -626,7 +626,7 @@ class Ps7:
                 en: Signal # SAXIHP2ARLEN
                 ock: Signal # SAXIHP2ARLOCK
             arl : _Arl
-        class _3:
+        class _Hp_3:
             wvalid: Signal # SAXIHP3WVALID
             wstrb: Signal # SAXIHP3WSTRB
             wrissuecap1en: Signal # SAXIHP3WRISSUECAP1EN
@@ -681,8 +681,8 @@ class Ps7:
                 en: Signal # SAXIHP3ARLEN
                 ock: Signal # SAXIHP3ARLOCK
             arl : _Arl
-        hp : Tuple[_0, _1, _2, _3]
-        class _0:
+        hp : Tuple[_Hp_0, _Hp_1, _Hp_2, _Hp_3]
+        class _Gp_0:
             wvalid: Signal # SAXIGP0WVALID
             wstrb: Signal # SAXIGP0WSTRB
             wready: Signal # SAXIGP0WREADY
@@ -731,7 +731,7 @@ class Ps7:
                 en: Signal # SAXIGP0ARLEN
                 ock: Signal # SAXIGP0ARLOCK
             arl : _Arl
-        class _1:
+        class _Gp_1:
             wvalid: Signal # SAXIGP1WVALID
             wstrb: Signal # SAXIGP1WSTRB
             wready: Signal # SAXIGP1WREADY
@@ -780,7 +780,7 @@ class Ps7:
                 en: Signal # SAXIGP1ARLEN
                 ock: Signal # SAXIGP1ARLOCK
             arl : _Arl
-        gp : Tuple[_0, _1]
+        gp : Tuple[_Gp_0, _Gp_1]
         class _Acp:
             aclk: Signal # SAXIACPACLK
             araddr: Signal # SAXIACPARADDR
@@ -836,8 +836,6 @@ class Ps7:
     saxi : _Saxi
 
 ## end autogenerated stub for class Ps7 by xilinx_blackbox.py ##
-
-
 ## begin autogenerated stub for class RawPll by xilinx_blackbox.py DO NOT EDIT ##
 from nmigen import Signal
 from typing import Tuple

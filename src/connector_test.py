@@ -192,6 +192,6 @@ if __name__ == "__main__":
     p.build(
         top,
         name="connector_test",
-        do_build=True,
+        do_build=False,
         do_program=False,
     )

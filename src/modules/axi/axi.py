@@ -171,6 +171,10 @@ class AxiInterface(Bundle, MustUse):
         stmts += [slave.read_address.valid.eq(master.read_address.valid)]
         if full:
             stmts += [slave.read_address.id.eq(master.read_address.id)]
+            stmts += [slave.read_address.burst_type.eq(master.read_address.burst_type)]
+            stmts += [slave.read_address.burst_len.eq(master.read_address.burst_len)]
+            stmts += [slave.read_address.beat_size_bytes.eq(master.read_address.beat_size_bytes)]
+            stmts += [slave.read_address.protection_type.eq(master.read_address.protection_type)]
         stmts += [master.read_address.ready.eq(slave.read_address.ready)]
 
         stmts += [master.read_data.value.eq(slave.read_data.value)]
@@ -178,12 +182,17 @@ class AxiInterface(Bundle, MustUse):
         stmts += [master.read_data.resp.eq(slave.read_data.resp)]
         if full:
             stmts += [master.read_data.id.eq(slave.read_data.id)]
+            stmts += [master.read_data.last.eq(slave.read_data.last)]
         stmts += [slave.read_data.ready.eq(master.read_data.ready)]
 
         stmts += [slave.write_address.value.eq(master.write_address.value)]
         stmts += [slave.write_address.valid.eq(master.write_address.valid)]
         if full:
             stmts += [slave.write_address.id.eq(master.write_address.id)]
+            stmts += [slave.write_address.burst_type.eq(master.write_address.burst_type)]
+            stmts += [slave.write_address.burst_len.eq(master.write_address.burst_len)]
+            stmts += [slave.write_address.beat_size_bytes.eq(master.write_address.beat_size_bytes)]
+            stmts += [slave.write_address.protection_type.eq(master.write_address.protection_type)]
         stmts += [master.write_address.ready.eq(slave.write_address.ready)]
 
         stmts += [slave.write_data.value.eq(master.write_data.value)]
@@ -191,6 +200,7 @@ class AxiInterface(Bundle, MustUse):
         stmts += [slave.write_data.byte_strobe.eq(master.write_data.byte_strobe)]
         if full:
             stmts += [slave.write_data.id.eq(slave.write_data.id)]
+            stmts += [slave.write_data.last.eq(slave.write_data.last)]
         stmts += [master.write_data.ready.eq(slave.write_data.ready)]
 
         stmts += [master.write_response.resp.eq(slave.write_response.resp)]

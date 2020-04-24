@@ -7,7 +7,7 @@ from modules.axi.axi import Response, AxiInterface
 
 
 class AxiLiteSlave(Elaboratable, ABC):
-    def __init__(self, *, handle_read, handle_write, address_range):
+    def __init__(self, *, handle_read, handle_write, address_range, bundle_name="axi"):
         """
         A simple (low performance) axi lite slave
         :param handle_read: the callback to insert logic for the read state
@@ -20,7 +20,7 @@ class AxiLiteSlave(Elaboratable, ABC):
         self.handle_read = handle_read
         self.handle_write = handle_write
 
-        self.axi = AxiInterface(master=False, addr_bits=32, data_bits=32, lite=True)
+        self.axi = AxiInterface(master=False, addr_bits=32, data_bits=32, lite=True, name=bundle_name)
 
     def elaborate(self, platform):
         m = Module()

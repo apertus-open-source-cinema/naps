@@ -11,7 +11,8 @@ class AxiLiteReg(Elaboratable):
         self.axi_slave = AxiLiteSlave(
             address_range=range(base_address, base_address + 1),
             handle_read=self.handle_read,
-            handle_write=self.handle_write
+            handle_write=self.handle_write,
+            bundle_name=name
         )
         self.axi = self.axi_slave.axi
 

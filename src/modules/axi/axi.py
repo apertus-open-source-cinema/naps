@@ -3,7 +3,7 @@ from contextlib import contextmanager
 from nmigen import *
 from enum import Enum
 
-from nmigen.hdl.ast import UserValue
+from nmigen.hdl.ast import UserValue, MustUse
 
 from util.bundle import Bundle
 from util.nmigen import connect_together
@@ -81,7 +81,7 @@ class WriteResponseChannel(Bundle):
             self.id = Signal(id_bits)
 
 
-class AxiInterface(Bundle):
+class AxiInterface(Bundle, MustUse):
     @staticmethod
     def like(model, master=None, lite=None, name="axi", **kwargs):
         """
@@ -119,10 +119,13 @@ class AxiInterface(Bundle):
         """
         super().__init__(**kwargs)
 
+
         if id_bits:
             assert not lite, "there is no id tracking with axi lite"
         if lite:
             assert id_bits is None
+        if not master:
+            self._MustUse__silence = True
 
         # signals
         lite_args = {"lite": lite, "id_bits": id_bits}
@@ -196,5 +199,6 @@ class AxiInterface(Bundle):
             stmts += [master.write_response.id.eq(slave.write_response.id)]
         stmts += [slave.write_response.ready.eq(master.write_response.ready)]
 
+        self._MustUse__used = True
         self.num_slaves += 1
         return stmts

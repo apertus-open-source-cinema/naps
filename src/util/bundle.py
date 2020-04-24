@@ -25,6 +25,9 @@ class Bundle(UserValue):
             if hasattr(attr, "name") and isinstance(attr.name, str):
                 attr.name = format("{}__{}".format(self.name, attr.name.split("__")[-1]))
 
+    def __repr__(self):
+        return "{}(name={})".format(self.__class__.__name__, self.name)
+
     def lower(self):
         nmigen_fields = [f for f in dir(self) if isinstance(getattr(self, f), (Value, int, Enum))]
         raise NotImplemented("lowering bundles is not supported at the moment")

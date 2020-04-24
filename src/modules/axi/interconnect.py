@@ -58,7 +58,7 @@ class AxiInterconnect(Elaboratable):
             with conditional(downstream_port.write_data.valid):
                 m.d.comb += downstream_port.write_data.value.eq(uplink.write_data.value)
                 m.d.comb += downstream_port.write_data.valid.eq(uplink.write_data.valid)
-                m.d.comb += downstream_port.write_data.strb.eq(uplink.write_data.strb)
+                m.d.comb += downstream_port.write_data.byte_strobe.eq(uplink.write_data.byte_strobe)
                 m.d.comb += uplink.write_data.ready.eq(downstream_port.write_data.ready)
         for conditional, downstream_port in iterator_with_if_elif(self._downstream_ports, m):
             with conditional(downstream_port.write_response.valid):

@@ -33,7 +33,7 @@ class AxiFullToLiteBridge(Elaboratable):
 
             lite_master.write_data.value.eq(full_slave.write_data.value),
             lite_master.write_data.valid.eq(full_slave.write_data.valid),
-            lite_master.write_data.strb.eq(full_slave.write_data.strb),
+            lite_master.write_data.byte_strobe.eq(full_slave.write_data.byte_strobe),
             full_slave.write_data.ready.eq(lite_master.write_data.ready),
 
             full_slave.write_response.resp.eq(lite_master.write_response.resp),

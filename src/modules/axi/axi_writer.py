@@ -30,13 +30,14 @@ class AddressGenerator(Elaboratable):
 
 
 class AxiHpWriter(Elaboratable):
-    def __init__(self, axi_master: AxiInterface, buffer_base_list, max_buffer_size=0x40000000, fifo_depth=64):
+    def __init__(self, axi_master: AxiInterface, buffer_base_list, max_buffer_size=0x40000000, fifo_depth=64, burst_length=16):
         assert not axi_master.is_lite
         assert axi_master.is_master
         self.axi = AxiInterface.like(axi_master, master=False)
         self.address_generator = AddressGenerator(buffer_base_list, max_buffer_size, self.axi.addr_bits)
 
         self.fifo_depth=fifo_depth
+        self.burst_length = 16
 
         self.data_valid = Signal()  # input
         self.data = Signal(self.axi.data_bits)  # input
@@ -55,5 +56,7 @@ class AxiHpWriter(Elaboratable):
             m.d.comb += addr_fifo.w_en.eq(self.address_generator.addr)
             m.d.comb += data_fifo.w_data.eq(self.data)
 
+        burst_position = Signal(range(self.burst_length))
+        
 
         return m

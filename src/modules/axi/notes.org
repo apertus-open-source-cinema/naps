@@ -99,7 +99,8 @@
     RRESP       Read response, indicates the status of the read transfer
     RLAST       Read last, indicates the last transfer in a read burst
     RUSER       User signal (only in AXI4)
-    RVALID      Read valid, valid read data and strobes are available
+    RVALID      Read valid, valid read data are available
+    The read channel has no strobe signal!
 
     Source: master
     RREADY      Read ready, slave can accept read data
@@ -197,7 +198,7 @@
 
 
 ** read and write response 
-   RRESP[1:0] for read transfers and BRESP[1:0] for write transfers
+   RRESP[1:0] for read tra0nsfers and BRESP[1:0] for write transfers
    xRESP[1:0]   Response
    0b00         OKAY          normal acess success, but exclusive access could have failed
    0b01         EXOKAY        exclusive access okay

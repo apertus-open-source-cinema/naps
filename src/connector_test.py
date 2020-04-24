@@ -39,7 +39,7 @@ class Top(Elaboratable):
         # axi setup
         m.domains += ClockDomain("axi")
         m.d.comb += ClockSignal("axi").eq(ClockSignal())
-        axi_full_port: AxiInterface = ps7.get_axi_master_gp(1)
+        axi_full_port: AxiInterface = ps7.get_axi_gp_master(1)
         m.d.comb += axi_full_port.clk.eq(ClockSignal("axi"))
 
         axi_lite_bridge = m.submodules.axi_lite_bridge = AxiFullToLiteBridge(axi_full_port)
@@ -189,13 +189,14 @@ if __name__ == "__main__":
     top = Top()
 
     # print_module_sizes(top, platform=p)
-    from util.nmigen import hierarchy_to_dot
-    with open("test.json", "w") as f:
-        f.write(hierarchy_to_dot(top, p))
+    from util.draw_hierarchy import hierarchy_to_dot
 
-    # p.build(
-    #     top,
-    #     name="connector_test",
-    #     do_build=True,
-    #     do_program=False,
-    # )
+    #with open("test.json", "w") as f:
+    #    f.write(hierarchy_to_dot(top, p))
+
+    p.build(
+        top,
+        name="connector_test",
+        do_build=True,
+        do_program=False,
+    )

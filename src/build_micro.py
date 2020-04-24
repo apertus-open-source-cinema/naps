@@ -42,7 +42,7 @@ class Top(Elaboratable):
 
         m.d.comb += reg.axi.write_data.value.eq(axi_port.wdata)
         m.d.comb += reg.axi.write_data.valid.eq(axi_port.wvalid)
-        m.d.comb += reg.axi.write_data.strb.eq(axi_port.wstrb)
+        m.d.comb += reg.axi.write_data.byte_strobe.eq(axi_port.wstrb)
         m.d.comb += axi_port.wready.eq(reg.axi.write_data.ready)
 
         m.d.comb += axi_port.bre.sp.eq(reg.axi.write_response.resp)

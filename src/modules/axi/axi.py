@@ -3,6 +3,8 @@ from contextlib import contextmanager
 from nmigen import *
 from enum import Enum
 
+from nmigen.hdl.ast import UserValue
+
 from util.bundle import Bundle
 from util.nmigen import connect_together
 
@@ -20,8 +22,21 @@ class BurstType(Enum):
     WRAP = 0b10
 
 
+class ProtectionType(UserValue):
+    def __init__(self, privileged=False, secure=False, is_instruction=False):
+        super().__init__()
+
+        self.privileged = privileged
+        self.secure = secure
+        self.is_instruction = is_instruction
+
+    def lower(self):
+        return Signal(3,reset=int("".join(str(int(x)) for x in [self.privileged, not self.secure, self.is_instruction]),2))
+
+
 class AddressChannel(Bundle):
     def __init__(self, addr_bits, lite, id_bits, **kwargs):
+        assert addr_bits % 8 == 0
         super().__init__(**kwargs)
 
         self.ready = Signal()
@@ -30,23 +45,24 @@ class AddressChannel(Bundle):
 
         if not lite:
             self.id = Signal(id_bits)
-            self.burst = Signal(2)
-            self.len = Signal(4)
-            self.size = Signal(2)
-            self.prot = Signal(3)
+            self.burst_type = Signal(BurstType)
+            self.burst_len = Signal(range(16))  # in axi3 a burst can have a length of 16 as a hardcoded maximum
+            self.beat_size_bytes = Signal(range(int(addr_bits / 8)))
+            self.protection_type = Signal(ProtectionType().shape())
 
 
 class DataChannel(Bundle):
     def __init__(self, data_bits, read, lite, id_bits, **kwargs):
+        assert data_bits % 8 == 0
         super().__init__(**kwargs)
 
         self.ready = Signal()
         self.valid = Signal()
         self.value = Signal(data_bits)
         if read:
-            self.resp = Signal(2)
+            self.resp = Signal(Response)
         else:
-            self.strb = Signal(4)
+            self.byte_strobe = Signal(int(data_bits // 8))
 
         if not lite:
             self.last = Signal()
@@ -59,7 +75,7 @@ class WriteResponseChannel(Bundle):
 
         self.ready = Signal()
         self.valid = Signal()
-        self.resp = Signal(2)
+        self.resp = Signal(Response)
 
         if not lite:
             self.id = Signal(id_bits)
@@ -168,7 +184,7 @@ class AxiInterface(Bundle):
 
         stmts += [slave.write_data.value.eq(master.write_data.value)]
         stmts += [slave.write_data.valid.eq(master.write_data.valid)]
-        stmts += [slave.write_data.strb.eq(master.write_data.strb)]
+        stmts += [slave.write_data.byte_strobe.eq(master.write_data.byte_strobe)]
         if full:
             stmts += [slave.write_data.id.eq(slave.write_data.id)]
         stmts += [master.write_data.ready.eq(slave.write_data.ready)]

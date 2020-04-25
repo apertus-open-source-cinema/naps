@@ -41,68 +41,73 @@ class Top(Elaboratable):
         # axi setup
         m.domains += ClockDomain("axi")
         m.d.comb += ClockSignal("axi").eq(ClockSignal())
-        # axi_full_port: AxiInterface = ps7.get_axi_gp_master(1)
+        axi_full_port: AxiInterface = ps7.get_axi_gp_master(0)
+
+        m.d.comb += ps7.maxigp[0].aclk.eq(ClockSignal())
+
         # m.d.comb += axi_full_port.clk.eq(ClockSignal("axi"))
 
 
-        # axi_lite_bridge = m.submodules.axi_lite_bridge = AxiFullToLiteBridge(axi_full_port)
+        axi_lite_bridge = m.submodules.axi_lite_bridge = AxiFullToLiteBridge(axi_full_port)
         # csr = m.submodules.csr = AxilCsrBank(axi_lite_bridge.lite_master)
 
         # csr.reg("rw_test")
 
         m.submodules.rw_test_reg = AxiLiteReg(width=32, base_address=0x4000_0000, writable=True, name="rw_test")
 
-
-        class _Slave:
-            def __init__(self, slave):
-                self.bus = slave
+        m.d.comb += axi_lite_bridge.lite_master.connect_slave(m.submodules.rw_test_reg.axi)
 
 
-        slave = _Slave(m.submodules.rw_test_reg.axi)
-        master = ps7.get_axi_gp_master(0)
-        axi_port = master
+        # class _Slave:
+        #     def __init__(self, slave):
+        #         self.bus = slave
 
-        m.d.comb += ps7.maxigp[0].aclk.eq(ClockSignal())
-        # m.d.comb += master.clk.eq(ClockSignal())
 
-        m.d.comb += slave.bus.read_address.value.eq(master.read_address.value)
-        m.d.comb += slave.bus.read_address.valid.eq(master.read_address.valid)
-        m.d.comb += master.read_address.ready.eq(slave.bus.read_address.ready)
+        # slave = _Slave(m.submodules.rw_test_reg.axi)
+        # master = ps7.get_axi_gp_master(0)
+        # axi_port = master
 
-        m.d.comb += slave.bus.write_address.value.eq(master.write_address.value)
-        m.d.comb += slave.bus.write_address.valid.eq(master.write_address.valid)
-        m.d.comb += master.write_address.ready.eq(slave.bus.write_address.ready)
+        # m.d.comb += ps7.maxigp[0].aclk.eq(ClockSignal())
+        # # m.d.comb += master.clk.eq(ClockSignal())
 
-        m.d.comb += master.read_data.value.eq(slave.bus.read_data.value)
-        m.d.comb += master.read_data.resp.eq(slave.bus.read_data.resp)
-        m.d.comb += master.read_data.valid.eq(slave.bus.read_data.valid)
-        m.d.comb += slave.bus.read_data.ready.eq(master.read_data.ready)
+        # m.d.comb += slave.bus.read_address.value.eq(master.read_address.value)
+        # m.d.comb += slave.bus.read_address.valid.eq(master.read_address.valid)
+        # m.d.comb += master.read_address.ready.eq(slave.bus.read_address.ready)
 
-        m.d.comb += slave.bus.write_data.value.eq(master.write_data.value)
-        m.d.comb += slave.bus.write_data.valid.eq(master.write_data.valid)
-        m.d.comb += slave.bus.write_data.byte_strobe.eq(master.write_data.byte_strobe)
-        m.d.comb += master.write_data.ready.eq(slave.bus.write_data.ready)
+        # m.d.comb += slave.bus.write_address.value.eq(master.write_address.value)
+        # m.d.comb += slave.bus.write_address.valid.eq(master.write_address.valid)
+        # m.d.comb += master.write_address.ready.eq(slave.bus.write_address.ready)
 
-        m.d.comb += master.write_response.resp.eq(slave.bus.write_response.resp)
-        m.d.comb += master.write_response.valid.eq(slave.bus.write_response.valid)
-        m.d.comb += slave.bus.write_response.ready.eq(master.write_response.ready)
+        # m.d.comb += master.read_data.value.eq(slave.bus.read_data.value)
+        # m.d.comb += master.read_data.resp.eq(slave.bus.read_data.resp)
+        # m.d.comb += master.read_data.valid.eq(slave.bus.read_data.valid)
+        # m.d.comb += slave.bus.read_data.ready.eq(master.read_data.ready)
 
-        read_id = Signal.like(axi_port.read_data.id)
-        write_id = Signal.like(axi_port.write_data.id)
+        # m.d.comb += slave.bus.write_data.value.eq(master.write_data.value)
+        # m.d.comb += slave.bus.write_data.valid.eq(master.write_data.valid)
+        # m.d.comb += slave.bus.write_data.byte_strobe.eq(master.write_data.byte_strobe)
+        # m.d.comb += master.write_data.ready.eq(slave.bus.write_data.ready)
 
-        with m.If(axi_port.read_address.valid):
-            m.d.comb += axi_port.read_data.id.eq(axi_port.read_address.id)
-            m.d.sync += read_id.eq(axi_port.read_address.id)
-        with m.Else():
-            m.d.comb += axi_port.read_data.id.eq(read_id)
+        # m.d.comb += master.write_response.resp.eq(slave.bus.write_response.resp)
+        # m.d.comb += master.write_response.valid.eq(slave.bus.write_response.valid)
+        # m.d.comb += slave.bus.write_response.ready.eq(master.write_response.ready)
 
-        with m.If(axi_port.write_address.valid):
-            m.d.comb += axi_port.write_response.id.eq(axi_port.write_address.id)
-            m.d.sync += write_id.eq(axi_port.write_address.id)
-        with m.Else():
-            m.d.comb += axi_port.write_response.id.eq(write_id)
+        # read_id = Signal.like(axi_port.read_data.id)
+        # write_id = Signal.like(axi_port.write_data.id)
 
-        m.d.comb += axi_port.read_data.last.eq(1)
+        # with m.If(axi_port.read_address.valid):
+        #     m.d.comb += axi_port.read_data.id.eq(axi_port.read_address.id)
+        #     m.d.sync += read_id.eq(axi_port.read_address.id)
+        # with m.Else():
+        #     m.d.comb += axi_port.read_data.id.eq(read_id)
+
+        # with m.If(axi_port.write_address.valid):
+        #     m.d.comb += axi_port.write_response.id.eq(axi_port.write_address.id)
+        #     m.d.sync += write_id.eq(axi_port.write_address.id)
+        # with m.Else():
+        #     m.d.comb += axi_port.write_response.id.eq(write_id)
+
+        # m.d.comb += axi_port.read_data.last.eq(1)
 
 
         # m.d.comb += axi_full_port.connect_slave(m.submodules.rw_test_reg.axi)

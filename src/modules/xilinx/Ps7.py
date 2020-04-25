@@ -87,18 +87,20 @@ class Ps7(blocks.Ps7):
         m.d.comb += [ps7_port.bid.eq(axi.write_response.id)]
         m.d.comb += [axi.write_response.ready.eq(ps7_port.bre.ady)]
 
-    def get_axi_gp_master(self, number) -> AxiInterface:
-        axi = AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=4, master=True)
+    def get_axi_gp_master(self, number, clk) -> AxiInterface:
+        axi = AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=12, master=True)
 
         ps7_port = self.maxigp[number]
+        self.connection_submodule.d.comb += ps7_port.aclk.eq(clk)
         self._axi_master_helper(axi, ps7_port)
 
         return axi
 
-    def get_axi_hp_slave(self, number) -> AxiInterface:
-        axi = AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=4, master=False)
+    def get_axi_hp_slave(self, number, clk) -> AxiInterface:
+        axi = AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=12, master=False)
 
         ps7_port = self.saxi.hp[number]
+        self.connection_submodule.d.comb += ps7_port.aclk.eq(clk)
         self._axi_slave_helper(axi, ps7_port)
 
         return axi

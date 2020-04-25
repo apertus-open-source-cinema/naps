@@ -139,7 +139,6 @@ class AxiInterface(Bundle, MustUse):
         # metadata
         self.is_master = master
         if master:
-            self.clk = Signal()
             self.num_slaves = 0
         self.addr_bits = addr_bits
         self.data_bits = data_bits
@@ -199,8 +198,8 @@ class AxiInterface(Bundle, MustUse):
         stmts += [slave.write_data.valid.eq(master.write_data.valid)]
         stmts += [slave.write_data.byte_strobe.eq(master.write_data.byte_strobe)]
         if full:
-            stmts += [slave.write_data.id.eq(slave.write_data.id)]
-            stmts += [slave.write_data.last.eq(slave.write_data.last)]
+            stmts += [slave.write_data.id.eq(master.write_data.id)]
+            stmts += [slave.write_data.last.eq(master.write_data.last)]
         stmts += [master.write_data.ready.eq(slave.write_data.ready)]
 
         stmts += [master.write_response.resp.eq(slave.write_response.resp)]

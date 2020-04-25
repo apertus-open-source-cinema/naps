@@ -54,6 +54,7 @@
 
     Source: slave
     AWREADY     Write address ready -> slave is ready to accept an address + control information
+
 *** write data channel
     Source: master
     WID         Write ID, ID tag of write transfer data (only AXI3)
@@ -65,12 +66,14 @@
 
     Source: slave
     WREADY      Write ready, slave can accept write data
+
 *** write response channel
     Source: slave
     BID         Response ID, tag of the write response
     BRESP       Write response, status of write transaction
     BUSER       User signal (only in AXI4)
     BVALID      Write response valid, slave is signaling a response
+
     Source: master
     BREADY      Response ready, master can accept response
 
@@ -92,6 +95,7 @@
 
     Source: slave
     AWREADY     Read address ready -> slave is ready to accept an address + control information
+
 *** read data channel
     Source: slave
     RID         Read ID, ID tag of read transfer data 
@@ -100,9 +104,10 @@
     RLAST       Read last, indicates the last transfer in a read burst
     RUSER       User signal (only in AXI4)
     RVALID      Read valid, valid read data are available
-    The read channel has no strobe signal    Source: master
-    RREADY      Read ready, slave can accept read data
+    The read channel has no strobe signal
 
+    Source: master
+    RREADY      Read ready, slave can accept read data
 
 *** optional low-power interface
     Source: clock controller

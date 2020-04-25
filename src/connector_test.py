@@ -59,49 +59,49 @@ class Top(Elaboratable):
 
 
         slave = _Slave(m.submodules.rw_test_reg.axi)
-        master = ps7.maxigp[0]
+        master = ps7.get_axi_gp_master(1)
         axi_port = master
 
-        m.d.comb += master.aclk.eq(ClockSignal())
+        m.d.comb += master.clk.eq(ClockSignal())
 
-        m.d.comb += slave.bus.read_address.value.eq(master.araddr)
-        m.d.comb += slave.bus.read_address.valid.eq(master.arvalid)
-        m.d.comb += master.arready.eq(slave.bus.read_address.ready)
+        m.d.comb += slave.bus.read_address.value.eq(master.read_address.value)
+        m.d.comb += slave.bus.read_address.valid.eq(master.read_address.valid)
+        m.d.comb += master.read_address.ready.eq(slave.bus.read_address.ready)
 
-        m.d.comb += slave.bus.write_address.value.eq(master.awaddr)
-        m.d.comb += slave.bus.write_address.valid.eq(master.awvalid)
-        m.d.comb += master.awready.eq(slave.bus.write_address.ready)
+        m.d.comb += slave.bus.write_address.value.eq(master.write_address.value)
+        m.d.comb += slave.bus.write_address.valid.eq(master.write_address.valid)
+        m.d.comb += master.write_address.ready.eq(slave.bus.write_address.ready)
 
-        m.d.comb += master.rdata.eq(slave.bus.read_data.value)
-        m.d.comb += master.rre.sp.eq(slave.bus.read_data.resp)
-        m.d.comb += master.rvalid.eq(slave.bus.read_data.valid)
-        m.d.comb += slave.bus.read_data.ready.eq(master.rre.ady)
+        m.d.comb += master.read_data.value.eq(slave.bus.read_data.value)
+        m.d.comb += master.read_data.resp.eq(slave.bus.read_data.resp)
+        m.d.comb += master.read_data.valid.eq(slave.bus.read_data.valid)
+        m.d.comb += slave.bus.read_data.ready.eq(master.read_data.ready)
 
-        m.d.comb += slave.bus.write_data.value.eq(master.wdata)
-        m.d.comb += slave.bus.write_data.valid.eq(master.wvalid)
-        m.d.comb += slave.bus.write_data.byte_strobe.eq(master.wstrb)
-        m.d.comb += master.wready.eq(slave.bus.write_data.ready)
+        m.d.comb += slave.bus.write_data.value.eq(master.write_data.value)
+        m.d.comb += slave.bus.write_data.valid.eq(master.write_data.valid)
+        m.d.comb += slave.bus.write_data.byte_strobe.eq(master.write_data.byte_strobe)
+        m.d.comb += master.write_data.ready.eq(slave.bus.write_data.ready)
 
-        m.d.comb += master.bre.sp.eq(slave.bus.write_response.resp)
-        m.d.comb += master.bvalid.eq(slave.bus.write_response.valid)
-        m.d.comb += slave.bus.write_response.ready.eq(master.bre.ady)
+        m.d.comb += master.write_response.resp.eq(slave.bus.write_response.resp)
+        m.d.comb += master.write_response.valid.eq(slave.bus.write_response.valid)
+        m.d.comb += slave.bus.write_response.ready.eq(master.write_response.ready)
 
-        read_id = Signal.like(axi_port.rid)
-        write_id = Signal.like(axi_port.wid)
+        read_id = Signal.like(axi_port.read_data.id)
+        write_id = Signal.like(axi_port.write_data.id)
 
-        with m.If(axi_port.arvalid):
-            m.d.comb += axi_port.rid.eq(axi_port.arid)
-            m.d.sync += read_id.eq(axi_port.arid)
+        with m.If(axi_port.read_address.valid):
+            m.d.comb += axi_port.read_data.id.eq(axi_port.read_address.id)
+            m.d.sync += read_id.eq(axi_port.read_address.id)
         with m.Else():
-            m.d.comb += axi_port.rid.eq(read_id)
+            m.d.comb += axi_port.read_data.id.eq(read_id)
 
-        with m.If(axi_port.awvalid):
-            m.d.comb += axi_port.bid.eq(axi_port.awid)
-            m.d.sync += write_id.eq(axi_port.awid)
+        with m.If(axi_port.write_address.valid):
+            m.d.comb += axi_port.write_response.id.eq(axi_port.write_address.id)
+            m.d.sync += write_id.eq(axi_port.write_address.id)
         with m.Else():
-            m.d.comb += axi_port.bid.eq(write_id)
+            m.d.comb += axi_port.write_response.id.eq(write_id)
 
-        m.d.comb += axi_port.rlast.eq(1)
+        m.d.comb += axi_port.read_data.last.eq(1)
 
 
         # m.d.comb += axi_full_port.connect_slave(m.submodules.rw_test_reg.axi)

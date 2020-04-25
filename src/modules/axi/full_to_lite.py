@@ -52,10 +52,10 @@ class AxiFullToLiteBridge(Elaboratable):
             m.d.comb += full_slave.read_data.id.eq(read_id)
 
         with m.If(full_slave.write_address.valid):
-            m.d.comb += full_slave.write_data.id.eq(full_slave.write_address.id)
+            m.d.comb += full_slave.write_response.id.eq(full_slave.write_address.id)
             m.d.sync += write_id.eq(full_slave.write_address.id)
         with m.Else():
-            m.d.comb += full_slave.write_data.id.eq(write_id)
+            m.d.comb += full_slave.write_response.id.eq(write_id)
 
         m.d.comb += full_slave.read_data.last.eq(1)
 

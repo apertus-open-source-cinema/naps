@@ -59,10 +59,11 @@ class Top(Elaboratable):
 
 
         slave = _Slave(m.submodules.rw_test_reg.axi)
-        master = ps7.get_axi_gp_master(1)
+        master = ps7.get_axi_gp_master(0)
         axi_port = master
 
-        m.d.comb += master.clk.eq(ClockSignal())
+        m.d.comb += ps7.maxigp[0].aclk.eq(ClockSignal())
+        # m.d.comb += master.clk.eq(ClockSignal())
 
         m.d.comb += slave.bus.read_address.value.eq(master.read_address.value)
         m.d.comb += slave.bus.read_address.valid.eq(master.read_address.valid)

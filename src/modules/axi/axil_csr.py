@@ -36,15 +36,16 @@ class AxilCsrBank(Elaboratable):
             setattr(m.submodules, "{}_csr".format(name), reg)
             m.d.comb += interconnect.get_port().connect_slave(reg.axi)
 
-        platform.add_file(
-            "mmap/regs.csv",
-            "\n".join("{},\t0x{:06x}".format(k, v) for k, v in self._memory_map.items())
-        )
-        platform.add_file(
-            "mmap/regs.sh",
-            "\n".join("export r_{}=0x{:06x}".format(k, v) for k, v in self._memory_map.items()) + "\n\n" +
-            "\n".join("echo {}: $(devmem2 0x{:06x} | sed -r 's|.*: (.*)|\\1|' | tail -n1)".format(k, v) for k, v in
-                      self._memory_map.items())
-        )
+        if platform:
+            platform.add_file(
+                "mmap/regs.csv",
+                "\n".join("{},\t0x{:06x}".format(k, v) for k, v in self._memory_map.items())
+            )
+            platform.add_file(
+                "mmap/regs.sh",
+                "\n".join("export r_{}=0x{:06x}".format(k, v) for k, v in self._memory_map.items()) + "\n\n" +
+                "\n".join("echo {}: $(devmem2 0x{:06x} | sed -r 's|.*: (.*)|\\1|' | tail -n1)".format(k, v) for k, v in
+                          self._memory_map.items())
+            )
 
         return m

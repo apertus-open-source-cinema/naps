@@ -1,3 +1,9 @@
+"""
+The tests in this file are currently broken and dont really verify anything :(
+TODO: fix.
+"""
+
+
 from functools import reduce
 
 from nmigen import *
@@ -18,7 +24,7 @@ def PastAny(expr, clocks, domain=None):
     return nAny([Past(expr, x, domain) for x in range(clocks)])
 
 
-class AxiLiteCheck(Elaboratable):
+class AxiLiteFormalCheck(Elaboratable):
     def __init__(self, dut, address_range, max_latency):
         self.dut = dut
         self.address_range = address_range
@@ -68,7 +74,7 @@ class TestAxiLiteSlave(FHDLTestCase):
         base_address = 0x42
         axil_slave = AxiLiteReg(width=8, base_address=base_address)
         valid_address_range = range(base_address, base_address + 1)
-        self.assertFormal(AxiLiteCheck(axil_slave, valid_address_range, max_latency=4), mode="bmc", depth=20)
+        self.assertFormal(AxiLiteFormalCheck(axil_slave, valid_address_range, max_latency=4), mode="bmc", depth=20)
 
     def test_axil_i2c(self):
         # TODO: How can this pass? it odesnt answer!
@@ -79,4 +85,4 @@ class TestAxiLiteSlave(FHDLTestCase):
         valid_address_range = range(base_address, base_address+2**(8*addr_bytes))
         print(valid_address_range)
 
-        self.assertFormal(AxiLiteCheck(axil_slave, valid_address_range, max_latency=4), mode="bmc", depth=20)
+        self.assertFormal(AxiLiteFormalCheck(axil_slave, valid_address_range, max_latency=4), mode="bmc", depth=20)

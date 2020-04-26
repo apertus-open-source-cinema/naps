@@ -3,7 +3,8 @@ from enum import Enum
 
 from nmigen import *
 from nmigen import tracer
-from nmigen.hdl.ast import UserValue
+from nmigen._utils import union
+from nmigen.hdl.ast import UserValue, SignalSet
 
 
 @dataclass
@@ -29,5 +30,13 @@ class Bundle(UserValue):
         return "{}(name={})".format(self.__class__.__name__, self.name)
 
     def lower(self):
-        nmigen_fields = [f for f in dir(self) if isinstance(getattr(self, f), (Value, int, Enum))]
         raise NotImplemented("lowering bundles is not supported at the moment")
+
+    def _nmigen_fields(self):
+        return {f: getattr(self, f) for f in dir(self) if isinstance(getattr(self, f), Value)}
+
+    def _lhs_signals(self):
+        return union((f._lhs_signals() for f in self._nmigen_fields().values()), start=SignalSet())
+
+    def _rhs_signals(self):
+        return union((f._rhs_signals() for f in self._nmigen_fields().values()), start=SignalSet())

@@ -34,13 +34,13 @@ class AxiLiteSlave(Elaboratable, ABC):
                 m.d.comb += self.axi.read_address.ready.eq(1)
                 m.d.comb += self.axi.write_address.ready.eq(1)
 
-                def in_range(signal, range):
-                    return (signal >= range.start) & (signal < range.stop)
+                def in_range(signal):
+                    return (signal >= self.address_range.start) & (signal < self.address_range.stop)
 
-                with m.If(self.axi.read_address.valid & in_range(self.axi.read_address.value, self.address_range)):
+                with m.If(self.axi.read_address.valid & in_range(self.axi.read_address.value)):
                     m.d.sync += addr.eq(self.axi.read_address.value - self.address_range.start)
                     m.next = "READ"
-                with m.Elif(self.axi.write_address.valid & in_range(self.axi.write_address.value, self.address_range)):
+                with m.Elif(self.axi.write_address.valid & in_range(self.axi.write_address.value)):
                     m.d.sync += addr.eq(self.axi.write_address.value - self.address_range.start)
                     m.next = "WRITE"
 

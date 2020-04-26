@@ -62,7 +62,9 @@ class DataChannel(Bundle):
         if read:
             self.resp = Signal(Response)
         else:
-            self.byte_strobe = Signal(int(data_bits // 8))
+            byte_strobe_len = int(data_bits // 8)
+            reset_all_ones = 2**byte_strobe_len-1
+            self.byte_strobe = Signal(byte_strobe_len, reset=reset_all_ones)
 
         if not lite:
             self.last = Signal()

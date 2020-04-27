@@ -95,7 +95,7 @@ class TestAxiSlave(FHDLTestCase):
             csr_bank.reg("csr#{}".format(i), width=i, writable=True)
 
         def testbench():
-            for addr in [base_addr + i for i in range(num_csr)]:
+            for addr in [base_addr + (i * 4) for i in range(num_csr)]:
                 yield from axil_read(axi, addr)
                 yield from axil_write(axi, addr, testdata)
                 self.assertEqual((yield from axil_read(axi, addr)), (testdata, Response.OKAY.value))

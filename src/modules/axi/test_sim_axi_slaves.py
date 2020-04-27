@@ -1,19 +1,11 @@
 from nmigen import *
 from nmigen.test.utils import FHDLTestCase
-from nmigen.back.pysim import Simulator, Tick, Settle, Passive
 
 from modules.axi.axi import AxiInterface, Response
 from modules.axi.axil_csr import AxilCsrBank
 from modules.axi.axil_reg import AxiLiteReg
 from modules.axi.interconnect import AxiInterconnect
-
-
-def wait_for(expr, timeout=100):
-    for i in range(timeout):
-        yield
-        if (yield expr):
-            return
-    raise TimeoutError("{} did not become '1' within {} cycles".format(expr, timeout))
+from util.sim import wait_for, sim
 
 
 def write_to_channel(channel, value):
@@ -33,7 +25,7 @@ def read_from_channel(channel):
     response = (yield channel.resp)
     yield
     yield channel.ready.eq(0)
-    return (result, response)
+    return result, response
 
 
 def axil_read(axi, addr):
@@ -45,15 +37,6 @@ def axil_write(axi, addr, data):
     yield from write_to_channel(axi.write_address, addr)
     yield from write_to_channel(axi.write_data, data)
     return (yield from read_from_channel(axi.write_response))
-
-
-def sim(dut, testbench, filename, traces):
-    sim = Simulator(dut)
-
-    sim.add_clock(1e-6)
-    sim.add_sync_process(testbench)
-    with sim.write_vcd(".sim_{}.vcd".format(filename), ".sim_{}.gtkw".format(filename), traces=traces):
-        sim.run()
 
 
 class TestAxiSlave(FHDLTestCase):

@@ -30,7 +30,7 @@ class Bundle(UserValue):
         return "{}(name={})".format(self.__class__.__name__, self.name)
 
     def lower(self):
-        raise NotImplemented("lowering bundles is not supported at the moment")
+        return Cat(self._nmigen_fields().values())
 
     def _nmigen_fields(self):
         return {f: getattr(self, f) for f in dir(self) if isinstance(getattr(self, f), Value)}

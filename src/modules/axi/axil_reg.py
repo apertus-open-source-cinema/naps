@@ -5,7 +5,7 @@ from nmigen import *
 
 class AxiLiteReg(Elaboratable):
     def __init__(self, *, width, base_address, writable=True, name=None):
-        self.reg = Signal(width, name="{}_csr_reg".format(name))
+        self.reg = Signal(width, name="{}_reg".format(name))
         self.writable = writable
         self.name = name
 

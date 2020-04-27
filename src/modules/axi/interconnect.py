@@ -46,24 +46,24 @@ class AxiInterconnect(Elaboratable):
         m.d.comb += uplink.read_address.ready.eq(reduce(lambda a, b: a & b, (d.read_address.ready for d in self._downstream_ports)))
         m.d.comb += uplink.write_address.ready.eq(reduce(lambda a, b: a & b, (d.write_address.ready for d in self._downstream_ports)))
 
+        for downstream_port in self._downstream_ports:
+            m.d.comb += downstream_port.write_data.value.eq(uplink.write_data.value)
+            m.d.comb += downstream_port.write_data.valid.eq(uplink.write_data.valid)
+            m.d.comb += downstream_port.write_data.byte_strobe.eq(uplink.write_data.byte_strobe)
+        m.d.comb += uplink.write_data.ready.eq(reduce(lambda a, b: a | b, (d.write_data.ready for d in self._downstream_ports)))
+
         # we are creating priority encoders here: When multiple peripherals want to answer, we take the answer of the
         # first added peripheral
         for conditional, downstream_port in iterator_with_if_elif(self._downstream_ports, m):
             with conditional(downstream_port.read_data.valid):
+                m.d.comb += uplink.read_data.valid.eq(1)
                 m.d.comb += uplink.read_data.value.eq(downstream_port.read_data.value)
-                m.d.comb += uplink.read_data.valid.eq(downstream_port.read_data.valid)
                 m.d.comb += uplink.read_data.resp.eq(downstream_port.read_data.resp)
                 m.d.comb += downstream_port.read_data.ready.eq(uplink.read_data.ready)
         for conditional, downstream_port in iterator_with_if_elif(self._downstream_ports, m):
-            with conditional(downstream_port.write_data.valid):
-                m.d.comb += downstream_port.write_data.value.eq(uplink.write_data.value)
-                m.d.comb += downstream_port.write_data.valid.eq(uplink.write_data.valid)
-                m.d.comb += downstream_port.write_data.byte_strobe.eq(uplink.write_data.byte_strobe)
-                m.d.comb += uplink.write_data.ready.eq(downstream_port.write_data.ready)
-        for conditional, downstream_port in iterator_with_if_elif(self._downstream_ports, m):
             with conditional(downstream_port.write_response.valid):
+                m.d.comb += uplink.write_response.valid.eq(1)
                 m.d.comb += uplink.write_response.resp.eq(downstream_port.write_response.resp)
-                m.d.comb += uplink.write_response.valid.eq(downstream_port.write_response.valid)
                 m.d.comb += downstream_port.write_response.ready.eq(uplink.write_response.ready)
 
         return m

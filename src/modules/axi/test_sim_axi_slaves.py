@@ -92,7 +92,7 @@ class TestAxiSlave(FHDLTestCase):
         axi = AxiInterface(addr_bits=32, data_bits=32, master=True, lite=True)
         csr_bank = m.submodules.csr_bank = AxilCsrBank(axi, base_addr)
         for i in range(num_csr):
-            csr_bank.reg("csr#{}".format(i), width=i, writable=True)
+            csr_bank.reg("csr#{}".format(i), width=32, writable=True)
 
         def testbench():
             for addr in [base_addr + (i * 4) for i in range(num_csr)]:

@@ -14,10 +14,11 @@ def answer_channel(channel, always_ready=True):
         to_return =(
             (yield channel.value),
             (yield channel.burst_len) + 1,
-            (yield channel.burst_type)
+            (yield channel.burst_type),
+            (yield channel.beat_size_bytes)
         )
     else:
-        to_return = (yield channel.value)
+        to_return = ((yield channel.value), (yield channel.last))
     if not always_ready:
         yield from pulse(channel.ready)
     else:
@@ -32,11 +33,14 @@ def respond_channel(channel, resp=Response.OKAY):
 
 def answer_write_burst(axi: AxiInterface):
     memory = {}
-    addr, burst_len, burst_type = yield from answer_channel(axi.write_address)
+    addr, burst_len, burst_type, beat_size_bytes = yield from answer_channel(axi.write_address)
+    assert 2**beat_size_bytes == axi.data_bytes
     assert burst_type == BurstType.INCR.value
     for i in range(burst_len):
-        value = yield from answer_channel(axi.write_data)
-        memory[addr + i * int(axi.data_bits/4)] = value
+        value, last = yield from answer_channel(axi.write_data)
+        if i == burst_len - 1:
+            assert last
+        memory[addr + i * axi.data_bytes] = value
     respond_channel(axi.write_response)
 
     return memory
@@ -44,7 +48,7 @@ def answer_write_burst(axi: AxiInterface):
 
 class TestSimAxiWriter(FHDLTestCase):
     def test_basic(self, buffer_base_list=(1000, 2000), burst_len=16):
-        axi = AxiInterface(addr_bits=32, data_bits=32, master=False, lite=False, id_bits=12)
+        axi = AxiInterface(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
         dut = AxiHpWriter(axi, buffer_base_list, burst_length=burst_len)
 
         def testbench():
@@ -58,7 +62,7 @@ class TestSimAxiWriter(FHDLTestCase):
             memory.update((yield from answer_write_burst(axi)))
             yield from do_nothing()
             memory.update((yield from answer_write_burst(axi)))
-            self.assertEqual({buffer_base_list[0] + i * 4: i for i in range(burst_len*2)}, memory)
+            self.assertEqual({buffer_base_list[0] + i * axi.data_bytes: i for i in range(burst_len*2)}, memory)
             self.assertFalse((yield dut.error))
 
         sim(dut, testbench, "axi_writer_basic", [*dut.axi._rhs_signals(), dut.address_generator.request, dut.address_generator.valid, dut.address_generator.valid, dut.address_generator.lol])

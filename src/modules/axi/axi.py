@@ -1,3 +1,4 @@
+import math
 from contextlib import contextmanager
 
 from nmigen import *
@@ -35,7 +36,7 @@ class ProtectionType(UserValue):
 
 
 class AddressChannel(Bundle):
-    def __init__(self, addr_bits, lite, id_bits, **kwargs):
+    def __init__(self, addr_bits, lite, id_bits, data_bytes, **kwargs):
         assert addr_bits % 8 == 0
         super().__init__(**kwargs)
 
@@ -47,7 +48,7 @@ class AddressChannel(Bundle):
             self.id = Signal(id_bits)
             self.burst_type = Signal(BurstType)
             self.burst_len = Signal(range(16))  # in axi3 a burst can have a length of 16 as a hardcoded maximum
-            self.beat_size_bytes = Signal(range(int(addr_bits / 8)))
+            self.beat_size_bytes = Signal(3, reset=int(math.log2(data_bytes)))  # this is 2**n encoded
             self.protection_type = Signal(ProtectionType().shape())
 
 
@@ -63,8 +64,7 @@ class DataChannel(Bundle):
             self.resp = Signal(Response)
         else:
             byte_strobe_len = int(data_bits // 8)
-            reset_all_ones = 2**byte_strobe_len-1
-            self.byte_strobe = Signal(byte_strobe_len, reset=reset_all_ones)
+            self.byte_strobe = Signal(byte_strobe_len, reset=-1)
 
         if not lite:
             self.last = Signal()
@@ -129,14 +129,6 @@ class AxiInterface(Bundle, MustUse):
         if not master:
             self._MustUse__silence = True
 
-        # signals
-        lite_args = {"lite": lite, "id_bits": id_bits}
-        self.read_address = AddressChannel(addr_bits, **lite_args)
-        self.read_data = DataChannel(data_bits, read=True, **lite_args)
-
-        self.write_address = AddressChannel(addr_bits, **lite_args)
-        self.write_data = DataChannel(data_bits, read=False, **lite_args)
-        self.write_response = WriteResponseChannel(**lite_args)
 
         # metadata
         self.is_master = master
@@ -144,8 +136,19 @@ class AxiInterface(Bundle, MustUse):
             self.num_slaves = 0
         self.addr_bits = addr_bits
         self.data_bits = data_bits
+        self.data_bytes = data_bits // 8
+        assert math.log2(self.data_bytes) == int(math.log2(self.data_bytes))
         self.is_lite = lite
         self.id_bits = id_bits
+
+        # signals
+        lite_args = {"lite": lite, "id_bits": id_bits}
+        self.read_address = AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args)
+        self.read_data = DataChannel(data_bits, read=True, **lite_args)
+
+        self.write_address = AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args)
+        self.write_data = DataChannel(data_bits, read=False, **lite_args)
+        self.write_response = WriteResponseChannel(**lite_args)
 
     def connect_slave(self, slave):
         """

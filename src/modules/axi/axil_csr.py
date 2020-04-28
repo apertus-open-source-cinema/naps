@@ -14,16 +14,36 @@ class AxilCsrBank(Elaboratable):
 
         self._frozen = False
 
-    def reg(self, name, width=32, writable=True):
+    def reg(self, name, width=32, writable=True, reset=0):
         assert not self._frozen
         assert name not in self._memory_map
 
-        reg = AxiLiteReg(width=width, base_address=self._next_address, writable=writable, name=name)
+        reg = AxiLiteReg(width=width, base_address=self._next_address, writable=writable, name=name, reset=reset)
         self._axi_regs[name] = reg
         self._memory_map[name] = self._next_address
 
         self._next_address += 4
         return reg.reg
+
+    def csr_for_module(self, module, name, inputs=None, outputs=None, **kwargs):
+        if outputs is None:
+            outputs = []
+        if inputs is None:
+            inputs = []
+
+        stmts = []
+        for input_name in inputs:
+            input = getattr(module, input_name)
+            if input_name in kwargs:
+                reset = kwargs[input_name]
+            else:
+                reset=0
+            stmts += [input.eq(self.reg("{}__{}".format(name, input_name), width=len(input), writable=True, reset=reset))]
+        for output_name in outputs:
+            output = getattr(module, output_name)
+            stmts += [self.reg("{}__{}".format(name, output_name), width=len(output), writable=False).eq(output)]
+
+        return stmts
 
     def elaborate(self, platform):
         self._frozen = True

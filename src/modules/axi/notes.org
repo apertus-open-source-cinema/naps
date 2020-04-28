@@ -47,7 +47,7 @@
     AWLOCK      Lock type, provides additional information about the atomic characteristics of the transfer (changes between AXI3 and AXI4!!!)
     AWCACHE     Memory type
     AWPROT      Protection type
-    AWQOS       Quality of serive (only in AXI4)
+    AWQOS       Quality of service (only in AXI4)
     AWREGION    Region identifier (only in AXI4)
     AWUSER      User signal (only in AXI4)
     AWVALID     Write address valid -> signaling valid write address and control information

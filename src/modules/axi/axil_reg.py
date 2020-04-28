@@ -4,8 +4,8 @@ from nmigen import *
 
 
 class AxiLiteReg(Elaboratable):
-    def __init__(self, *, width, base_address, writable=True, name=None):
-        self.reg = Signal(width, name="{}_reg".format(name))
+    def __init__(self, *, width, base_address, writable=True, name=None, reset=0):
+        self.reg = Signal(width, name="{}_reg".format(name), reset=reset)
         self.writable = writable
         self.name = name
 

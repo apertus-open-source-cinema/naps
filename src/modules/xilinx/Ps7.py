@@ -97,7 +97,7 @@ class Ps7(blocks.Ps7):
         return axi
 
     def get_axi_hp_slave(self, number, clk) -> AxiInterface:
-        axi = AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=12, master=False)
+        axi = AxiInterface(addr_bits=32, data_bits=64, lite=False, id_bits=12, master=False)
 
         ps7_port = self.saxi.hp[number]
         self.connection_submodule.d.comb += ps7_port.aclk.eq(clk)

@@ -1,3 +1,4 @@
+import math
 from collections import defaultdict
 from functools import reduce
 import operator
@@ -71,3 +72,23 @@ def iterator_with_if_elif(iterator: Iterator, module: Module) -> Iterator:
             elem
         )
 
+
+def is_pot(x):
+    assert int(math.log2(x)) == math.log2(x), "{} is not a power of two".format(x)
+
+
+def log2(x):
+    is_pot(x)
+    return int(math.log2(x))
+
+
+def div_by_pot(x, constant_divisor_is_pot):
+    return x >> log2(constant_divisor_is_pot)
+
+
+def mul_by_pot(x, constant_multiplier_is_pot):
+    return x << log2(constant_multiplier_is_pot)
+
+
+def nMax(a, b):
+    return Mux(a < b, a, b)

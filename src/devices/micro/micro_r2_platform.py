@@ -53,13 +53,7 @@ class MicroR2Platform(ZTurnLiteZ010Platform):
         ])
 
     def toolchain_prepare(self, fragment, name, **kwargs):
-        overrides = {
-            "add_constraints":
-                "create_clock -name clk100 -period 10.0 [get_nets ps7_wrapper_FCLKCLK[0]]\n"
-                "create_clock -name clk100_2 -period 5.0 [get_nets ps7_wrapper_FCLKCLK[1]]\n"
-                "create_clock -name clk100_3 -period 5.0 [get_nets ps7_wrapper_FCLKCLK[2]]\n"
-        }
-        return super().toolchain_prepare(fragment, name, **overrides, **kwargs)
+        return super().toolchain_prepare(fragment, name, **kwargs)
 
     def toolchain_program(self, products, name, **kwargs):
         program_bitstream_camera(products, name, **kwargs)

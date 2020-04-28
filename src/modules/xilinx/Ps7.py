@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from nmigen import *
 
 from modules.axi.axi import AxiInterface
@@ -7,10 +9,11 @@ import modules.xilinx.blocks as blocks
 class Ps7(blocks.Ps7):
     def __init__(self):
         super().__init__()
-        self.connection_submodule = Module()
+        self.m = Module()
+        self.clock_constraints = OrderedDict()
 
     def _axi_slave_helper(self, axi, ps7_port):
-        m = self.connection_submodule
+        m = self.m
         m.d.comb += [ps7_port.araddr.eq(axi.read_address.value)]
         m.d.comb += [ps7_port.arvalid.eq(axi.read_address.valid)]
         m.d.comb += [ps7_port.arid.eq(axi.read_address.id)]
@@ -49,7 +52,7 @@ class Ps7(blocks.Ps7):
         m.d.comb += [ps7_port.bre.ady.eq(axi.write_response.ready)]
 
     def _axi_master_helper(self, axi, ps7_port):
-        m = self.connection_submodule
+        m = self.m
         m.d.comb += [axi.read_address.value.eq(ps7_port.araddr)]
         m.d.comb += [axi.read_address.valid.eq(ps7_port.arvalid)]
         m.d.comb += [axi.read_address.id.eq(ps7_port.arid)]
@@ -91,7 +94,7 @@ class Ps7(blocks.Ps7):
         axi = AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=12, master=True)
 
         ps7_port = self.maxigp[number]
-        self.connection_submodule.d.comb += ps7_port.aclk.eq(clk)
+        self.m.d.comb += ps7_port.aclk.eq(clk)
         self._axi_master_helper(axi, ps7_port)
 
         return axi
@@ -100,15 +103,33 @@ class Ps7(blocks.Ps7):
         axi = AxiInterface(addr_bits=32, data_bits=64, lite=False, id_bits=12, master=False)
 
         ps7_port = self.saxi.hp[number]
-        self.connection_submodule.d.comb += ps7_port.aclk.eq(clk)
+        self.m.d.comb += ps7_port.aclk.eq(clk)
         self._axi_slave_helper(axi, ps7_port)
 
         return axi
+
+    def fck_domain(self, domain_name="sync", frequency=100e6):
+        self.m.domains += ClockDomain(domain_name)
+        fclk_num = len(self.clock_constraints)
+        clock_signal = Signal()
+        self.m.d.comb += clock_signal.eq(self.fclk.clk[fclk_num])
+        self.m.d.comb += ClockSignal(domain_name).eq(clock_signal)
+        self.clock_constraints[fclk_num] = (clock_signal, frequency)
 
     def elaborate(self, platform):
         m = Module()
 
         m.submodules.block = super().elaborate(platform)
-        m.submodules.connection_submodule = self.connection_submodule
+        m.submodules.connections = self.m
+
+        for i, (clock_signal, frequency) in self.clock_constraints.items():
+            platform.add_clock_constraint(clock_signal, frequency)
+
+        platform.add_file(
+            "mmap/init.sh",
+            "\n".join("echo 1 > /sys/class/fclk/fclk{i}/enable\n"
+                      "echo {freq} > /sys/class/fclk/fclk{i}/set_rate\n"
+                      .format(freq=int(freq), i=i) for i, (clock_signal, freq) in self.clock_constraints.items())
+        )
 
         return m

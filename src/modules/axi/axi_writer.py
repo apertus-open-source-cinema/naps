@@ -10,6 +10,8 @@ class AddressGenerator(Elaboratable):
     def __init__(self, buffer_base_list, max_buffer_size, addr_bits, max_incr):
         self.buffer_base_list = buffer_base_list
         self.max_buffer_size = max_buffer_size
+        # this is very pessimistic but we rather allocate larger buffers and _really_ not write anywhere else
+        self.max_addrs = Array(addr_base + max_buffer_size - (2 * max_incr) for addr_base in buffer_base_list)
 
         self.request = Signal()  # in
         self.inc = Signal(range(max_incr+1))
@@ -35,7 +37,7 @@ class AddressGenerator(Elaboratable):
                     m.d.sync += current_buffer.eq(0)
                     m.d.sync += self.addr.eq(base_addrs[0])
                 m.d.sync += self.valid.eq(1)
-            with m.Elif(self.request & ((self.addr - base_addrs[current_buffer] + self.inc) <= self.max_buffer_size)):
+            with m.Elif(self.request & (self.addr <= self.max_addrs[current_buffer])):
                 m.d.sync += self.addr.eq(self.addr + self.inc)
                 m.d.sync += self.valid.eq(1)
 

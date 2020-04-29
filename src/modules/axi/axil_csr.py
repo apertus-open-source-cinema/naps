@@ -1,4 +1,5 @@
 from nmigen import *
+from nmigen.lib.cdc import FFSynchronizer
 
 from modules.axi.axi import AxiInterface
 from modules.axi.axil_reg import AxiLiteReg
@@ -21,11 +22,11 @@ class AxilCsrBank(Elaboratable):
         reg = AxiLiteReg(width=width, base_address=self._next_address, writable=writable, name=name, reset=reset)
         self._axi_regs[name] = reg
         self._memory_map[name] = self._next_address
-
         self._next_address += 4
+
         return reg.reg
 
-    def csr_for_module(self, module, name, inputs=None, outputs=None, **kwargs):
+    def csr_for_module(self, module, name, inputs=None, outputs=None, module_domain="sync", **kwargs):
         if outputs is None:
             outputs = []
         if inputs is None:
@@ -37,7 +38,7 @@ class AxilCsrBank(Elaboratable):
             if input_name in kwargs:
                 reset = kwargs[input_name]
             else:
-                reset=0
+                reset = 0
             stmts += [input.eq(self.reg("{}__{}".format(name, input_name), width=len(input), writable=True, reset=reset))]
         for output_name in outputs:
             output = getattr(module, output_name)

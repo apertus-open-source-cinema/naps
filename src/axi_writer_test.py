@@ -20,14 +20,13 @@ class Top(Elaboratable):
         m = self.module = Module()
 
         ps7 = m.submodules.ps7_wrapper = Ps7()
-        ps7.fck_domain(frequency=200e6)
 
-        m.domains += ClockDomain("axi_csr")  # we use another clockdomain here to be able to reset the other via axi
-        m.d.comb += ClockSignal("axi_csr").eq(ClockSignal())
+        ps7.fck_domain("axi_csr", frequency=100e6)
         axi_full_port: AxiInterface = ps7.get_axi_gp_master(0, ClockSignal("axi_csr"))
         axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_csr")(AxiFullToLiteBridge(axi_full_port))
         csr = m.submodules.csr = DomainRenamer("axi_csr")(AxilCsrBank(axi_lite_bridge.lite_master))
 
+        ps7.fck_domain(frequency=200e6)
         m.d.comb += ResetSignal().eq(csr.reg("reset", width=1))
 
         axi_hp_port = ps7.get_axi_hp_slave(1, ClockSignal())
@@ -35,7 +34,7 @@ class Top(Elaboratable):
         axi_writer = m.submodules.axi_writer = AxiBufferWriter(axi_hp_port, [0x0f80_0000], max_buffer_size=to_write, max_burst_length=16)
         m.d.comb += csr.csr_for_module(axi_writer, "axi_writer", inputs=["change_buffer", "data_valid"],
                                        outputs=["error", "dropped", "data_ready", "state", "written", "burst_position", "data_fifo_level", "address_fifo_level"],
-                                       data_valid=0)
+                                       data_valid=1)
 
         m.d.comb += csr.reg("axi__write_address__ready", writable=False).eq(axi_hp_port.write_address.ready)
         m.d.comb += csr.reg("axi__write_data__ready", writable=False).eq(axi_hp_port.write_data.ready)

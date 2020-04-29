@@ -111,7 +111,7 @@ class Ps7(blocks.Ps7):
     def fck_domain(self, domain_name="sync", frequency=100e6):
         self.m.domains += ClockDomain(domain_name)
         fclk_num = len(self.clock_constraints)
-        clock_signal = Signal()
+        clock_signal = Signal(attrs={"KEEP": "TRUE"}, name="{}_clock_signal".format(domain_name))
         self.m.d.comb += clock_signal.eq(self.fclk.clk[fclk_num])
         self.m.d.comb += ClockSignal(domain_name).eq(clock_signal)
         self.clock_constraints[fclk_num] = (clock_signal, frequency)

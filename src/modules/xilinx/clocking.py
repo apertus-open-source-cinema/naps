@@ -10,7 +10,7 @@ class Mmcm(blocks.Mmcm):
     # TODO: add checking that parameters match mmcm capatibilities (and give more realistic clock results)
     def __init__(self, input_clock: Clock, vco_mul, vco_div, input_domain="sync"):
         super().__init__(
-            bandwidth="OPTIMIZED", ref_jitter=0.01,
+            bandwidth="OPTIMIZED", ref_jitter1=0.01,
             clkfbout_mult_f=vco_mul, clkfbout_phase=0.0, divclk_divide=vco_div,
         )
         m = self.m = Module()
@@ -26,7 +26,7 @@ class Mmcm(blocks.Mmcm):
             number = next(x for x in range(7) if x not in self._clock_constraints.keys())
         assert number not in self._clock_constraints.keys(), "port {} is already taken".format(number)
 
-        divide_param = "CLKOUT{}_DIVIDE{}".format(number, "_f" if number == 1 else "")
+        divide_param = "CLKOUT{}_DIVIDE{}".format(number, "_f" if number == 0 else "")
         self.parameters[divide_param] = divisor
         self.parameters["CLKOUT{}_PHASE".format(number)] = 0.0
 

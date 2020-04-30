@@ -1,52 +1,33 @@
 from nmigen import *
-from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
-from modules.axi.axil_reg import AxiLiteReg
-from modules.axi.helper import downgrade_axi_to_axi_lite, axi_slave_on_master
+from modules.axi.axi import AxiInterface
+from modules.axi.axil_csr import AxilCsrBank
+from modules.axi.full_to_lite import AxiFullToLiteBridge
 from modules.hdmi import Hdmi
-from modules.xilinx.blocks import Ps7, Oserdes, RawPll, Bufg, Idelay, IdelayCtl, Iserdes
 from devices.micro.micro_r2_platform import MicroR2Platform
+from modules.xilinx.Ps7 import Ps7
 
 
 class Top(Elaboratable):
     def __init__(self):
         pass
 
-    memory_map = {}
-    next_addr = 0x4000_0000
-
-    def axi_reg(self, name, width=32, writable=True):
-        reg = axi_slave_on_master(self.m, self.axi_port, DomainRenamer("axi")(AxiLiteReg(width=width, base_address=self.next_addr, writable=writable, name=name)))
-        assert name not in self.memory_map
-        self.memory_map[name] = self.next_addr
-        self.next_addr += 4
-        return reg.reg
-
     def elaborate(self, plat: MicroR2Platform):
         m = self.m = Module()
 
-        m.domains += ClockDomain("sync")
-        ps7 = m.submodules.ps7_wrapper = Ps7()
-
-        # clock_setup
-        m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
+        ps7 = plat.get_ps7()
+        ps7.fck_domain(requested_frequency=100e6)
 
         # axi setup
-        m.domains += ClockDomain("axi")
-        m.d.comb += ClockSignal("axi").eq(ClockSignal())
-        axi_port = self.axi_port = ps7.maxigp[0]
-        m.d.comb += axi_port.aclk.eq(ClockSignal("axi"))
-        m.d.comb += ResetSignal("axi").eq(~axi_port.aresetn)
-        downgrade_axi_to_axi_lite(m, axi_port)
-
-        self.axi_reg("rw_test")
-        test_counter_reg = self.axi_reg("test_counter", writable=False)
-        m.d.sync += test_counter_reg.eq(test_counter_reg + 1)
+        m.domains += ClockDomain("axi_csr")
+        m.d.comb += ClockSignal("axi_csr").eq(ClockSignal())
+        axi_full_port: AxiInterface = ps7.get_axi_gp_master(0, ClockSignal("axi_csr"))
+        axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_csr")(AxiFullToLiteBridge(axi_full_port))
+        csr = m.submodules.csr = DomainRenamer("axi_csr")(AxilCsrBank(axi_lite_bridge.lite_master))
 
         # make the design resettable via a axi register
-        reset = self.axi_reg("reset", width=1)
-        for domain in ["sync"]:
-            m.d.comb += ResetSignal(domain).eq(reset)
+        reset = csr.reg("reset", width=1)
+        m.d.comb += ResetSignal().eq(reset)
 
         # hdmi
         hdmi_plugin = plat.request("hdmi")
@@ -56,21 +37,6 @@ class Top(Elaboratable):
         m.d.comb += hdmi_plugin.vcc_enable.eq(1)
         m.d.comb += hdmi_plugin.dcc_enable.eq(0)
         m.d.comb += hdmi_plugin.ddet.eq(0)
-
-
-
-        # write the memory map
-        plat.add_file(
-            "regs.csv",
-            "\n".join("{},\t0x{:06x}".format(k, v) for k, v in self.memory_map.items())
-        )
-        plat.add_file(
-            "regs.sh",
-            "\n".join("export r_{}=0x{:06x}".format(k, v) for k, v in self.memory_map.items()) + "\n\n" +
-            "\n".join("echo {}: $(devmem2 0x{:06x} | sed -r 's|.*: (.*)|\\1|' | tail -n1)".format(k, v) for k, v in
-                        self.memory_map.items()) + "\n\n" +
-            plat.extra_lines if hasattr(plat, "extra_lines") else ""
-        )
 
         return m
 

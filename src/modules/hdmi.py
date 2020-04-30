@@ -1,24 +1,35 @@
 from nmigen import *
-from modules.vendor.litevideo_hdmi.s7 import S7HDMIOutPHY, S7HDMIOutClocking
+from nmigen.build import Clock
+
+from modules.vendor.litevideo_hdmi.s7 import S7HDMIOutPHY
+from modules.xilinx.Ps7 import ZynqPlattform
+from modules.xilinx.clocking import Mmcm
 from util.cvt import calculate_video_timing
+from util.nmigen import max_error_freq
 
 
 class Hdmi(Elaboratable):
     """ A HDMI output block
     excepts to run in the pixclk domain
     """
+
     def __init__(self, width, height, refresh, pins):
         self.pins = pins
         self.width, self.height, self.refresh = width, height, refresh
-        self.pix_clk_freq = calculate_video_timing(width, height, refresh)["pxclk"] * 1e6
-        print("set fclk0 to {} mhz".format(self.pix_clk_freq / 1e6))
+        self.pix_freq = Clock(calculate_video_timing(width, height, refresh)["pxclk"] * 1e6)
 
-    def elaborate(self, plat):
+    def elaborate(self, platform):
         m = Module()
 
-        plat.extra_lines += "echo 20000000 > /sys/class/fclk/fclk0/set_rate\n".format(self.pix_clk_freq)
-        plat.extra_lines += "echo 1 > /sys/class/fclk/fclk0/enable\n".format(self.pix_clk_freq)
-        m.submodules.pll = S7HDMIOutClocking()
+        fclk_freq = platform.get_ps7().fck_domain("pix_synth_fclk", 20e6)
+        mmcm = m.submodules.mmcm = Mmcm(
+            input_clock=fclk_freq, input_domain="pix_synth_fclk",
+            vco_mul=34.652, vco_div=1
+        )
+        actual_pix_freq = mmcm.output_domain("pix", 5)
+        error_percent = max_error_freq(actual_pix_freq, self.pix_freq)
+        print("pixclk error: {}%".format(error_percent))
+        mmcm.output_domain("pix5x", 1)
 
         t = m.submodules.timing_generator = DomainRenamer("pix")(TimingGenerator(self.width, self.height, self.refresh))
         p = m.submodules.pattern_generator = DomainRenamer("pix")(XorPatternGenerator(self.width, self.height))
@@ -46,7 +57,6 @@ class Hdmi(Elaboratable):
 class TimingGenerator(Elaboratable):
     def __init__(self, width, height, refresh):
         self.video_timing = calculate_video_timing(width, height, refresh)
-
 
         self.x = Signal(range(self.video_timing["hscan"] + 1))
         self.y = Signal(range(self.video_timing["vscan"] + 1))

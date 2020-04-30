@@ -1,70 +1,57 @@
-from modules.clocking.clocking_ressource import ClockingResource
-from modules.clocking.term_builder import Var
-from modules.xilinx.xilinx_blackbox import XilinxBlackbox
+from nmigen import *
+
+from nmigen.build import Clock
+
+from modules.xilinx import blocks
+from modules.xilinx.blocks import Bufg
 
 
-class XilinxClockingResource(XilinxBlackbox, ClockingResource):
-    def __init__(self, in_clk_freq, **kwargs):
-        super().__init__(**kwargs)
-        assert hasattr(self.__class__, "VCO_MIN")
-        assert hasattr(self.__class__, "VCO_MAX")
-        assert hasattr(self.__class__, "CLOCK_COUNT")
+class Mmcm(blocks.Mmcm):
+    # TODO: add checking that parameters match mmcm capatibilities (and give more realistic clock results)
+    def __init__(self, input_clock: Clock, vco_mul, vco_div, input_domain="sync"):
+        super().__init__(
+            bandwidth="OPTIMIZED", ref_jitter=0.01,
+            clkfbout_mult_f=vco_mul, clkfbout_phase=0.0, divclk_divide=vco_div,
+        )
+        m = self.m = Module()
+        m.d.comb += self.clk.fbin.eq(self.clk.fbout)
+        m.d.comb += self.clk.in_[1].eq(ClockSignal(input_domain))
 
-        self.in_clk_freq = in_clk_freq
-        self.vco_mul = Var(range(1, 128))
-        self.vco_div = Var(range(1, 128))
-        self.output_div = [
-            Var(range(1, 128, self.__class__.OUTPUT_DIV_STEP), name="output_div_{}".format(x))
-            for x in range(self.__class__.CLOCK_COUNT)
-        ]
+        self._input_clock = input_clock
+        self._vco = Clock(input_clock.frequency * vco_mul / vco_div)
+        self._clock_constraints = {}
 
-    def topology(self):
-        return [self.in_clk_freq * self.vco_mul / self.vco_div / o_div for o_div in self.output_div]
+    def output_domain(self, domain_name, divisor, number=None):
+        if number is None:
+            number = next(x for x in range(7) if x not in self._clock_constraints.keys())
+        assert number not in self._clock_constraints.keys(), "port {} is already taken".format(number)
 
-    def validity_constraints(self):
-        return [
-            (self.in_clk_freq * self.vco_mul / self.vco_div) < self.__class__.VCO_MAX,
-            (self.in_clk_freq * self.vco_mul / self.vco_div) > self.__class__.VCO_MIN,
-            # TODO: add (all) constraints
-        ]
+        divide_param = "CLKOUT{}_DIVIDE{}".format(number, "_f" if number == 1 else "")
+        self.parameters[divide_param] = divisor
+        self.parameters["CLKOUT{}_PHASE".format(number)] = 0.0
 
-    def get_in_clk(self):
-        return self[self.__class__.IN_CLK]
+        m = self.m
 
-    def set_vco(self, multiplier, divider):
-        self.parameters[self.__class__.VCO_MULT_NAME] = multiplier
-        self.parameters[self.__class__.VCO_DIV_NAME] = divider
+        clock_signal = Signal(name="mmcm_out_{}".format(number), attrs={"KEEP": "TRUE"})
+        m.d.comb += clock_signal.eq(self.clk.out[number])
 
-    def get_clock(self, divider):
-        assert self.next_clk < self.__class__.CLOCK_COUNT
-        self.parameters[self.__class__.OUT_DIV_NAME.format(self.next_clk)] = divider
-        self.next_clk += 1
-        return self[self.__class__.OUT_DIV_PORT.format(self.next_clk - 1)]
+        bufg = m.submodules["bufg_{}".format(number)] = Bufg()
+        m.d.comb += bufg.i.eq(clock_signal)
 
+        m.domains += ClockDomain(domain_name)
+        m.d.comb += ClockSignal(domain_name).eq(bufg.o)
 
-class Mmcm(XilinxClockingResource):
-    module = "MMCME2_BASE"
-    VCO_MIN = 600e6
-    VCO_MAX = 1200e6
-    CLOCK_COUNT = 7
-    OUTPUT_DIV_STEP = 0.125
+        frequency = self._vco.frequency / divisor
+        self._clock_constraints[number] = (clock_signal, frequency)
+        return Clock(frequency)
 
-    IN_CLK = "CLKIN1"
-    VCO_MULT_NAME = "CLKFBOUT_MULT_F"
-    VCO_DIV_NAME = "DIVCLK_DIVIDE"
-    OUT_DIV_NAME = "CLKOUT{}_DIVIDE_F"
-    OUT_DIV_PORT = "CLKOUT{}"
+    def elaborate(self, platform):
+        m = Module()
 
+        m.submodules.mmcm_block = super().elaborate(platform)
+        m.submodules.connections = self.m
 
-class Pll(XilinxClockingResource):
-    module = "PLLE2_BASE"
-    VCO_MIN = 800e6
-    VCO_MAX = 1600e6
-    CLOCK_COUNT = 6
-    OUTPUT_DIV_STEP = 1
+        for i, (clock_signal, frequency) in self._clock_constraints.items():
+            platform.add_clock_constraint(clock_signal, frequency)
 
-    IN_CLK = "CLKIN1"
-    VCO_MULT_NAME = "CLKFBOUT_MULT"
-    VCO_DIV_NAME = "DIVCLK_DIVIDE"
-    OUT_DIV_NAME = "CLKOUT{}_DIVIDE"
-    OUT_DIV_PORT = "CLKOUT{}"
+        return m

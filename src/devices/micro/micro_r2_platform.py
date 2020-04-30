@@ -2,13 +2,15 @@ import os
 import subprocess
 
 from nmigen.build import Resource, Subsignal, Pins, DiffPairs, Connector, Attrs
+
+from modules.xilinx.Ps7 import ZynqPlattform
 from ..common.layouts import gen_plugin_connector
 from nmigen_boards.zturn_lite_z010 import ZTurnLiteZ010Platform
 
 from ..common.program_bitstream_camera import program_bitstream_camera
 
 
-class MicroR2Platform(ZTurnLiteZ010Platform):
+class MicroR2Platform(ZynqPlattform, ZTurnLiteZ010Platform):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.add_resources([

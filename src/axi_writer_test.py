@@ -19,14 +19,14 @@ class Top(Elaboratable):
     def elaborate(self, plat: MicroR2Platform):
         m = self.module = Module()
 
-        ps7 = m.submodules.ps7_wrapper = Ps7()
+        ps7 = plat.get_ps7()
 
-        ps7.fck_domain("axi_csr", frequency=100e6)
+        ps7.fck_domain("axi_csr", requested_frequency=100e6)
         axi_full_port: AxiInterface = ps7.get_axi_gp_master(0, ClockSignal("axi_csr"))
         axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_csr")(AxiFullToLiteBridge(axi_full_port))
         csr = m.submodules.csr = DomainRenamer("axi_csr")(AxilCsrBank(axi_lite_bridge.lite_master))
 
-        ps7.fck_domain(frequency=200e6)
+        ps7.fck_domain(requested_frequency=200e6)
         m.d.comb += ResetSignal().eq(csr.reg("reset", width=1))
 
         axi_hp_port = ps7.get_axi_hp_slave(1, ClockSignal())

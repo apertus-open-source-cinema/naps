@@ -29,3 +29,6 @@ class RawPll(XilinxBlackbox):
 
 class Bufg(XilinxBlackbox):
     module = "BUFG"
+
+class Mmcm(XilinxBlackbox):
+    module = "MMCME2_ADV"

@@ -63,42 +63,6 @@ class S7HDMIOutEncoderSerializer(Module):
             ),
         ]
 
-
-# This assumes a 100MHz base clock
-class S7HDMIOutClocking(Module):
-    def __init__(self):
-        self.clock_domains.cd_pix = ClockDomain("pix")
-        self.clock_domains.cd_pix5x = ClockDomain("pix5x", reset_less=True)
-
-        # # #
-
-        mmcm_locked = Signal()
-        mmcm_fb = Signal()
-        mmcm_clk0 = Signal()
-        mmcm_clk1 = Signal()
-
-        self.specials += [
-            Instance("MMCME2_ADV",
-                p_BANDWIDTH="OPTIMIZED",
-                i_RST=Constant(0), o_LOCKED=mmcm_locked,
-
-                # VCO
-                p_REF_JITTER1=0.01, p_CLKIN1_PERIOD=50.0,
-                p_CLKFBOUT_MULT_F=34.625, p_CLKFBOUT_PHASE=0.000, p_DIVCLK_DIVIDE=1,
-                i_CLKIN1=ClockSignal("sync"), i_CLKFBIN=mmcm_fb, o_CLKFBOUT=mmcm_fb,
-
-                # CLK0
-                p_CLKOUT0_DIVIDE_F=5.0, p_CLKOUT0_PHASE=0.000, o_CLKOUT0=mmcm_clk0,
-                # CLK1
-                p_CLKOUT1_DIVIDE=1, p_CLKOUT1_PHASE=0.000, o_CLKOUT1=mmcm_clk1,
-
-            ),
-            Instance("BUFG", i_I=mmcm_clk0, o_O=self.cd_pix.clk),
-            Instance("BUFG", i_I=mmcm_clk1, o_O=self.cd_pix5x.clk)
-        ]
-        self.comb += self.cd_pix.rst.eq(~mmcm_locked)
-
-
 class S7HDMIOutPHY(Module):
     def __init__(self):
         self.hsync = Signal()

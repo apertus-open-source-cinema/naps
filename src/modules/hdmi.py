@@ -1,52 +1,72 @@
+from itertools import product
+
 from nmigen import *
 from nmigen.build import Clock
 
 from modules.vendor.litevideo_hdmi.s7 import S7HDMIOutPHY
-from modules.xilinx.Ps7 import ZynqPlattform
+from modules.xilinx.Ps7 import Ps7
 from modules.xilinx.clocking import Mmcm
 from util.cvt import calculate_video_timing
 from util.nmigen import max_error_freq
 
 
 class Hdmi(Elaboratable):
-    """ A HDMI output block
-    excepts to run in the pixclk domain
-    """
-
     def __init__(self, width, height, refresh, pins):
         self.pins = pins
         self.width, self.height, self.refresh = width, height, refresh
         self.pix_freq = Clock(calculate_video_timing(width, height, refresh)["pxclk"] * 1e6)
 
+        self.timing_generator: TimingGenerator = DomainRenamer("pix")(
+            TimingGenerator(self.width, self.height, self.refresh)
+        )
+        self.pattern_generator: XorPatternGenerator = DomainRenamer("pix")(
+            XorPatternGenerator(self.width, self.height)
+        )
+
+        def get_clock_conf():
+            for fclk, mul, div, output_div in product(Ps7.get_possible_fclk_frequencies(), Mmcm.vco_multipliers, [1], [1, 2]):
+                if not Mmcm.is_valid_vco_conf(fclk, mul, div):
+                    continue
+                if abs(1 - ((fclk * mul / div) / (self.pix_freq.frequency * 5 * output_div))) <= 0.01:
+                    return fclk, mul, div, output_div
+            raise AssertionError("frequency cant be synthesized")
+
+        self.fclk_freq, mmcm_mul, mmcm_div, self.output_div = get_clock_conf()
+
+        self.mmcm: Mmcm = Mmcm(
+            input_clock=self.fclk_freq, input_domain="pix_synth_fclk",
+            vco_mul=mmcm_mul, vco_div=mmcm_div
+        )
+
     def elaborate(self, platform):
         m = Module()
 
-        fclk_freq = platform.get_ps7().fck_domain("pix_synth_fclk", 20e6)
-        mmcm = m.submodules.mmcm = Mmcm(
-            input_clock=fclk_freq, input_domain="pix_synth_fclk",
-            vco_mul=34.652, vco_div=1
-        )
-        actual_pix_freq = mmcm.output_domain("pix", 5)
+        fclk_freq = platform.get_ps7().fck_domain("pix_synth_fclk", self.fclk_freq)
+        mmcm = m.submodules.mmcm = self.mmcm
+        actual_pix_freq = mmcm.output_domain("pix", 5 * self.output_div)
         error_percent = max_error_freq(actual_pix_freq, self.pix_freq)
         print("pixclk error: {}%".format(error_percent))
-        mmcm.output_domain("pix5x", 1)
 
-        t = m.submodules.timing_generator = DomainRenamer("pix")(TimingGenerator(self.width, self.height, self.refresh))
-        p = m.submodules.pattern_generator = DomainRenamer("pix")(XorPatternGenerator(self.width, self.height))
+        # the signal is to fast for a bufg; TODO: seems like it instanciates one no matter of that parameter
+        mmcm.output_domain("pix5x", self.output_div, bufg=False)
+
+        m.submodules.timing_generator = self.timing_generator
+        m.submodules.pattern_generator = self.pattern_generator
+
         m.d.comb += [
-            p.x.eq(t.x),
-            p.y.eq(t.y)
+            self.pattern_generator.x.eq(self.timing_generator.x),
+            self.pattern_generator.y.eq(self.timing_generator.y)
         ]
 
         phy = m.submodules.phy = S7HDMIOutPHY()
         m.d.comb += [
-            phy.hsync.eq(t.hsync),
-            phy.vsync.eq(t.vsync),
-            phy.data_enable.eq(t.active),
+            phy.hsync.eq(self.timing_generator.hsync),
+            phy.vsync.eq(self.timing_generator.vsync),
+            phy.data_enable.eq(self.timing_generator.active),
 
-            phy.r.eq(p.out.r),
-            phy.g.eq(p.out.g),
-            phy.b.eq(p.out.b),
+            phy.r.eq(self.pattern_generator.out.r),
+            phy.g.eq(self.pattern_generator.out.g),
+            phy.b.eq(self.pattern_generator.out.b),
 
             self.pins.data.eq(phy.outputs)
         ]

@@ -1,4 +1,5 @@
 from collections import OrderedDict
+from functools import lru_cache
 
 from nmigen import *
 from nmigen.build import Clock
@@ -12,7 +13,8 @@ from util.nmigen import max_error_freq
 
 
 class Ps7(blocks.Ps7):
-    def __init__(self):
+    def __init__(self, here_is_the_only_place_that_instanciates_ps7=False):
+        assert here_is_the_only_place_that_instanciates_ps7
         super().__init__()
         self.m = Module()
         self.clock_constraints = OrderedDict()
@@ -113,6 +115,12 @@ class Ps7(blocks.Ps7):
 
         return axi
 
+    @staticmethod
+    @lru_cache()
+    def get_possible_fclk_frequencies():
+        with open(join(dirname(__file__), "fclk_possible_frequencies.txt")) as f:
+            return [int(x) for x in f.readlines()]
+
     def fck_domain(self, domain_name="sync", requested_frequency=100e6, max_error_percent=1) -> Clock:
         """
         Creates a clockdomain driven by a PS7 fclk
@@ -133,8 +141,7 @@ class Ps7(blocks.Ps7):
         self.m.d.comb += ClockSignal(domain_name).eq(bufg.o)
 
         with open(join(dirname(__file__), "fclk_possible_frequencies.txt")) as f:
-            possible_freqs = (int(x) for x in f.readlines())
-            real_freq = [Clock(x) for x in possible_freqs if x <= requested_frequency][-1]
+            real_freq = [Clock(x) for x in self.get_possible_fclk_frequencies() if x <= requested_frequency][-1]
         max_error_freq(real_freq, Clock(requested_frequency), max_error_percent)
         return real_freq
 
@@ -162,7 +169,7 @@ class ZynqPlattform:
 
     def get_ps7(self) -> Ps7:
         if self.ps7 is None:
-            self.ps7 = Ps7()
+            self.ps7 = Ps7(here_is_the_only_place_that_instanciates_ps7=True)
         return self.ps7
 
     # we override the prepare method and inject the ps7

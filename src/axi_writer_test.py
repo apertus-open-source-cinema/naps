@@ -53,15 +53,9 @@ class Top(Elaboratable):
 
 if __name__ == "__main__":
     p = MicroR2Platform()
-    top = Top()
 
-    # print_module_sizes(top, platform=p)
-    from util.draw_hierarchy import hierarchy_to_dot
-
-    # with open("test.json", "w") as f:
-    #    f.write(hierarchy_to_dot(top, p))
     p.build(
-        top,
+        Top(),
         name=__file__.split(".")[0].split("/")[-1],
         do_build=True,
         do_program=True,

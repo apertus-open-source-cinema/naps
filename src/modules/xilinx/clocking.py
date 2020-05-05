@@ -32,12 +32,12 @@ class Mmcm(blocks.Mmcm):
     def __init__(self, input_clock, vco_mul, vco_div, input_domain="sync"):
         Mmcm.is_valid_vco_conf(input_clock, vco_mul, vco_div, exception=True)
         super().__init__(
-            bandwidth="OPTIMIZED", ref_jitter1=0.01,
-            clkfbout_mult_f=vco_mul, clkfbout_phase=0.0, divclk_divide=vco_div,
+            clkfbout_mult_f=vco_mul, divclk_divide=vco_div,
         )
         m = self.m = Module()
         m.d.comb += self.clk.fbin.eq(self.clk.fbout)
         m.d.comb += self.clk.in_[1].eq(ClockSignal(input_domain))
+        m.d.comb += self.clk.ins.el.eq(1)  # HIGH for clkin1
 
         self._input_clock = input_clock
         self._vco = Clock(input_clock * vco_mul / vco_div)
@@ -60,6 +60,7 @@ class Mmcm(blocks.Mmcm):
         m.d.comb += clock_signal.eq(self.clk.out[number])
 
         if bufg:
+            # TODO: seems to not change anything
             bufg = m.submodules["bufg_{}".format(number)] = Bufg()
             m.d.comb += bufg.i.eq(clock_signal)
             output = bufg.o

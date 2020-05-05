@@ -34,10 +34,10 @@ class Top(Elaboratable):
         hdmi = m.submodules.hdmi = Hdmi(1280, 720, 60, hdmi_plugin)
 
         csr.csr_for_module(hdmi.timing_generator, "hdmi_timing", outputs=("x", "y", "hsync", "vsync", "active"))
-        csr.csr_for_module(hdmi.mmcm, "hdmi_mmcm", outputs=("locked",))
+        csr.csr_for_module(hdmi.mmcm, "hdmi_mmcm", inputs=("rst", "pwrdwn"), outputs=("locked",))
 
         m.d.comb += hdmi_plugin.output_enable.eq(1)
-        m.d.comb += hdmi_plugin.equalizer.eq(csr.reg("equalizer", width=2))
+        m.d.comb += hdmi_plugin.equalizer.eq(csr.reg("equalizer", width=2, reset=0b11))
         m.d.comb += hdmi_plugin.vcc_enable.eq(1)
         m.d.comb += hdmi_plugin.dcc_enable.eq(0)
         m.d.comb += hdmi_plugin.ddet.eq(0)
@@ -52,11 +52,10 @@ if __name__ == "__main__":
     import devices.plugin_modules.hdmi as hdmi
     hdmi.hdmi_plugin_connect(p, "north", only_highspeed=False)
 
-    p.extra_lines = ""
-
     p.build(
         Top(),
-        name="hdmi_micro",
+        name=__file__.split(".")[0].split("/")[-1],
         do_build=True,
         do_program=True,
+        program_opts={"host": "micro"}
     )

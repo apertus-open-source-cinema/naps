@@ -95,11 +95,11 @@ def nMax(a, b):
     return Mux(a < b, a, b)
 
 
-def max_error_freq(real_freq: Clock, requested_freq: Clock, max_error_percent=1):
-    freq_error = abs((1 - (real_freq.frequency / requested_freq.frequency)) * 100)
+def max_error_freq(real_freq, requested_freq, max_error_percent=1):
+    freq_error = abs((1 - (real_freq / requested_freq)) * 100)
     if freq_error > max_error_percent:
         raise ValueError("the reqested freqency {}MHz cant be synthesized by the fclk with satisfying precision ("
                          "{}% error reqested; {}% error met) the real frequency would be {}MHz"
-                         .format(requested_freq.frequency / 1e6, max_error_percent, freq_error,
-                                 real_freq.frequency / 1e6))
+                         .format(requested_freq / 1e6, max_error_percent, freq_error,
+                                 real_freq / 1e6))
     return freq_error

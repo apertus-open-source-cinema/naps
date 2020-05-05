@@ -121,7 +121,7 @@ class Ps7(blocks.Ps7):
         with open(join(dirname(__file__), "fclk_possible_frequencies.txt")) as f:
             return [int(x) for x in f.readlines()]
 
-    def fck_domain(self, domain_name="sync", requested_frequency=100e6, max_error_percent=1) -> Clock:
+    def fck_domain(self, requested_frequency=100e6, domain_name="sync", max_error_percent=1) -> Clock:
         """
         Creates a clockdomain driven by a PS7 fclk
         :param domain_name: teh name of the domain to create
@@ -132,7 +132,6 @@ class Ps7(blocks.Ps7):
         fclk_num = len(self.clock_constraints)
 
         clock_signal = Signal(attrs={"KEEP": "TRUE"}, name="{}_clock_signal".format(domain_name))
-        self.clock_constraints[fclk_num] = (clock_signal, requested_frequency)
         self.m.d.comb += clock_signal.eq(self.fclk.clk[fclk_num])
 
         bufg = self.m.submodules["fclk_bufg_{}".format(fclk_num)] = Bufg()
@@ -140,10 +139,10 @@ class Ps7(blocks.Ps7):
 
         self.m.d.comb += ClockSignal(domain_name).eq(bufg.o)
 
-        with open(join(dirname(__file__), "fclk_possible_frequencies.txt")) as f:
-            real_freq = [Clock(x) for x in self.get_possible_fclk_frequencies() if x <= requested_frequency][-1]
-        max_error_freq(real_freq, Clock(requested_frequency), max_error_percent)
-        return real_freq
+        real_freq = [x for x in self.get_possible_fclk_frequencies() if x <= requested_frequency][-1]
+        max_error_freq(real_freq, requested_frequency, max_error_percent)
+        self.clock_constraints[fclk_num] = (clock_signal, real_freq, domain_name)
+        return Clock(real_freq)
 
     def elaborate(self, platform):
         m = Module()
@@ -151,14 +150,18 @@ class Ps7(blocks.Ps7):
         m.submodules.ps7_block = super().elaborate(platform)
         m.submodules.connections = self.m
 
-        for i, (clock_signal, frequency) in self.clock_constraints.items():
+        for i, (clock_signal, frequency, domain_name) in self.clock_constraints.items():
             platform.add_clock_constraint(clock_signal, frequency)
 
         platform.add_file(
             "mmap/init.sh",
-            "\n".join("echo 1 > /sys/class/fclk/fclk{i}/enable\n"
-                      "echo {freq} > /sys/class/fclk/fclk{i}/set_rate\n"
-                      .format(freq=int(freq), i=i) for i, (clock_signal, freq) in self.clock_constraints.items())
+            "\n".join(
+                "# clockdomain '{name}':\n"
+                "echo 1 > /sys/class/fclk/fclk{i}/enable\n"
+                "echo {freq} > /sys/class/fclk/fclk{i}/set_rate\n"
+                .format(freq=int(freq), i=i, name=domain_name)
+                for i, (clock_signal, freq, domain_name) in self.clock_constraints.items()
+            )
         )
 
         return m

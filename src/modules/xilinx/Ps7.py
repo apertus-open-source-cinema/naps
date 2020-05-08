@@ -167,7 +167,7 @@ class Ps7(blocks.Ps7):
         return m
 
 
-class ZynqPlattform:
+class ZynqPlatform:
     ps7 = None
 
     def get_ps7(self) -> Ps7:

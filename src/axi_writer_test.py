@@ -32,9 +32,7 @@ class Top(Elaboratable):
         axi_hp_port = ps7.get_axi_hp_slave(1, ClockSignal())
         to_write = csr.reg("to_write", reset=32 * 1024 * 1024)
         axi_writer = m.submodules.axi_writer = AxiBufferWriter(axi_hp_port, [0x0f80_0000], max_buffer_size=to_write, max_burst_length=16)
-        m.d.comb += csr.csr_for_module(axi_writer, "axi_writer", inputs=["change_buffer", "data_valid"],
-                                       outputs=["error", "dropped", "data_ready", "state", "written", "burst_position", "data_fifo_level", "address_fifo_level"],
-                                       data_valid=1)
+        csr.csr_for_module(axi_writer, "axi_writer")
 
         m.d.comb += csr.reg("axi__write_address__ready", writable=False).eq(axi_hp_port.write_address.ready)
         m.d.comb += csr.reg("axi__write_data__ready", writable=False).eq(axi_hp_port.write_data.ready)

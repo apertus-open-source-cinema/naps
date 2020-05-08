@@ -2,6 +2,7 @@ from nmigen import *
 from nmigen.lib.fifo import SyncFIFO
 
 from modules.axi.axi import AxiInterface, BurstType
+from modules.axi.axil_csr import StatusSignal, ControlSignal
 from util.bundle import Bundle
 from util.nmigen import nMax, mul_by_pot
 
@@ -60,18 +61,18 @@ class AxiBufferWriter(Elaboratable):
         self.address_generator = AddressGenerator(buffer_base_list, max_buffer_size, self.axi.addr_bits,
                                                   max_incr=max_burst_length*self.axi.data_bytes)
 
-        self.data_valid = Signal()  # input
-        self.data = Signal(self.axi.data_bits)  # input
-        self.change_buffer = Signal()  # input; only considered, when data_valid is high
-        self.data_ready = Signal()  # output
+        self.data_valid = ControlSignal()
+        self.data = ControlSignal(self.axi.data_bits)
+        self.change_buffer = ControlSignal()  # only considered, when data_valid is high
+        self.data_ready = StatusSignal()
 
-        self.dropped = Signal(32)  # output; diagnostics
-        self.error = Signal()  # output; diagnostics
-        self.state = Signal(32)  # output; diagnostics
-        self.written = Signal(32)  # output; diagnostics
-        self.burst_position = Signal(range(self.max_burst_length)) # output; diagnostics
-        self.data_fifo_level = Signal(32)
-        self.address_fifo_level = Signal(32)
+        self.dropped = StatusSignal(32)
+        self.error = StatusSignal()
+        self.state = StatusSignal(32)
+        self.written = StatusSignal(32)
+        self.burst_position = StatusSignal(range(self.max_burst_length))
+        self.data_fifo_level = StatusSignal(32)
+        self.address_fifo_level = StatusSignal(32)
 
     def elaborate(self, platform):
         m = Module()

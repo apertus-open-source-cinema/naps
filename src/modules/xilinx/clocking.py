@@ -2,11 +2,13 @@ from nmigen import *
 
 from nmigen.build import Clock
 from numpy import arange
+
+from modules.axi.axil_csr import StatusSignal, ControlSignal
 from modules.xilinx import blocks
 from modules.xilinx.blocks import Bufg
 
 
-class Mmcm(blocks.Mmcm):
+class Mmcm(Elaboratable):
     vco_multipliers = list(arange(2, 64, 0.125))
     vco_dividers = range(1, 106)
     output_0_dividers = list(arange(1, 128, 0.125))
@@ -31,14 +33,17 @@ class Mmcm(blocks.Mmcm):
 
     def __init__(self, input_clock, vco_mul, vco_div, input_domain="sync"):
         Mmcm.is_valid_vco_conf(input_clock, vco_mul, vco_div, exception=True)
-        super().__init__(
+        self._mmcm = blocks.Mmcm(
             clkfbout_mult_f=vco_mul, divclk_divide=vco_div,
         )
         m = self.m = Module()
-        m.d.comb += self.clk.fbin.eq(self.clk.fbout)
-        m.d.comb += self.clk.in_[1].eq(ClockSignal(input_domain))
-        m.d.comb += self.clk.ins.el.eq(1)  # HIGH for clkin1
+        m.d.comb += self._mmcm.clk.fbin.eq(self._mmcm.clk.fbout)
+        m.d.comb += self._mmcm.clk.in_[1].eq(ClockSignal(input_domain))
+        m.d.comb += self._mmcm.clk.ins.el.eq(1)  # HIGH for clkin1
 
+        self.locked = StatusSignal()
+
+        self._input_domain = input_domain
         self._input_clock = input_clock
         self._vco = Clock(input_clock * vco_mul / vco_div)
         self._clock_constraints = {}
@@ -51,13 +56,13 @@ class Mmcm(blocks.Mmcm):
         assert divisor in (Mmcm.output_dividers if number != 0 else Mmcm.output_0_dividers)
 
         divide_param = "CLKOUT{}_DIVIDE{}".format(number, "_f" if number == 0 else "")
-        self.parameters[divide_param] = divisor
-        self.parameters["CLKOUT{}_PHASE".format(number)] = 0.0
+        self._mmcm.parameters[divide_param] = divisor
+        self._mmcm.parameters["CLKOUT{}_PHASE".format(number)] = 0.0
 
         m = self.m
 
         clock_signal = Signal(name="mmcm_out_{}".format(number), attrs={"KEEP": "TRUE"})
-        m.d.comb += clock_signal.eq(self.clk.out[number])
+        m.d.comb += clock_signal.eq(self._mmcm.clk.out[number])
 
         if bufg:
             # TODO: seems to not change anything
@@ -77,10 +82,13 @@ class Mmcm(blocks.Mmcm):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.mmcm_block = super().elaborate(platform)
+        m.submodules.mmcm_block = self._mmcm
         m.submodules.connections = self.m
 
         for i, (clock_signal, frequency) in self._clock_constraints.items():
             platform.add_clock_constraint(clock_signal, frequency)
+
+        m.d.comb += self.locked.eq(self._mmcm.locked)
+        m.d.comb += self._mmcm.rst.eq(ResetSignal(self._input_domain))
 
         return m

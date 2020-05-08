@@ -3,7 +3,7 @@ from nmigen import *
 from modules.axi.axi import AxiInterface
 from modules.axi.axil_csr import AxilCsrBank
 from modules.axi.full_to_lite import AxiFullToLiteBridge
-from modules.hdmi import Hdmi
+from modules.hdmi.hdmi import Hdmi
 from devices.micro.micro_r2_platform import MicroR2Platform
 
 
@@ -31,10 +31,10 @@ class Top(Elaboratable):
 
         # hdmi
         hdmi_plugin = plat.request("hdmi")
-        hdmi = m.submodules.hdmi = Hdmi(1280, 720, 60, hdmi_plugin)
+        hdmi = m.submodules.hdmi = Hdmi(1920, 1080, 60, hdmi_plugin)
 
-        csr.csr_for_module(hdmi.timing_generator, "hdmi_timing", outputs=("x", "y", "hsync", "vsync", "active"))
-        csr.csr_for_module(hdmi.mmcm, "hdmi_mmcm", inputs=("rst", "pwrdwn"), outputs=("locked",))
+        csr.csr_for_module(hdmi.timing_generator, "hdmi_timing")
+        csr.csr_for_module(hdmi.mmcm, "hdmi_mmcm")
 
         m.d.comb += hdmi_plugin.output_enable.eq(1)
         m.d.comb += hdmi_plugin.equalizer.eq(csr.reg("equalizer", width=2, reset=0b11))

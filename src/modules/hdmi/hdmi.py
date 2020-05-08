@@ -3,6 +3,7 @@ from itertools import product
 from nmigen import *
 from nmigen.build import Clock
 
+from modules.axi.axil_csr import StatusSignal
 from modules.vendor.litevideo_hdmi.s7 import S7HDMIOutPHY
 from modules.xilinx.Ps7 import Ps7
 from modules.xilinx.clocking import Mmcm
@@ -75,11 +76,11 @@ class TimingGenerator(Elaboratable):
     def __init__(self, width, height, refresh):
         self.video_timing = calculate_video_timing(width, height, refresh)
 
-        self.x = Signal(range(self.video_timing["hscan"] + 1))
-        self.y = Signal(range(self.video_timing["vscan"] + 1))
-        self.active = Signal()
-        self.hsync = Signal()
-        self.vsync = Signal()
+        self.x = StatusSignal(range(self.video_timing["hscan"] + 1))
+        self.y = StatusSignal(range(self.video_timing["vscan"] + 1))
+        self.active = StatusSignal()
+        self.hsync = StatusSignal()
+        self.vsync = StatusSignal()
 
     def elaborate(self, plat):
         m = Module()
@@ -90,7 +91,7 @@ class TimingGenerator(Elaboratable):
         with m.Else():
             m.d.sync += self.x.eq(0)
             with m.If(self.y < self.video_timing["vscan"]):
-                m.d.sync += self.x.eq(self.y + 1)
+                m.d.sync += self.y.eq(self.y + 1)
             with m.Else():
                 m.d.sync += self.y.eq(0)
 

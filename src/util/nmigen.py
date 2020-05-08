@@ -2,34 +2,37 @@ import math
 from collections import defaultdict
 from functools import reduce
 import operator
-from typing import Iterator
+from typing import Iterator, Iterable
 
 from nmigen import *
-from nmigen.build import Clock
+from nmigen.hdl.ast import UserValue
+from nmigen.hdl.xfrm import TransformedElaboratable
 
 
-def flatten_nmigen_type(records):
+def flatten_nmigen_type(nmigen_things):
     """Flattens a list of signals and records to a list of signals
-    :param records: A list of signals and records
+    :param nmigen_things: A list of signals and records
     :return: A list of signals
     """
     flattened = []
-    for signal in records:
+    for signal in nmigen_things:
         if isinstance(signal, Signal):
-            flattened.append(signal)
-        elif isinstance(signal, Record):
-            flattened = [*flattened, *flatten_nmigen_type(signal.fields.values())]
-        elif isinstance(signal, list):
-            flattened = [*flattened, *flatten_nmigen_type(signal)]
+            flattened += [signal]
+        elif isinstance(signal, UserValue):
+            flattened += flatten_nmigen_type(signal._lhs_signals())
+        elif isinstance(signal, Iterable):
+            flattened += flatten_nmigen_type(signal)
     return flattened
 
 
 def is_nmigen_type(obj):
-    """Checks, wether an object is a nmigen type or a list of these"""
-    if isinstance(obj, Signal) or isinstance(obj, Record):
+    """Checks, if an object is a nmigen type or a list of these"""
+    if isinstance(obj, (Value, UserValue)):
         return True
-    elif isinstance(obj, list):
+    elif not isinstance(obj, str) and isinstance(obj, Iterable):
         return all([is_nmigen_type(elem) for elem in obj])
+    else:
+        return False
 
 
 def get_signals(module):
@@ -38,8 +41,16 @@ def get_signals(module):
     :param module: The module to investigate
     :return A list of property Signals
     """
-    signals_records = [prop for prop in [getattr(module, name) for name in dir(module) if name[0] != "_"] if
-                       is_nmigen_type(prop)]
+    if isinstance(module, TransformedElaboratable):
+        module = module._elaboratable_
+    signals_records = [
+        prop for prop
+        in [
+            getattr(module, name) for name
+            in dir(module) if name[0] != "_"
+        ]
+        if is_nmigen_type(prop)
+    ]
     return flatten_nmigen_type(signals_records)
 
 

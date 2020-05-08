@@ -3,7 +3,7 @@ from itertools import product
 from nmigen import *
 from nmigen.build import Clock
 
-from modules.axi.axil_csr import StatusSignal
+from util.nmigen_types import StatusSignal
 from modules.vendor.litevideo_hdmi.s7 import S7HDMIOutPHY
 from modules.xilinx.Ps7 import Ps7
 from modules.xilinx.clocking import Mmcm

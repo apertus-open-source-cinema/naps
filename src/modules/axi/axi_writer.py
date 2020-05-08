@@ -2,7 +2,7 @@ from nmigen import *
 from nmigen.lib.fifo import SyncFIFO
 
 from modules.axi.axi import AxiInterface, BurstType
-from modules.axi.axil_csr import StatusSignal, ControlSignal
+from util.nmigen_types import ControlSignal, StatusSignal
 from util.bundle import Bundle
 from util.nmigen import nMax, mul_by_pot
 

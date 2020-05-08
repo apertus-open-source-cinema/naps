@@ -3,16 +3,7 @@ from nmigen import *
 from modules.axi.axi import AxiInterface, Response
 from modules.axi.axil_slave import AxiLiteSlave
 from util.nmigen import get_signals, iterator_with_if_elif
-
-
-class ControlSignal(Signal):
-    """ Just a Signal. Indicator, that it is for controlling some parameter (i.e. can be written from the outside)
-    """
-
-
-class StatusSignal(Signal):
-    """ Just a Signal. Indicator, that it is for communicating the state to the outside world (i.e. can be read but not written from the outside)
-    """
+from util.nmigen_types import ControlSignal, StatusSignal
 
 
 class AxilCsrBank(Elaboratable):

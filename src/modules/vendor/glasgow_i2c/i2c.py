@@ -100,7 +100,7 @@ class I2CInitiator(Module):
         self.data_o = Signal(8)
         self.ack_i  = Signal()
 
-        self.submodules.axi = bus = I2CBus(pads)
+        self.submodules.bus = bus = I2CBus(pads)
 
         ###
 

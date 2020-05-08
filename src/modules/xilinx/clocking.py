@@ -3,7 +3,7 @@ from nmigen import *
 from nmigen.build import Clock
 from numpy import arange
 
-from modules.axi.axil_csr import StatusSignal, ControlSignal
+from util.nmigen_types import ControlSignal, StatusSignal
 from modules.xilinx import blocks
 from modules.xilinx.blocks import Bufg
 

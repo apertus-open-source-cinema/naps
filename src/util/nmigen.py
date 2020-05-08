@@ -72,7 +72,7 @@ def connect_together(signal, name, internal_dict=defaultdict(list), operation=op
     return reduce(operation, internal_dict[name])
 
 
-def iterator_with_if_elif(iterator: Iterator, module: Module) -> Iterator:
+def iterator_with_if_elif(iterator: Iterable, module: Module) -> Iterator:
     """
     A helper to build a priority encoder using If / Elif constructs
     :param iterator: the iterator contaianing all the elements

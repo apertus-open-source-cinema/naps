@@ -69,7 +69,7 @@ class TestAxiSlave(FHDLTestCase):
 
         sim(m, testbench, filename="interconnect_axil_reg", traces=axi._rhs_signals())
 
-    def test_csr_bank(self, base_addr=0x123456, num_csr=10, testdata=0x12345678):
+    def test_csr_bank(self, base_addr=123456, num_csr=10, testdata=0x12345678):
         m = Module()
 
         axi = AxiInterface(addr_bits=32, data_bits=32, master=True, lite=True)

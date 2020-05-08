@@ -15,6 +15,7 @@ class AxilI2cVersatileBitbang(Elaboratable):
     def __init__(self, axil_master: AxiInterface, base_address, pads):
         """ A simple Axi lite peripheral, that is compatible with the bitbanging i2c versatile linux kernel driver.
         see https://github.com/torvalds/linux/blob/master/drivers/i2c/busses/i2c-versatile.c
+        Quite hacky but overall a quite quick solution to get working i2c.
         """
         self._axil_master = axil_master
         self._pads = pads

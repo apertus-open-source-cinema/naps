@@ -6,17 +6,17 @@ from util.nmigen import get_signals, iterator_with_if_elif
 from util.nmigen_types import ControlSignal, StatusSignal
 
 
-class AxilCsrBank(Elaboratable):
+class AutoCsrBank(Elaboratable):
     def __init__(self, axil_master: AxiInterface, base_address=0x4000_0000):
-        self._base_address = base_address
         self._axil_master = axil_master
-        self._next_address = base_address
+
+        self._base_address = base_address
         self._memory_map = {}
         self._axi_regs = {}
 
         self.m = Module()
 
-    def reg(self, name, width=32, writable=True, reset=0):
+    def reg(self, name, width=32, writable=True, reset=0, address=None):
         assert width <= 32
         assert name not in self._memory_map
 
@@ -31,9 +31,11 @@ class AxilCsrBank(Elaboratable):
         signals = get_signals(module)
         for signal in signals:
             if isinstance(signal, ControlSignal):
-                self.m.d.comb += signal.eq(self.reg("{}__{}".format(name, signal.name), width=len(signal), writable=True, reset=signal.reset))
+                self.m.d.comb += signal.eq(
+                    self.reg("{}__{}".format(name, signal.name), width=len(signal), writable=True, reset=signal.reset))
             if isinstance(signal, StatusSignal):
-                self.m.d.comb += self.reg("{}__{}".format(name, signal.name), width=len(signal), writable=False).eq(signal)
+                self.m.d.comb += self.reg("{}__{}".format(name, signal.name), width=len(signal), writable=False).eq(
+                    signal)
 
     def elaborate(self, platform):
         m = self.m
@@ -74,3 +76,5 @@ class AxilCsrBank(Elaboratable):
             )
 
         return m
+
+

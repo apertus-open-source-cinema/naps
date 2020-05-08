@@ -2,7 +2,7 @@ from nmigen import *
 from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
 from modules.axi.axi import AxiInterface
-from modules.axi.axil_csr import AxilCsrBank
+from modules.axi.axil_csr import AutoCsrBank
 from modules.axi.full_to_lite import AxiFullToLiteBridge
 from modules.xilinx.Ps7 import Ps7
 from modules.xilinx.blocks import Oserdes, RawPll, Bufg, Idelay, IdelayCtl, Iserdes
@@ -42,7 +42,7 @@ class Top(Elaboratable):
         axi_full_port: AxiInterface = ps7.get_axi_gp_master(0, ClockSignal("axi"))
 
         axi_lite_bridge = m.submodules.axi_lite_bridge = AxiFullToLiteBridge(axi_full_port)
-        csr = m.submodules.csr = AxilCsrBank(axi_lite_bridge.lite_master)
+        csr = m.submodules.csr = AutoCsrBank(axi_lite_bridge.lite_master)
 
         csr.reg("rw_test")
         test_counter_reg = csr.reg("test_counter", writable=False)

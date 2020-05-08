@@ -1,7 +1,7 @@
 from nmigen import *
 
 from modules.axi.axi import AxiInterface
-from modules.axi.axil_csr import AxilCsrBank
+from modules.axi.axil_csr import AutoCsrBank
 from modules.axi.axil_i2c_versatile_bitbang import AxilI2cVersatileBitbang
 from modules.axi.full_to_lite import AxiFullToLiteBridge
 from devices.micro.micro_r2_platform import MicroR2Platform
@@ -21,8 +21,8 @@ class Top(Elaboratable):
         axi_full_port: AxiInterface = ps7.get_axi_gp_master(0, ClockSignal("axi_csr"))
         axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_csr")(AxiFullToLiteBridge(axi_full_port))
         interconnect = m.submodules.interconnect = AxiInterconnect(axi_lite_bridge.lite_master)
-        csr : AxilCsrBank
-        csr = m.submodules.csr = DomainRenamer("axi_csr")(AxilCsrBank(interconnect.get_port()))
+        csr : AutoCsrBank
+        csr = m.submodules.csr = DomainRenamer("axi_csr")(AutoCsrBank(interconnect.get_port()))
 
         # make the design resettable via a axi register
         reset = csr.reg("reset", width=1)

@@ -5,7 +5,7 @@ from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
 from modules.axi.axi import AxiInterface
 from modules.axi.axi_writer import AxiBufferWriter
-from modules.axi.axil_csr import AxilCsrBank
+from modules.axi.axil_csr import AutoCsrBank
 from modules.axi.full_to_lite import AxiFullToLiteBridge
 from modules.xilinx.Ps7 import Ps7
 from modules.xilinx.blocks import Oserdes, RawPll, Bufg, Idelay, IdelayCtl, Iserdes
@@ -24,7 +24,7 @@ class Top(Elaboratable):
         ps7.fck_domain("axi_csr", requested_frequency=100e6)
         axi_full_port: AxiInterface = ps7.get_axi_gp_master(0, ClockSignal("axi_csr"))
         axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_csr")(AxiFullToLiteBridge(axi_full_port))
-        csr = m.submodules.csr = DomainRenamer("axi_csr")(AxilCsrBank(axi_lite_bridge.lite_master))
+        csr = m.submodules.csr = DomainRenamer("axi_csr")(AutoCsrBank(axi_lite_bridge.lite_master))
 
         ps7.fck_domain(requested_frequency=200e6)
         m.d.comb += ResetSignal().eq(csr.reg("reset", width=1))

@@ -2,7 +2,7 @@ from nmigen import *
 from nmigen.test.utils import FHDLTestCase
 
 from modules.axi.axi import AxiInterface, Response
-from modules.axi.axil_csr import AxilCsrBank
+from modules.axi.axil_csr import AutoCsrBank
 from modules.axi.axil_reg import AxiLiteReg
 from modules.axi.interconnect import AxiInterconnect
 from util.sim import wait_for, sim
@@ -73,7 +73,7 @@ class TestAxiSlave(FHDLTestCase):
         m = Module()
 
         axi = AxiInterface(addr_bits=32, data_bits=32, master=True, lite=True)
-        csr_bank = m.submodules.csr_bank = AxilCsrBank(axi, base_addr)
+        csr_bank = m.submodules.csr_bank = AutoCsrBank(axi, base_addr)
         for i in range(num_csr):
             csr_bank.reg("csr#{}".format(i), width=32, writable=True)
 

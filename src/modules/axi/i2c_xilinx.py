@@ -1,7 +1,8 @@
 from nmigen import *
 
-from modules.axi.static_csr import Direction, Reg, EventReg
+from modules.axi.csr_static import Direction, Reg, EventReg, StaticCsrBank
 from modules.vendor.glasgow_i2c.i2c import I2CInitiator
+from nmigen.lib.fifo import SyncFIFO
 
 
 class Registers:
@@ -44,22 +45,19 @@ class Registers:
     status_adressed_as_slave = Reg("0x104:1", Direction.R)
     status_adressed_by_general_call = Reg("0x104:0", Direction.R)
 
-    tx_fifo_stop = EventReg("0x108:9")
-    tx_fifo_start = EventReg("0x108:8")
-    tx_fifo_data = EventReg("0x108:7-0")
+    tx_fifo_data_start_stop = EventReg("0x108:9-0")
 
     rx_fifo_data = EventReg("0x10C:7-0")
 
     slave_address = Reg("0x110:7-1", Direction.RW)
-    slave_ten_bit_address_addition = Reg("0x11C:2-0",
-                                         Direction.RW)  # this is a kind of odd adress, maybe an afterthougth?
+    slave_ten_bit_address_addition = Reg("0x11C:2-0", Direction.RW)
 
     tx_fifo_occupancy = Reg("0x114:3-0", Direction.R)
 
     rx_fifo_programmable_depth_interrupt = Reg("0x120:3-0", Direction.RW)
 
     def __init__(self, gpo_width):
-        general_purpose_output_register = Reg("0x124:{}-0".format(gpo_width), Direction.RW)  # kind of an odd feature
+        self.general_purpose_output_register = Reg("0x124:{}-0".format(gpo_width), Direction.RW)  # kind of an odd feature
 
     timing_tsusta = Reg("0x128", Direction.RW)
     timing_tsusto = Reg("0x12C", Direction.RW)
@@ -71,19 +69,19 @@ class Registers:
     timing_thddat = Reg("0x140", Direction.RW)
 
 
-class AxiLiteI2c(Elaboratable):
+class AxiLiteI2cXilinx(Elaboratable):
     def __init__(self, axil_master, pads, base_address, gpo_width=0):
-        """ A axil i2c master meant to be compatible with the Xilinx IIC linux kernel driver.
+        """ A axil i2c peripheral meant to be compatible with the Xilinx IIC linux kernel driver.
         see https://japan.xilinx.com/support/documentation/ip_documentation/axi_iic/v2_0/pg090-axi-iic.pdf for register
-        map.
+        map. Currently only the I2C master functionality is implemented.
 
         :param pads: the i2c pads as requested as a nmigen resource.
         :param base_address: the base address of the axil peripheral.
         :param axil_master: the axil master to which this peripheral is attached.
         """
-        self.axil_master = axil_master
+        self._axil_master = axil_master
         self.pads = pads
-        self.base_address = base_address
+        self._base_address = base_address
 
         self.registers = Registers(gpo_width)
 
@@ -92,7 +90,29 @@ class AxiLiteI2c(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.axi_slave = self.axi_slave
+        m.submodules.csr_bank = StaticCsrBank(self._axil_master, self._base_address, self.registers)
         m.submodules.i2c = self.i2c
+
+        rx_fifo = m.submodules.rx_fifo = SyncFIFO(width=8, depth=2**4, fwft=False)
+        tx_fifo = m.submodules.tx_fifo = SyncFIFO(width=10, depth=2**4, fwft=False)
+
+        m.d.comb += self.registers.tx_fifo_occupancy.eq(tx_fifo.level)
+        m.d.comb += self.registers.status_tx_fifo_empty.eq(tx_fifo.level == 0)
+        m.d.comb += self.registers.status_tx_fifo_full.eq(tx_fifo.level == tx_fifo.depth - 1)
+
+        m.d.comb += self.registers.status_rx_fifo_empty.eq(rx_fifo.level == 0)
+        m.d.comb += self.registers.status_rx_fifo_full.eq(rx_fifo.level == rx_fifo.depth - 1)
+
+        m.d.comb += self.registers.status_bus_busy.eq(self.i2c.busy)
+
+        def on_rx_fifo_read():
+            m.d.comb += rx_fifo.r_en.eq(1)
+            return rx_fifo.r_data
+        self.registers.rx_fifo_data.on_read = on_rx_fifo_read
+
+        def on_tx_fifo_write(write_data):
+            m.d.comb += tx_fifo.w_en.eq(1)
+            m.d.comb += tx_fifo.w_data.eq(write_data)
+        self.registers.tx_fifo_data_start_stop = on_tx_fifo_write
 
         return m

@@ -1,7 +1,7 @@
 from nmigen import *
 
 from modules.axi.axi import Response, AxiInterface
-from modules.axi.axil_slave import AxiLiteSlave
+from modules.axi.lite_slave import AxiLiteSlave
 from util.nmigen_types import TristateIo
 
 

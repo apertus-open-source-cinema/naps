@@ -1,14 +1,11 @@
 import math
 
 from nmigen import *
-from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
 from modules.axi.axi import AxiInterface
-from modules.axi.axi_writer import AxiBufferWriter
-from modules.axi.axil_csr import AutoCsrBank
+from modules.axi.buffer_writer import AxiBufferWriter
+from modules.axi.csr_auto import AutoCsrBank
 from modules.axi.full_to_lite import AxiFullToLiteBridge
-from modules.xilinx.Ps7 import Ps7
-from modules.xilinx.blocks import Oserdes, RawPll, Bufg, Idelay, IdelayCtl, Iserdes
 from devices.micro.micro_r2_platform import MicroR2Platform
 
 

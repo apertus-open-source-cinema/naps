@@ -1,7 +1,7 @@
 from nmigen import *
 
 from modules.axi.axi import AxiInterface, Response
-from modules.axi.axil_slave import AxiLiteSlave
+from modules.axi.lite_slave import AxiLiteSlave
 from util.nmigen import get_signals, iterator_with_if_elif
 from util.nmigen_types import ControlSignal, StatusSignal
 
@@ -11,12 +11,13 @@ class AutoCsrBank(Elaboratable):
         self._axil_master = axil_master
 
         self._base_address = base_address
+        self._next_address = base_address
         self._memory_map = {}
         self._axi_regs = {}
 
         self.m = Module()
 
-    def reg(self, name, width=32, writable=True, reset=0, address=None):
+    def reg(self, name, width=32, writable=True, reset=0):
         assert width <= 32
         assert name not in self._memory_map
 

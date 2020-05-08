@@ -2,8 +2,8 @@ from nmigen import *
 from nmigen.test.utils import FHDLTestCase
 
 from modules.axi.axi import AxiInterface, Response
-from modules.axi.axil_csr import AutoCsrBank
-from modules.axi.axil_reg import AxiLiteReg
+from modules.axi.csr_auto import AutoCsrBank
+from modules.axi.lite_reg import AxiLiteReg
 from modules.axi.interconnect import AxiInterconnect
 from util.sim import wait_for, sim
 

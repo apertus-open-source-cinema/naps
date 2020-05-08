@@ -1,4 +1,4 @@
-from modules.axi.axil_slave import AxiLiteSlave
+from modules.axi.lite_slave import AxiLiteSlave
 from .axi import Response
 from nmigen import *
 

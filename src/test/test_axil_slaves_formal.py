@@ -11,8 +11,8 @@ from nmigen.asserts import *
 
 from nmigen.test.utils import FHDLTestCase
 
-from modules.axi.axil_i2c import AxiLiteI2c
-from modules.axi.axil_reg import AxiLiteReg
+from modules.axi.i2c_xilinx import AxiLiteI2cXilinx
+from modules.axi.lite_reg import AxiLiteReg
 from modules.vendor.glasgow_i2c.i2c import _DummyPads
 
 
@@ -81,7 +81,7 @@ class TestAxiLiteSlave(FHDLTestCase):
         base_address = 0x42
         addr_bytes = 2
         pads = _DummyPads()
-        axil_slave = AxiLiteI2c(pads, clock_divider=1, base_address=base_address, address_bytes=addr_bytes)
+        axil_slave = AxiLiteI2cXilinx(pads, clock_divider=1, base_address=base_address, address_bytes=addr_bytes)
         valid_address_range = range(base_address, base_address+2**(8*addr_bytes))
         print(valid_address_range)
 

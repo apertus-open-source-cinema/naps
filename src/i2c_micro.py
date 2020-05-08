@@ -1,8 +1,8 @@
 from nmigen import *
 
 from modules.axi.axi import AxiInterface
-from modules.axi.axil_csr import AutoCsrBank
-from modules.axi.axil_i2c_versatile_bitbang import AxilI2cVersatileBitbang
+from modules.axi.csr_auto import AutoCsrBank
+from modules.axi.i2c_versatile_bitbang import AxilI2cVersatileBitbang
 from modules.axi.full_to_lite import AxiFullToLiteBridge
 from devices.micro.micro_r2_platform import MicroR2Platform
 from modules.axi.interconnect import AxiInterconnect

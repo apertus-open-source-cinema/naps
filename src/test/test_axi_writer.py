@@ -2,7 +2,7 @@ from nmigen import *
 from nmigen.test.utils import FHDLTestCase
 
 from modules.axi.axi import AxiInterface, Response, AddressChannel, BurstType, DataChannel
-from modules.axi.axi_writer import AxiBufferWriter, AddressGenerator
+from modules.axi.buffer_writer import AxiBufferWriter, AddressGenerator
 from util.sim import sim, wait_for, pulse, do_nothing
 
 

@@ -2,9 +2,9 @@ from nmigen import *
 from nmigen.test.utils import FHDLTestCase
 
 from modules.axi.axi import AxiInterface, Response
-from modules.axi.csr_auto import AutoCsrBank
-from modules.axi.lite_reg import AxiLiteReg
 from modules.axi.interconnect import AxiInterconnect
+from soc.peripherals.register import SocRegister
+from test.AxiSocTestPlatform import AxiSocTestPlatform
 from util.sim import wait_for, sim
 
 
@@ -41,14 +41,16 @@ def axil_write(axi, addr, data):
 
 class TestAxiSlave(FHDLTestCase):
     def test_axil_reg(self, addr=0x123456, testdata=0x12345678):
-        dut = AxiLiteReg(width=32, base_address=addr, name="test")
+        dut = SocRegister(width=32, name="test")
+        platform = AxiSocTestPlatform(addr)
+        axi = platform.axi_lite_master
 
         def testbench():
-            yield from axil_read(dut.axi, addr)
-            yield from axil_write(dut.axi, addr, testdata)
-            self.assertEqual((yield from axil_read(dut.axi, addr)), (testdata, Response.OKAY.value))
+            yield from axil_read(axi, addr)
+            yield from axil_write(axi, addr, testdata)
+            self.assertEqual((yield from axil_read(axi, addr)), (testdata, Response.OKAY.value))
 
-        sim(dut, testbench, filename="axil_reg", traces=dut.axi._rhs_signals())
+        sim(platform.prepare(dut), testbench, filename="axil_reg", traces=axi._rhs_signals())
 
     def test_interconnect_axil_reg(self, base_addr=0x123456, num_regs=10, testdata=0x12345678):
         addrs = [base_addr + i for i in range(num_regs)]

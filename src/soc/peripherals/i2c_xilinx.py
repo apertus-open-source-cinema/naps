@@ -2,7 +2,9 @@ from nmigen import *
 
 from modules.axi.csr_static import Direction, Reg, EventReg, StaticCsrBank
 from modules.vendor.glasgow_i2c.i2c import I2CInitiator
-from nmigen.lib.fifo import SyncFIFO
+from nmigen.lib.fifo import SyncFIFO, Rose
+
+from util.nmigen_types import StatusSignal
 
 
 class Registers:
@@ -12,7 +14,7 @@ class Registers:
     interrupt_not_addressed_as_slave = Reg("0x020:6", Direction.R, reset=1)
     interrupt_addressed_as_slave = Reg("0x020:5", Direction.R, reset=0)
     interrupt_bus_not_busy = Reg("0x020:4", Direction.R, reset=0)
-    interrupt_rx_fifo_full_empty = Reg("0x020:3", Direction.R, reset=0)
+    interrupt_rx_fifo_full = Reg("0x020:3", Direction.R, reset=0)
     interrupt_tx_fifo_empty = Reg("0x020:2", Direction.R, reset=0)
     interrupt_tx_error_slave_tx_comp = Reg("0x020:1", Direction.R, reset=0)
     interrupt_arb_lost = Reg("0x020:0", Direction.R, reset=0)
@@ -21,7 +23,7 @@ class Registers:
     ien_not_addressed_as_slave = Reg("0x028:6", Direction.RW)
     ien_addressed_as_slave = Reg("0x028:5", Direction.RW)
     ien_bus_not_busy = Reg("0x028:4", Direction.RW)
-    ien_rx_fifo_full_empty = Reg("0x028:3", Direction.RW)
+    ien_rx_fifo_full = Reg("0x028:3", Direction.RW)
     ien_tx_fifo_empty = Reg("0x028:2", Direction.RW)
     ien_tx_error_slave_tx_comp = Reg("0x028:1", Direction.RW)
     ien_arb_lost = Reg("0x028:0", Direction.RW)
@@ -49,15 +51,16 @@ class Registers:
 
     rx_fifo_data = EventReg("0x10C:7-0")
 
-    slave_address = Reg("0x110:7-1", Direction.RW)
-    slave_ten_bit_address_addition = Reg("0x11C:2-0", Direction.RW)
+    slave_address = Reg("0x110:7-1", Direction.RW)  # ignored
+    slave_ten_bit_address_addition = Reg("0x11C:2-0", Direction.RW)  # ignored
 
     tx_fifo_occupancy = Reg("0x114:3-0", Direction.R)
 
     rx_fifo_programmable_depth_interrupt = Reg("0x120:3-0", Direction.RW)
 
     def __init__(self, gpo_width):
-        self.general_purpose_output_register = Reg("0x124:{}-0".format(gpo_width), Direction.RW)  # kind of an odd feature
+        self.general_purpose_output_register = Reg("0x124:{}-0".format(gpo_width),
+                                                   Direction.RW)  # kind of an odd feature
 
     timing_tsusta = Reg("0x128", Direction.RW)
     timing_tsusto = Reg("0x12C", Direction.RW)
@@ -79,22 +82,26 @@ class AxiLiteI2cXilinx(Elaboratable):
         :param base_address: the base address of the axil peripheral.
         :param axil_master: the axil master to which this peripheral is attached.
         """
+        self.interrupt = StatusSignal()
+
         self._axil_master = axil_master
         self.pads = pads
         self._base_address = base_address
 
         self.registers = Registers(gpo_width)
-
-        self.i2c = I2CInitiator(self.pads, period_cyc=1)
+        self.i2c : I2CInitiator = DomainRenamer("i2c")(I2CInitiator(self.pads, period_cyc=1))
 
     def elaborate(self, platform):
         m = Module()
 
+        m.domains += ClockDomain("i2c")
+        m.d.comb += ClockSignal("i2c").eq(ClockSignal())
+
         m.submodules.csr_bank = StaticCsrBank(self._axil_master, self._base_address, self.registers)
         m.submodules.i2c = self.i2c
 
-        rx_fifo = m.submodules.rx_fifo = SyncFIFO(width=8, depth=2**4, fwft=False)
-        tx_fifo = m.submodules.tx_fifo = SyncFIFO(width=10, depth=2**4, fwft=False)
+        rx_fifo = m.submodules.rx_fifo = SyncFIFO(width=8, depth=2 ** 4, fwft=False)
+        tx_fifo = m.submodules.tx_fifo = SyncFIFO(width=10, depth=2 ** 4, fwft=False)
 
         m.d.comb += self.registers.tx_fifo_occupancy.eq(tx_fifo.level)
         m.d.comb += self.registers.status_tx_fifo_empty.eq(tx_fifo.level == 0)
@@ -104,15 +111,38 @@ class AxiLiteI2cXilinx(Elaboratable):
         m.d.comb += self.registers.status_rx_fifo_full.eq(rx_fifo.level == rx_fifo.depth - 1)
 
         m.d.comb += self.registers.status_bus_busy.eq(self.i2c.busy)
+        m.d.comb += self.registers.interrupt_bus_not_busy.eq(~self.i2c.busy)
 
         def on_rx_fifo_read():
             m.d.comb += rx_fifo.r_en.eq(1)
             return rx_fifo.r_data
+
         self.registers.rx_fifo_data.on_read = on_rx_fifo_read
 
         def on_tx_fifo_write(write_data):
             m.d.comb += tx_fifo.w_en.eq(1)
             m.d.comb += tx_fifo.w_data.eq(write_data)
+
         self.registers.tx_fifo_data_start_stop = on_tx_fifo_write
+
+        m.d.comb += self.registers.tx_fifo_occupancy.eq(tx_fifo.level)
+
+        m.d.comb += self.registers.interrupt_tx_fifo_half_empty.eq(tx_fifo.level[-1])
+        m.d.comb += self.registers.interrupt_tx_fifo_empty.eq(tx_fifo.level == 0)
+        m.d.comb += self.registers.interrupt_rx_fifo_full.eq(
+            rx_fifo.level >= self.registers.rx_fifo_programmable_depth_interrupt)
+
+        # we use an edge triggered interrupt here
+        m.d.comb += self.interrupt.eq([
+            Rose(getattr(self.registers, "interrupt_{}".format(name))) & getattr(self.registers, "ien_{}".format(name))
+            for name in dir(self.registers) if name.startswith("interrupt")
+        ])
+
+        def on_reset_write(write_data):
+            with m.If(write_data == 0xA):  # 0xA is the magic key here, idk why this is implemented in such a wired way
+                m.d.comb += ResetSignal("i2c").eq(1)
+        self.registers.reset.on_write = on_reset_write
+
+
 
         return m

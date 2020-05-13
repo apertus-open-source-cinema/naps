@@ -7,14 +7,13 @@ from modules.axi.axi import Response, AxiInterface
 
 
 class AxiLiteSlave(Elaboratable, ABC):
-    def __init__(self, *, handle_read, handle_write, address_range, bundle_name="axi"):
+    def __init__(self, handle_read, handle_write, address_range=None, bundle_name="axi"):
         """
         A simple (low performance) axi lite slave
         :param handle_read: the callback to insert logic for the read state
         :param handle_write: the callback to insert logic for the write state
         :param address_range: the address space of the axi slave
         """
-        assert address_range.start < address_range.stop
         self.address_range = address_range
         assert callable(handle_read) and callable(handle_write)
         self.handle_read = handle_read
@@ -24,6 +23,9 @@ class AxiLiteSlave(Elaboratable, ABC):
 
     def elaborate(self, platform):
         m = Module()
+
+        assert self.address_range is not None
+        assert self.address_range.start < self.address_range.stop
 
         addr = Signal.like(self.axi.read_address.value)
         read_out = Signal.like(self.axi.read_data.value)

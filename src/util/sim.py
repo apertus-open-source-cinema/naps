@@ -24,10 +24,11 @@ def do_nothing(length=10):
         yield  # we expect that nothing happens here
 
 
-def sim(dut, testbench, filename, traces):
-    sim = Simulator(dut)
+def sim(dut, testbench, filename, traces, simulator=None):
+    if not simulator:
+        simulator = Simulator(dut)
 
-    sim.add_clock(1e-6)
-    sim.add_sync_process(testbench)
-    with sim.write_vcd(".sim_{}.vcd".format(filename), ".sim_{}.gtkw".format(filename), traces=traces):
-        sim.run()
+    simulator.add_clock(1e-6)
+    simulator.add_sync_process(testbench)
+    with simulator.write_vcd(".sim_{}.vcd".format(filename), ".sim_{}.gtkw".format(filename), traces=traces):
+        simulator.run()

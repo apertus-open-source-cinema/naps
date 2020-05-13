@@ -7,6 +7,8 @@ from nmigen.build import Clock
 from modules.axi.axi import AxiInterface
 from os.path import join, dirname
 
+from modules.axi.full_to_lite import AxiFullToLiteBridge
+from modules.axi.interconnect import AxiInterconnect
 from modules.xilinx import blocks
 from modules.xilinx.blocks import Bufg
 from util.nmigen import max_error_freq
@@ -115,6 +117,21 @@ class Ps7(blocks.Ps7):
 
         return axi
 
+    interconnect: AxiInterconnect = None
+
+    def get_axi_lite_port(self):
+        m = self.m
+        if not self.interconnect:
+            self.fck_domain(100e6, domain_name="axi_lite")
+            axi_full_port: AxiInterface = self.get_axi_gp_master(0, ClockSignal("axi_lite"))
+            axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_lite")(
+                AxiFullToLiteBridge(axi_full_port)
+            )
+            self.interconnect = m.submodules.interconnect = DomainRenamer("axi_lite")(
+                AxiInterconnect(axi_lite_bridge.lite_master)
+            )
+        return self.interconnect.get_port()
+
     @staticmethod
     @lru_cache()
     def get_possible_fclk_frequencies():
@@ -153,32 +170,12 @@ class Ps7(blocks.Ps7):
         for i, (clock_signal, frequency, domain_name) in self.clock_constraints.items():
             platform.add_clock_constraint(clock_signal, frequency)
 
-        platform.add_file(
-            "mmap/init.sh",
-            "\n".join(
-                "# clockdomain '{name}':\n"
-                "echo 1 > /sys/class/fclk/fclk{i}/enable\n"
-                "echo {freq} > /sys/class/fclk/fclk{i}/set_rate\n"
+        platform.init_script += "\n".join(
+            "# clockdomain '{name}':\n"
+            "echo 1 > /sys/class/fclk/fclk{i}/enable\n"
+            "echo {freq} > /sys/class/fclk/fclk{i}/set_rate\n"
                 .format(freq=int(freq), i=i, name=domain_name)
-                for i, (clock_signal, freq, domain_name) in self.clock_constraints.items()
-            )
+            for i, (clock_signal, freq, domain_name) in self.clock_constraints.items()
         )
 
         return m
-
-
-class ZynqPlatform:
-    ps7 = None
-
-    def get_ps7(self) -> Ps7:
-        if self.ps7 is None:
-            self.ps7 = Ps7(here_is_the_only_place_that_instanciates_ps7=True)
-        return self.ps7
-
-    # we override the prepare method and inject the ps7
-    def prepare(self, elaboratable, *args, **kwargs):
-        fragment = Fragment.get(elaboratable, self)
-        if self.ps7 is not None:
-            ps7_fragment = Fragment.get(self.ps7, self)
-            fragment.add_subfragment(ps7_fragment, name="ps7")
-        return super().prepare(fragment, *args, **kwargs)

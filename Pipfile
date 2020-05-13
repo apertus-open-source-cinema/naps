@@ -10,9 +10,9 @@ python_version = "3.8"
 flake8 = "*"
 coverage = "*"
 pytest = "*"
-vcd = "*"
 pytest-pycharm = "*"
 pylint = "*"
+tqdm = "*"
 
 [packages]
 nmigen = {git = "https://github.com/nmigen/nmigen.git"}

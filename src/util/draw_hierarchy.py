@@ -104,7 +104,7 @@ def _hierarchy_to_dot_frag(frag: Fragment, hierarchy = ["top"], _bits = [0]):
 
 def hierarchy_to_dot(e: Elaboratable, plat = None, **kwargs):
     from nmigen.hdl import ir
-    frag = ir.Fragment.get(e, plat).prepare(**kwargs)
+    frag = ir.Fragment.get(e, plat).prepare()
 
     cells, toplevel_ports = _hierarchy_to_dot_frag(frag)
 

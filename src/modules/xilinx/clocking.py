@@ -3,7 +3,7 @@ from nmigen import *
 from nmigen.build import Clock
 from numpy import arange
 
-from util.nmigen_types import ControlSignal, StatusSignal
+from util.nmigen_types import StatusSignal
 from modules.xilinx import blocks
 from modules.xilinx.blocks import Bufg
 
@@ -31,7 +31,7 @@ class Mmcm(Elaboratable):
             return False
         return True
 
-    def __init__(self, input_clock, vco_mul, vco_div, input_domain="sync"):
+    def __init__(self, input_clock, vco_mul, vco_div, input_domain="sync", axil_master=None, base_address=None):
         Mmcm.is_valid_vco_conf(input_clock, vco_mul, vco_div, exception=True)
         self._mmcm = blocks.Mmcm(
             clkfbout_mult_f=vco_mul, divclk_divide=vco_div,
@@ -47,6 +47,9 @@ class Mmcm(Elaboratable):
         self._input_clock = input_clock
         self._vco = Clock(input_clock * vco_mul / vco_div)
         self._clock_constraints = {}
+
+        self._axil_base_address = base_address
+        self._axil_master = axil_master
 
     def output_domain(self, domain_name, divisor, number=None, bufg=True):
         if number is None:
@@ -74,6 +77,7 @@ class Mmcm(Elaboratable):
 
         m.domains += ClockDomain(domain_name)
         m.d.comb += ClockSignal(domain_name).eq(output)
+        m.d.comb += ResetSignal(domain_name).eq(~self.locked)
 
         frequency = self._vco.frequency / divisor
         self._clock_constraints[number] = (clock_signal, frequency)
@@ -90,5 +94,13 @@ class Mmcm(Elaboratable):
 
         m.d.comb += self.locked.eq(self._mmcm.locked)
         m.d.comb += self._mmcm.rst.eq(ResetSignal(self._input_domain))
+
+        if False:
+            assert self._axil_base_address is not None
+            m.submodules.drp_bridge = AxilDrpBridge(
+                self._axil_master,
+                DrpInterface(self._mmcm.dwe, self._mmcm.den, self._mmcm.daddr, self._mmcm.di, self._mmcm.do, self._mmcm.drdy),
+                self._axil_base_address,
+            )
 
         return m

@@ -1,11 +1,11 @@
 from nmigen.compat import *
-from modules.vendor.litevideo_hdmi.encoder import Encoder
+from modules.hdmi.encoder import Encoder
 
 # Serializer and Clocking initial configurations come
 # from http://hamsterworks.co.nz/.
 
 class S7HDMIOutEncoderSerializer(Module):
-    def __init__(self, bypass_encoder=False):
+    def __init__(self, bypass_encoder=False, invert=False):
         self.output = Signal()
         if not bypass_encoder:
             self.submodules.encoder = ClockDomainsRenamer("pix")(Encoder())
@@ -17,7 +17,10 @@ class S7HDMIOutEncoderSerializer(Module):
         # # #
 
         data = Signal(10)
-        self.comb += data.eq(self.data)
+        if invert:
+            self.comb += data.eq(~self.data)
+        else:
+            self.comb += data.eq(self.data)
 
         ce = Signal()
         self.sync.pix += ce.eq(~ResetSignal("pix"))
@@ -63,7 +66,7 @@ class S7HDMIOutEncoderSerializer(Module):
             ),
         ]
 
-class S7HDMIOutPHY(Module):
+class HDMIOutPHY(Module):
     def __init__(self):
         self.hsync = Signal()
         self.vsync = Signal()
@@ -72,22 +75,27 @@ class S7HDMIOutPHY(Module):
         self.g = Signal(8)
         self.b = Signal(8)
         self.outputs = Signal(3)
+        self.clock = Signal()
 
         # # #
 
-        es0 = self.submodules.es0 = S7HDMIOutEncoderSerializer()
-        es1 = self.submodules.es1 = S7HDMIOutEncoderSerializer()
-        es2 = self.submodules.es2 = S7HDMIOutEncoderSerializer()
-        self.comb += self.outputs.eq(Cat(es0.output, es1.output, es2.output))
+        clk_gen = self.submodules.clk_gen = S7HDMIOutEncoderSerializer(bypass_encoder=True)
+        self.comb += self.clk_gen.data.eq(Signal(10, reset=0b0000011111))
+        self.comb += self.clock.eq(clk_gen.output)
+
+        es_b = self.submodules.es_b = S7HDMIOutEncoderSerializer()
+        es_g = self.submodules.es_g = S7HDMIOutEncoderSerializer()
+        es_r = self.submodules.es_r = S7HDMIOutEncoderSerializer(invert=True)  # TODO: more sensible
+        self.comb += self.outputs.eq(Cat(es_b.output, es_g.output, es_r.output))
 
         self.comb += [
-            self.es0.d.eq(self.b),
-            self.es1.d.eq(self.g),
-            self.es2.d.eq(self.r),
-            self.es0.c.eq(Cat(self.hsync, self.vsync)),
-            self.es1.c.eq(0),
-            self.es2.c.eq(0),
-            self.es0.de.eq(self.data_enable),
-            self.es1.de.eq(self.data_enable),
-            self.es2.de.eq(self.data_enable)
+            es_b.d.eq(self.b),
+            es_g.d.eq(self.g),
+            es_r.d.eq(self.r),
+            es_b.c.eq(Cat(~self.hsync, ~self.vsync)),  # TODO: figure out polarity
+            es_g.c.eq(0),
+            es_r.c.eq(0),
+            es_b.de.eq(self.data_enable),
+            es_g.de.eq(self.data_enable),
+            es_r.de.eq(self.data_enable)
         ]

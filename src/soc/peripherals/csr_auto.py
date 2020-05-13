@@ -2,16 +2,14 @@ from nmigen import *
 
 from modules.axi.axi import AxiInterface, Response
 from modules.axi.lite_slave import AxiLiteSlave
+from soc.SocPlatform import SocPlatform
 from util.nmigen import get_signals, iterator_with_if_elif
 from util.nmigen_types import ControlSignal, StatusSignal
 
 
 class AutoCsrBank(Elaboratable):
-    def __init__(self, axil_master: AxiInterface, base_address=0x4000_0000):
-        self._axil_master = axil_master
-
-        self._base_address = base_address
-        self._next_address = base_address
+    def __init__(self):
+        self._next_address = 0
         self._memory_map = {}
         self._axi_regs = {}
 
@@ -22,7 +20,7 @@ class AutoCsrBank(Elaboratable):
         assert name not in self._memory_map
 
         reg = Signal(width, reset=reset, name=name)
-        self._axi_regs[name] = (reg, self._next_address - self._base_address, writable)
+        self._axi_regs[name] = (reg, self._next_address, writable)
         self._memory_map[name] = self._next_address
         self._next_address += 4
 
@@ -38,7 +36,7 @@ class AutoCsrBank(Elaboratable):
                 self.m.d.comb += self.reg("{}__{}".format(name, signal.name), width=len(signal), writable=False).eq(
                     signal)
 
-    def elaborate(self, platform):
+    def elaborate(self, platform: SocPlatform):
         m = self.m
 
         def handle_read(m, addr, data, resp, read_done):

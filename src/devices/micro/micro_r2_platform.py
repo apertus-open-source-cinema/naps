@@ -1,18 +1,15 @@
-import os
-import subprocess
-
 from nmigen.build import Resource, Subsignal, Pins, DiffPairs, Connector, Attrs
 
-from modules.xilinx.Ps7 import ZynqPlatform
 from ..common.layouts import gen_plugin_connector
 from nmigen_boards.zturn_lite_z010 import ZTurnLiteZ010Platform
 
-from ..common.program_bitstream_camera import program_bitstream_camera
 
+class MicroR2Platform(ZTurnLiteZ010Platform):
+    def toolchain_program(self, products, name, **kwargs):
+        pass
 
-class MicroR2Platform(ZynqPlatform, ZTurnLiteZ010Platform):
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self):
+        super().__init__()
         self.add_resources([
             Resource("sensor", 0,
                      Subsignal("shutter", Pins("25", dir='o', conn=("expansion", 0))),
@@ -53,9 +50,3 @@ class MicroR2Platform(ZynqPlatform, ZTurnLiteZ010Platform):
             Connector("pmod", "south", "97 95 89 85 - - 99 93 87 83 - -", conn=("expansion", 0), ),
             Connector("pmod", "east", "103 105 107 109 - -", conn=("expansion", 0), ),
         ])
-
-    def toolchain_prepare(self, fragment, name, **kwargs):
-        return super().toolchain_prepare(fragment, name, **kwargs)
-
-    def toolchain_program(self, products, name, **kwargs):
-        program_bitstream_camera(products, name, **kwargs)

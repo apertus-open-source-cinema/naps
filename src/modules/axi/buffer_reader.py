@@ -1,7 +1,7 @@
 from nmigen import *
 
 from modules.axi.axi import AxiInterface
-from util.nmigen_types import ControlSignal, StatusSignal
+from soc.reg_types import ControlSignal, StatusSignal
 
 
 class AxiBufferReader(Elaboratable):

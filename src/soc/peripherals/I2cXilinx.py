@@ -1,10 +1,13 @@
+# TODO: finish
+# TODO: add tests
+
 from nmigen import *
 
-from modules.axi.csr_static import Direction, Reg, EventReg, StaticCsrBank
+from soc.peripherals.StaicCsrBank import Direction, Reg, EventReg, StaticCsrBank
 from modules.vendor.glasgow_i2c.i2c import I2CInitiator
 from nmigen.lib.fifo import SyncFIFO, Rose
 
-from util.nmigen_types import StatusSignal
+from soc.reg_types import StatusSignal
 
 
 class Registers:
@@ -72,7 +75,7 @@ class Registers:
     timing_thddat = Reg("0x140", Direction.RW)
 
 
-class AxiLiteI2cXilinx(Elaboratable):
+class I2cXilinx(Elaboratable):
     def __init__(self, axil_master, pads, base_address, gpo_width=0):
         """ A axil i2c peripheral meant to be compatible with the Xilinx IIC linux kernel driver.
         see https://japan.xilinx.com/support/documentation/ip_documentation/axi_iic/v2_0/pg090-axi-iic.pdf for register

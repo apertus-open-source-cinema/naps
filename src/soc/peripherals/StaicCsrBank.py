@@ -1,11 +1,14 @@
+# TODO: integrate with AutoCsrBank
+# TODO: add tests
+
 import re
 from enum import Enum, auto
 
 from nmigen import Signal, Elaboratable, Module
 from nmigen.hdl.ast import UserValue
 
-from modules.axi.axi import AxiInterface, Response
-from modules.axi.lite_slave import AxiLiteSlave
+from soc import Response, MemoryMapFactory
+from soc.SocPlatform import SocPlatform
 from util.nmigen import get_signals, iterator_with_if_elif
 
 
@@ -45,18 +48,16 @@ class EventReg(UserValue):
 
 
 class StaticCsrBank(Elaboratable):
-    def __init__(self, axil_master, base_address, thing_with_registers):
-        self._axil_master: AxiInterface = axil_master
-        self._thing_with_registers = thing_with_registers
-        self._base_address = base_address
+    def __init__(self, obj_with_registers):
+        self._obj_with_registers = obj_with_registers
 
-    def elaborate(self, platform):
+    def elaborate(self, platform: SocPlatform):
         m = Module()
 
-        regs = [reg for reg in get_signals(self._thing_with_registers) if isinstance(reg, (Reg, EventReg))]
+        regs = [reg for reg in get_signals(self._obj_with_registers) if isinstance(reg, (Reg, EventReg))]
         addrs = list(set(reg.base_addr for reg in regs))
 
-        def handle_read(m, addr, data, resp, read_done):
+        def handle_read(m, addr, data, read_done):
             for conditional, reg_addr in iterator_with_if_elif(addrs, m):
                 with conditional(reg_addr == addr):
                     addressed_regs = [reg for reg in regs if reg.base_addr == reg_addr]
@@ -66,10 +67,9 @@ class StaticCsrBank(Elaboratable):
                         elif isinstance(reg, EventReg):
                             m.d.sync += data[reg.stop_bit:reg.start_bit].eq(reg.on_read())
             # we always respond with ok to allow for unused addresses
-            m.d.sync += resp.eq(Response.OKAY)
-            read_done()
+            read_done(Response.OK)
 
-        def handle_write(m, addr, data, resp, read_done):
+        def handle_write(m, addr, data, read_done):
             for conditional, reg_addr in iterator_with_if_elif(addrs, m):
                 with conditional(reg_addr == addr):
                     addressed_regs = [reg for reg in regs if reg.base_addr == reg_addr and reg.rw == Direction.RW]
@@ -79,15 +79,15 @@ class StaticCsrBank(Elaboratable):
                         elif isinstance(reg, EventReg):
                             reg.on_write(data[reg.stop_bit:reg.start_bit])
             # we always respond with ok to allow for unused addresses
-            m.d.sync += resp.eq(Response.OKAY)
-            read_done()
+            read_done(Response.OK)
 
-        axi_slave = m.submodules.axi_slave = AxiLiteSlave(
-            address_range=range(self._base_address, self._base_address + max(addrs) + self._axil_master.data_bytes),
+        memorymap = MemoryMapFactory.MemoryMap()
+        memorymap.add_resource("static_reg_block", size=max(addrs))
+
+        m.submodules += platform.BusSlave(
             handle_read=handle_read,
             handle_write=handle_write,
-            bundle_name="axi_csr_slave"
+            memorymap=memorymap
         )
-        m.d.comb += self._axil_master.connect_slave(axi_slave.axi)
 
         return m

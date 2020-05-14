@@ -1,7 +1,9 @@
+# TODO: add tests
+
 from nmigen import *
 
-from modules.axi.axi import Response, AxiInterface
-from modules.axi.lite_slave import AxiLiteSlave
+from soc import MemoryMapFactory, Response
+from soc.SocPlatform import SocPlatform
 from util.bundle import Bundle
 
 
@@ -16,33 +18,28 @@ class DrpInterface(Bundle):
         self.ready: Signal = DRDY
 
 
-class AxilDrpBridge(Elaboratable):
-    def __init__(self, axil_master, drp_interface, base_address):
+class DrpBridge(Elaboratable):
+    def __init__(self, drp_interface):
         """
         A bridge for the xilinx dynamic reconfiguration port. This is for example used in the Xilinx 7 series MMCM and
         PLL primitives.
 
-        :param axil_master: the axi master to attach the bridge to
         :param drp_interface: the drp interface of the drp slave
-        :param base_address: the base address (on the axi bus) of the drp peripheral
         """
-        self.base_address = base_address
-        self.axil_master: AxiInterface = axil_master
         self.drp_interface: DrpInterface = drp_interface
 
-    def elaborate(self, platform):
+    def elaborate(self, platform: SocPlatform):
         m = Module()
 
-        def handle_read(m, addr, data, resp, read_done):
+        def handle_read(m, addr, data, read_done):
             m.d.sync += self.drp_interface.address.eq(addr)
             m.d.sync += self.drp_interface.data_enable.eq(1)
             with m.If(self.drp_interface.ready):
                 m.d.sync += self.drp_interface.data_enable.eq(0)
                 m.d.sync += data.eq(self.drp_interface.data_out)
-                m.d.sync += resp.eq(Response.OKAY)
-                read_done()
+                read_done(Response.OK)
 
-        def handle_write(m, addr, data, resp, write_done):
+        def handle_write(m, addr, data, write_done):
             m.d.sync += self.drp_interface.address.eq(addr)
             m.d.sync += self.drp_interface.data_enable.eq(1)
             m.d.sync += self.drp_interface.data_write_enable.eq(1)
@@ -50,13 +47,15 @@ class AxilDrpBridge(Elaboratable):
             with m.If(self.drp_interface.ready):
                 m.d.sync += self.drp_interface.data_enable.eq(0)
                 m.d.sync += self.drp_interface.data_write_enable.eq(0)
-                m.d.sync += resp.eq(Response.OKAY)
-                write_done()
+                write_done(Response.OK)
 
-        m.submodules.axil_slave = AxiLiteSlave(
+        memorymap = MemoryMapFactory.MemoryMap()
+        memorymap.add_resource("drp", size=2**self.drp_interface.address.width)
+
+        m.submodules += platform.BusSlave(
             handle_read=handle_read,
             handle_write=handle_write,
-            address_range=range(self.base_address, self.base_address + (2**self.drp_interface.address.width)),
+            memorymap=memorymap
         )
 
         return m

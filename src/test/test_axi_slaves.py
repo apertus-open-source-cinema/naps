@@ -1,11 +1,11 @@
 from nmigen import *
 from nmigen.test.utils import FHDLTestCase
 
-from modules.axi.axi import AxiInterface, Response
-from modules.axi.interconnect import AxiInterconnect
+from modules.axi.axi import Response
 from soc.peripherals.register import SocRegister
-from test.AxiSocTestPlatform import AxiSocTestPlatform
-from util.sim import wait_for, sim
+from soc.peripherals.csr_auto import AutoCsrBank
+from test.ZyncSocTestPlatform import ZynqSocTestPlatform
+from util.sim import wait_for
 
 
 def write_to_channel(channel, value):
@@ -30,59 +30,45 @@ def read_from_channel(channel):
 
 def axil_read(axi, addr):
     yield from write_to_channel(axi.read_address, addr)
-    return (yield from read_from_channel(axi.read_data))
+    value, response = (yield from read_from_channel(axi.read_data))
+    assert Response.OKAY.value == response
+    return value
 
 
 def axil_write(axi, addr, data):
     yield from write_to_channel(axi.write_address, addr)
     yield from write_to_channel(axi.write_data, data)
-    return (yield from read_from_channel(axi.write_response))
+    result, response = (yield from read_from_channel(axi.write_response))
+    assert Response.OKAY.value == response
 
 
 class TestAxiSlave(FHDLTestCase):
-    def test_axil_reg(self, addr=0x123456, testdata=0x12345678):
+    def test_reg(self, addr=123456, testdata=123456):
+        platform = ZynqSocTestPlatform(addr)
         dut = SocRegister(width=32, name="test")
-        platform = AxiSocTestPlatform(addr)
-        axi = platform.axi_lite_master
 
         def testbench():
+            axi = platform.axi_lite_master
+
             yield from axil_read(axi, addr)
             yield from axil_write(axi, addr, testdata)
-            self.assertEqual((yield from axil_read(axi, addr)), (testdata, Response.OKAY.value))
+            self.assertEqual(testdata, (yield from axil_read(axi, addr)))
 
-        sim(platform.prepare(dut), testbench, filename="axil_reg", traces=axi._rhs_signals())
+        platform.sim(dut, testbench)
 
-    def test_interconnect_axil_reg(self, base_addr=0x123456, num_regs=10, testdata=0x12345678):
-        addrs = [base_addr + i for i in range(num_regs)]
-        m = Module()
-
-        axi = AxiInterface(addr_bits=32, data_bits=32, master=True, lite=True)
-        interconnect = m.submodules.interconnect = AxiInterconnect(axi)
-        for addr in addrs:
-            axil_reg = AxiLiteReg(width=32, base_address=addr, name="test")
-            m.d.comb += interconnect.get_port().connect_slave(axil_reg.axi)
-            m.submodules += axil_reg
-
-        def testbench():
-            for addr in addrs:
-                yield from axil_read(axi, addr)
-                yield from axil_write(axi, addr, testdata)
-                self.assertEqual((yield from axil_read(axi, addr)), (testdata, Response.OKAY.value))
-
-        sim(m, testbench, filename="interconnect_axil_reg", traces=axi._rhs_signals())
-
-    def test_csr_bank(self, base_addr=123456, num_csr=10, testdata=0x12345678):
-        m = Module()
-
-        axi = AxiInterface(addr_bits=32, data_bits=32, master=True, lite=True)
-        csr_bank = m.submodules.csr_bank = AutoCsrBank(axi, base_addr)
+    def test_auto_csr_bank(self, base_addr=123456, num_csr=10, testdata=0x12345678):
+        platform = ZynqSocTestPlatform(base_addr)
+        csr_bank = AutoCsrBank()
         for i in range(num_csr):
             csr_bank.reg("csr#{}".format(i), width=32, writable=True)
 
+        print(csr_bank._memory_map)
+
         def testbench():
+            axi = platform.axi_lite_master
             for addr in [base_addr + (i * 4) for i in range(num_csr)]:
                 yield from axil_read(axi, addr)
                 yield from axil_write(axi, addr, testdata)
-                self.assertEqual((yield from axil_read(axi, addr)), (testdata, Response.OKAY.value))
+                self.assertEqual(testdata, (yield from axil_read(axi, addr)))
 
-        sim(m, testbench, filename="csr_bank", traces=axi._rhs_signals())
+        platform.sim(csr_bank, testbench)

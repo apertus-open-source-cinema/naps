@@ -1,10 +1,14 @@
-from typing import Callable
-
 from nmigen import *
 from nmigen_soc.memory import MemoryMap
 
+from modules.axi.axi import AxiInterface
+from modules.axi.full_to_lite import AxiFullToLiteBridge
+from modules.axi.interconnect import AxiInterconnect
+from modules.axi.lite_slave import AxiLiteSlave
 from modules.xilinx.Ps7 import Ps7
+from soc import MemoryMapFactory
 from soc.SocPlatform import SocPlatform
+from soc.elaboratable_sames import ElaboratableSames
 from soc.zynq.program_bitstream_ssh import program_bitstream_ssh
 
 
@@ -15,14 +19,48 @@ class ZynqSocPlatform(SocPlatform):
         self.init_script = ""
         platform.toolchain_program = lambda *args, **kwargs: program_bitstream_ssh(self, *args, **kwargs)
 
-    def BusSlave(self, handle_read: Callable[[], None], handle_write, *, addr_window):
-        raise NotImplementedError()
+        MemoryMapFactory.memorymap_factory_method = lambda: MemoryMap(data_width=32, addr_width=32)
 
-    def MemoryMap(self):
-        return MemoryMap(addr_width=32, data_width=32, alignment=32)
+        def bus_slaves_connect_hook(platform, fragment: Fragment, sames: ElaboratableSames):
+            bus_slaves = []
+
+            def collect_bus_slaves(platform, fragment: Fragment, sames: ElaboratableSames):
+                module = sames.get_module(fragment)
+                if module:
+                    if hasattr(module, "bus_slave"):
+                        bus_slave, addr_map = module.bus_slave
+                        bus_slaves.append(bus_slave)
+                for (f, name) in fragment.subfragments:
+                    collect_bus_slaves(platform, f, sames)
+
+            collect_bus_slaves(platform, fragment, sames)
+            if bus_slaves:
+                m = Module()
+                ps7 = self.get_ps7()
+                ps7.fck_domain(domain_name="axi_csr", requested_frequency=100e6)
+                axi_full_port: AxiInterface = ps7.get_axi_gp_master(0, ClockSignal("axi_csr"))
+                axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_csr")(
+                    AxiFullToLiteBridge(axi_full_port)
+                )
+                interconnect = m.submodules.interconnect = DomainRenamer("axi_csr")(
+                    AxiInterconnect(axi_lite_bridge.lite_master))
+                for slave in bus_slaves:
+                    slave = DomainRenamer("axi_csr")(slave)
+                    m.d.comb += interconnect.get_port().connect_slave(slave.axi)
+                    m.submodules += slave
+                platform.to_inject_subfragments.append((m, "axi_lite"))
+
+        self.prepare_hooks.append(bus_slaves_connect_hook)
+
+    def BusSlave(self, handle_read, handle_write, *, memorymap):
+        bus_slave = AxiLiteSlave(handle_read, handle_write)
+
+        m = Module()  # we will pick this empty module, that is just a marker up later in the prepare step
+        m.bus_slave = (bus_slave, memorymap)
+        return m
 
     def get_ps7(self) -> Ps7:
         if self.ps7 is None:
             self.ps7 = Ps7(here_is_the_only_place_that_instanciates_ps7=True)
-            self.inject_subfragment(self.ps7, "ps7")
+            self.final_to_inject_subfragments.append((self.ps7, "ps7"))
         return self.ps7

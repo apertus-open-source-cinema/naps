@@ -3,15 +3,16 @@ from nmigen.back.pysim import Simulator
 from nmigen.test.utils import FHDLTestCase
 from tqdm import tqdm
 
-from modules.hdmi import TimingGenerator, Hdmi
+from modules.hdmi.hdmi import TimingGenerator, Hdmi
 from util.bundle import Bundle
+from util.cvt import generate_modeline, parse_modeline
 from util.nmigen import get_signals
 from util.sim import sim
 
 
 class TestHdmi(FHDLTestCase):
     def test_timing_generator(self):
-        dut = TimingGenerator(640, 480, 60)
+        dut = TimingGenerator(parse_modeline(generate_modeline(640, 480, 60)))
 
         def testbench():
             last_x = 0
@@ -30,7 +31,7 @@ class TestHdmi(FHDLTestCase):
             data = Signal(3)
             clock = Signal()
 
-        dut = Hdmi(640, 480, 60, Pins(), generate_clocks=False)
+        dut = Hdmi(Pins(), generate_clocks=False, modeline=generate_modeline(640, 480, 60))
 
         simulator = Simulator(dut)
         simulator.add_clock(1 / 117.5e6, domain="pix")

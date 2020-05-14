@@ -3,6 +3,7 @@ from abc import abstractmethod, ABC
 from nmigen import *
 from nmigen.back import verilog
 
+import soc
 from modules.axi.axi import Response, AxiInterface
 
 
@@ -31,6 +32,15 @@ class AxiLiteSlave(Elaboratable, ABC):
         read_out = Signal.like(self.axi.read_data.value)
         resp_out = Signal.like(self.axi.read_data.resp)
 
+        read_write_done = Signal()
+
+        def read_write_done_callback(success):
+            m.d.sync += read_write_done.eq(1)
+            if success == soc.Response.ERR:
+                m.d.sync += resp_out.eq(Response.SLVERR)
+            else:
+                m.d.sync += resp_out.eq(Response.OKAY)
+
         with m.FSM():
             with m.State("IDLE"):
                 m.d.comb += self.axi.read_address.ready.eq(1)
@@ -49,13 +59,10 @@ class AxiLiteSlave(Elaboratable, ABC):
             with m.State("READ"):
                 # Only write read and resp if we are in the READ state. Otherwise all bits are '0'.
                 # This allows us to simply or the data output of multiple axi slaves together.
-                read_done = Signal()
 
-                def set_read_done(): m.d.sync += read_done.eq(1)
-
-                self.handle_read(m, addr, read_out, resp_out, set_read_done)
-                with m.If(read_done):
-                    m.d.sync += read_done.eq(0)
+                self.handle_read(m, addr, read_out, read_write_done_callback)
+                with m.If(read_write_done):
+                    m.d.sync += read_write_done.eq(0)
                     m.next = "READ_DONE"
             with m.State("READ_DONE"):
                 m.d.comb += self.axi.read_data.value.eq(read_out)
@@ -65,14 +72,11 @@ class AxiLiteSlave(Elaboratable, ABC):
                     m.next = "IDLE"
 
             with m.State("WRITE"):
-                write_done = Signal()
-                m.d.comb += self.axi.write_data.ready.eq(write_done)
+                m.d.comb += self.axi.write_data.ready.eq(read_write_done)
                 with m.If(self.axi.write_data.valid):
-                    def set_write_done(): m.d.sync += write_done.eq(1)
-
-                    self.handle_write(m, addr, self.axi.write_data.value, self.axi.write_response.resp, set_write_done)
-                    with m.If(write_done):
-                        m.d.sync += write_done.eq(0)
+                    self.handle_write(m, addr, self.axi.write_data.value, read_write_done_callback)
+                    with m.If(read_write_done):
+                        m.d.sync += read_write_done.eq(0)
                         m.next = "WRITE_DONE"
             with m.State("WRITE_DONE"):
                 m.d.comb += self.axi.write_response.valid.eq(1)

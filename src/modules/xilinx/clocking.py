@@ -3,7 +3,9 @@ from nmigen import *
 from nmigen.build import Clock
 from numpy import arange
 
-from util.nmigen_types import StatusSignal
+from soc.SocPlatform import SocPlatform
+from soc.peripherals.DrpBridge import DrpBridge, DrpInterface
+from soc.reg_types import StatusSignal
 from modules.xilinx import blocks
 from modules.xilinx.blocks import Bufg
 
@@ -95,12 +97,9 @@ class Mmcm(Elaboratable):
         m.d.comb += self.locked.eq(self._mmcm.locked)
         m.d.comb += self._mmcm.rst.eq(ResetSignal(self._input_domain))
 
-        if False:
-            assert self._axil_base_address is not None
-            m.submodules.drp_bridge = AxilDrpBridge(
-                self._axil_master,
-                DrpInterface(self._mmcm.dwe, self._mmcm.den, self._mmcm.daddr, self._mmcm.di, self._mmcm.do, self._mmcm.drdy),
-                self._axil_base_address,
-            )
+        if isinstance(platform, SocPlatform):
+            m.submodules.drp_bridge = DrpBridge(DrpInterface(
+                self._mmcm.dwe, self._mmcm.den, self._mmcm.daddr, self._mmcm.di, self._mmcm.do, self._mmcm.drdy
+            ))
 
         return m

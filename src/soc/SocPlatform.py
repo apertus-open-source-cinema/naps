@@ -5,7 +5,8 @@ from nmigen import *
 from nmigen_soc.memory import MemoryMap
 
 from soc import Response
-from soc.util import fragment_get_with_elaboratable_trace, find_elaboratable_sames
+from soc.hooks import auto_csr_hook, address_assignment_hook
+from soc.elaboratable_sames import fragment_get_with_elaboratable_trace
 
 
 class SocPlatform(ABC):
@@ -19,14 +20,10 @@ class SocPlatform(ABC):
 
         self.prepare_hooks = []
         self.to_inject_subfragments = []
+        self.final_to_inject_subfragments = []
 
-        def inject_subfragments_prepare_hook(top_fragment, sames):
-            for fragment, name in self.to_inject_subfragments:
-                top_fragment.add_subfragment(Fragment.get(fragment, self), name)
-        self.prepare_hooks.append(inject_subfragments_prepare_hook)
-
-    def inject_subfragment(self, fragment, name=None):
-        self.to_inject_subfragments.append((fragment, name))
+        self.prepare_hooks.append(auto_csr_hook)
+        self.prepare_hooks.append(address_assignment_hook)
 
     # we pass through all platform methods, because we pretend to be one
     def __getattr__(self, item):
@@ -34,16 +31,29 @@ class SocPlatform(ABC):
 
     # we override the prepare method of the real platform to be able to inject stuff into the design
     def prepare(self, elaboratable, *args, **kwargs):
-        top_fragment, elab_trace = fragment_get_with_elaboratable_trace(elaboratable, self)
-        sames = find_elaboratable_sames(elab_trace)
+        print("# ELABORATING MAIN DESIGN")
+        top_fragment, sames = fragment_get_with_elaboratable_trace(elaboratable, self)
 
+        def inject_subfragments(top_fragment, sames, to_inject_subfragments):
+            for elaboratable, name in to_inject_subfragments:
+                fragment, fragment_sames = fragment_get_with_elaboratable_trace(elaboratable, self, sames)
+                top_fragment.add_subfragment(Fragment.get(fragment, self), name)
+            self.to_inject_subfragments = []
+
+        print("\n# ELABORATING SOC PLATFORM ADDITIONS")
+        inject_subfragments(top_fragment, sames, self.to_inject_subfragments)
         for hook in self.prepare_hooks:
-            hook(top_fragment, sames)
+            print("running {}".format(hook.__name__))
+            hook(self, top_fragment, sames)
+            inject_subfragments(top_fragment, sames, self.to_inject_subfragments)
+
+        print("injecting final fragments")
+        inject_subfragments(top_fragment, sames, self.final_to_inject_subfragments)
 
         return self.real_prepare(top_fragment, *args, **kwargs)
 
     @abstractmethod
-    def BusSlave(self, handle_read: Callable[[Module, Signal, Signal, Callable[[Response], None]], None], handle_write: Callable[[Module, Signal, Signal, Callable[[Response], None]], None], *, memorymap: MemoryMap):
+    def BusSlave(self, handle_read: Callable[[Module, Signal, Signal, Callable[[Response], None]], None], handle_write: Callable[[Module, Signal, Signal, Callable[[Response], None]], None], *, memorymap: MemoryMap) -> Fragment:
         """
         Gives an abstract slave for the bus of the Soc.
         Give read_done or write_done a nonzero argument to indicate a read_write error.
@@ -52,10 +62,3 @@ class SocPlatform(ABC):
         :param handle_write: a function with the signature handle_write(addr, data, write_done)
         :param memorymap: the MemoryMap of the peripheral
         """
-
-    @abstractmethod
-    def MemoryMap(self) -> MemoryMap:
-        """
-        Returns an empty MemoryMap object with the right bus properties
-        """
-

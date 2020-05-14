@@ -1,27 +1,24 @@
+# TODO: finish
+# TODO: add tests
+
 from nmigen import *
 
-from modules.axi.axi import Response, AxiInterface
 from modules.axi.lite_slave import AxiLiteSlave
+from soc.SocPlatform import SocPlatform
 from util.nmigen_types import TristateIo
 
 
-class AxilI2cVersatileBitbang(Elaboratable):
-    I2C_CONTROL = 0x00
-    I2C_CONTROL_SET = 0x00
-    I2C_CONTROL_CLEAR = 0x04
-    SCL = (1 << 0)
-    SDA = (1 << 1)
-
-    def __init__(self, axil_master: AxiInterface, base_address, pads):
-        """ A simple Axi lite peripheral, that is compatible with the bitbanging i2c versatile linux kernel driver.
-        see https://github.com/torvalds/linux/blob/master/drivers/i2c/busses/i2c-versatile.c
-        Quite hacky but overall a quite quick solution to get working i2c.
+class MmioGpio(Elaboratable):
+    def __init__(self, pads):
+        """ A simple gpio peripheral, that is compatible with the gpio-mmio.c linux kernel driver.
+        see https://github.com/torvalds/linux/blob/master/drivers/gpio/gpio-mmio.c
         """
-        self._axil_master = axil_master
         self._pads = pads
-        self._base_address = base_address
 
-    def elaborate(self, platform):
+        # registers
+
+
+    def elaborate(self, platform: SocPlatform):
         m = Module()
 
         scl: TristateIo = self._pads.scl

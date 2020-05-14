@@ -2,7 +2,7 @@ from datetime import datetime
 
 from nmigen import *
 
-from modules.hdmi import Hdmi
+from modules.hdmi.hdmi import Hdmi
 from devices.micro.micro_r2_platform import MicroR2Platform
 from soc.zynq.ZynqSocPlatform import ZynqSocPlatform
 from util.cvt import generate_modeline
@@ -49,7 +49,7 @@ if __name__ == "__main__":
     p.build(
         Top(),
         name=__file__.split(".")[0].split("/")[-1] + datetime.now().strftime("-%d-%b-%Y--%H-%M-%S"),
-        do_build=True,
-        do_program=True,
+        do_build=False,
+        do_program=False,
         program_opts={"host": "micro"}
     )

@@ -22,13 +22,3 @@ def pulse(signal, length=1, after=0):
 def do_nothing(length=10):
     for i in range(length):
         yield  # we expect that nothing happens here
-
-
-def sim(dut, testbench, filename, traces, simulator=None):
-    if not simulator:
-        simulator = Simulator(dut)
-
-    simulator.add_clock(1e-6)
-    simulator.add_sync_process(testbench)
-    with simulator.write_vcd(".sim_{}.vcd".format(filename), ".sim_{}.gtkw".format(filename), traces=traces):
-        simulator.run()

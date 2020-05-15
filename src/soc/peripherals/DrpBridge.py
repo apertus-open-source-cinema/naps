@@ -2,8 +2,9 @@
 
 from nmigen import *
 
-from soc import MemoryMapFactory, Response
+from soc import Response
 from soc.SocPlatform import SocPlatform
+from soc.memorymap import MemoryMap
 from util.bundle import Bundle
 
 
@@ -49,8 +50,8 @@ class DrpBridge(Elaboratable):
                 m.d.sync += self.drp_interface.data_write_enable.eq(0)
                 write_done(Response.OK)
 
-        memorymap = MemoryMapFactory.MemoryMap()
-        memorymap.add_resource("drp", size=2**self.drp_interface.address.width)
+        memorymap = MemoryMap("drp_window")
+        memorymap.allocate("drp", writable=True, bits=2**self.drp_interface.address.width * 8)
 
         m.submodules += platform.BusSlave(
             handle_read=handle_read,

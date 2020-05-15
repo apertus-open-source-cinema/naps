@@ -1,5 +1,6 @@
 # TODO: finish
 # TODO: add tests
+# TODO: port to new register infrastructure
 
 from nmigen import *
 

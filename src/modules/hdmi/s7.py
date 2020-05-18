@@ -92,7 +92,7 @@ class HDMIOutPHY(Module):
             es_b.d.eq(self.b),
             es_g.d.eq(self.g),
             es_r.d.eq(self.r),
-            es_b.c.eq(Cat(~self.hsync, ~self.vsync)),  # TODO: figure out polarity
+            es_b.c.eq(Cat(self.hsync, self.vsync)),
             es_g.c.eq(0),
             es_r.c.eq(0),
             es_b.de.eq(self.data_enable),

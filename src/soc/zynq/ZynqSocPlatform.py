@@ -32,6 +32,14 @@ class ZynqSocPlatform(SocPlatform):
 
             collect_bus_slaves(platform, top_fragment, sames)
             if bus_slaves:
+                # prepare and finalize the memorymap
+                top_memorymap: MemoryMap = top_fragment.memorymap
+                top_memorymap.place_at = Address(0x4000_0000, 0, (0x7FFF_FFFF - 0x4000_0000) * 8)
+                # TODO: generate useful files
+                print("memorymap:\n" + "\n".join(
+                    "    {}: {!r}".format(k, v) for k, v in top_fragment.memorymap.flat.items()))
+
+                # generate all the connections
                 m = Module()
                 ps7 = self.get_ps7()
                 ps7.fck_domain(domain_name="axi_csr", requested_frequency=100e6)
@@ -42,7 +50,6 @@ class ZynqSocPlatform(SocPlatform):
                 interconnect = m.submodules.interconnect = DomainRenamer("axi_csr")(
                     AxiInterconnect(axi_lite_bridge.lite_master)
                 )
-                top_memorymap: MemoryMap = top_fragment.memorymap
                 for slave, slave_memorymap in bus_slaves:
                     slave.address_range = slave_memorymap.own_offset.range()
                     slave = DomainRenamer("axi_csr")(slave)

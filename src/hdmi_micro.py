@@ -36,7 +36,7 @@ if __name__ == "__main__":
     p.build(
         Top(),
         name=__file__.split(".")[0].split("/")[-1] + datetime.now().strftime("-%d-%b-%Y--%H-%M-%S"),
-        do_build=False,
-        do_program=False,
+        do_build=True,
+        do_program=True,
         program_opts={"host": "micro"}
     )

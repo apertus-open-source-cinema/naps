@@ -56,6 +56,3 @@ def address_assignment_hook(platform, top_fragment: Fragment, sames: Elaboratabl
                 fragment.memorymap.allocate_subrange(sub_fragment.memorymap, sub_name)
     inner(top_fragment)
     top_fragment.memorymap.top = True
-
-    # TODO: generate useful files
-    print("memorymap:\n" + "\n".join("    {}: {!r}".format(k, v) for k, v in top_fragment.memorymap.flat.items()))

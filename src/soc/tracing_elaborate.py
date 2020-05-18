@@ -46,7 +46,7 @@ def fragment_get_with_elaboratable_trace(elaboratable, platform, sames=None):
 
     def inject_elaborate_wrapper(elaboratable, level=0, text_prefix=""):
         if isinstance(elaboratable, TransformedElaboratable):
-            inject_elaborate_wrapper(elaboratable._elaboratable_)
+            inject_elaborate_wrapper(elaboratable._elaboratable_, level=level + 1, text_prefix="x> ")
             sames.insert(elaboratable, elaboratable._elaboratable_)
         real_elaborate = elaboratable.elaborate
 

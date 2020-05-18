@@ -17,14 +17,16 @@ class Hdmi(Elaboratable):
         self.plugin = plugin
         self.generate_clocks = generate_clocks
         video_timing = parse_modeline(modeline)
-        self.width, self.height = video_timing.hres, video_timing.vres
         self.pix_freq = Clock(video_timing.pxclk * 1e6)
+
+        self.hsync_polarity = ControlSignal()
+        self.vsync_polarity = ControlSignal()
 
         self.timing_generator: TimingGenerator = DomainRenamer("pix")(
             TimingGenerator(video_timing)
         )
         self.pattern_generator: BertlPatternGenerator = DomainRenamer("pix")(
-            BertlPatternGenerator(self.width, self.height)
+            BertlPatternGenerator(self.timing_generator.width, self.timing_generator.height)
         )
 
     def elaborate(self, platform):
@@ -42,8 +44,8 @@ class Hdmi(Elaboratable):
 
         phy = m.submodules.phy = HDMIOutPHY()
         m.d.pix += [
-            phy.hsync.eq(self.timing_generator.hsync),
-            phy.vsync.eq(self.timing_generator.vsync),
+            phy.hsync.eq(self.timing_generator.hsync ^ self.hsync_polarity),
+            phy.vsync.eq(self.timing_generator.vsync ^ self.vsync_polarity),
             phy.data_enable.eq(self.timing_generator.active),
 
             phy.r.eq(self.pattern_generator.out.r),
@@ -142,11 +144,18 @@ class HdmiClocking(Elaboratable):
 
 
 class TimingGenerator(Elaboratable):
-    def __init__(self, video_timing):
-        self.video_timing = video_timing
+    def __init__(self, video_timing, vertical_signals_shape=range(8000), horizontal_signals_shape=range(4000)):
+        self.hscan = ControlSignal(horizontal_signals_shape, reset=video_timing.hscan)
+        self.vscan = ControlSignal(vertical_signals_shape, reset=video_timing.vscan)
+        self.width = ControlSignal(horizontal_signals_shape, reset=video_timing.hres)
+        self.height = ControlSignal(vertical_signals_shape, reset=video_timing.vres)
+        self.hsync_start = ControlSignal(horizontal_signals_shape, reset=video_timing.hsync_start)
+        self.hsync_end = ControlSignal(horizontal_signals_shape, reset=video_timing.hsync_end)
+        self.vsync_start = ControlSignal(vertical_signals_shape, reset=video_timing.vsync_start)
+        self.vsync_end = ControlSignal(vertical_signals_shape, reset=video_timing.vsync_end)
 
-        self.x = StatusSignal(range(self.video_timing.hscan + 1))
-        self.y = StatusSignal(range(self.video_timing.vscan + 1))
+        self.x = StatusSignal(horizontal_signals_shape)
+        self.y = StatusSignal(vertical_signals_shape)
         self.active = StatusSignal()
         self.hsync = StatusSignal()
         self.vsync = StatusSignal()
@@ -155,19 +164,19 @@ class TimingGenerator(Elaboratable):
         m = Module()
 
         # set the xy coordinates
-        with m.If(self.x < self.video_timing.hscan):
+        with m.If(self.x < self.hscan):
             m.d.sync += self.x.eq(self.x + 1)
         with m.Else():
             m.d.sync += self.x.eq(0)
-            with m.If(self.y < self.video_timing.vscan):
+            with m.If(self.y < self.vscan):
                 m.d.sync += self.y.eq(self.y + 1)
             with m.Else():
                 m.d.sync += self.y.eq(0)
 
         m.d.comb += [
-            self.active.eq((self.x < self.video_timing.hres) & (self.y < self.video_timing.vres)),
-            self.hsync.eq((self.x > self.video_timing.hsync_start) & (self.x <= self.video_timing.hsync_end)),
-            self.vsync.eq((self.y > self.video_timing.vsync_start) & (self.x <= self.video_timing.vsync_end))
+            self.active.eq((self.x < self.width) & (self.y < self.height)),
+            self.hsync.eq((self.x > self.hsync_start) & (self.x <= self.hsync_end)),
+            self.vsync.eq((self.y > self.vsync_start) & (self.x <= self.vsync_end))
         ]
 
         return m
@@ -181,8 +190,8 @@ class Rgb(Bundle):
 
 class BertlPatternGenerator(Elaboratable):
     def __init__(self, width, height):
-        self.x = Signal(range(width))
-        self.y = Signal(range(height))
+        self.x = Signal.like(width)
+        self.y = Signal.like(height)
         self.out = Rgb()
 
     def elaborate(self, platform):

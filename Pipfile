@@ -17,7 +17,6 @@ tqdm = "*"
 [packages]
 nmigen = {git = "https://github.com/nmigen/nmigen.git"}
 nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
-nmigen-soc = {git = "https://github.com/nmigen/nmigen-soc.git"}
 jinja2 = "*"
 python-varname = "*"
 monkeytype = "*"

@@ -1,48 +1,61 @@
+import json
+
 from nmigen import *
 
-from soc import MemoryMapFactory
-from soc.peripherals.AutoCsrBank import AutoCsrBank
-from soc.reg_types import ControlSignal, StatusSignal
-from soc.elaboratable_sames import ElaboratableSames
-from util.nmigen import get_signals
+from soc.memorymap import MemoryMap
+from soc.peripherals.CsrBank import CsrBank
+from soc.reg_types import ControlSignal, StatusSignal, _Csr, EventReg
+from soc.tracing_elaborate import ElaboratableSames
 
 
-def auto_csr_hook(platform, fragment: Fragment, sames: ElaboratableSames):
+def csr_hook(platform, fragment: Fragment, sames: ElaboratableSames):
     elaboratable = sames.get_elaboratable(fragment)
     if elaboratable:
-        signals = get_signals(elaboratable)
-        csr_signals = [s for s in signals if isinstance(s, (ControlSignal, StatusSignal))]
+        class_members = [(s, getattr(elaboratable, s)) for s in dir(elaboratable)]
+        csr_signals = [(name, member) for name, member in class_members if isinstance(member, (_Csr))]
         if csr_signals:
             m = Module()
-            csr_bank = m.submodules.csr_bank = AutoCsrBank()
 
-            for signal in csr_signals:
+            csr_bank = CsrBank()
+            m.submodules += csr_bank
+            for name, signal in csr_signals:
                 if isinstance(signal, ControlSignal):
-                    m.d.comb += signal.eq(
-                        csr_bank.reg(signal.name, width=len(signal), writable=True, reset=signal.reset))
-                if isinstance(signal, StatusSignal):
-                    m.d.comb += csr_bank.reg(signal.name, width=len(signal), writable=False).eq(signal)
+                    csr_bank.reg(name, signal, writable=True, address=signal.address)
+                elif isinstance(signal, StatusSignal):
+                    csr_bank.reg(name, signal, writable=False, address=signal.address)
+                elif isinstance(signal, EventReg):
+                    raise NotImplementedError()
 
-            platform.to_inject_subfragments.append((m, None))
+            fragment.memorymap = csr_bank.memorymap
+            platform.to_inject_subfragments.append((m, "ignore"))
 
-    for (fragment, name) in fragment.subfragments:
-        auto_csr_hook(platform, fragment, sames)
+    for fragment, name in fragment.subfragments:
+        csr_hook(platform, fragment, sames)
 
 
-def address_assignment_hook(platform, fragment: Fragment, sames: ElaboratableSames):
-    # TODO: better memorymap organization; this is quite ad hoc, doesnt think about hierarchy, ...
-    memorymap = MemoryMapFactory.MemoryMap()
-
-    def inner(platform, fragment: Fragment, sames: ElaboratableSames):
+def address_assignment_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
+    def inner(fragment):
         module = sames.get_module(fragment)
-        if module:
-            if hasattr(module, "bus_slave"):
-                bus_slave, addr_map = module.bus_slave
-                start, stop, ratio = memorymap.add_window(addr_map)
-                bus_slave.address_range = range(start, stop)
-        for (f, name) in fragment.subfragments:
-            inner(platform, f, sames)
-    inner(platform, fragment, sames)
+        elaboratable = sames.get_elaboratable(fragment)
+        if hasattr(module, "bus_slave"):  # we have the fragment of a marker module for a bus slave
+            bus_slave, memorymap = module.bus_slave
+            fragment.memorymap = memorymap
+            return
+
+        # depth first recursion
+        for sub_fragment, sub_name in fragment.subfragments:
+            if sub_name != "ignore":
+                inner(sub_fragment)
+
+        # add everything to the own memorymap
+        if not hasattr(fragment, "memorymap"):
+            fragment.memorymap = MemoryMap()
+        for sub_fragment, sub_name in fragment.subfragments:
+            if sub_name != "ignore":
+                assert hasattr(sub_fragment, "memorymap")
+                fragment.memorymap.allocate_subrange(sub_fragment.memorymap, sub_name)
+    inner(top_fragment)
+    top_fragment.memorymap.top = True
 
     # TODO: generate useful files
-    print(memorymap)
+    print("memorymap:\n" + "\n".join("    {}: {!r}".format(k, v) for k, v in top_fragment.memorymap.flat.items()))

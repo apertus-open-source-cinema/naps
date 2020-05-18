@@ -4,7 +4,7 @@ from nmigen import *
 from nmigen.build import Clock
 
 from util.bundle import Bundle
-from soc.reg_types import StatusSignal
+from soc.reg_types import StatusSignal, ControlSignal
 from modules.hdmi.s7 import HDMIOutPHY
 from modules.xilinx.Ps7 import Ps7
 from modules.xilinx.clocking import Mmcm
@@ -13,8 +13,8 @@ from util.nmigen import max_error_freq
 
 
 class Hdmi(Elaboratable):
-    def __init__(self, pins, modeline, generate_clocks=True):
-        self.pins = pins
+    def __init__(self, plugin, modeline, generate_clocks=True):
+        self.plugin = plugin
         self.generate_clocks = generate_clocks
         video_timing = parse_modeline(modeline)
         self.width, self.height = video_timing.hres, video_timing.vres
@@ -31,7 +31,7 @@ class Hdmi(Elaboratable):
         m = Module()
 
         if self.generate_clocks:
-            clocking = m.submodules.clocking = HdmiClocking(self.pix_freq)
+            m.submodules.clocking = HdmiClocking(self.pix_freq)
         m.submodules.timing_generator = self.timing_generator
         m.submodules.pattern_generator = self.pattern_generator
 
@@ -52,9 +52,39 @@ class Hdmi(Elaboratable):
         ]
 
         m.d.comb += [
-            self.pins.data.eq(phy.outputs),
-            self.pins.clock.eq(phy.clock)
+            self.plugin.data.eq(phy.outputs),
+            self.plugin.clock.eq(phy.clock)
         ]
+
+        m.submodules.plugin = PluginLowspeedController(self.plugin)
+
+        return m
+
+
+class PluginLowspeedController(Elaboratable):
+    def __init__(self, plugin):
+        self.plugin = plugin
+
+    def elaborate(self, platform):
+        m = Module()
+
+        # generate low speed CSR signals
+        if hasattr(self.plugin, "output_enable"):
+            for name, signal_type, width in [
+                ("output_enable", ControlSignal, 1),
+                ("equalizer", ControlSignal, 2),
+                ("dcc_enable", ControlSignal, 1),
+                ("vcc_enable", ControlSignal, 1),
+                ("ddet", ControlSignal, 1),
+                ("ihp", StatusSignal, 1),
+            ]:
+                csr_signal = signal_type(width)
+                setattr(self, name, csr_signal)
+                io = getattr(self.plugin, name)
+                if signal_type == ControlSignal:
+                    m.d.comb += io.eq(csr_signal)
+                else:
+                    m.d.comb += csr_signal.eq(io)
 
         return m
 
@@ -96,7 +126,8 @@ class HdmiClocking(Elaboratable):
             vco_mul=self.mmcm_mul, vco_div=self.mmcm_div
         )
 
-        deviation = (abs(1 - ((self.fclk_freq* self.mmcm_mul / self.mmcm_div) / (self.pix_freq.frequency * 5 * self.output_div))))
+        deviation = (abs(
+            1 - ((self.fclk_freq * self.mmcm_mul / self.mmcm_div) / (self.pix_freq.frequency * 5 * self.output_div))))
         print("pixclk {}Mhz, error: {}%. (fclk={}MHz; mul={}; div={}; output_div={})".format(
             self.pix_freq.frequency / 1e6, deviation, self.fclk_freq / 1e6, self.mmcm_mul, self.mmcm_div,
             self.output_div

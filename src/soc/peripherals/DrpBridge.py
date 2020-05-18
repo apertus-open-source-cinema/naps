@@ -50,7 +50,7 @@ class DrpBridge(Elaboratable):
                 m.d.sync += self.drp_interface.data_write_enable.eq(0)
                 write_done(Response.OK)
 
-        memorymap = MemoryMap("drp_window")
+        memorymap = MemoryMap()
         memorymap.allocate("drp", writable=True, bits=2**self.drp_interface.address.width * 8)
 
         m.submodules += platform.BusSlave(

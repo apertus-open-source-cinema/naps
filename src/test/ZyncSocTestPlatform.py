@@ -9,14 +9,12 @@ from nmigen_soc.memory import MemoryMap
 
 from modules.axi.axi import AxiInterface
 from modules.axi.lite_slave import AxiLiteSlave
-from soc import Response, MemoryMapFactory
 from soc.SocPlatform import SocPlatform
 
 
 class ZynqSocTestPlatform(SocPlatform):
     def __init__(self, base_addr):
         super().__init__(None)
-        MemoryMapFactory.memorymap_factory_method = lambda: MemoryMap(data_width=32, addr_width=32, alignment=bits_for(4) - 1)
         self.real_prepare = lambda fragment, *args, **kwargs: fragment
 
         self.base_addr = base_addr

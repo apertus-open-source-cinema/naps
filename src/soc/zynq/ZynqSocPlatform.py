@@ -1,14 +1,13 @@
 from nmigen import *
-from nmigen_soc.memory import MemoryMap
 
 from modules.axi.axi import AxiInterface
 from modules.axi.full_to_lite import AxiFullToLiteBridge
 from modules.axi.interconnect import AxiInterconnect
 from modules.axi.lite_slave import AxiLiteSlave
 from modules.xilinx.Ps7 import Ps7
-from soc import MemoryMapFactory
 from soc.SocPlatform import SocPlatform
-from soc.elaboratable_sames import ElaboratableSames
+from soc.memorymap import Address, MemoryMap
+from soc.tracing_elaborate import ElaboratableSames
 from soc.zynq.program_bitstream_ssh import program_bitstream_ssh
 
 
@@ -19,21 +18,19 @@ class ZynqSocPlatform(SocPlatform):
         self.init_script = ""
         platform.toolchain_program = lambda *args, **kwargs: program_bitstream_ssh(self, *args, **kwargs)
 
-        MemoryMapFactory.memorymap_factory_method = lambda: MemoryMap(data_width=32, addr_width=32)
-
-        def bus_slaves_connect_hook(platform, fragment: Fragment, sames: ElaboratableSames):
+        def bus_slaves_connect_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
             bus_slaves = []
 
             def collect_bus_slaves(platform, fragment: Fragment, sames: ElaboratableSames):
                 module = sames.get_module(fragment)
                 if module:
                     if hasattr(module, "bus_slave"):
-                        bus_slave, addr_map = module.bus_slave
-                        bus_slaves.append(bus_slave)
+                        bus_slave, memorymap = module.bus_slave
+                        bus_slaves.append((bus_slave, memorymap))
                 for (f, name) in fragment.subfragments:
                     collect_bus_slaves(platform, f, sames)
 
-            collect_bus_slaves(platform, fragment, sames)
+            collect_bus_slaves(platform, top_fragment, sames)
             if bus_slaves:
                 m = Module()
                 ps7 = self.get_ps7()
@@ -43,8 +40,11 @@ class ZynqSocPlatform(SocPlatform):
                     AxiFullToLiteBridge(axi_full_port)
                 )
                 interconnect = m.submodules.interconnect = DomainRenamer("axi_csr")(
-                    AxiInterconnect(axi_lite_bridge.lite_master))
-                for slave in bus_slaves:
+                    AxiInterconnect(axi_lite_bridge.lite_master)
+                )
+                top_memorymap: MemoryMap = top_fragment.memorymap
+                for slave, slave_memorymap in bus_slaves:
+                    slave.address_range = slave_memorymap.own_offset.range()
                     slave = DomainRenamer("axi_csr")(slave)
                     m.d.comb += interconnect.get_port().connect_slave(slave.axi)
                     m.submodules += slave

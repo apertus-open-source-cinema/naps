@@ -12,8 +12,8 @@ class ControlSignal(Signal, _Csr):
     """ Just a Signal. Indicator, that it is for controlling some parameter (i.e. can be written from the outside)
     Is mapped as a CSR in case the design is build with a SocPlatform.
     """
-    def __init__(self, address=None, read_strobe=None, write_strobe=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, shape=None, *, address=None, read_strobe=None, write_strobe=None, **kwargs):
+        super().__init__(shape, **kwargs)
         self.address = Address.parse(address)
         self.write_strobe = write_strobe
         self.read_strobe = read_strobe
@@ -23,8 +23,8 @@ class StatusSignal(Signal, _Csr):
     """ Just a Signal. Indicator, that it is for communicating the state to the outside world (i.e. can be read but not written from the outside)
         Is mapped as a CSR in case the design is build with a SocPlatform.
     """
-    def __init__(self, address=None, read_strobe=None, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, shape=None, *, address=None, read_strobe=None, **kwargs):
+        super().__init__(shape, **kwargs)
         self.address = Address.parse(address)
         self.read_strobe = read_strobe
 

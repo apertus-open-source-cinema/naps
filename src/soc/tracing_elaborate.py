@@ -36,7 +36,7 @@ class ElaboratableSames():
         return self.get_by_filter(something, lambda x: isinstance(x, Module))
 
     def get_elaboratable(self, something):
-        return self.get_by_filter(something, lambda x: isinstance(x, Elaboratable) and not isinstance(x, Module) and not isinstance(x, TransformedElaboratable))
+        return self.get_by_filter(something, lambda x: isinstance(x, Elaboratable) and not isinstance(x,Module) and not isinstance(x, TransformedElaboratable))
 
 
 def fragment_get_with_elaboratable_trace(elaboratable, platform, sames=None):

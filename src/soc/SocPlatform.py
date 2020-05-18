@@ -5,8 +5,8 @@ from nmigen import *
 from nmigen_soc.memory import MemoryMap
 
 from soc import Response
-from soc.hooks import auto_csr_hook, address_assignment_hook
-from soc.elaboratable_sames import fragment_get_with_elaboratable_trace
+from soc.hooks import csr_hook, address_assignment_hook
+from soc.tracing_elaborate import fragment_get_with_elaboratable_trace
 
 
 class SocPlatform(ABC):
@@ -22,7 +22,7 @@ class SocPlatform(ABC):
         self.to_inject_subfragments = []
         self.final_to_inject_subfragments = []
 
-        self.prepare_hooks.append(auto_csr_hook)
+        self.prepare_hooks.append(csr_hook)
         self.prepare_hooks.append(address_assignment_hook)
 
     # we pass through all platform methods, because we pretend to be one
@@ -43,11 +43,11 @@ class SocPlatform(ABC):
         print("\n# ELABORATING SOC PLATFORM ADDITIONS")
         inject_subfragments(top_fragment, sames, self.to_inject_subfragments)
         for hook in self.prepare_hooks:
-            print("running {}".format(hook.__name__))
+            print("\nrunning {}".format(hook.__name__))
             hook(self, top_fragment, sames)
             inject_subfragments(top_fragment, sames, self.to_inject_subfragments)
 
-        print("injecting final fragments")
+        print("\ninjecting final fragments")
         inject_subfragments(top_fragment, sames, self.final_to_inject_subfragments)
 
         return self.real_prepare(top_fragment, *args, **kwargs)

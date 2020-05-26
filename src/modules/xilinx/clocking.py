@@ -99,7 +99,7 @@ class Mmcm(Elaboratable):
 
         if isinstance(platform, SocPlatform):
             m.submodules.drp_bridge = DrpBridge(DrpInterface(
-                self._mmcm.dwe, self._mmcm.den, self._mmcm.daddr, self._mmcm.di, self._mmcm.do, self._mmcm.drdy
+                self._mmcm.dwe, self._mmcm.den, self._mmcm.daddr, self._mmcm.di, self._mmcm.do, self._mmcm.drdy, self._mmcm.dclk
             ))
 
         return m

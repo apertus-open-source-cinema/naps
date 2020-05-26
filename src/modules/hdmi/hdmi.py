@@ -22,20 +22,17 @@ class Hdmi(Elaboratable):
         self.hsync_polarity = ControlSignal()
         self.vsync_polarity = ControlSignal()
 
-        self.timing_generator: TimingGenerator = DomainRenamer("pix")(
-            TimingGenerator(video_timing)
-        )
-        self.pattern_generator: BertlPatternGenerator = DomainRenamer("pix")(
-            BertlPatternGenerator(self.timing_generator.width, self.timing_generator.height)
-        )
+        self.timing_generator = TimingGenerator(video_timing)
+        self.pattern_generator = BertlPatternGenerator(self.timing_generator.width, self.timing_generator.height)
 
     def elaborate(self, platform):
         m = Module()
-
         if self.generate_clocks:
             m.submodules.clocking = HdmiClocking(self.pix_freq)
-        m.submodules.timing_generator = self.timing_generator
-        m.submodules.pattern_generator = self.pattern_generator
+
+        in_pix_domain = DomainRenamer("pix")
+        m.submodules.timing_generator = in_pix_domain(self.timing_generator)
+        m.submodules.pattern_generator = in_pix_domain(self.pattern_generator)
 
         m.d.comb += [
             self.pattern_generator.x.eq(self.timing_generator.x),

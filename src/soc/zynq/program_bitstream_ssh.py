@@ -42,8 +42,6 @@ def program_bitstream_ssh(platform, build_products: BuildProducts, name, **kwarg
     init_script += platform.init_script
     fatfile += init_script
 
-    # TODO: register map
-
     fatfile_name = "build/{}.fatbitstream.sh".format(name)
     with open(fatfile_name, "w") as f:
         f.write(fatfile)

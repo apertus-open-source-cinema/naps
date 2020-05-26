@@ -3,6 +3,7 @@
 import re
 from dataclasses import dataclass
 from math import ceil
+from textwrap import indent
 from typing import List
 
 from nmigen._unused import MustUse
@@ -166,6 +167,12 @@ class MemoryMap(MustUse):
         return [row for row in self.entries if not isinstance(row.obj, MemoryMap)]
 
     @property
+    def own_offset_normal_resources(self):
+        own_offset = self.own_offset
+        own_offset.bit_len = self.normal_resources_byte_len * 8
+        return own_offset
+
+    @property
     def own_offset(self) -> Address:
         if not self.top:
             if self._parent and self._inlined_offset:
@@ -194,6 +201,21 @@ class MemoryMap(MustUse):
         real_size = max(
             row.address.address + ceil((row.address.bit_offset + row.address.bit_len) / 8)
             for row in self.entries
+        )
+        # automatically round up to the next word with self.access_with
+        return int(ceil(real_size / self.bus_word_width_bytes) * self.bus_word_width_bytes)
+
+    @property
+    def normal_resources_byte_len(self):
+        """
+        Calculate the size (based on the _normal_ resource with the highest address part) of the memorymap
+        :return: the size of the memorymap in bytes (aligned to the bus word width)
+        """
+        if not self.entries:
+            return 0
+        real_size = max(
+            row.address.address + ceil((row.address.bit_offset + row.address.bit_len) / 8)
+            for row in self.normal_resources
         )
         # automatically round up to the next word with self.access_with
         return int(ceil(real_size / self.bus_word_width_bytes) * self.bus_word_width_bytes)

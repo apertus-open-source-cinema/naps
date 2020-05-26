@@ -18,9 +18,10 @@ class CsrBank(Elaboratable):
         self.memorymap.allocate(name, writable, bits=signal.width, address=Address.parse(address), obj=signal)
 
     def elaborate(self, platform):
+        handled = Signal()
         def handle_read(m, addr, data, read_done):
-            for conditional, iter_addr in iterator_with_if_elif(range(0, self.memorymap.byte_len + 1, self.memorymap.bus_word_width_bytes), m):
-                with conditional(iter_addr == addr):
+            for iter_addr in range(0, self.memorymap.byte_len + 1, self.memorymap.bus_word_width_bytes):
+                with m.If(iter_addr == addr):
                     for row in self.memorymap.normal_resources:
                         bits_of_word = row.address.bits_of_word(iter_addr)
                         if bits_of_word:
@@ -32,13 +33,14 @@ class CsrBank(Elaboratable):
                             elif isinstance(row.obj, EventReg):
                                 raise NotImplementedError()
                     read_done(Response.OK)
-            with m.Else():
-                # unaligned reads are not supported
+                    m.d.comb += handled.eq(1)
+            with m.If(~handled):
                 read_done(Response.ERR)
 
         def handle_write(m, addr, data, write_done):
-            for conditional, iter_addr in iterator_with_if_elif(range(0, self.memorymap.byte_len + 1, self.memorymap.bus_word_width_bytes), m):
-                with conditional(iter_addr == addr):
+            handled = Signal()
+            for iter_addr in range(0, self.memorymap.byte_len + 1, self.memorymap.bus_word_width_bytes):
+                with m.If(iter_addr == addr):
                     for row in self.memorymap.normal_resources:
                         bits_of_word = row.address.bits_of_word(iter_addr)
                         if bits_of_word and row.writable:
@@ -49,9 +51,11 @@ class CsrBank(Elaboratable):
                                 )
                             elif isinstance(row.obj, EventReg):
                                 raise NotImplementedError()
+                            else:
+                                raise NotImplementedError()
                     write_done(Response.OK)
-            with m.Else():
-                # unaligned writes are not supported
+                    m.d.comb += handled.eq(1)
+            with m.If(~handled):
                 write_done(Response.ERR)
 
         m = Module()

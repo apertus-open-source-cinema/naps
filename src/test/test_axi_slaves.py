@@ -2,9 +2,12 @@ from nmigen import *
 from nmigen.test.utils import FHDLTestCase
 
 from modules.axi.axi import Response, AxiInterface
+from modules.hdmi.hdmi import Hdmi
 from soc.SimPlatform import SimPlatform
 from soc.peripherals.CsrBank import CsrBank
 from soc.zynq.ZynqSocPlatform import ZynqSocPlatform
+from util.bundle import Bundle
+from util.cvt import generate_modeline
 from util.sim import wait_for, do_nothing
 
 
@@ -71,3 +74,25 @@ class TestAxiSlave(FHDLTestCase):
 
 
         platform.sim(csr_bank, (testbench, "axi_csr"))
+
+    def test_hdmi(self, testdata=0x1):
+        platform = ZynqSocPlatform(SimPlatform())
+
+        class Pins(Bundle):
+            data = Signal(3)
+            clock = Signal()
+
+        dut = Hdmi(Pins(), generate_clocks=False, modeline=generate_modeline(640, 480, 60))
+
+        platform.add_sim_clock("pix", 117.5e6)
+
+        def testbench():
+            axi = platform.axi_lite_master
+            memorymap = platform.memorymap
+            for name, addr in memorymap.flatten().items():
+                print(name, addr)
+                yield from axil_read(axi, addr.address)
+                yield from axil_write(axi, addr.address, testdata)
+                # self.assertEqual(testdata, (yield from axil_read(axi, addr.address)))
+
+        platform.sim(dut, (testbench, "axi_csr"))

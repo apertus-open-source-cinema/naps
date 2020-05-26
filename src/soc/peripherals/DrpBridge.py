@@ -1,4 +1,5 @@
 # TODO: add tests
+# TODO: this seems to be broken
 
 from nmigen import *
 
@@ -9,7 +10,7 @@ from util.bundle import Bundle
 
 
 class DrpInterface(Bundle):
-    def __init__(self, DWE, DEN, DADDR, DI, DO, DRDY):
+    def __init__(self, DWE, DEN, DADDR, DI, DO, DRDY, DCLK):
         super().__init__()
         self.data_write_enable: Signal = DWE
         self.data_enable: Signal = DEN
@@ -17,6 +18,7 @@ class DrpInterface(Bundle):
         self.data_in: Signal = DI
         self.data_out: Signal = DO
         self.ready: Signal = DRDY
+        self.clk : Signal = DCLK
 
 
 class DrpBridge(Elaboratable):
@@ -33,6 +35,7 @@ class DrpBridge(Elaboratable):
         m = Module()
 
         def handle_read(m, addr, data, read_done):
+            m.d.comb += self.drp_interface.clk.eq(ClockSignal())
             m.d.sync += self.drp_interface.address.eq(addr)
             m.d.sync += self.drp_interface.data_enable.eq(1)
             with m.If(self.drp_interface.ready):
@@ -41,6 +44,7 @@ class DrpBridge(Elaboratable):
                 read_done(Response.OK)
 
         def handle_write(m, addr, data, write_done):
+            m.d.comb += self.drp_interface.clk.eq(ClockSignal())
             m.d.sync += self.drp_interface.address.eq(addr)
             m.d.sync += self.drp_interface.data_enable.eq(1)
             m.d.sync += self.drp_interface.data_write_enable.eq(1)

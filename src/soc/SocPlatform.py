@@ -6,6 +6,7 @@ from nmigen_soc.memory import MemoryMap
 
 from soc import Response
 from soc.hooks import csr_hook, address_assignment_hook
+from soc.outputs.pydriver import pydriver_hook
 from soc.tracing_elaborate import fragment_get_with_elaboratable_trace
 
 
@@ -24,6 +25,7 @@ class SocPlatform(ABC):
 
         self.prepare_hooks.append(csr_hook)
         self.prepare_hooks.append(address_assignment_hook)
+        self.prepare_hooks.append(pydriver_hook)
 
     # we pass through all platform methods, because we pretend to be one
     def __getattr__(self, item):

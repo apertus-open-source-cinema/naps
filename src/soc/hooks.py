@@ -55,4 +55,14 @@ def address_assignment_hook(platform, top_fragment: Fragment, sames: Elaboratabl
                 assert hasattr(sub_fragment, "memorymap")
                 fragment.memorymap.allocate_subrange(sub_fragment.memorymap, sub_name)
     inner(top_fragment)
-    top_fragment.memorymap.top = True
+
+    # prepare and finalize the memorymap
+    top_memorymap: MemoryMap = top_fragment.memorymap
+    top_memorymap.top = True
+
+    assert hasattr(platform, "base_address")
+    top_memorymap.place_at = platform.base_address
+
+    print("memorymap:\n" + "\n".join(
+        "    {}: {!r}".format(k, v) for k, v in top_memorymap.flat.items()))
+    platform.memorymap = top_memorymap

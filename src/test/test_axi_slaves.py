@@ -1,11 +1,11 @@
 from nmigen import *
 from nmigen.test.utils import FHDLTestCase
 
-from modules.axi.axi import Response
-from soc.peripherals.register import SocRegister
-from soc.peripherals.csr_auto import AutoCsrBank
-from test.ZyncSocTestPlatform import ZynqSocTestPlatform
-from util.sim import wait_for
+from modules.axi.axi import Response, AxiInterface
+from soc.SimPlatform import SimPlatform
+from soc.peripherals.CsrBank import CsrBank
+from soc.zynq.ZynqSocPlatform import ZynqSocPlatform
+from util.sim import wait_for, do_nothing
 
 
 def write_to_channel(channel, value):
@@ -43,32 +43,31 @@ def axil_write(axi, addr, data):
 
 
 class TestAxiSlave(FHDLTestCase):
-    def test_reg(self, addr=123456, testdata=123456):
-        platform = ZynqSocTestPlatform(addr)
-        dut = SocRegister(width=32, name="test")
-
-        def testbench():
-            axi = platform.axi_lite_master
-
-            yield from axil_read(axi, addr)
-            yield from axil_write(axi, addr, testdata)
-            self.assertEqual(testdata, (yield from axil_read(axi, addr)))
-
-        platform.sim(dut, testbench)
-
-    def test_auto_csr_bank(self, base_addr=123456, num_csr=10, testdata=0x12345678):
-        platform = ZynqSocTestPlatform(base_addr)
-        csr_bank = AutoCsrBank()
+    def test_csr_bank(self, num_csr=10, testdata=0x12345678):
+        platform = ZynqSocPlatform(SimPlatform())
+        csr_bank = CsrBank()
         for i in range(num_csr):
-            csr_bank.reg("csr#{}".format(i), width=32, writable=True)
-
-        print(csr_bank._memory_map)
+            csr_bank.reg("csr#{}".format(i), Signal(32),  writable=True)
 
         def testbench():
             axi = platform.axi_lite_master
-            for addr in [base_addr + (i * 4) for i in range(num_csr)]:
+            for addr in [0x4000_0000 + (i * 4) for i in range(num_csr)]:
                 yield from axil_read(axi, addr)
                 yield from axil_write(axi, addr, testdata)
                 self.assertEqual(testdata, (yield from axil_read(axi, addr)))
 
-        platform.sim(csr_bank, testbench)
+        platform.sim(csr_bank, (testbench, "axi_csr"))
+
+    def test_simple_test_csr_bank(self):
+        platform = ZynqSocPlatform(SimPlatform())
+        csr_bank = CsrBank()
+        csr_bank.reg("csr", Signal(32), writable=True)
+
+        def testbench():
+            axi: AxiInterface = platform.axi_lite_master
+            yield axi.read_address.value.eq(0x4000_0000)
+            yield axi.read_address.valid.eq(1)
+            yield from do_nothing()
+
+
+        platform.sim(csr_bank, (testbench, "axi_csr"))

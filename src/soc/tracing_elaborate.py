@@ -46,7 +46,7 @@ def fragment_get_with_elaboratable_trace(elaboratable, platform, sames=None):
 
     def inject_elaborate_wrapper(elaboratable, level=0, text_prefix=""):
         if isinstance(elaboratable, TransformedElaboratable):
-            inject_elaborate_wrapper(elaboratable._elaboratable_, level=level + 1, text_prefix="x> ")
+            inject_elaborate_wrapper(elaboratable._elaboratable_, level=level + 1, text_prefix=" x> ")
             sames.insert(elaboratable, elaboratable._elaboratable_)
         real_elaborate = elaboratable.elaborate
 
@@ -54,13 +54,13 @@ def fragment_get_with_elaboratable_trace(elaboratable, platform, sames=None):
             if isinstance(elaboratable, Module):
                 submodules = [*elaboratable._named_submodules.values(), *elaboratable._anon_submodules]
                 for elab in submodules:
-                    inject_elaborate_wrapper(elab, level + 1, text_prefix="s> ")
+                    inject_elaborate_wrapper(elab, level + 1, text_prefix="\ns> ")
 
-            print(indent("{}elaborating {!r}".format(text_prefix, elaboratable), "    " * level))
+            print(indent("{}elaborating {}".format(text_prefix, elaboratable.__class__.__name__), "    " * level), end="")
             obj = real_elaborate(platform)
             sames.insert(elaboratable, obj)
 
-            inject_elaborate_wrapper(obj, level + 1, text_prefix="e> ")
+            inject_elaborate_wrapper(obj, level + 1, text_prefix=" e> ")
             return obj
 
         elaboratable.elaborate = elaborate_wrapper

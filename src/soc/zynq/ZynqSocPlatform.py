@@ -43,12 +43,17 @@ class ZynqSocPlatform(SocPlatform):
                 m = Module()
                 ps7 = self.get_ps7()
                 ps7.fck_domain(domain_name="axi_csr", requested_frequency=100e6)
-                axi_full_port: AxiInterface = ps7.get_axi_gp_master(0, ClockSignal("axi_csr"))
-                axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_csr")(
-                    AxiFullToLiteBridge(axi_full_port)
-                )
+                if not hasattr(platform, "is_sim"):
+                    axi_full_port: AxiInterface = ps7.get_axi_gp_master(0, ClockSignal("axi_csr"))
+                    axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_csr")(
+                        AxiFullToLiteBridge(axi_full_port)
+                    )
+                    axi_lite_master = axi_lite_bridge.lite_master
+                else:  # we are in a simulation platform
+                    axi_lite_master = AxiInterface(addr_bits=32, data_bits=32, master=True, lite=True)
+                    self.axi_lite_master = axi_lite_master
                 interconnect = m.submodules.interconnect = DomainRenamer("axi_csr")(
-                    AxiInterconnect(axi_lite_bridge.lite_master)
+                    AxiInterconnect(axi_lite_master)
                 )
                 for slave, slave_memorymap in bus_slaves:
                     slave.address_range = slave_memorymap.own_offset.range()
@@ -56,7 +61,6 @@ class ZynqSocPlatform(SocPlatform):
                     m.d.comb += interconnect.get_port().connect_slave(slave.axi)
                     m.submodules += slave
                 platform.to_inject_subfragments.append((m, "axi_lite"))
-
         self.prepare_hooks.append(bus_slaves_connect_hook)
 
     def BusSlave(self, handle_read, handle_write, *, memorymap):

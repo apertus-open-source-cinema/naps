@@ -47,9 +47,9 @@ class AxiInterconnect(Elaboratable):
             m.d.comb += downstream_port.write_data.valid.eq(uplink.write_data.valid)
             m.d.comb += downstream_port.write_data.byte_strobe.eq(uplink.write_data.byte_strobe)
 
-        # wait for _all_ peripherals when writing the addresses
-        m.d.comb += uplink.read_address.ready.eq(reduce(lambda a, b: a & b, (d.read_address.ready for d in self._downstream_ports)))
-        m.d.comb += uplink.write_address.ready.eq(reduce(lambda a, b: a & b, (d.write_address.ready for d in self._downstream_ports)))
+        # wait until at least one peripherals is ready when writing the addresses
+        m.d.comb += uplink.read_address.ready.eq(reduce(lambda a, b: a | b, (d.read_address.ready for d in self._downstream_ports)))
+        m.d.comb += uplink.write_address.ready.eq(reduce(lambda a, b: a | b, (d.write_address.ready for d in self._downstream_ports)))
 
         # only one peripheral has to accept written data
         m.d.comb += uplink.write_data.ready.eq(reduce(lambda a, b: a | b, (d.write_data.ready for d in self._downstream_ports)))

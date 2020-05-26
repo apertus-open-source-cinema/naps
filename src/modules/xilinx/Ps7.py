@@ -148,17 +148,15 @@ class Ps7(blocks.Ps7):
         self.m.domains += ClockDomain(domain_name)
         fclk_num = len(self.clock_constraints)
 
-        clock_signal = Signal(attrs={"KEEP": "TRUE"}, name="{}_clock_signal".format(domain_name))
-        self.m.d.comb += clock_signal.eq(self.fclk.clk[fclk_num])
+        driving_signal = Signal(attrs={"KEEP": "TRUE"}, name="{}_driving_signal".format(domain_name))
+        self.m.d.comb += driving_signal.eq(self.fclk.clk[fclk_num])
 
         bufg = self.m.submodules["fclk_bufg_{}".format(fclk_num)] = Bufg()
-        self.m.d.comb += bufg.i.eq(clock_signal)
-
-        self.m.d.comb += ClockSignal(domain_name).eq(bufg.o)
+        self.m.d.comb += bufg.i.eq(driving_signal)
 
         real_freq = [x for x in self.get_possible_fclk_frequencies() if x <= requested_frequency][-1]
         max_error_freq(real_freq, requested_frequency, max_error_percent)
-        self.clock_constraints[fclk_num] = (clock_signal, real_freq, domain_name)
+        self.clock_constraints[fclk_num] = (driving_signal, bufg.o, real_freq, domain_name)
         return Clock(real_freq)
 
     def elaborate(self, platform):
@@ -167,15 +165,20 @@ class Ps7(blocks.Ps7):
         m.submodules.ps7_block = super().elaborate(platform)
         m.submodules.connections = self.m
 
-        for i, (clock_signal, frequency, domain_name) in self.clock_constraints.items():
-            platform.add_clock_constraint(clock_signal, frequency)
+        for i, (clock_signal, bufg_out, frequency, domain_name) in self.clock_constraints.items():
+            if hasattr(platform, "add_clock_constraint"):
+                self.m.d.comb += ClockSignal(domain_name).eq(bufg_out)
+                platform.add_clock_constraint(clock_signal, frequency)
+            else:  # we are a sim platform
+                platform.add_sim_clock(domain_name, frequency)
 
-        platform.init_script += "\n".join(
-            "# clockdomain '{name}':\n"
-            "echo 1 > /sys/class/fclk/fclk{i}/enable\n"
-            "echo {freq} > /sys/class/fclk/fclk{i}/set_rate\n"
-                .format(freq=int(freq), i=i, name=domain_name)
-            for i, (clock_signal, freq, domain_name) in self.clock_constraints.items()
-        )
+        if hasattr(platform, "init_script"):
+            platform.init_script += "\n".join(
+                "# clockdomain '{name}':\n"
+                "echo 1 > /sys/class/fclk/fclk{i}/enable\n"
+                "echo {freq} > /sys/class/fclk/fclk{i}/set_rate\n"
+                    .format(freq=int(freq), i=i, name=domain_name)
+                for i, (clock_signal, bufg_out, freq, domain_name) in self.clock_constraints.items()
+            )
 
         return m

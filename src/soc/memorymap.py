@@ -69,10 +69,10 @@ class Address:
         other_start = other_address.address * 8
         other_stop = other_start + other_address.bit_len
 
-        if self_start >= other_start:
-            return self_stop <= other_start
+        if self_start <= other_start:
+            return self_stop > other_start
         else:
-            return other_stop <= self_start
+            return other_stop > self_start
 
     def bits_of_word(self, word_address: int):
         """

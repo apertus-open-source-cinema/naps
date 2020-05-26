@@ -72,15 +72,15 @@ class PluginLowspeedController(Elaboratable):
 
         # generate low speed CSR signals
         if hasattr(self.plugin, "output_enable"):
-            for name, signal_type, width in [
-                ("output_enable", ControlSignal, 1),
-                ("equalizer", ControlSignal, 2),
-                ("dcc_enable", ControlSignal, 1),
-                ("vcc_enable", ControlSignal, 1),
-                ("ddet", ControlSignal, 1),
-                ("ihp", StatusSignal, 1),
+            for name, signal_type, width, default in [
+                ("output_enable", ControlSignal, 1, 1),
+                ("equalizer", ControlSignal, 2, 0b11),
+                ("dcc_enable", ControlSignal, 1, 0),
+                ("vcc_enable", ControlSignal, 1, 1),
+                ("ddet", ControlSignal, 1, 0),
+                ("ihp", StatusSignal, 1, 0),
             ]:
-                csr_signal = signal_type(width)
+                csr_signal = signal_type(width, reset=default)
                 setattr(self, name, csr_signal)
                 io = getattr(self.plugin, name)
                 if signal_type == ControlSignal:

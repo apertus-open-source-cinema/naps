@@ -43,19 +43,18 @@ class AxiLiteSlave(Elaboratable, ABC):
 
         with m.FSM():
             with m.State("IDLE"):
-                m.d.comb += self.axi.read_address.ready.eq(1)
-                m.d.comb += self.axi.write_address.ready.eq(1)
-
                 def in_range(signal):
                     return (signal >= self.address_range.start) & (signal < self.address_range.stop)
 
                 with m.If(self.axi.read_address.valid & in_range(self.axi.read_address.value)):
-                    m.d.sync += addr.eq(self.axi.read_address.value - self.address_range.start)
-                    m.next = "READ"
+                    m.next = "FETCH_READ_ADDRESS"
                 with m.Elif(self.axi.write_address.valid & in_range(self.axi.write_address.value)):
-                    m.d.sync += addr.eq(self.axi.write_address.value - self.address_range.start)
-                    m.next = "WRITE"
+                    m.next = "FETCH_WRITE_ADDRESS"
 
+            with m.State("FETCH_READ_ADDRESS"):
+                m.d.sync += addr.eq(self.axi.read_address.value - self.address_range.start)
+                m.d.comb += self.axi.read_address.ready.eq(1)
+                m.next = "READ"
             with m.State("READ"):
                 # Only write read and resp if we are in the READ state. Otherwise all bits are '0'.
                 # This allows us to simply or the data output of multiple axi slaves together.
@@ -71,14 +70,18 @@ class AxiLiteSlave(Elaboratable, ABC):
                 with m.If(self.axi.read_data.ready):
                     m.next = "IDLE"
 
+            with m.State("FETCH_WRITE_ADDRESS"):
+                m.d.sync += addr.eq(self.axi.write_address.value - self.address_range.start)
+                m.d.comb += self.axi.write_address.ready.eq(1)
+                m.next = "WRITE"
             with m.State("WRITE"):
-                m.d.comb += self.axi.write_data.ready.eq(read_write_done)
                 with m.If(self.axi.write_data.valid):
                     self.handle_write(m, addr, self.axi.write_data.value, read_write_done_callback)
                     with m.If(read_write_done):
                         m.d.sync += read_write_done.eq(0)
                         m.next = "WRITE_DONE"
             with m.State("WRITE_DONE"):
+                m.d.comb += self.axi.write_response.resp.eq(resp_out)
                 m.d.comb += self.axi.write_response.valid.eq(1)
                 m.d.comb += self.axi.write_data.ready.eq(1)
                 with m.If(self.axi.write_response.ready):

@@ -80,7 +80,7 @@ class HDMIOutPHY(Module):
         # # #
 
         clk_gen = self.submodules.clk_gen = S7HDMIOutEncoderSerializer(bypass_encoder=True)
-        self.comb += self.clk_gen.data.eq(Signal(10, reset=0b0000011111))
+        self.comb += self.clk_gen.data.eq(Signal(10, reset=0b1111100000))
         self.comb += self.clock.eq(clk_gen.output)
 
         es_b = self.submodules.es_b = S7HDMIOutEncoderSerializer()

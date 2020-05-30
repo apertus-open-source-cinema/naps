@@ -14,14 +14,14 @@ from util.nmigen import get_signals
 class TestHdmi(FHDLTestCase):
     def test_timing_generator(self):
         platform = SimPlatform()
-        dut = TimingGenerator(parse_modeline(generate_modeline(640, 480, 60)))
+        dut = TimingGenerator(parse_modeline(generate_modeline(1920, 1080, 30)))
 
         def testbench():
             last_x = 0
-            for i in range(800):
+            for i in range(1920 * 1080 * 100):
                 yield
                 this_x = (yield dut.x)
-                assert this_x == last_x + 1, "x increment failed"
+                # assert this_x == last_x + 1, "x increment failed"
                 last_x = this_x
             yield
             assert 1 == (yield dut.y), "y increment failed"
@@ -29,3 +29,5 @@ class TestHdmi(FHDLTestCase):
         platform.add_sim_clock("sync", 100e6)
         platform.sim(dut, (testbench, "sync"), traces=get_signals(dut))
 
+test = TestHdmi()
+test.test_timing_generator()

@@ -67,23 +67,29 @@ class PluginLowspeedController(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        # generate low speed CSR signals
-        if hasattr(self.plugin, "output_enable"):
-            for name, signal_type, width, default in [
+        if hasattr(self.plugin, "output_enable"): # micro style directly connected hdmi plugin module
+            sigs = [
                 ("output_enable", ControlSignal, 1, 1),
                 ("equalizer", ControlSignal, 2, 0b11),
                 ("dcc_enable", ControlSignal, 1, 0),
                 ("vcc_enable", ControlSignal, 1, 1),
                 ("ddet", ControlSignal, 1, 0),
                 ("ihp", StatusSignal, 1, 0),
-            ]:
-                csr_signal = signal_type(width, reset=default)
-                setattr(self, name, csr_signal)
-                io = getattr(self.plugin, name)
-                if signal_type == ControlSignal:
-                    m.d.comb += io.eq(csr_signal)
-                else:
-                    m.d.comb += csr_signal.eq(io)
+            ]
+        elif hasattr(self.plugin, "out_en"): # zybo style raw hdmi
+            sigs = ("out_en", ControlSignal, 1, 1),
+        else:
+            sigs = []
+
+        # generate low speed CSR signals
+        for name, signal_type, width, default in sigs:
+            csr_signal = signal_type(width, reset=default)
+            setattr(self, name, csr_signal)
+            io = getattr(self.plugin, name)
+            if signal_type == ControlSignal:
+                m.d.comb += io.eq(csr_signal)
+            else:
+                m.d.comb += csr_signal.eq(io)
 
         return m
 
@@ -97,7 +103,7 @@ class HdmiClocking(Elaboratable):
         for output_div in range(1, 6):
             for fclk_frequency in [10e6, 20e6]:
                 for mmcm_mul in reversed(Mmcm.vco_multipliers):
-                    if (fclk_frequency * mmcm_mul / output_div) == self.pix_freq.frequency * 5:
+                    if ((fclk_frequency * mmcm_mul / output_div) == self.pix_freq.frequency * 5) and Mmcm.is_valid_vco_conf(fclk_frequency, mmcm_mul, output_div):
                         self.mmcm_mul = mmcm_mul
                         self.fclk_freq = fclk_frequency
                         self.output_div = output_div
@@ -151,11 +157,11 @@ class TimingGenerator(Elaboratable):
         self.vsync_start = ControlSignal(vertical_signals_shape, reset=video_timing.vsync_start)
         self.vsync_end = ControlSignal(vertical_signals_shape, reset=video_timing.vsync_end)
 
-        self.x = StatusSignal(horizontal_signals_shape)
-        self.y = StatusSignal(vertical_signals_shape)
-        self.active = StatusSignal()
-        self.hsync = StatusSignal()
-        self.vsync = StatusSignal()
+        self.x = StatusSignal(horizontal_signals_shape, name="x")
+        self.y = StatusSignal(vertical_signals_shape, name="y")
+        self.active = StatusSignal(name="active")
+        self.hsync = StatusSignal(name="hsync")
+        self.vsync = StatusSignal(name="vsync")
 
     def elaborate(self, plat):
         m = Module()
@@ -173,7 +179,7 @@ class TimingGenerator(Elaboratable):
         m.d.comb += [
             self.active.eq((self.x < self.width) & (self.y < self.height)),
             self.hsync.eq((self.x > self.hsync_start) & (self.x <= self.hsync_end)),
-            self.vsync.eq((self.y > self.vsync_start) & (self.x <= self.vsync_end))
+            self.vsync.eq((self.y > self.vsync_start) & (self.y <= self.vsync_end))
         ]
 
         return m

@@ -9,7 +9,7 @@ class TestBuilds(unittest.TestCase):
     pass
 
 
-for file, device in product(glob("{}/*.py".format(dirname(__file__))), ["beta", "micro"]):
+for file, device in product(glob("{}/*.py".format(dirname(__file__))), ["beta", "micro", "zybo"]):
     if "test_builds" in file:
         continue
 

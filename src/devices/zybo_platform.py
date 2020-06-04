@@ -1,7 +1,7 @@
 from nmigen.build import *
 from nmigen.vendor.xilinx_7series import *
 
-__all__ = ["Zybo"]
+__all__ = ["ZyboPlatform"]
 
 
 class ZyboPlatform(Xilinx7SeriesPlatform):
@@ -9,7 +9,7 @@ class ZyboPlatform(Xilinx7SeriesPlatform):
     package = "clg400"
     speed = "1"
     resources = [
-        Resource("hdmi", 0,
+        Resource("hdmi", "north",
              # high speed serial lanes
              Subsignal("clock", DiffPairs("H16", "H17", dir='o'), Attrs(IOSTANDARD="TMDS_33")),
              Subsignal("data", DiffPairs("D19 C20 B19", "D20 B20 A20", dir='o'), Attrs(IOSTANDARD="TMDS_33")),

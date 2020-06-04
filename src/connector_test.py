@@ -8,9 +8,6 @@ from xilinx.io import Oserdes, IdelayCtl, Idelay, Iserdes
 
 
 class Top(Elaboratable):
-    def __init__(self):
-        pass
-
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
 

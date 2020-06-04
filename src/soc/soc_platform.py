@@ -13,12 +13,12 @@ from soc.tracing_elaborate import fragment_get_with_elaboratable_trace
 
 class SocPlatform(ABC):
     def __init__(self, platform: Platform):
-        self.platform = platform
+        self._platform = platform
 
         # we inject our prepare method into the platform
-        if self.platform:
-            self.real_prepare = self.platform.prepare
-            self.platform.prepare = self.prepare
+        if self._platform:
+            self.real_prepare = self._platform.prepare
+            self._platform.prepare = self.prepare
 
         self.prepare_hooks = []
         self.to_inject_subfragments = []
@@ -30,7 +30,12 @@ class SocPlatform(ABC):
 
     # we pass through all platform methods, because we pretend to be one
     def __getattr__(self, item):
-        return getattr(self.platform, item)
+        return getattr(self._platform, item)
+
+    # we also pretend to be the class. a bit evil but well...
+    @property
+    def __class__(self):
+        return self._platform.__class__
 
     # we override the prepare method of the real platform to be able to inject stuff into the design
     def prepare(self, elaboratable, *args, **kwargs):

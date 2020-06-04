@@ -1,6 +1,6 @@
 import subprocess
 from functools import lru_cache
-from json import loads, dumps
+from json import loads
 
 
 @lru_cache()
@@ -15,7 +15,8 @@ def parse_yosys_json(verilog_paths):
 def get_module_ports(verilog_paths, module_name):
     """Get the ports of a verilog module via yosys
 
-    :param verilog_path: the path of the verilog file
+    :param verilog_paths:
+    :param module_name:
     :return: the verilog as a string
     """
 

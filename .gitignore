@@ -9,4 +9,5 @@ usage_statistics_webtalk.xml
 *.gtkw
 *.vcd
 spec_*/
-#*#
+*.pyi
+*.sim_results/*

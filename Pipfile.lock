@@ -96,7 +96,7 @@
         },
         "nmigen-boards": {
             "git": "https://github.com/nmigen/nmigen-boards.git",
-            "ref": "36ee98d8396c9688ff2f6ad3659a7be986ffc312"
+            "ref": "86ae7919fa509c0fca75ca9717abbb4bddd2f6f6"
         },
         "python-varname": {
             "hashes": [

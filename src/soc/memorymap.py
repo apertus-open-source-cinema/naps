@@ -3,7 +3,6 @@
 import re
 from dataclasses import dataclass
 from math import ceil
-from textwrap import indent
 from typing import List
 
 from nmigen._unused import MustUse

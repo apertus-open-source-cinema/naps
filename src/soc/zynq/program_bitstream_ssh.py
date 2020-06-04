@@ -1,5 +1,4 @@
 import subprocess
-import tempfile
 from shlex import quote
 from base64 import b64encode
 
@@ -36,6 +35,10 @@ def program_bitstream_ssh(platform, build_products: BuildProducts, name, **kwarg
     bitstream_name = "{}.bit".format(name)
     bin_bitstream = bit2bin(build_products.get(bitstream_name), flip_data=True)
     fatfile += self_extracting_blob(bin_bitstream, "/usr/lib/firmware/{}.bin".format(name))
+
+    fatfile += "\n# extra files:\n"
+    for name, contents in platform.extra_files.iter():
+        fatfile += self_extracting_blob(contents, name) + "\n"
 
     init_script = "\n# init script:\n"
     init_script += "echo {}.bin > /sys/class/fpga_manager/fpga0/firmware\n".format(name)

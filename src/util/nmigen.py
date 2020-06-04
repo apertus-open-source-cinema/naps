@@ -5,6 +5,7 @@ import operator
 from typing import Iterator, Iterable
 
 from nmigen import *
+from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 from nmigen.hdl.xfrm import TransformedElaboratable
 
@@ -114,3 +115,9 @@ def max_error_freq(real_freq, requested_freq, max_error_percent=1):
                          .format(requested_freq / 1e6, max_error_percent, freq_error,
                                  real_freq / 1e6))
     return freq_error
+
+
+class TristateIo:
+    i: Signal
+    o: Signal
+    oe: Signal

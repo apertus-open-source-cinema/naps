@@ -1,5 +1,4 @@
 from dataclasses import dataclass
-from enum import Enum
 
 from nmigen import *
 from nmigen import tracer

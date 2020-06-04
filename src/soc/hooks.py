@@ -1,36 +1,51 @@
-import json
+from functools import reduce
 
 from nmigen import *
+from nmigen.hdl.ast import SignalSet
 
 from soc.memorymap import MemoryMap
-from soc.peripherals.CsrBank import CsrBank
-from soc.reg_types import ControlSignal, StatusSignal, _Csr, EventReg
+from soc.peripherals.csr_bank import CsrBank
+from soc.reg_types import ControlSignal, StatusSignal, EventReg, _Csr
 from soc.tracing_elaborate import ElaboratableSames
 
 
-def csr_hook(platform, fragment: Fragment, sames: ElaboratableSames):
-    elaboratable = sames.get_elaboratable(fragment)
-    if elaboratable:
-        class_members = [(s, getattr(elaboratable, s)) for s in dir(elaboratable)]
-        csr_signals = [(name, member) for name, member in class_members if isinstance(member, (_Csr))]
-        if csr_signals:
-            m = Module()
+def csr_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
+    already_done = []
 
-            csr_bank = CsrBank()
-            m.submodules += csr_bank
-            for name, signal in csr_signals:
-                if isinstance(signal, ControlSignal):
-                    csr_bank.reg(name, signal, writable=True, address=signal.address)
-                elif isinstance(signal, StatusSignal):
-                    csr_bank.reg(name, signal, writable=False, address=signal.address)
-                elif isinstance(signal, EventReg):
-                    raise NotImplementedError()
+    def inner(fragment):
+        elaboratable = sames.get_elaboratable(fragment)
+        if elaboratable:
+            class_members = [(s, getattr(elaboratable, s)) for s in dir(elaboratable)]
+            csr_signals = [(name, member) for name, member in class_members if isinstance(member, _Csr)]
+            fragment_signals = reduce(lambda a, b: a | b, fragment.drivers.values(), SignalSet())
+            csr_signals += [
+                (signal.name, signal) for signal in fragment_signals
+                if isinstance(signal, _Csr) and signal.name != "$signal" and any(signal is cmp_signal for name, cmp_signal in csr_signals)
+            ]
+            for signal in csr_signals:
+                assert not any(signal is done for done in already_done), "attempting to add a csr to two modules"
+                already_done.append(signal)
+            if csr_signals:
+                m = Module()
 
-            fragment.memorymap = csr_bank.memorymap
-            platform.to_inject_subfragments.append((m, "ignore"))
+                csr_bank = CsrBank()
+                m.submodules += csr_bank
+                for name, signal in csr_signals:
+                    if isinstance(signal, ControlSignal):
+                        csr_bank.reg(name, signal, writable=True, address=signal.address)
+                        signal._MustUse__used = True
+                    elif isinstance(signal, StatusSignal):
+                        csr_bank.reg(name, signal, writable=False, address=signal.address)
+                        signal._MustUse__used = True
+                    elif isinstance(signal, EventReg):
+                        raise NotImplementedError()
 
-    for fragment, name in fragment.subfragments:
-        csr_hook(platform, fragment, sames)
+                fragment.memorymap = csr_bank.memorymap
+                platform.to_inject_subfragments.append((m, "ignore"))
+
+        for subfragment, name in fragment.subfragments:
+            inner(subfragment)
+    inner(top_fragment)
 
 
 def address_assignment_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):

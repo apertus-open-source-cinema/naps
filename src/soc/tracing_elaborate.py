@@ -4,7 +4,7 @@ from nmigen import *
 from nmigen.hdl.xfrm import TransformedElaboratable
 
 
-class ElaboratableSames():
+class ElaboratableSames:
     def __init__(self):
         self.sames = []
 

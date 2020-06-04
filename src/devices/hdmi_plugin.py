@@ -4,8 +4,8 @@
 from nmigen.build import Resource, Subsignal, Pins, PinsN, DiffPairs, Attrs
 
 
-def hdmi_plugin_connect(platform, plugin_number, hdmi_num=0, only_highspeed=False):
-    if not only_highspeed:
+def hdmi_plugin_connect(platform, plugin_number):
+    if "plugin_{}:gpio0".format(plugin_number) in platform._conn_pins:
         lowspeed_signals = [
             # i2c to read edid data from the monitor
             Subsignal("sda", Pins("lvds5_n", dir='io', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
@@ -26,7 +26,7 @@ def hdmi_plugin_connect(platform, plugin_number, hdmi_num=0, only_highspeed=Fals
         lowspeed_signals = []
 
     platform.add_resources([
-        Resource("hdmi", hdmi_num,
+        Resource("hdmi", plugin_number,
              # high speed serial lanes
              Subsignal("clock", DiffPairs("lvds3_p", "lvds3_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS_25")),
              Subsignal("data", DiffPairs("lvds2_p lvds1_p lvds0_p", "lvds2_n lvds1_n lvds0_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS_25")),

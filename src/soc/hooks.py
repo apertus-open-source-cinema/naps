@@ -20,7 +20,9 @@ def csr_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
             fragment_signals = reduce(lambda a, b: a | b, fragment.drivers.values(), SignalSet())
             csr_signals += [
                 (signal.name, signal) for signal in fragment_signals
-                if isinstance(signal, _Csr) and signal.name != "$signal" and any(signal is cmp_signal for name, cmp_signal in csr_signals)
+                if isinstance(signal, _Csr)
+                   and signal.name != "$signal"
+                   and not any(signal is cmp_signal for name, cmp_signal in csr_signals)
             ]
             for signal in csr_signals:
                 assert not any(signal is done for done in already_done), "attempting to add a csr to two modules"

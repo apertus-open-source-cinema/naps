@@ -1,4 +1,5 @@
 from nmigen import *
+from nmigen.build import Platform
 
 from hdmi.hdmi import Hdmi
 from hdmi.cvt import generate_modeline
@@ -11,7 +12,7 @@ class Top(Elaboratable):
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
 
-        hdmi_plugin = platform.request("hdmi")
+        hdmi_plugin = platform.request("hdmi", "north")
         m.submodules.hdmi = Hdmi(hdmi_plugin, generate_modeline(1920, 1080, 30))
 
         return m
@@ -19,5 +20,5 @@ class Top(Elaboratable):
 
 if __name__ == "__main__":
     with cli(Top) as platform:
-        import devices.hdmi_plugin as hdmi
-        hdmi.hdmi_plugin_connect(platform, "north", only_highspeed=False)
+        from devices.hdmi_plugin import hdmi_plugin_connect
+        hdmi_plugin_connect(platform, "north")

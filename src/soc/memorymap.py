@@ -242,7 +242,7 @@ class MemoryMap(MustUse):
         :return: the address of the resource
         """
         assert not self.frozen
-        assert not any(row.name == name for row in self.entries)
+        assert not any(row.name == name for row in self.entries), name
         assert bits is not None or address is not None
         if address:
             assert ((bits is None) or (

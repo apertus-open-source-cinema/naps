@@ -11,13 +11,13 @@ class BetaPlatform(MicroZedZ020Platform):
 
     def connect_mainboard(self):
         self.add_connectors([
-            Connector("plugin", 'south',
+            Connector("plugin", "south",
                       gen_plugin_connector(
                           lvds=["94 96", "95 93", "97 99", "87 89", "81 83", "73 75"]),
                       conn=("expansion", 1),
                       ),
 
-            Connector("plugin", 'north',
+            Connector("plugin", "north",
                       gen_plugin_connector(
                           lvds=["68 70", "74 76", "82 84", "94 92", "93 91", "89 87"]),
                       conn=("expansion", 0),

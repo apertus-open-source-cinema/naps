@@ -1,6 +1,8 @@
 import unittest
 
-from hdmi.hdmi import TimingGenerator, Hdmi
+from nmigen.build import Clock
+
+from hdmi.hdmi import TimingGenerator, Hdmi, HdmiClocking
 from soc.zynq import ZynqSocPlatform
 from soc.peripherals.test_peripherals_axi import axil_read, axil_write
 from util.bundle import Bundle, Signal
@@ -48,3 +50,7 @@ class TestHdmi(unittest.TestCase):
                 # self.assertEqual(testdata, (yield from axil_read(axi, addr.address)))
 
         platform.sim(dut, (testbench, "axi_csr"))
+
+    def test_mmcm_calculation(self):
+        clocking = HdmiClocking(Clock(79.75e6))
+        clocking.find_valid_config()

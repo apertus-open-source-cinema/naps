@@ -1,5 +1,4 @@
 from nmigen import *
-from nmigen.build import Platform
 
 from devices.zybo_platform import ZyboPlatform
 from hdmi.hdmi import Hdmi

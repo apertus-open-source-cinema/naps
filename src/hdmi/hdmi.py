@@ -104,10 +104,10 @@ class HdmiClocking(Elaboratable):
 
     def find_valid_config(self):
         # fast path:
-        for output_div in range(1, 6):
+        for output_div in [2, 1, 4, 6]:
             for fclk_frequency in [10e6, 20e6]:
-                for mmcm_mul in reversed(Mmcm.vco_multipliers):
-                    if ((fclk_frequency * mmcm_mul / output_div) == self.pix_freq.frequency * 5) and Mmcm.is_valid_vco_conf(fclk_frequency, mmcm_mul, output_div):
+                for mmcm_mul in sorted(Mmcm.vco_multipliers, key=lambda a: abs(a - 39)):
+                    if (fclk_frequency * mmcm_mul == self.pix_freq.frequency * 5 * output_div) and Mmcm.is_valid_vco_conf(fclk_frequency, mmcm_mul, 1):
                         self.mmcm_mul = mmcm_mul
                         self.fclk_freq = fclk_frequency
                         self.output_div = output_div
@@ -115,12 +115,16 @@ class HdmiClocking(Elaboratable):
                         return
 
         # always working path:
+        print("WARNING: falling back to slow MMCM calculation path")
         valid_configs = (
             (abs(1 - ((fclk * mul / div) / (self.pix_freq.frequency * 5 * output_div))),
              fclk, mul, div, output_div)
-            for fclk, mul, div, output_div in
-            product([f for f in Ps7.get_possible_fclk_frequencies() if 1e6 <= f <= 100e6], Mmcm.vco_multipliers, [1],
-                    range(1, 6))
+            for fclk, mul, div, output_div in product(
+                [f for f in Ps7.get_possible_fclk_frequencies() if 1e6 <= f <= 100e6],
+                Mmcm.vco_multipliers,
+                [1],
+                range(1, 6)
+            )
             if Mmcm.is_valid_vco_conf(fclk, mul, div)
         )
         deviation, self.fclk_freq, self.mmcm_mul, self.mmcm_div, self.output_div = sorted(valid_configs)[0]

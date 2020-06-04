@@ -36,17 +36,21 @@ class Mmcm(Elaboratable):
     @staticmethod
     def is_valid_vco_conf(input_freq, mul, div, exception=False):
         if not mul in Mmcm.vco_multipliers:
-            if exception: raise ValueError
+            if exception:
+                raise ValueError
             return False
         if not div in Mmcm.vco_dividers:
-            if exception: raise ValueError
+            if exception:
+                raise ValueError
             return False
         vco_freq = input_freq * mul / div
         if 600e6 > vco_freq:
-            if exception: raise ValueError
+            if exception:
+                raise ValueError
             return False
         if 1200e6 < vco_freq:
-            if exception: raise ValueError
+            if exception:
+                raise ValueError
             return False
         return True
 

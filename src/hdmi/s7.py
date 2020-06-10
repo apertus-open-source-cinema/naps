@@ -76,11 +76,12 @@ class HDMIOutPHY(Module):
         self.b = Signal(8)
         self.outputs = Signal(3)
         self.clock = Signal()
+        self.clock_pattern = Signal(10, reset=0b1111100000)
 
         # # #
 
         clk_gen = self.submodules.clk_gen = S7HDMIOutEncoderSerializer(bypass_encoder=True)
-        self.comb += self.clk_gen.data.eq(Signal(10, reset=0b1111100000))
+        self.comb += self.clk_gen.data.eq(self.clock_pattern)
         self.comb += self.clock.eq(clk_gen.output)
 
         es_b = self.submodules.es_b = S7HDMIOutEncoderSerializer()

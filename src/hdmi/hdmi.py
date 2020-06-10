@@ -22,6 +22,8 @@ class Hdmi(Elaboratable):
         self.hsync_polarity = ControlSignal()
         self.vsync_polarity = ControlSignal()
 
+        self.clock_pattern = ControlSignal(10, name="hdmi_clock_pattern", reset=0b1111100000)
+
         self.timing_generator = TimingGenerator(video_timing)
         self.pattern_generator = BertlPatternGenerator(self.timing_generator.width, self.timing_generator.height)
 
@@ -40,6 +42,8 @@ class Hdmi(Elaboratable):
         ]
 
         phy = m.submodules.phy = HDMIOutPHY()
+        m.d.comb += phy.clock_pattern.eq(self.clock_pattern)
+
         m.d.pix += [
             phy.hsync.eq(self.timing_generator.hsync ^ self.hsync_polarity),
             phy.vsync.eq(self.timing_generator.vsync ^ self.vsync_polarity),

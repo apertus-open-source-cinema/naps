@@ -40,7 +40,7 @@ def _hierarchy_to_dot_frag(frag: Fragment, hierarchy = ["top"], _bits = [0]):
             ports[name]["direction"] = dir
 
             cell["port_directions"][name] = dir
-            cell["connections"][name] = [next_bit() for _ in range(value.shape().width)]
+            cell["connections"][name] = [next_bit() for _ in range(value._shape().width)]
     else:
         ports = {}
 
@@ -51,7 +51,7 @@ def _hierarchy_to_dot_frag(frag: Fragment, hierarchy = ["top"], _bits = [0]):
             ports[name] = {}
             ports[name]["direction"] = dir
             cell["port_directions"][name] = dir
-            cell["connections"][name] = [next_bit() for _ in range(sig.shape().width)]
+            cell["connections"][name] = [next_bit() for _ in range(sig._shape().width)]
 
         for (sub_frag, sub_name) in frag.subfragments:
             if sub_name == "instance":

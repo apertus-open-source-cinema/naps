@@ -3,13 +3,14 @@ from itertools import product
 from nmigen import *
 from nmigen.build import Clock
 
+from .encoder import Encoder
+from .cvt import parse_modeline
 from util.bundle import Bundle
-from soc.reg_types import StatusSignal, ControlSignal
-from hdmi.s7 import HDMIOutPHY
+from util.nmigen import max_error_freq
+from cores.csr_bank import ControlSignal, StatusSignal
+from xilinx.io import OSerdes10
 from xilinx.ps7 import Ps7
 from xilinx.clocking import Mmcm
-from hdmi.cvt import parse_modeline
-from util.nmigen import max_error_freq
 
 
 class Hdmi(Elaboratable):
@@ -21,6 +22,7 @@ class Hdmi(Elaboratable):
 
         self.hsync_polarity = ControlSignal()
         self.vsync_polarity = ControlSignal()
+        self.clock_pattern = ControlSignal(10, reset=0b1111100000)
 
         self.timing_generator = TimingGenerator(video_timing)
         self.pattern_generator = BertlPatternGenerator(self.timing_generator.width, self.timing_generator.height)
@@ -31,29 +33,31 @@ class Hdmi(Elaboratable):
             self.clocking = m.submodules.clocking = HdmiClocking(self.pix_freq)
 
         in_pix_domain = DomainRenamer("pix")
-        m.submodules.timing_generator = in_pix_domain(self.timing_generator)
-        m.submodules.pattern_generator = in_pix_domain(self.pattern_generator)
+        timing = m.submodules.timing_generator = in_pix_domain(self.timing_generator)
+        pattern = m.submodules.pattern_generator = in_pix_domain(self.pattern_generator)
+        rgb = pattern.out
 
         m.d.comb += [
             self.pattern_generator.x.eq(self.timing_generator.x),
             self.pattern_generator.y.eq(self.timing_generator.y)
         ]
 
-        phy = m.submodules.phy = HDMIOutPHY()
-        m.d.pix += [
-            phy.hsync.eq(self.timing_generator.hsync ^ self.hsync_polarity),
-            phy.vsync.eq(self.timing_generator.vsync ^ self.vsync_polarity),
-            phy.data_enable.eq(self.timing_generator.active),
+        domain_args = {"domain": "pix", "domain_5x": "pix_5x"}
+        in_pix_domain = DomainRenamer("pix")
 
-            phy.r.eq(self.pattern_generator.out.r),
-            phy.g.eq(self.pattern_generator.out.g),
-            phy.b.eq(self.pattern_generator.out.b),
-        ]
+        serializer_clock = m.submodules.serializer_clock = OSerdes10(self.clock_pattern, **domain_args)
+        m.d.comb += self.plugin.clock.eq(serializer_clock.output)
 
-        m.d.comb += [
-            self.plugin.data.eq(phy.outputs),
-            self.plugin.clock.eq(phy.clock)
-        ]
+        encoder_b = m.submodules.encoder_b = in_pix_domain(
+            Encoder(rgb.b, Cat(timing.hsync, timing.vsync), timing.active))
+        serializer_b = m.submodules.serializer_b = OSerdes10(encoder_b.out, **domain_args)
+        m.d.comb += self.plugin.data_b.eq(serializer_b.output)
+        encoder_g = m.submodules.encoder_g = in_pix_domain(Encoder(rgb.g, 0, timing.active))
+        serializer_g = m.submodules.serializer_g = OSerdes10(encoder_g.out, **domain_args)
+        m.d.comb += self.plugin.data_g.eq(serializer_g.output)
+        encoder_r = m.submodules.encoder_r = in_pix_domain(Encoder(rgb.r, 0, timing.active))
+        serializer_r = m.submodules.serializer_r = OSerdes10(encoder_r.out, **domain_args)
+        m.d.comb += self.plugin.data_r.eq(serializer_r.output)
 
         m.submodules.plugin = PluginLowspeedController(self.plugin)
 
@@ -64,6 +68,7 @@ class Hdmi(Elaboratable):
         self.timing_generator.driver_set_video_timing(video_timing)
         self.clocking.driver_set_pix_clk(video_timing.pxclk * 1e6)
 
+
 class PluginLowspeedController(Elaboratable):
     def __init__(self, plugin):
         self.plugin = plugin
@@ -71,7 +76,7 @@ class PluginLowspeedController(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        if hasattr(self.plugin, "output_enable"): # micro style directly connected hdmi plugin module
+        if hasattr(self.plugin, "output_enable"):  # micro style directly connected hdmi plugin module
             sigs = [
                 ("output_enable", ControlSignal, 1, 1),
                 ("equalizer", ControlSignal, 2, 0b11),
@@ -80,7 +85,7 @@ class PluginLowspeedController(Elaboratable):
                 ("ddet", ControlSignal, 1, 0),
                 ("ihp", StatusSignal, 1, 0),
             ]
-        elif hasattr(self.plugin, "out_en"): # zybo style raw hdmi
+        elif hasattr(self.plugin, "out_en"):  # zybo style raw hdmi
             sigs = ("out_en", ControlSignal, 1, 1),
         else:
             sigs = []
@@ -107,7 +112,8 @@ class HdmiClocking(Elaboratable):
         for output_div in [2, 1, 4, 6]:
             for fclk_frequency in [10e6, 20e6]:
                 for mmcm_mul in sorted(Mmcm.vco_multipliers, key=lambda a: abs(a - 39)):
-                    if (fclk_frequency * mmcm_mul == self.pix_freq.frequency * 5 * output_div) and Mmcm.is_valid_vco_conf(fclk_frequency, mmcm_mul, 1):
+                    if (fclk_frequency * mmcm_mul == self.pix_freq.frequency * 5 * output_div) \
+                            and Mmcm.is_valid_vco_conf(fclk_frequency, mmcm_mul, 1):
                         self.mmcm_mul = mmcm_mul
                         self.fclk_freq = fclk_frequency
                         self.output_div = output_div
@@ -120,11 +126,11 @@ class HdmiClocking(Elaboratable):
             (abs(1 - ((fclk * mul / div) / (self.pix_freq.frequency * 5 * output_div))),
              fclk, mul, div, output_div)
             for fclk, mul, div, output_div in product(
-                [f for f in Ps7.get_possible_fclk_frequencies() if 1e6 <= f <= 100e6],
-                Mmcm.vco_multipliers,
-                [1],
-                range(1, 6)
-            )
+            [f for f in Ps7.get_possible_fclk_frequencies() if 1e6 <= f <= 100e6],
+            Mmcm.vco_multipliers,
+            [1],
+            range(1, 6)
+        )
             if Mmcm.is_valid_vco_conf(fclk, mul, div)
         )
         deviation, self.fclk_freq, self.mmcm_mul, self.mmcm_div, self.output_div = sorted(valid_configs)[0]
@@ -149,7 +155,7 @@ class HdmiClocking(Elaboratable):
         actual_pix_freq = mmcm.output_domain("pix", 5 * self.output_div)
         max_error_freq(actual_pix_freq.frequency, self.pix_freq.frequency)
 
-        mmcm.output_domain("pix5x", self.output_div)
+        mmcm.output_domain("pix_5x", self.output_div)
 
         return m
 

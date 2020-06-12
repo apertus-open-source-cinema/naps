@@ -2,12 +2,12 @@ import unittest
 
 from nmigen.build import Clock
 
-from hdmi.hdmi import TimingGenerator, Hdmi, HdmiClocking
+from cores.hdmi.hdmi import TimingGenerator, Hdmi, HdmiClocking
 from soc.zynq import ZynqSocPlatform
-from soc.peripherals.test_peripherals_axi import axil_read, axil_write
+from cores.csr_bank.test_csr_bank_zynq import axil_read, axil_write
 from util.bundle import Bundle, Signal
 from util.sim import SimPlatform
-from hdmi.cvt import generate_modeline, parse_modeline
+from cores.hdmi.cvt import generate_modeline, parse_modeline
 from util.nmigen import get_signals
 
 
@@ -33,7 +33,9 @@ class TestHdmi(unittest.TestCase):
         platform = ZynqSocPlatform(SimPlatform())
 
         class Pins(Bundle):
-            data = Signal(3)
+            data_r = Signal()
+            data_g = Signal()
+            data_b = Signal()
             clock = Signal()
 
         dut = Hdmi(Pins(), generate_clocks=False, modeline=generate_modeline(640, 480, 60))

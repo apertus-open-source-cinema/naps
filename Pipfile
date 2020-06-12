@@ -12,11 +12,10 @@ coverage = "*"
 pytest = "*"
 pytest-pycharm = "*"
 pylint = "*"
-tqdm = "*"
 
 [packages]
 nmigen = {git = "https://github.com/nmigen/nmigen.git"}
 nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
-jinja2 = "*"
-python-varname = "*"
-monkeytype = "*"
+
+[scripts]
+test = "python -m unittest discover src -b"

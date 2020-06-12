@@ -4,12 +4,16 @@ Mostly a place to experiment and figure out how to build things.
 
 This repo contains:
 
-* some axi helper code in `modules/axi`
-* A working but hacky implementation of axi lite CSRs in `modules/axi`
-* a (rather nice) abstraction to interface with Xilinx blackbox primitives in `modules/xilinx`
-* plattform definitions for both the Beta and the micro in `devices/`
-* a crude, unfinished and conceptually flawed clocking helper (for setting plls and stuff) in `modules/clocking`
-* some tests to use liteHdmi (non working) in `modules/hdmi.py`
-* WIP test gateware to test connectors for their ability to transmit high speed data (via a loopback test) in `connector_test.py`
-* ... and a verity of other smaller half-working experiments
+* various nMigen cores (in `src/cores/`) for:
+    * AXI and AXI Lite
+    * A CSR bank that can be wired to an AXI bus
+    * HDMI (currently the DVI subset; derived from Litevideo)
+    * ...
+* tools for gluing together SOCs (currently supports the Xilinx Zynq) in `src/soc/`
+    * Making heavy use of nMigen Platform
+    * Provides a bus agnostic way to describe (low speed) peripherals
+    * Emits Python code that can be used to access the designs CSRs
+* platform definitions for both the AXIOM Beta and the AXIOM Micro in `src/devices/`
+* test gateware to test connectors for their ability to transmit high speed data (via a loopback test) in `connector_test.py`
+* ... and a variety of other smaller half-working experiments
  

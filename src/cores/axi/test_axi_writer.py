@@ -1,8 +1,8 @@
 import unittest
 
 from util.sim import SimPlatform
-from soc.axi.axi_interface import AxiInterface, Response, AddressChannel, BurstType, DataChannel
-from soc.axi.buffer_writer import AxiBufferWriter, AddressGenerator
+from cores.axi.axi_interface import AxiInterface, Response, AddressChannel, BurstType, DataChannel
+from cores.axi.buffer_writer import AxiBufferWriter, AddressGenerator
 from util.sim import wait_for, pulse, do_nothing
 
 
@@ -106,8 +106,8 @@ class TestSimAxiWriter(unittest.TestCase):
                 yield dut.data.eq(i)
                 yield dut.data_valid.eq(1)
                 yield
-
             yield dut.data_valid.eq(0)
+
             memory = {}
             while len(memory) < 50:
                 memory.update((yield from answer_write_burst(axi))[0])
@@ -117,8 +117,7 @@ class TestSimAxiWriter(unittest.TestCase):
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
-        platform.sim(dut, testbench, [*dut.axi._rhs_signals(), dut.address_generator.request, dut.address_generator.valid,
-             dut.address_generator.valid])
+        platform.sim(dut, testbench)
 
 
 class TestAddressGenerator(unittest.TestCase):

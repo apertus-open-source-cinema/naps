@@ -3,21 +3,27 @@
 # TODO: add some kind of arebeiter to prevent driver conflicts (is this the right place?; how should it work?)
 
 from nmigen import *
+from nmigen import Signal
+from nmigen.hdl.ast import UserValue
 
-from soc.memorymap import MemoryMap, Address
-from soc.reg_types import EventReg
-from soc.peripherals import Response
+from .csr_types import _Csr, StatusSignal, ControlSignal, EventReg
+from soc.memorymap import MemoryMap
+from soc.bus_slave import Response
 
 
 class CsrBank(Elaboratable):
     def __init__(self):
         self.memorymap = MemoryMap()
 
-    def reg(self, name: str, signal: Signal, writable, address=None):
-        self.memorymap.allocate(name, writable, bits=signal.width, address=Address.parse(address), obj=signal)
+    def reg(self, name: str, signal: _Csr):
+        assert isinstance(signal, _Csr)
+        writable = not isinstance(signal, StatusSignal)
+        bits = len(signal) if isinstance(signal, UserValue) else None
+        self.memorymap.allocate(name, writable, bits=bits, address=signal.address, obj=signal)
 
     def elaborate(self, platform):
         handled = Signal()
+
         def handle_read(m, addr, data, read_done):
             for iter_addr in range(0, self.memorymap.byte_len + 1, self.memorymap.bus_word_width_bytes):
                 with m.If(iter_addr == addr):
@@ -25,11 +31,11 @@ class CsrBank(Elaboratable):
                         bits_of_word = row.address.bits_of_word(iter_addr)
                         if bits_of_word:
                             word_range, signal_range = bits_of_word
-                            if isinstance(row.obj, Signal):
+                            if isinstance(row.obj, (ControlSignal, StatusSignal)):
                                 m.d.sync += data[word_range.start:word_range.stop].eq(
                                     row.obj[signal_range.start:signal_range.stop]
                                 )
-                            elif isinstance(row.obj, EventReg):
+                            else:
                                 raise NotImplementedError()
                     read_done(Response.OK)
                     m.d.comb += handled.eq(1)
@@ -44,12 +50,12 @@ class CsrBank(Elaboratable):
                         bits_of_word = row.address.bits_of_word(iter_addr)
                         if bits_of_word and row.writable:
                             word_range, signal_range = bits_of_word
-                            if isinstance(row.obj, Signal):
+                            if isinstance(row.obj, ControlSignal):
                                 m.d.sync += row.obj[signal_range.start:signal_range.stop].eq(
                                     data[word_range.start:word_range.stop]
                                 )
-                            elif isinstance(row.obj, EventReg):
-                                raise NotImplementedError()
+                            elif isinstance(row.obj, StatusSignal):
+                                pass
                             else:
                                 raise NotImplementedError()
                     write_done(Response.OK)
@@ -61,6 +67,6 @@ class CsrBank(Elaboratable):
         m.submodules += platform.BusSlave(
             handle_read,
             handle_write,
-            memorymap=self.memorymap
+            self.memorymap
         )
         return m

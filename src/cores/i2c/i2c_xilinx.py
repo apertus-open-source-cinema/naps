@@ -7,9 +7,7 @@ from nmigen import *
 from .glasgow_i2c import I2CInitiator
 from nmigen.lib.fifo import SyncFIFO, Rose
 
-from soc import StatusSignal, ControlSignal, EventReg
-
-
+from cores.csr_bank import StatusSignal, ControlSignal, EventReg
 
 
 class I2cXilinx(Elaboratable):
@@ -102,44 +100,44 @@ class I2cXilinx(Elaboratable):
         rx_fifo = m.submodules.rx_fifo = SyncFIFO(width=8, depth=2 ** 4, fwft=False)
         tx_fifo = m.submodules.tx_fifo = SyncFIFO(width=10, depth=2 ** 4, fwft=False)
 
-        m.d.comb += self.registers.tx_fifo_occupancy.eq(tx_fifo.level)
-        m.d.comb += self.registers.status_tx_fifo_empty.eq(tx_fifo.level == 0)
-        m.d.comb += self.registers.status_tx_fifo_full.eq(tx_fifo.level == tx_fifo.depth - 1)
+        m.d.comb += self.tx_fifo_occupancy.eq(tx_fifo.level)
+        m.d.comb += self.status_tx_fifo_empty.eq(tx_fifo.level == 0)
+        m.d.comb += self.status_tx_fifo_full.eq(tx_fifo.level == tx_fifo.depth - 1)
 
-        m.d.comb += self.registers.status_rx_fifo_empty.eq(rx_fifo.level == 0)
-        m.d.comb += self.registers.status_rx_fifo_full.eq(rx_fifo.level == rx_fifo.depth - 1)
+        m.d.comb += self.status_rx_fifo_empty.eq(rx_fifo.level == 0)
+        m.d.comb += self.status_rx_fifo_full.eq(rx_fifo.level == rx_fifo.depth - 1)
 
-        m.d.comb += self.registers.status_bus_busy.eq(self.i2c.busy)
-        m.d.comb += self.registers.interrupt_bus_not_busy.eq(~self.i2c.busy)
+        m.d.comb += self.status_bus_busy.eq(self.i2c.busy)
+        m.d.comb += self.interrupt_bus_not_busy.eq(~self.i2c.busy)
 
         def on_rx_fifo_read():
             m.d.comb += rx_fifo.r_en.eq(1)
             return rx_fifo.r_data
 
-        self.registers.rx_fifo_data.on_read = on_rx_fifo_read
+        self.rx_fifo_data.on_read = on_rx_fifo_read
 
         def on_tx_fifo_write(write_data):
             m.d.comb += tx_fifo.w_en.eq(1)
             m.d.comb += tx_fifo.w_data.eq(write_data)
 
-        self.registers.tx_fifo_data_start_stop = on_tx_fifo_write
+        self.tx_fifo_data_start_stop = on_tx_fifo_write
 
-        m.d.comb += self.registers.tx_fifo_occupancy.eq(tx_fifo.level)
+        m.d.comb += self.tx_fifo_occupancy.eq(tx_fifo.level)
 
-        m.d.comb += self.registers.interrupt_tx_fifo_half_empty.eq(tx_fifo.level[-1])
-        m.d.comb += self.registers.interrupt_tx_fifo_empty.eq(tx_fifo.level == 0)
-        m.d.comb += self.registers.interrupt_rx_fifo_full.eq(
-            rx_fifo.level >= self.registers.rx_fifo_programmable_depth_interrupt)
+        m.d.comb += self.interrupt_tx_fifo_half_empty.eq(tx_fifo.level[-1])
+        m.d.comb += self.interrupt_tx_fifo_empty.eq(tx_fifo.level == 0)
+        m.d.comb += self.interrupt_rx_fifo_full.eq(
+            rx_fifo.level >= self.rx_fifo_programmable_depth_interrupt)
 
         # we use an edge triggered interrupt here
         m.d.comb += self.interrupt.eq([
-            Rose(getattr(self.registers, "interrupt_{}".format(name))) & getattr(self.registers, "ien_{}".format(name))
-            for name in dir(self.registers) if name.startswith("interrupt")
+            Rose(getattr(self, "interrupt_{}".format(name))) & getattr(self, "ien_{}".format(name))
+            for name in dir(self) if name.startswith("interrupt")
         ])
 
         def on_reset_write(write_data):
             with m.If(write_data == 0xA):  # 0xA is the magic key here, idk why this is implemented in such a wired way
                 m.d.comb += ResetSignal("i2c").eq(1)
-        self.registers.reset.on_write = on_reset_write
+        self.reset.on_write = on_reset_write
 
         return m

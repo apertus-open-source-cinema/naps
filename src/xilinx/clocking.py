@@ -4,8 +4,8 @@ from nmigen.build import Clock
 
 from soc.soc_platform import SocPlatform
 from util.python import decimal_range
-from xilinx.drp_bridge import DrpInterface, DrpBridge
-from soc.reg_types import StatusSignal
+from cores.drp_bridge import DrpInterface, DrpBridge
+from cores.csr_bank import StatusSignal
 
 from xilinx.xilinx_blackbox import XilinxBlackbox
 

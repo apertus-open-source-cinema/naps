@@ -1,11 +1,11 @@
 import unittest
 
-from soc import SocPlatform
+from soc.soc_platform import SocPlatform
 from util.sim import SimPlatform
 
 
 class ConcreteSocPlatform(SocPlatform):
-    def BusSlave(self, handle_read, handle_write, *, memorymap):
+    def BusSlave(self, handle_read, handle_write, memorymap):
         pass
 
 

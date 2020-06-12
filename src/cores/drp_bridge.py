@@ -2,8 +2,8 @@
 
 from nmigen import *
 
-from soc.peripherals import Response
 from soc.soc_platform import SocPlatform
+from soc.bus_slave import Response
 from soc.memorymap import MemoryMap
 from util.bundle import Bundle
 
@@ -54,12 +54,12 @@ class DrpBridge(Elaboratable):
                 write_done(Response.OK)
 
         memorymap = MemoryMap()
-        memorymap.allocate("drp", writable=True, bits=2**self.drp_interface.address.width * 8)
+        memorymap.allocate("drp", writable=True, bits=2**len(self.drp_interface.address) * 8)
 
         m.submodules += platform.BusSlave(
-            handle_read=handle_read,
-            handle_write=handle_write,
-            memorymap=memorymap
+            handle_read,
+            handle_write,
+            memorymap
         )
 
         return m

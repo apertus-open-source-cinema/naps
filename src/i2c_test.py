@@ -1,7 +1,7 @@
 from nmigen import *
 
-from soc import cli
-from soc.peripherals.mmio_gpio import MmioGpio
+from soc.cli import cli
+from cores.mmio_gpio import MmioGpio
 
 
 class Top(Elaboratable):

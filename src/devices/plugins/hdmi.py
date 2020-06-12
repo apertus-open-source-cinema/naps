@@ -12,13 +12,10 @@ def hdmi_plugin_connect(platform, plugin_number):
             Subsignal("scl", Pins("lvds5_p", dir='io', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
 
             # hdmi plugin-module specific signals
-            Subsignal("output_enable", PinsN("gpio6", dir='o', conn=("plugin", plugin_number)),
-                      Attrs(IOSTANDARD="LVCMOS33")),
+            Subsignal("output_enable", PinsN("gpio6", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS33")),
             Subsignal("equalizer", Pins("gpio1 gpio4", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS33")),
-            Subsignal("dcc_enable", Pins("gpio5", dir='o', conn=("plugin", plugin_number)),
-                      Attrs(IOSTANDARD="LVCMOS33")),
-            Subsignal("vcc_enable", Pins("gpio7", dir='o', conn=("plugin", plugin_number)),
-                      Attrs(IOSTANDARD="LVCMOS33")),
+            Subsignal("dcc_enable", Pins("gpio5", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS33")),
+            Subsignal("vcc_enable", Pins("gpio7", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS33")),
             Subsignal("ddet", Pins("gpio3", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS33")),
             Subsignal("ihp", Pins("gpio2", dir='i', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS33")),
         ]
@@ -27,9 +24,10 @@ def hdmi_plugin_connect(platform, plugin_number):
 
     platform.add_resources([
         Resource("hdmi", plugin_number,
-             # high speed serial lanes
              Subsignal("clock", DiffPairs("lvds3_p", "lvds3_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS_25")),
-             Subsignal("data", DiffPairs("lvds2_p lvds1_p lvds0_p", "lvds2_n lvds1_n lvds0_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS_25")),
+             Subsignal("data_b", DiffPairs("lvds2_p", "lvds2_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS_25")),
+             Subsignal("data_g", DiffPairs("lvds1_p", "lvds1_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS_25")),
+             Subsignal("data_r", DiffPairs("lvds0_p", "lvds0_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS_25")),
              *lowspeed_signals
         )
     ])

@@ -1,10 +1,11 @@
 from nmigen import *
 from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
-from soc import ControlSignal, StatusSignal, cli
-from soc.zynq import ZynqSocPlatform
+from cores.csr_bank import ControlSignal, StatusSignal
 from xilinx.clocking import RawPll, Bufg
 from xilinx.io import Oserdes, IdelayCtl, Idelay, Iserdes
+from soc.zynq import ZynqSocPlatform
+from soc.cli import cli
 
 
 class Top(Elaboratable):

@@ -4,7 +4,7 @@
 from nmigen import *
 
 from . import AxiInterface
-from soc import ControlSignal, StatusSignal
+from cores.csr_bank import ControlSignal, StatusSignal
 
 
 class AxiBufferReader(Elaboratable):

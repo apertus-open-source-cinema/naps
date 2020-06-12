@@ -4,11 +4,11 @@ from functools import lru_cache
 from nmigen import *
 from nmigen.build import Clock
 
-from soc.axi import AxiInterface
+from cores.axi import AxiInterface
 from os.path import join, dirname
 
-from soc.axi.full_to_lite import AxiFullToLiteBridge
-from soc.axi.interconnect import AxiInterconnect
+from cores.axi.full_to_lite import AxiFullToLiteBridge
+from cores.axi.interconnect import AxiInterconnect
 from xilinx.clocking import Bufg
 from util.nmigen import max_error_freq
 from xilinx.xilinx_blackbox import XilinxBlackbox

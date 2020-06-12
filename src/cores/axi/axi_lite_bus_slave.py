@@ -2,20 +2,21 @@ from abc import ABC
 
 from nmigen import *
 
-import soc
-import soc.peripherals
-from .axi_interface import Response, AxiInterface
+from cores.axi.axi_interface import Response as AxiResponse, AxiInterface
+from soc.bus_slave import Response as BusSlaveResponse
+from soc.memorymap import MemoryMap
 
 
-class AxiLiteSlave(Elaboratable, ABC):
-    def __init__(self, handle_read, handle_write, address_range=None, bundle_name="axi"):
+class AxiLiteBusSlave(Elaboratable, ABC):
+    def __init__(self, handle_read, handle_write, memorymap, bundle_name="axi"):
         """
         A simple (low performance) axi lite slave
         :param handle_read: the callback to insert logic for the read state
         :param handle_write: the callback to insert logic for the write state
         :param address_range: the address space of the axi slave
         """
-        self.address_range = address_range
+        self.memorymap: MemoryMap = memorymap
+
         assert callable(handle_read) and callable(handle_write)
         self.handle_read = handle_read
         self.handle_write = handle_write
@@ -25,8 +26,10 @@ class AxiLiteSlave(Elaboratable, ABC):
     def elaborate(self, platform):
         m = Module()
 
-        assert self.address_range is not None
-        assert self.address_range.start < self.address_range.stop
+        address_range = self.memorymap.own_offset_normal_resources.range()
+
+        assert address_range is not None
+        assert address_range.start < address_range.stop
 
         addr = Signal.like(self.axi.read_address.value)
         read_out = Signal.like(self.axi.read_data.value)
@@ -36,15 +39,15 @@ class AxiLiteSlave(Elaboratable, ABC):
 
         def read_write_done_callback(success):
             m.d.sync += read_write_done.eq(1)
-            if success == soc.peripherals.Response.ERR:
-                m.d.sync += resp_out.eq(Response.SLVERR)
+            if success == BusSlaveResponse.ERR:
+                m.d.sync += resp_out.eq(AxiResponse.SLVERR)
             else:
-                m.d.sync += resp_out.eq(Response.OKAY)
+                m.d.sync += resp_out.eq(AxiResponse.OKAY)
 
         with m.FSM():
             with m.State("IDLE"):
                 def in_range(signal):
-                    return (signal >= self.address_range.start) & (signal < self.address_range.stop)
+                    return (signal >= address_range.start) & (signal < address_range.stop)
 
                 with m.If(self.axi.read_address.valid & in_range(self.axi.read_address.value)):
                     m.next = "FETCH_READ_ADDRESS"
@@ -52,7 +55,7 @@ class AxiLiteSlave(Elaboratable, ABC):
                     m.next = "FETCH_WRITE_ADDRESS"
 
             with m.State("FETCH_READ_ADDRESS"):
-                m.d.sync += addr.eq(self.axi.read_address.value - self.address_range.start)
+                m.d.sync += addr.eq(self.axi.read_address.value - address_range.start)
                 m.d.comb += self.axi.read_address.ready.eq(1)
                 m.next = "READ"
             with m.State("READ"):
@@ -71,7 +74,7 @@ class AxiLiteSlave(Elaboratable, ABC):
                     m.next = "IDLE"
 
             with m.State("FETCH_WRITE_ADDRESS"):
-                m.d.sync += addr.eq(self.axi.write_address.value - self.address_range.start)
+                m.d.sync += addr.eq(self.axi.write_address.value - address_range.start)
                 m.d.comb += self.axi.write_address.ready.eq(1)
                 m.next = "WRITE"
             with m.State("WRITE"):

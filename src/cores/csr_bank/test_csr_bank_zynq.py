@@ -1,10 +1,8 @@
 import unittest
 
-from nmigen import *
-
-from soc.axi.axi_interface import Response, AxiInterface
+from cores.axi.axi_interface import Response, AxiInterface
 from util.sim import SimPlatform
-from soc.peripherals.csr_bank import CsrBank
+from cores.csr_bank.csr_bank import CsrBank, ControlSignal
 from soc.zynq.zynq_soc_platform import ZynqSocPlatform
 from util.sim import wait_for, do_nothing
 
@@ -48,7 +46,7 @@ class TestAxiSlave(unittest.TestCase):
         platform = ZynqSocPlatform(SimPlatform())
         csr_bank = CsrBank()
         for i in range(num_csr):
-            csr_bank.reg("csr#{}".format(i), Signal(32),  writable=True)
+            csr_bank.reg("csr#{}".format(i), ControlSignal(32))
 
         def testbench():
             axi = platform.axi_lite_master
@@ -62,7 +60,7 @@ class TestAxiSlave(unittest.TestCase):
     def test_simple_test_csr_bank(self):
         platform = ZynqSocPlatform(SimPlatform())
         csr_bank = CsrBank()
-        csr_bank.reg("csr", Signal(32), writable=True)
+        csr_bank.reg("csr", ControlSignal(32))
 
         def testbench():
             axi: AxiInterface = platform.axi_lite_master

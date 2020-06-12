@@ -1,8 +1,9 @@
-from nmigen import Signal
+from nmigen import *
 from nmigen._unused import MustUse
+from nmigen.hdl.ast import UserValue
 
+from soc.bus_slave import Response
 from soc.memorymap import Address
-from soc.peripherals import Response
 
 
 class UncollectedCsrWarning(Warning):
@@ -12,29 +13,42 @@ class UncollectedCsrWarning(Warning):
 class _Csr(MustUse):
     """a marker class to collect the registers easily"""
     _MustUse__warning = UncollectedCsrWarning
+    address = None
 
 
-class ControlSignal(Signal, _Csr):
+class ControlSignal(UserValue, _Csr):
     """ Just a Signal. Indicator, that it is for controlling some parameter (i.e. can be written from the outside)
     Is mapped as a CSR in case the design is build with a SocPlatform.
     """
 
     def __init__(self, shape=None, *, address=None, read_strobe=None, write_strobe=None, **kwargs):
-        super().__init__(shape, **kwargs)
+        super().__init__()
+        self._shape = shape
+        self._kwargs = kwargs
+
         self.address = Address.parse(address)
         self.write_strobe = write_strobe
         self.read_strobe = read_strobe
 
+    def lower(self):
+        return Signal(self._shape, **self._kwargs)
 
-class StatusSignal(Signal, _Csr):
+
+class StatusSignal(UserValue, _Csr):
     """ Just a Signal. Indicator, that it is for communicating the state to the outside world (i.e. can be read but not written from the outside)
         Is mapped as a CSR in case the design is build with a SocPlatform.
     """
 
     def __init__(self, shape=None, *, address=None, read_strobe=None, **kwargs):
-        super().__init__(shape, **kwargs)
+        super().__init__()
+        self._shape = shape
+        self._kwargs = kwargs
+
         self.address = Address.parse(address)
         self.read_strobe = read_strobe
+
+    def lower(self):
+        return Signal(self._shape, **self._kwargs)
 
 
 class EventReg(_Csr):  # TODO: bikeshed name

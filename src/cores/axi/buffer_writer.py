@@ -2,8 +2,7 @@ from nmigen import *
 from nmigen.lib.fifo import SyncFIFO
 
 from .axi_interface import AxiInterface, BurstType
-from soc import ControlSignal, StatusSignal
-from util.bundle import Bundle
+from cores.csr_bank import StatusSignal
 from util.nmigen import nMax, mul_by_pot
 
 
@@ -61,10 +60,10 @@ class AxiBufferWriter(Elaboratable):
         self.address_generator = AddressGenerator(buffer_base_list, max_buffer_size, self.axi.addr_bits,
                                                   max_incr=max_burst_length*self.axi.data_bytes)
 
-        self.data_valid = ControlSignal()
-        self.data = ControlSignal(self.axi.data_bits)
-        self.change_buffer = ControlSignal()  # only considered, when data_valid is high
-        self.data_ready = StatusSignal()
+        self.data_valid = Signal()
+        self.data = Signal(self.axi.data_bits)
+        self.change_buffer = Signal()  # only considered, when data_valid is high
+        self.data_ready = Signal()
 
         self.dropped = StatusSignal(32)
         self.error = StatusSignal()
@@ -72,25 +71,12 @@ class AxiBufferWriter(Elaboratable):
         self.written = StatusSignal(32)
         self.burst_position = StatusSignal(range(self.max_burst_length))
         self.data_fifo_level = StatusSignal(32)
-        self.address_fifo_level = StatusSignal(32)
 
     def elaborate(self, platform):
         m = Module()
         m.d.comb += self.axi.connect_slave(self.axi_slave)
 
         address_generator = m.submodules.address_generator = self.address_generator
-
-        # we fill the input data plus the addr change bit in the data fifo. this gives us a bit of lookahead to schedule
-        # the axi bursts
-        class PayloadPlusChangeBuffer(Bundle):
-            def __init__(self, payload: Signal, change_buffer: Signal):
-                super().__init__()
-                self.payload = payload
-                self.change_buffer = change_buffer
-
-            @staticmethod
-            def like(signal):
-                return PayloadPlusChangeBuffer(Signal(len(signal) - 1), Signal(1))
 
         data_fifo = m.submodules.data_fifo = SyncFIFO(width=self.axi.data_bits + 1, depth=self.fifo_depth, fwft=False)
         m.d.comb += self.data_fifo_level.eq(data_fifo.level)
@@ -99,7 +85,7 @@ class AxiBufferWriter(Elaboratable):
             m.d.sync += self.dropped.eq(self.dropped + 1)
 
         with m.If(self.data_valid & self.data_ready):
-            m.d.sync += data_fifo.w_data.eq(PayloadPlusChangeBuffer(self.data, self.change_buffer))
+            m.d.sync += data_fifo.w_data.eq(Cat(self.data, self.change_buffer))
             m.d.sync += data_fifo.w_en.eq(1)
         with m.Else():
             m.d.sync += data_fifo.w_en.eq(0)
@@ -148,20 +134,21 @@ class AxiBufferWriter(Elaboratable):
             with m.State("TRANSFER_DATA"):
                 m.d.comb += self.state.eq(2)
 
-                bundle = PayloadPlusChangeBuffer.like(data_fifo.r_data)
-                m.d.comb += bundle.eq(data_fifo.r_data)
+                change_buffer = Signal()
+                payload = Signal()
+                m.d.comb += Cat(payload, change_buffer).eq(data_fifo.r_data)
 
-                with m.If(bundle.change_buffer):
+                with m.If(change_buffer):
                     m.d.comb += self.address_generator.change_buffer.eq(1)
                     m.next = "FLUSH"
 
-                m.d.comb += self.axi.write_data.value.eq(bundle.payload)
+                m.d.comb += self.axi.write_data.value.eq(payload)
                 m.d.comb += self.axi.write_data.valid.eq(1)
 
                 with m.If(self.axi.write_data.ready):
                     m.d.sync += self.written.eq(self.written + 1)
                     m.d.sync += self.burst_position.eq(self.burst_position + 1)
-                    with m.If((self.burst_position < current_burst_length_minus_one) & ~bundle.change_buffer):
+                    with m.If((self.burst_position < current_burst_length_minus_one) & ~change_buffer):
                         m.d.comb += data_fifo.r_en.eq(1)
                         with m.If((~data_fifo.r_rdy)):
                             # we have checked this earlier so this should never be a problem

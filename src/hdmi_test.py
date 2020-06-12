@@ -1,9 +1,8 @@
 from nmigen import *
 
-from devices.zybo_platform import ZyboPlatform
-from hdmi.hdmi import Hdmi
-from hdmi.cvt import generate_modeline
-from soc import cli
+from cores.hdmi.hdmi import Hdmi
+from cores.hdmi.cvt import generate_modeline
+from soc.cli import cli
 
 from soc.zynq import ZynqSocPlatform
 
@@ -20,6 +19,7 @@ class Top(Elaboratable):
 
 if __name__ == "__main__":
     with cli(Top) as platform:
+        from devices.zybo_platform import ZyboPlatform
         if not isinstance(platform, ZyboPlatform):
-            from devices.hdmi_plugin import hdmi_plugin_connect
+            from devices.plugins.hdmi import hdmi_plugin_connect
             hdmi_plugin_connect(platform, "north")

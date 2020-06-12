@@ -1,11 +1,11 @@
 from functools import reduce
+from warnings import warn
 
 from nmigen import *
 from nmigen.hdl.ast import SignalSet
 
+from cores.csr_bank import CsrBank, _Csr, ControlSignal, StatusSignal, EventReg
 from soc.memorymap import MemoryMap
-from soc.peripherals.csr_bank import CsrBank
-from soc.reg_types import ControlSignal, StatusSignal, EventReg, _Csr
 from soc.tracing_elaborate import ElaboratableSames
 
 
@@ -24,8 +24,9 @@ def csr_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
                    and signal.name != "$signal"
                    and not any(signal is cmp_signal for name, cmp_signal in csr_signals)
             ]
-            for signal in csr_signals:
-                assert not any(signal is done for done in already_done), "attempting to add a csr to two modules"
+            for name, signal in csr_signals:
+                if any(signal is done for done in already_done):
+                    warn("adding a {} ({!r}; defined at {}) to two modules (one is {!r})".format(signal.__class__.__name__, name, signal.src_loc, elaboratable))
                 already_done.append(signal)
             if csr_signals:
                 m = Module()
@@ -34,10 +35,10 @@ def csr_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
                 m.submodules += csr_bank
                 for name, signal in csr_signals:
                     if isinstance(signal, ControlSignal):
-                        csr_bank.reg(name, signal, writable=True, address=signal.address)
+                        csr_bank.reg(name, signal)
                         signal._MustUse__used = True
                     elif isinstance(signal, StatusSignal):
-                        csr_bank.reg(name, signal, writable=False, address=signal.address)
+                        csr_bank.reg(name, signal)
                         signal._MustUse__used = True
                     elif isinstance(signal, EventReg):
                         raise NotImplementedError()
@@ -53,10 +54,8 @@ def csr_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
 def address_assignment_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
     def inner(fragment):
         module = sames.get_module(fragment)
-        elaboratable = sames.get_elaboratable(fragment)
         if hasattr(module, "bus_slave"):  # we have the fragment of a marker module for a bus slave
-            bus_slave, memorymap = module.bus_slave
-            fragment.memorymap = memorymap
+            fragment.memorymap = module.bus_slave.memorymap
             return
 
         # depth first recursion
@@ -77,7 +76,7 @@ def address_assignment_hook(platform, top_fragment: Fragment, sames: Elaboratabl
     top_memorymap: MemoryMap = top_fragment.memorymap
     top_memorymap.top = True
 
-    assert hasattr(platform, "base_address")
+    assert platform.base_address is not None
     top_memorymap.place_at = platform.base_address
 
     print("memorymap:\n" + "\n".join(

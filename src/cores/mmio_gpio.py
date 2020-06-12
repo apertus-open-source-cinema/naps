@@ -3,7 +3,6 @@
 
 from nmigen import *
 
-from soc import SocPlatform
 
 
 class MmioGpio(Elaboratable):
@@ -15,7 +14,7 @@ class MmioGpio(Elaboratable):
 
         # registers
 
-    def elaborate(self, platform: SocPlatform):
+    def elaborate(self, platform):
         m = Module()
 
         return m

@@ -2,9 +2,10 @@ import math
 
 from nmigen import *
 
-from soc import ControlSignal, StatusSignal, cli
+from cores.csr_bank import ControlSignal, StatusSignal
+from cores.axi.buffer_writer import AxiBufferWriter
 from soc.zynq import ZynqSocPlatform
-from soc.axi.buffer_writer import AxiBufferWriter
+from soc.cli import cli
 
 
 class Top(Elaboratable):

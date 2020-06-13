@@ -18,11 +18,11 @@ class SimPlatform:
             top_fragment.subfragments = [
                 (filter_instances(subfragment), name)
                 for subfragment, name in top_fragment.subfragments
-                if not isinstance(subfragment, Instance)
+                if not (isinstance(subfragment, Instance) and not subfragment.type.startswith('$'))
             ]
             return top_fragment
 
-        # filter_instances(top_fragment)
+        filter_instances(top_fragment)
         return top_fragment
 
     def sim(self, dut, testbench, traces=(), filename=None):

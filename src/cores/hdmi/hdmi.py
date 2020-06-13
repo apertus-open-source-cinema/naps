@@ -3,7 +3,7 @@ from itertools import product
 from nmigen import *
 from nmigen.build import Clock
 
-from .encoder import Encoder
+from cores.hdmi.tmds import Encoder
 from .cvt import parse_modeline
 from util.bundle import Bundle
 from util.nmigen import max_error_freq
@@ -22,7 +22,6 @@ class Hdmi(Elaboratable):
 
         self.hsync_polarity = ControlSignal()
         self.vsync_polarity = ControlSignal()
-        self.clock_pattern = ControlSignal(10, reset=0b1111100000)
 
         self.clock_pattern = ControlSignal(10, name="hdmi_clock_pattern", reset=0b1111100000)
 
@@ -50,14 +49,13 @@ class Hdmi(Elaboratable):
         serializer_clock = m.submodules.serializer_clock = OSerdes10(self.clock_pattern, **domain_args)
         m.d.comb += self.plugin.clock.eq(serializer_clock.output)
 
-        encoder_b = m.submodules.encoder_b = in_pix_domain(
-            Encoder(rgb.b, Cat(timing.hsync, timing.vsync), timing.active))
+        encoder_b = m.submodules.encoder_b = in_pix_domain(Encoder(rgb.b, Cat(timing.hsync, timing.vsync), timing.active))
         serializer_b = m.submodules.serializer_b = OSerdes10(encoder_b.out, **domain_args)
         m.d.comb += self.plugin.data_b.eq(serializer_b.output)
-        encoder_g = m.submodules.encoder_g = in_pix_domain(Encoder(rgb.g, 0, timing.active))
+        encoder_g = m.submodules.encoder_g = in_pix_domain(Encoder(rgb.g, Cat(timing.hsync, timing.vsync), timing.active))
         serializer_g = m.submodules.serializer_g = OSerdes10(encoder_g.out, **domain_args)
         m.d.comb += self.plugin.data_g.eq(serializer_g.output)
-        encoder_r = m.submodules.encoder_r = in_pix_domain(Encoder(rgb.r, 0, timing.active))
+        encoder_r = m.submodules.encoder_r = in_pix_domain(Encoder(rgb.r, Cat(timing.hsync, timing.vsync), timing.active))
         serializer_r = m.submodules.serializer_r = OSerdes10(encoder_r.out, **domain_args)
         m.d.comb += self.plugin.data_r.eq(serializer_r.output)
 
@@ -183,19 +181,19 @@ class TimingGenerator(Elaboratable):
         m = Module()
 
         # set the xy coordinates
-        with m.If(self.x < self.hscan):
+        with m.If(self.x < self.hscan - 1):
             m.d.sync += self.x.eq(self.x + 1)
         with m.Else():
             m.d.sync += self.x.eq(0)
-            with m.If(self.y < self.vscan):
+            with m.If(self.y < self.vscan - 1):
                 m.d.sync += self.y.eq(self.y + 1)
             with m.Else():
                 m.d.sync += self.y.eq(0)
 
         m.d.comb += [
             self.active.eq((self.x < self.width) & (self.y < self.height)),
-            self.hsync.eq((self.x > self.hsync_start) & (self.x <= self.hsync_end)),
-            self.vsync.eq((self.y > self.vsync_start) & (self.y <= self.vsync_end))
+            self.hsync.eq((self.x >= self.hsync_start) & (self.x < self.hsync_end)),
+            self.vsync.eq((self.y >= self.vsync_start) & (self.y < self.vsync_end))
         ]
 
         return m

@@ -1,4 +1,5 @@
 import subprocess
+from collections import OrderedDict
 from shlex import quote
 from base64 import b64encode
 
@@ -7,7 +8,7 @@ from nmigen.build.run import BuildProducts
 from soc.zynq.to_raw_bitstream import bit2bin
 
 
-def run_on_camera(cmd, host="10.42.0.1", user="operator", password="axiom", sudo=True, sshpass=True):
+def run_on_camera(cmd, host="micro", user="operator", password="axiom", sudo=True, sshpass=True):
     if sudo:
         cmd = "echo {} | sudo -S bash -c {}".format(password, quote(cmd))
     ssh_cmd = "ssh {}@{} {}".format(user, host, quote(cmd))
@@ -17,7 +18,7 @@ def run_on_camera(cmd, host="10.42.0.1", user="operator", password="axiom", sudo
     return subprocess.check_output(ssh_cmd, shell=True)
 
 
-def copy_to_camera(source, destination, host="10.42.0.1", user="operator", password="axiom", sshpass=True):
+def copy_to_camera(source, destination, host="micro", user="operator", password="axiom", sshpass=True):
     scp_cmd = "scp {} {}".format(quote(source), quote("{}@{}:{}".format(user, host, destination)))
     if sshpass:
         scp_cmd = "sshpass -p{} {}".format(password, scp_cmd)
@@ -37,8 +38,8 @@ def program_bitstream_ssh(platform, build_products: BuildProducts, name, **kwarg
     fatfile += self_extracting_blob(bin_bitstream, "/usr/lib/firmware/{}.bin".format(name))
 
     fatfile += "\n# extra files:\n"
-    for name, contents in platform.extra_files.iter():
-        fatfile += self_extracting_blob(contents, name) + "\n"
+    for path, contents in platform.extra_files.items():
+        fatfile += self_extracting_blob(contents, path) + "\n"
 
     init_script = "\n# init script:\n"
     init_script += "echo {}.bin > /sys/class/fpga_manager/fpga0/firmware\n".format(name)

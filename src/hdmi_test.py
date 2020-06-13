@@ -12,7 +12,7 @@ class Top(Elaboratable):
         m = Module()
 
         hdmi_plugin = platform.request("hdmi", "north")
-        m.submodules.hdmi = Hdmi(hdmi_plugin, generate_modeline(1920, 1080, 30))
+        m.submodules.hdmi = Hdmi(hdmi_plugin, modeline='Modeline "Mode 1" 148.500 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync')
 
         return m
 

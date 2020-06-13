@@ -12,10 +12,10 @@ class MicroR2Platform(ZTurnLiteZ010Platform):
         super().__init__()
         self.add_resources([
             Resource("sensor", 0,
-                     Subsignal("shutter", Pins("25", dir='o', conn=("expansion", 0))),
-                     Subsignal("trigger", Pins("27", dir='o', conn=("expansion", 0))),
-                     Subsignal("reset", Pins("31", dir='o', conn=("expansion", 0))),
-                     Subsignal("clk", Pins("33", dir='o', conn=("expansion", 0))),
+                     Subsignal("shutter", Pins("25", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
+                     Subsignal("trigger", Pins("27", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
+                     Subsignal("reset", Pins("31", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
+                     Subsignal("clk", Pins("33", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      Subsignal("lvds_clk", DiffPairs("52", "54", dir='i', conn=("expansion", 0))),
                      Subsignal("lvds", DiffPairs("41 45 55 65", "43 47 57 67", dir='i', conn=("expansion", 0))),
                      ),

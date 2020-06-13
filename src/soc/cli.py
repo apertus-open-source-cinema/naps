@@ -1,15 +1,21 @@
 import inspect
-from contextlib import contextmanager, AbstractContextManager
+import pickle
 from datetime import datetime
+from glob import glob
+from os import stat
+
+from nmigen.build.run import LocalBuildProducts
 
 from soc.zynq import ZynqSocPlatform
 import argparse
 
 
-class Cli(AbstractContextManager):
+class Cli:
     def __init__(self, top_class):
         parser = argparse.ArgumentParser()
-        parser.add_argument('-c', help='only check; dont build', action="store_true")
+        parser.add_argument('-e', help='elaborate', action="store_true")
+        parser.add_argument('-b', help='build; implies -e', action="store_true")
+        parser.add_argument('-p', help='program; programs the last build if used without -b', action="store_true")
         parser.add_argument('-d', help='device', default='MicroR2')
         self.args = parser.parse_args()
         hardware_platform = getattr(__import__('devices'), "{}Platform".format(self.args.d))
@@ -22,9 +28,29 @@ class Cli(AbstractContextManager):
         return self.platform
 
     def __exit__(self, exc_type, exc_value, traceback):
-        name = inspect.stack()[1].filename.split("/")[-1].replace(".py", "") \
-               + datetime.now().strftime("-%d-%b-%Y--%H-%M-%S")
-        self.platform.build(self.top_class(), name=name, do_build=not self.args.c)
+        name = inspect.stack()[1].filename.split("/")[-1].replace(".py", "")
+        if self.args.e or self.args.b:
+            build_name = name + datetime.now().strftime("-%d-%b-%Y--%H-%M-%S")
+            self.platform.build(
+                self.top_class(),
+                name=build_name,
+                do_build=self.args.b,
+                do_program=self.args.p
+            )
+            with open('build/{}.extra_files.pickle'.format(build_name), 'wb') as f:
+                pickle.dump(self.platform.extra_files, f)
+        elif self.args.p:
+            # we program the last version
+            build_files = glob('build/build_{}-*.sh'.format(name))
+            if not build_files:
+                raise FileNotFoundError('no previous build exists for "{}". cant programm it without building'.format(name))
+            sorted_build_files = sorted(build_files, key=lambda x: stat(x).st_mtime, reverse=True)
+            build_name = sorted_build_files[0].replace('build/build_', '').replace('.sh', '')
+            with open('build/{}.extra_files.pickle'.format(build_name), 'rb') as f:
+                self.platform.extra_files = pickle.load(f)
+            self.platform.toolchain_program(LocalBuildProducts('build'), name=build_name)
+        else:
+            print("nothing to do")
 
     def __del__(self):
         if not self.ran:

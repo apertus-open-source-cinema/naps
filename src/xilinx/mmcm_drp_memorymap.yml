@@ -1,0 +1,466 @@
+clockout0_phase_mux:
+  address: 0x8[13:16]
+  description: 'Chooses an initial phase offset for the clock output, the
+resolution is equal to 1/8 VCO period. Not available in
+UltraScale PLLE3 and UltraScale+ PLLE4.'
+  writable: true
+
+clockout0_high_time:
+  address: 0x8[6:12]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains High.'
+  writable: true
+
+clockout0_low_time:
+  address: 0x8[0:6]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains Low.'
+  writable: true
+
+
+clockout1_phase_mux:
+  address: 0xA[13:16]
+  description: 'Chooses an initial phase offset for the clock output, the
+resolution is equal to 1/8 VCO period. Not available in
+UltraScale PLLE3 and UltraScale+ PLLE4.'
+  writable: true
+
+clockout1_high_time:
+  address: 0xA[6:12]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains High.'
+  writable: true
+
+clockout1_low_time:
+  address: 0xA[0:6]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains Low.'
+  writable: true
+
+
+clockout2_phase_mux:
+  address: 0xC[13:16]
+  description: 'Chooses an initial phase offset for the clock output, the
+resolution is equal to 1/8 VCO period. Not available in
+UltraScale PLLE3 and UltraScale+ PLLE4.'
+  writable: true
+
+clockout2_high_time:
+  address: 0xC[6:12]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains High.'
+  writable: true
+
+clockout2_low_time:
+  address: 0xC[0:6]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains Low.'
+  writable: true
+
+
+clockout3_phase_mux:
+  address: 0xE[13:16]
+  description: 'Chooses an initial phase offset for the clock output, the
+resolution is equal to 1/8 VCO period. Not available in
+UltraScale PLLE3 and UltraScale+ PLLE4.'
+  writable: true
+
+clockout3_high_time:
+  address: 0xE[6:12]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains High.'
+  writable: true
+
+clockout3_low_time:
+  address: 0xE[0:6]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains Low.'
+  writable: true
+
+
+clockout4_phase_mux:
+  address: 0x10[13:16]
+  description: 'Chooses an initial phase offset for the clock output, the
+resolution is equal to 1/8 VCO period. Not available in
+UltraScale PLLE3 and UltraScale+ PLLE4.'
+  writable: true
+
+clockout4_high_time:
+  address: 0x10[6:12]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains High.'
+  writable: true
+
+clockout4_low_time:
+  address: 0x10[0:6]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains Low.'
+  writable: true
+
+
+clockout5_phase_mux:
+  address: 0x06[13:16]
+  description: 'Chooses an initial phase offset for the clock output, the
+resolution is equal to 1/8 VCO period. Not available in
+UltraScale PLLE3 and UltraScale+ PLLE4.'
+  writable: true
+
+clockout5_high_time:
+  address: 0x06[6:12]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains High.'
+  writable: true
+
+clockout5_low_time:
+  address: 0x06[0:6]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains Low.'
+  writable: true
+
+
+clockout6_phase_mux:
+  address: 0x12[13:16]
+  description: 'Chooses an initial phase offset for the clock output, the
+resolution is equal to 1/8 VCO period. Not available in
+UltraScale PLLE3 and UltraScale+ PLLE4.'
+  writable: true
+
+clockout6_high_time:
+  address: 0x12[6:12]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains High.'
+  writable: true
+
+clockout6_low_time:
+  address: 0x12[0:6]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains Low.'
+  writable: true
+
+
+clockfbout_phase_mux:
+  address: 0x14[13:16]
+  description: 'Chooses an initial phase offset for the clock output, the
+resolution is equal to 1/8 VCO period. Not available in
+UltraScale PLLE3 and UltraScale+ PLLE4.'
+  writable: true
+
+clockfbout_high_time:
+  address: 0x14[6:12]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains High.'
+  writable: true
+
+clockfbout_low_time:
+  address: 0x14[0:6]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains Low.'
+  writable: true
+
+
+clockout0_frac:
+  address: 0x9[12:15]
+  description: 'Fractional divide counter setting for CLKOUT0. Equivalent to additional divide of 1/8.'
+  writable: true
+
+clockout0_frac_en:
+  address: 0x9[11]
+  description: 'Enable fractional divider circuitry for CLKOUT0.'
+  writable: true
+
+clockout0_frac_wf_r:
+  address: 0x9[10]
+  description: 'Adjusts CLKOUT0 rising edge for improved duty cycle accuracy when using fractional counter.'
+  writable: true
+
+clockout0_mx:
+  address: 0x9[8:10]
+  description: "Must be set to 2'b00."
+  writable: true
+
+clockout0_edge:
+  address: 0x9[7]
+  description: 'Chooses the edge that the High Time counter transitions on.'
+  writable: true
+
+clockout0_no_count:
+  address: 0x9[6]
+  description: 'Bypasses the High and Low Time counters.'
+  writable: true
+
+clockout0_delay_time:
+  address: 0x9[0:6]
+  description: 'Phase offset with a resolution equal to the VCO period.'
+  writable: true
+
+
+clockout1_clockoutphy_mode:
+  address: 0xB[13:15]
+  description: 'For the PLLE3 and PLLE4, determines CLKPHYOUT frequency based on the VCO frequency.'
+  writable: true
+
+clockout1_mx:
+  address: 0xB[8:10]
+  description: "Must be set to 2'b00."
+  writable: true
+
+clockout1_edge:
+  address: 0xB[7]
+  description: 'Chooses the edge that the High Time counter transitions on.'
+  writable: true
+
+clockout1_no_count:
+  address: 0xB[6]
+  description: 'Bypasses the High and Low Time counters.'
+  writable: true
+
+clockout1_delay_time:
+  address: 0xB[0:6]
+  description: 'Phase offset with a resolution equal to the VCO period.'
+  writable: true
+
+
+clockout2_mx:
+  address: 0xD[8:10]
+  description: "Must be set to 2'b00."
+  writable: true
+
+clockout2_edge:
+  address: 0xD[7]
+  description: 'Chooses the edge that the High Time counter transitions on.'
+  writable: true
+
+clockout2_no_count:
+  address: 0xD[6]
+  description: 'Bypasses the High and Low Time counters.'
+  writable: true
+
+clockout2_delay_time:
+  address: 0xD[0:6]
+  description: 'Phase offset with a resolution equal to the VCO period.'
+  writable: true
+
+
+clockout3_mx:
+  address: 0xF[8:10]
+  description: "Must be set to 2'b00."
+  writable: true
+
+clockout3_edge:
+  address: 0xF[7]
+  description: 'Chooses the edge that the High Time counter transitions on.'
+  writable: true
+
+clockout3_no_count:
+  address: 0xF[6]
+  description: 'Bypasses the High and Low Time counters.'
+  writable: true
+
+clockout3_delay_time:
+  address: 0xF[0:6]
+  description: 'Phase offset with a resolution equal to the VCO period.'
+  writable: true
+
+
+clockout4_mx:
+  address: 0x11[8:10]
+  description: "Must be set to 2'b00."
+  writable: true
+
+clockout4_edge:
+  address: 0x11[7]
+  description: 'Chooses the edge that the High Time counter transitions on.'
+  writable: true
+
+clockout4_no_count:
+  address: 0x11[6]
+  description: 'Bypasses the High and Low Time counters.'
+  writable: true
+
+clockout4_delay_time:
+  address: 0x11[0:6]
+  description: 'Phase offset with a resolution equal to the VCO period.'
+  writable: true
+
+
+clockout0_phase_mux_f:
+  address: 0x07[11:14]
+  description: "CLKOUT0 data required when using fractional
+counter. Chooses an initial phase offset for the
+falling edge of the clock output. The resolution is
+equal to 1/8 VCO period. Not available in UltraScale
+PLLE3 and UltraScale+ PLLE4."
+  writable: true
+
+clockout0_wf_f:
+  address: 0x07[10]
+  description: "Adjusts CLKOUT0 falling edge for improved duty
+cycle accuracy when using fractional counter."
+  writable: true
+
+clockout5_mx:
+  address: 0x07[8:10]
+  description: "Must be set to 2'b00."
+  writable: true
+
+clockout5_edge:
+  address: 0x07[7]
+  description: 'Chooses the edge that the High Time counter transitions on.'
+  writable: true
+
+clockout5_no_count:
+  address: 0x07[6]
+  description: 'Bypasses the High and Low Time counters.'
+  writable: true
+
+clockout5_delay_time:
+  address: 0x07[0:6]
+  description: 'Phase offset with a resolution equal to the VCO period.'
+  writable: true
+
+
+clockfb_phase_mux_f:
+  address: 0x13[11:14]
+  description: "CLKFBOUT data required when using fractional
+counter. Chooses an initial phase offset for the falling
+edge of the clock output. The resolution is equal to 1/8
+VCO period."
+  writable: true
+
+clockfb_wf_f:
+  address: 0x13[10]
+  description: "Adjusts CLKFBOUT falling edge for improved duty cycle
+accuracy when using fractional counter."
+  writable: true
+
+clockout6_mx:
+  address: 0x13[8:10]
+  description: "Must be set to 2'b00."
+  writable: true
+
+clockout6_edge:
+  address: 0x13[7]
+  description: 'Chooses the edge that the High Time counter transitions on.'
+  writable: true
+
+clockout6_no_count:
+  address: 0x13[6]
+  description: 'Bypasses the High and Low Time counters.'
+  writable: true
+
+clockout6_delay_time:
+  address: 0x13[0:6]
+  description: 'Phase offset with a resolution equal to the VCO period.'
+  writable: true
+
+
+clockfbout_frac:
+  address: 0x15[12:15]
+  description: 'Fractional divide counter setting for CLKFBOUT. Equivalent to additional divide of 1/8.'
+  writable: true
+
+clockfbout_frac_en:
+  address: 0x15[11]
+  description: 'Enable fractional divider circuitry for CLKFBOUT.'
+  writable: true
+
+clockfbout_frac_wf_r:
+  address: 0x15[10]
+  description: 'Adjusts CLKFBOUT rising edge for improved duty cycle accuracy when using fractional counter.'
+  writable: true
+
+clockfbout_mx:
+  address: 0x15[8:10]
+  description: "Must be set to 2'b00."
+  writable: true
+
+clockfbout_edge:
+  address: 0x15[7]
+  description: 'Chooses the edge that the High Time counter transitions on.'
+  writable: true
+
+clockfbout_no_count:
+  address: 0x15[6]
+  description: 'Bypasses the High and Low Time counters.'
+  writable: true
+
+clockfbout_delay_time:
+  address: 0x15[0:6]
+  description: 'Phase offset with a resolution equal to the VCO period.'
+  writable: true
+
+
+divreg_edge:
+  address: 0x16[13]
+  description: 'Chooses the edge that the High Time counter transitions on.'
+  writable: true
+
+divreg_no_count:
+  address: 0x16[12]
+  description: 'Bypasses the High and Low Time counters.'
+  writable: true
+
+divreg_high_time:
+  address: 0x16[6:12]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains High.'
+  writable: true
+
+divreg_low_time:
+  address: 0x16[0:6]
+  description: 'Sets the amount of time in VCO cycles that the clock output remains Low.'
+  writable: true
+
+
+lktable[20:30]:
+  address: 0x18[0:10]
+  description: 'These bits are pulled from the lookup table provided in the reference design.'
+  writable: true
+
+
+lktable[30:35]:
+  address: 0x19[10:15]
+  description: 'These bits are pulled from the lookup table provided in the reference design.'
+  writable: true
+
+lktable[0:10]:
+  address: 0x19[0:10]
+  description: 'These bits are pulled from the lookup table provided in the reference design.'
+  writable: true
+
+
+lktable[35:40]:
+  address: 0x1A[10:15]
+  description: 'These bits are pulled from the lookup table provided in the reference design.'
+  writable: true
+
+lktable[10:20]:
+  address: 0x1A[0:10]
+  description: 'These bits are pulled from the lookup table provided in the reference design.'
+  writable: true
+
+
+table[9]:
+  address: 0x4E[15]
+  description: 'This bit is pulled from the lookup table provided in the reference design.'
+  writable: true
+
+table[7:9]:
+  address: 0x4E[11:13]
+  description: 'This bit is pulled from the lookup table provided in the reference design.'
+  writable: true
+
+table[6]:
+  address: 0x4E[8]
+  description: 'This bit is pulled from the lookup table provided in the reference design.'
+  writable: true
+
+
+table[5]:
+  address: 0x4F[15]
+  description: 'This bit is pulled from the lookup table provided in the reference design.'
+  writable: true
+
+table[3:5]:
+  address: 0x4F[11:13]
+  description: 'This bit is pulled from the lookup table provided in the reference design.'
+  writable: true
+
+table[1:3]:
+  address: 0x4F[7:9]
+  description: 'This bit is pulled from the lookup table provided in the reference design.'
+  writable: true
+
+table[0]:
+  address: 0x4F[4]
+  description: 'This bit is pulled from the lookup table provided in the reference design.'
+  writable: true
+
+
+power:
+  address: 0x28[0:16]
+  description: 'These bits must all be set High when performing DRP.'
+  writable: true

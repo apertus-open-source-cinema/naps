@@ -1,4 +1,6 @@
 from nmigen import *
+
+from cores.csr_bank import ControlSignal
 from .xilinx_blackbox import XilinxBlackbox
 
 
@@ -19,24 +21,22 @@ class IdelayCtl(XilinxBlackbox):
 
 
 class OSerdes10(Elaboratable):
-    def __init__(self, input: Signal, domain: str, domain_5x: str, invert=False):
+    def __init__(self, input: Signal, domain: str, domain_5x: str):
         self.output = Signal()
         self.input = input
 
         self.domain = domain
         self.domain_5x = domain_5x
-        self.invert = invert
+        self.invert = ControlSignal()
 
     def elaborate(self, platform):
         m = Module()
 
-        if self.invert:
-            data = self.input
-        else:
-            data = (~self.input)
+        data = Signal.like(self.input)
+        m.d[self.domain] += data.eq(self.input ^ Repl(self.invert, len(self.input)))
 
         ce = Signal()
-        m.d[self.domain] += ce.eq(~ResetSignal(self.domain))
+        m.d.comb += ce.eq(~ResetSignal(self.domain))
 
         shift = Signal(2)
 

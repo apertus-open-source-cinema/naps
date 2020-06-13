@@ -16,7 +16,7 @@ class Bufg(Elaboratable):
         self.o = Signal()
 
     def elaborate(self, platform):
-        return Instance("BUFG", i_i=self.i, o_o=self.o)
+        return Instance("BUFG", i_I=self.i, o_O=self.o)
 
 
 class RawMmcm(XilinxBlackbox):

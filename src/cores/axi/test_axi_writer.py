@@ -1,5 +1,7 @@
 import unittest
 
+from nmigen import *
+
 from util.sim import SimPlatform
 from cores.axi.axi_interface import AxiInterface, Response, AddressChannel, BurstType, DataChannel
 from cores.axi.buffer_writer import AxiBufferWriter, AddressGenerator
@@ -11,7 +13,7 @@ def answer_channel(channel, always_ready=True):
         yield channel.ready.eq(1)
     yield from wait_for(channel.valid)
     if isinstance(channel, AddressChannel):
-        to_return =(
+        to_return = (
             (yield channel.value),
             (yield channel.burst_len) + 1,
             (yield channel.burst_type),
@@ -34,7 +36,7 @@ def respond_channel(channel, resp=Response.OKAY):
 def answer_write_burst(axi: AxiInterface):
     memory = {}
     addr, burst_len, burst_type, beat_size_bytes = yield from answer_channel(axi.write_address)
-    assert 2**beat_size_bytes == axi.data_bytes
+    assert 2 ** beat_size_bytes == axi.data_bytes
     assert burst_type == BurstType.INCR.value
     accepted = 0
     for i in range(burst_len):
@@ -52,7 +54,8 @@ def answer_write_burst(axi: AxiInterface):
 class TestSimAxiWriter(unittest.TestCase):
     def test_buffer_change(self, buffer_base_list=(1000, 2000), burst_len=16, data_len=50):
         axi = AxiInterface(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
-        dut = AxiBufferWriter(axi, buffer_base_list, max_burst_length=burst_len, max_buffer_size=0x1000, fifo_depth=data_len)
+        dut = AxiBufferWriter(axi, buffer_base_list, max_burst_length=burst_len, max_buffer_size=0x1000,
+                              fifo_depth=data_len)
 
         def testbench():
             gold = {}
@@ -76,7 +79,7 @@ class TestSimAxiWriter(unittest.TestCase):
             # first, fill in some data:
             for i in range(data_len):
                 yield from put_data(i)
-                #yield dut.change_buffer.eq(0)
+                # yield dut.change_buffer.eq(0)
                 yield from change_buffer()
                 yield
             yield dut.data_valid.eq(0)
@@ -94,7 +97,9 @@ class TestSimAxiWriter(unittest.TestCase):
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
-        platform.sim(dut, testbench, [*dut.axi._rhs_signals(), dut.address_generator.request, dut.address_generator.valid, dut.address_generator.valid])
+        platform.sim(dut, testbench,
+                     [*dut.axi._rhs_signals(), dut.address_generator.request, dut.address_generator.valid,
+                      dut.address_generator.valid])
 
     def test_basic(self, buffer_base_list=(1000, 2000), burst_len=16):
         axi = AxiInterface(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
@@ -118,6 +123,31 @@ class TestSimAxiWriter(unittest.TestCase):
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
         platform.sim(dut, testbench)
+
+    def test_memory(self):
+        m = Module()
+        memory = Memory(width=8, depth=8)
+        read_port = m.submodules.read_port = memory.read_port(transparent=False)
+        write_port = m.submodules.write_port = memory.write_port()
+        lol = Signal()
+        m.d.sync += lol.eq(Cat(read_port.en, read_port.data, read_port.addr, write_port.en, write_port.data, write_port.addr))
+
+        def testbench():
+            for i in range(8):
+                yield write_port.addr.eq(i)
+                yield write_port.data.eq(i)
+                yield write_port.en.eq(1)
+                yield
+            yield write_port.en.eq(0)
+            for i in range(8):
+                yield read_port.addr.eq(i)
+                yield read_port.en.eq(1)
+                yield
+            yield read_port.en.eq(0)
+
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.sim(m, testbench)
 
 
 class TestAddressGenerator(unittest.TestCase):

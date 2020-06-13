@@ -135,7 +135,7 @@ class AxiBufferWriter(Elaboratable):
                 m.d.comb += self.state.eq(2)
 
                 change_buffer = Signal()
-                payload = Signal()
+                payload = Signal.like(self.data)
                 m.d.comb += Cat(payload, change_buffer).eq(data_fifo.r_data)
 
                 with m.If(change_buffer):

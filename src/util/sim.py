@@ -22,7 +22,7 @@ class SimPlatform:
             ]
             return top_fragment
 
-        filter_instances(top_fragment)
+        # filter_instances(top_fragment)
         return top_fragment
 
     def sim(self, dut, testbench, traces=(), filename=None):

@@ -300,6 +300,21 @@ class MemoryMap(MustUse):
         else:
             return to_return
 
-    @property
-    def flat(self):
-        return self.flatten()
+    def find_recursive(self, obj):
+        """
+        Searches recursively for the given object and returns the associated address.
+        If the object is not found, None is returned
+        :rtype: Address
+        :param obj: the object to look for
+        """
+
+        for row in self.normal_resources:
+            if row.obj is obj:
+                return self.own_offset.translate(row.address)
+
+        for row in self.subranges:
+            sub_result = row.obj.find_recursive(obj)
+            if sub_result is not None:
+                return sub_result
+
+        return None

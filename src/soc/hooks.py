@@ -80,5 +80,5 @@ def address_assignment_hook(platform, top_fragment: Fragment, sames: Elaboratabl
     top_memorymap.place_at = platform.base_address
 
     print("memorymap:\n" + "\n".join(
-        "    {}: {!r}".format(k, v) for k, v in top_memorymap.flat.items()))
+        "    {}: {!r}".format(k, v) for k, v in top_memorymap.flatten().items()))
     platform.memorymap = top_memorymap

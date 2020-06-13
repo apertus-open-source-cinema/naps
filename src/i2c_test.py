@@ -1,5 +1,6 @@
 from nmigen import *
 
+from cores.bitbang_i2c import BitbangI2c
 from cores.csr_bank import ControlSignal
 from soc.cli import cli
 from cores.mmio_gpio import MmioGpio
@@ -13,7 +14,7 @@ class Top(Elaboratable):
         m = Module()
 
         i2c_pads = platform.request("i2c")
-        m.submodules.i2c = MmioGpio(i2c_pads)
+        m.submodules.i2c = BitbangI2c(i2c_pads)
 
         sensor = platform.request("sensor")
         ps7 = platform.get_ps7()

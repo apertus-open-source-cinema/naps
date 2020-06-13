@@ -50,6 +50,8 @@ class BitbangI2c(Elaboratable):
                 }};
             """.format(set_addr.address, dat_addr.address, dirout_addr.address))
             platform.add_file("i2c_overlay.dts", overlay_text.encode("utf-8"))
+            platform.init_script += "mkdir -p /sys/kernel/config/device-tree/overlays/bitbang_i2c\n"
+            platform.init_script += "dtc -O dtb -@ i2c_overlay.dts -o - > /sys/kernel/config/device-tree/overlays/bitbang_i2c/dtbo\n"
 
         platform.prepare_hooks.append(i2c_overlay_hook)
 

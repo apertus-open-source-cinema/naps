@@ -1,9 +1,11 @@
+import os
+
 from nmigen import *
 
 from cores.bitbang_i2c import BitbangI2c
 from cores.csr_bank import ControlSignal
+from cores.hispi.hispi import Hispi
 from soc.cli import cli
-from cores.mmio_gpio import MmioGpio
 
 
 class Top(Elaboratable):
@@ -21,9 +23,14 @@ class Top(Elaboratable):
         ps7.fck_domain(24e6)
         m.d.comb += sensor.clk.eq(ClockSignal())
         m.d.comb += sensor.reset.eq(self.sensor_reset)
+        # TODO: find more ideomatic way to do this
+        os.environ["NMIGEN_add_constraints"] = "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/hispi_sensor_0__lvds_clk__i]"
+
+        m.submodules.hispi = Hispi(sensor)
 
         return m
 
 
 if __name__ == "__main__":
-    cli(Top)
+    with cli(Top) as platform:
+        pass

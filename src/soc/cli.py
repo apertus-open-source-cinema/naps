@@ -1,13 +1,19 @@
 import inspect
 import pickle
+import sys
 from datetime import datetime
 from glob import glob
-from os import stat
+from os import stat, path
 
 from nmigen.build.run import LocalBuildProducts
 
 from soc.zynq import ZynqSocPlatform
 import argparse
+
+
+def in_build(subpath):
+    dirname = path.dirname(__file__)
+    return path.join(dirname, '..', 'build', subpath)
 
 
 class Cli:
@@ -28,35 +34,37 @@ class Cli:
         return self.platform
 
     def __exit__(self, exc_type, exc_value, traceback):
-        name = inspect.stack()[1].filename.split("/")[-1].replace(".py", "")
-        if self.args.e or self.args.b:
-            build_name = name + datetime.now().strftime("-%d-%b-%Y--%H-%M-%S")
-            self.platform.build(
-                self.top_class(),
-                name=build_name,
-                do_build=self.args.b,
-                do_program=self.args.p
-            )
-            with open('build/{}.extra_files.pickle'.format(build_name), 'wb') as f:
-                pickle.dump(self.platform.extra_files, f)
-        elif self.args.p:
-            # we program the last version
-            build_files = glob('build/build_{}-*.sh'.format(name))
-            if not build_files:
-                raise FileNotFoundError('no previous build exists for "{}". cant programm it without building'.format(name))
-            sorted_build_files = sorted(build_files, key=lambda x: stat(x).st_mtime, reverse=True)
-            build_name = sorted_build_files[0].replace('build/build_', '').replace('.sh', '')
-            with open('build/{}.extra_files.pickle'.format(build_name), 'rb') as f:
-                self.platform.extra_files = pickle.load(f)
-            self.platform.toolchain_program(LocalBuildProducts('build'), name=build_name)
-        else:
-            print("nothing to do")
+        try:
+            name = inspect.stack()[1].filename.split("/")[-1].replace(".py", "")
+            if self.args.e or self.args.b:
+                build_name = name + datetime.now().strftime("-%d-%b-%Y--%H-%M-%S")
+                self.platform.build(
+                    self.top_class(),
+                    name=build_name,
+                    do_build=self.args.b,
+                    do_program=self.args.p
+                )
+                with open(in_build('{}.extra_files.pickle'.format(build_name)), 'wb') as f:
+                    pickle.dump(self.platform.extra_files, f)
+            elif self.args.p:
+                # we program the last version
+                build_files = glob(in_build('build_{}-*.sh'.format(name)))
+                if not build_files:
+                    raise FileNotFoundError(
+                        'no previous build exists for "{}". cant programm it without building'.format(name))
+                sorted_build_files = sorted(build_files, key=lambda x: stat(x).st_mtime, reverse=True)
+                build_name = sorted_build_files[0].replace('build/build_', '').replace('.sh', '')
+                with open(in_build('{}.extra_files.pickle'.format(build_name)), 'rb') as f:
+                    self.platform.extra_files = pickle.load(f)
+                self.platform.toolchain_program(LocalBuildProducts(in_build('')), name=build_name)
+            else:
+                print("nothing to do")
+        except:
+            print("\n\nAN EXCEPTION OCCURED:", file=sys.stderr)
+            import traceback
+            traceback.print_exc(file=sys.stderr)
 
-    def __del__(self):
-        if not self.ran:
-            self.__enter__()
-            self.__exit__(None, None, None)
+            exit(1)
 
 
 cli = Cli
-

@@ -18,7 +18,7 @@ class TestHdmi(unittest.TestCase):
 
         def testbench():
             last_x = 0
-            for i in range(800):
+            for i in range(800 - 1):
                 yield
                 this_x = (yield dut.x)
                 assert this_x == last_x + 1, "x increment failed"

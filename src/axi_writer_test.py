@@ -37,4 +37,5 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top)
+    with cli(Top) as platform:
+        pass

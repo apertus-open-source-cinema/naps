@@ -47,7 +47,7 @@ class SocPlatform(ABC):
         def inject_subfragments(top_fragment, sames, to_inject_subfragments):
             for elaboratable, name in to_inject_subfragments:
                 fragment, fragment_sames = fragment_get_with_elaboratable_trace(elaboratable, self, sames)
-                top_fragment.add_subfragment(Fragment.get(fragment, self), name)
+                top_fragment.add_subfragment(fragment, name)
             self.to_inject_subfragments = []
 
         print("\n# ELABORATING SOC PLATFORM ADDITIONS")

@@ -1,9 +1,7 @@
 from nmigen import *
-from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
-from soc import ControlSignal, StatusSignal, cli
 from xilinx.clocking import RawPll, Bufg
-from xilinx.io import Oserdes, IdelayCtl, Idelay, Iserdes
+from xilinx.io import Iserdes
 
 class HispiPhy(Elaboratable):
     def __init__(self, num_lanes=4):
@@ -12,7 +10,9 @@ class HispiPhy(Elaboratable):
 
         self.dout = [Signal(6)] * num_lanes
 
-    def elaborate(platform):
+    def elaborate(self, platform):
+        m = Module()
+
         pll = m.submodules.pll = RawPll(startup_wait=False, ref_jitter1=0.01, clkin1_period=3.333,
                                         clkfbout_mult=3, divclk_divide=1,
                                         clkout0_divide=9, clkout0_phase=0.0,
@@ -51,3 +51,5 @@ class HispiPhy(Elaboratable):
             m.d.comb += iserdes.clkdiv.eq(ClockSignal("hispi_half_word"))
 
             m.d.comb += self.dout[i].eq(Cat(iserdes.q[j] for j in range(1, 7)))
+
+        return m

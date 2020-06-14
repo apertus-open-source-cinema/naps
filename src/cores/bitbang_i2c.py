@@ -4,7 +4,6 @@ from nmigen import *
 
 from cores.mmio_gpio import MmioGpio
 from soc.soc_platform import SocPlatform
-from soc.tracing_elaborate import ElaboratableSames
 
 
 class BitbangI2c(Elaboratable):
@@ -12,7 +11,7 @@ class BitbangI2c(Elaboratable):
         self.mmio_gpio = MmioGpio(pads=(pins.scl, pins.sda))
 
     def elaborate(self, platform: SocPlatform):
-        def i2c_overlay_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
+        def i2c_overlay_hook(platform, top_fragment: Fragment, sames):
             assert hasattr(top_fragment, "memorymap")
             memorymap = top_fragment.memorymap
             dat_addr = memorymap.find_recursive(self.mmio_gpio.dat)

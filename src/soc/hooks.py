@@ -2,11 +2,12 @@ from functools import reduce
 from warnings import warn
 
 from nmigen import *
+from nmigen.compat.fhdl.module import CompatModule
 from nmigen.hdl.ast import SignalSet
+from soc.tracing_elaborate import ElaboratableSames
 
 from cores.csr_bank import CsrBank, _Csr, ControlSignal, StatusSignal, EventReg
 from soc.memorymap import MemoryMap
-from soc.tracing_elaborate import ElaboratableSames
 
 
 def csr_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):

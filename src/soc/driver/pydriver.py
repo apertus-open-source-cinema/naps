@@ -2,9 +2,9 @@ from textwrap import indent
 from os.path import dirname, join
 
 from nmigen.build import Platform
+from soc.tracing_elaborate import ElaboratableSames
 
 from soc.memorymap import MemoryMap
-from soc.tracing_elaborate import ElaboratableSames
 
 
 def gen_mmap_python_code(mmap: MemoryMap, name="top", superclass="") -> str:

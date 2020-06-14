@@ -1,4 +1,4 @@
-from nmigen.build import Resource, Subsignal, Pins, DiffPairs, Connector, Attrs
+from nmigen.build import Resource, Subsignal, Pins, DiffPairs, Connector, Attrs, PinsN
 from nmigen_boards.zturn_lite_z010 import ZTurnLiteZ010Platform
 
 from .gen_plugin_connctotr import gen_plugin_connector
@@ -14,10 +14,10 @@ class MicroR2Platform(ZTurnLiteZ010Platform):
             Resource("sensor", 0,
                      Subsignal("shutter", Pins("25", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      Subsignal("trigger", Pins("27", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
-                     Subsignal("reset", Pins("31", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
+                     Subsignal("reset", PinsN("31", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      Subsignal("clk", Pins("33", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
-                     Subsignal("lvds_clk", DiffPairs("52", "54", dir='i', conn=("expansion", 0))),
-                     Subsignal("lvds", DiffPairs("41 45 55 65", "43 47 57 67", dir='i', conn=("expansion", 0))),
+                     Subsignal("lvds_clk", DiffPairs("52", "54", dir='i', conn=("expansion", 0)), Attrs(IOSTANDARD="LVDS_25")),
+                     Subsignal("lvds", DiffPairs("41 45 55 65", "43 47 57 67", dir='i', conn=("expansion", 0)), Attrs(IOSTANDARD="LVDS_25")),
                      ),
             Resource("i2c", 0,
                      Subsignal("scl", Pins("35", dir='io', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),

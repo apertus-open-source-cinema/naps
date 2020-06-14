@@ -5,7 +5,6 @@ from cores.axi.full_to_lite import AxiFullToLiteBridge
 from cores.axi.interconnect import AxiInterconnect
 from soc.memorymap import Address
 from soc.soc_platform import SocPlatform
-from soc.tracing_elaborate import ElaboratableSames
 from xilinx.ps7 import Ps7
 from cores.axi.axi_lite_bus_slave import AxiLiteBusSlave
 from .program_bitstream_ssh import program_bitstream_ssh
@@ -21,10 +20,10 @@ class ZynqSocPlatform(SocPlatform):
         self.init_script = ""
         platform.toolchain_program = lambda *args, **kwargs: program_bitstream_ssh(self, *args, **kwargs)
 
-        def bus_slaves_connect_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
+        def bus_slaves_connect_hook(platform, top_fragment: Fragment, sames):
             bus_slaves = []
 
-            def collect_bus_slaves(platform, fragment: Fragment, sames: ElaboratableSames):
+            def collect_bus_slaves(platform, fragment: Fragment, sames):
                 module = sames.get_module(fragment)
                 if module:
                     if hasattr(module, "bus_slave"):

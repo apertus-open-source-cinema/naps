@@ -1,4 +1,4 @@
-from nmigen.build import Resource, Subsignal, Pins, DiffPairs, Connector, Attrs, PinsN
+from nmigen.build import Resource, Subsignal, Pins, DiffPairs, Connector, Attrs, PinsN, DiffPairsN
 from nmigen_boards.zturn_lite_z010 import ZTurnLiteZ010Platform
 
 from .gen_plugin_connctotr import gen_plugin_connector
@@ -12,18 +12,18 @@ class MicroR2Platform(ZTurnLiteZ010Platform):
         super().__init__()
         self.add_resources([
             Resource("sensor", 0,
-                     Subsignal("shutter", Pins("25", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
-                     Subsignal("trigger", Pins("27", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
-                     Subsignal("reset", PinsN("31", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
-                     Subsignal("clk", Pins("33", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
-                     Subsignal("lvds_clk", DiffPairs("52", "54", dir='i', conn=("expansion", 0)), Attrs(IOSTANDARD="LVDS_25")),
-                     Subsignal("lvds", DiffPairs("41 45 55 65", "43 47 57 67", dir='i', conn=("expansion", 0)), Attrs(IOSTANDARD="LVDS_25")),
+                     Subsignal("shutter", Pins("25", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS18")),
+                     Subsignal("trigger", Pins("27", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS18")),
+                     Subsignal("reset", PinsN("31", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS18")),
+                     Subsignal("clk", Pins("33", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS18")),
+                     Subsignal("lvds_clk", DiffPairs("51", "53", dir='i', conn=("expansion", 0)), Attrs(IOSTANDARD="DIFF_SSTL18_I", IN_TERM="UNTUNED_SPLIT_50")),
+                     Subsignal("lvds", DiffPairsN("41 45 55 65", "43 47 57 67", dir='i', conn=("expansion", 0)), Attrs(IOSTANDARD="DIFF_SSTL18_I", IN_TERM="UNTUNED_SPLIT_50")),
                      ),
             Resource("i2c", 0,
-                     Subsignal("scl", Pins("35", dir='io', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
-                     Subsignal("sda", Pins("37", dir='io', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
+                     Subsignal("scl", Pins("35", dir='io', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS18")),
+                     Subsignal("sda", Pins("37", dir='io', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS18")),
                      ),
-            Resource("ws2812", 0, Pins("56", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
+            Resource("ws2812", 0, Pins("56", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS18")),
             Resource("encoder", 0,
                      Subsignal("quadrature", Pins("58 68", dir='i', conn=("expansion", 0))),
                      Subsignal("push", Pins("66", dir='i', conn=("expansion", 0)))

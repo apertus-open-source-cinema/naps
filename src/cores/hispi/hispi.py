@@ -11,6 +11,7 @@ class ControlSequenceDecoder(Elaboratable):
 
         self.data = input_data
         self.data_valid = StatusSignal()
+        self.last_word = StatusSignal(input_data.shape())
         self.last_control_word = StatusSignal(input_data.shape())
         self.cycles_since_last_pattern = StatusSignal(range(timeout))
         self.do_bitslip = StatusSignal()
@@ -18,6 +19,8 @@ class ControlSequenceDecoder(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
+
+        m.d.sync += self.last_word.eq(self.data)
 
         with m.If(self.cycles_since_last_pattern < self.timeout):
             m.d.sync += self.cycles_since_last_pattern.eq(self.cycles_since_last_pattern + 1)

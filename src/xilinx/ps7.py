@@ -176,12 +176,12 @@ class Ps7(Ps7Block):
                 platform.add_sim_clock(domain_name, frequency)
 
         if hasattr(platform, "init_script"):
-            platform.init_script += "\n".join(
+            platform.init_script = "\n".join(
                 "# clockdomain '{name}':\n"
                 "echo 1 > /sys/class/fclk/fclk{i}/enable\n"
                 "echo {freq} > /sys/class/fclk/fclk{i}/set_rate\n"
                     .format(freq=int(freq), i=i, name=domain_name)
                 for i, (clock_signal, bufg_out, freq, domain_name) in self.clock_constraints.items()
-            )
+            ) + platform.init_script
 
         return m

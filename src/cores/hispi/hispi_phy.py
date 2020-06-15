@@ -1,7 +1,7 @@
 from nmigen import *
-from nmigen.build import Clock
 
-from xilinx.clocking import Pll
+from cores.csr_bank import StatusSignal
+from xilinx.clocking import Mmcm
 from xilinx.io import Iserdes
 
 
@@ -13,13 +13,16 @@ class HispiPhy(Elaboratable):
         self.bitslip = [Signal() for _ in range(num_lanes)]
         self.out = [Signal(12) for _ in range(num_lanes)]
 
+        self.hispi_x6_in_domain_counter = StatusSignal(32)
+
     def elaborate(self, platform):
         m = Module()
 
         m.domains += ClockDomain("hispi_x6_in")
         m.d.comb += ClockSignal("hispi_x6_in").eq(self.hispi_clk)
+        m.d.hispi_x6_in += self.hispi_x6_in_domain_counter.eq(self.hispi_x6_in_domain_counter + 1)
 
-        pll = m.submodules.pll = Pll(300e6, 3, 1, input_domain="hispi_x6_in")
+        pll = m.submodules.pll = Mmcm(300e6, 3, 1, input_domain="hispi_x6_in")
         pll.output_domain("hispi_x6", 3)
         pll.output_domain("hispi_x2", 9)
         pll.output_domain("hispi", 18)

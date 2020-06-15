@@ -11,4 +11,3 @@ usage_statistics_webtalk.xml
 spec_*/
 *.pyi
 *.sim_results/*
-test_data*

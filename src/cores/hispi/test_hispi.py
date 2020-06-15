@@ -15,7 +15,7 @@ class TestHispi(unittest.TestCase):
         dut = ControlSequenceDecoder(input_data)
 
         def testbench():
-            with gzip.open(join(dirname(__file__), "test_data.txt.gz")) as f:
+            with lzma.open(join(dirname(__file__), "test_data.txt.gz")) as f:
                 def lane_n_generator(n):
                     while True:
                         line = f.readline()

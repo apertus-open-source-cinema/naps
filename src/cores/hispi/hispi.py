@@ -5,7 +5,7 @@ from cores.hispi.hispi_phy import HispiPhy
 
 
 class ControlSequenceDecoder(Elaboratable):
-    def __init__(self, input_data: Signal, pattern=(0b111111111111, 0b000000000000, 0b000000000000), timeout=4000):
+    def __init__(self, input_data: Signal, pattern=(0b111111111111, 0b000000000000, 0b000000000000), timeout=2000):
         self.pattern = pattern
         self.timeout = timeout
 

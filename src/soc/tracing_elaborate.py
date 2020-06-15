@@ -70,7 +70,8 @@ def fragment_get_with_elaboratable_trace(elaboratable, platform, sames=None):
             inject_elaborate_wrapper(elaboratable._elaboratable_, level=0, text_prefix="\t\tx> ")
             sames.insert(elaboratable, elaboratable._elaboratable_)
         else:
-            assert isinstance(elaboratable, (Fragment, Instance, Elaboratable))
+            if not isinstance(elaboratable, (Fragment, Instance, Elaboratable)):
+                raise AssertionError()
 
         if hasattr(elaboratable, 'elaborate'):
             real_elaborate = elaboratable.elaborate

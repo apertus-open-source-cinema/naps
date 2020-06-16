@@ -1,18 +1,18 @@
 from nmigen import *
 
-from . import AxiInterface
+from . import AxiEndpoint
 
 
 class AxiFullToLiteBridge(Elaboratable):
-    def __init__(self, full_master: AxiInterface):
+    def __init__(self, full_master: AxiEndpoint):
         assert full_master.is_master and not full_master.is_lite
         self._full_master = full_master
-        self.lite_master = AxiInterface.like(full_master, lite=True, name="axi_lite_bridge_master")
+        self.lite_master = AxiEndpoint.like(full_master, lite=True, name="axi_lite_bridge_master")
 
     def elaborate(self, platform):
         m = Module()
 
-        full_slave = AxiInterface.like(self._full_master, master=False, name="axi_full_slave")
+        full_slave = AxiEndpoint.like(self._full_master, master=False, name="axi_full_slave")
         m.d.comb += self._full_master.connect_slave(full_slave)
 
         lite_master = self.lite_master

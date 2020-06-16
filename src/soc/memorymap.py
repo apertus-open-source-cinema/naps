@@ -123,6 +123,8 @@ class MemoryMapRow:
     writable: bool
     obj: object
 
+class UnusedMemoryMap(Warning):
+    pass
 
 class MemoryMap(MustUse):
     def __init__(self, place_at=None, parent=None, top=False, bus_word_width=32):
@@ -141,6 +143,7 @@ class MemoryMap(MustUse):
 
         self.entries: List[MemoryMapRow] = []
         self.frozen = False
+        self._MustUse__warning = UnusedMemoryMap
 
     def __repr__(self):
         return "<Memorymap top={} byte_len={}>".format(self.top, self.byte_len)

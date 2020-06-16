@@ -2,7 +2,7 @@ from abc import ABC
 
 from nmigen import *
 
-from cores.axi.axi_interface import Response as AxiResponse, AxiInterface
+from cores.axi.axi_interface import Response as AxiResponse, AxiEndpoint
 from soc.bus_slave import Response as BusSlaveResponse
 from soc.memorymap import MemoryMap
 
@@ -21,7 +21,7 @@ class AxiLiteBusSlave(Elaboratable, ABC):
         self.handle_read = handle_read
         self.handle_write = handle_write
 
-        self.axi = AxiInterface(master=False, addr_bits=32, data_bits=32, lite=True, name=bundle_name)
+        self.axi = AxiEndpoint(master=False, addr_bits=32, data_bits=32, lite=True, name=bundle_name)
 
     def elaborate(self, platform):
         m = Module()

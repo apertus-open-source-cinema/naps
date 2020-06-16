@@ -6,7 +6,9 @@ from xilinx.io import Iserdes
 
 
 class HispiPhy(Elaboratable):
-    def __init__(self, num_lanes=4):
+    def __init__(self, num_lanes=4, bits=12):
+        assert bits == 12
+
         self.hispi_clk = Signal()
         self.hispi_lanes = Signal(num_lanes)
 
@@ -22,10 +24,12 @@ class HispiPhy(Elaboratable):
         m.d.comb += ClockSignal("hispi_x6_in").eq(self.hispi_clk)
         m.d.hispi_x6_in += self.hispi_x6_in_domain_counter.eq(self.hispi_x6_in_domain_counter + 1)
 
-        pll = m.submodules.pll = Mmcm(300e6, 3, 1, input_domain="hispi_x6_in")
-        pll.output_domain("hispi_x6", 3)
-        pll.output_domain("hispi_x2", 9)
-        pll.output_domain("hispi", 18)
+        mul = 3
+        pll = m.submodules.pll = Mmcm(300e6, mul, 1, input_domain="hispi_x6_in")
+        pll.output_domain("hispi_x6", mul * 1)
+        pll.output_domain("hispi_x3", mul * 2)
+        pll.output_domain("hispi_x2", mul * 3)
+        pll.output_domain("hispi", mul * 6)
 
         for i in range(0, len(self.hispi_lanes)):
             iserdes = m.submodules["hispi_iserdes_" + str(i)] = Iserdes(

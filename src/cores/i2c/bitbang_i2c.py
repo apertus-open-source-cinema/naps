@@ -49,7 +49,6 @@ class BitbangI2c(Elaboratable):
                 }};
             """.format(set_addr.address, dat_addr.address, dirout_addr.address))
             platform.add_file("i2c_overlay.dts", overlay_text.encode("utf-8"))
-            platform.init_script += "rmdir /sys/kernel/config/device-tree/overlays/bitbang_i2c\n"
             platform.init_script += "sleep 2  # we let the fpga load the bitstream to not hang the cpu\n"
             platform.init_script += "mkdir -p /sys/kernel/config/device-tree/overlays/bitbang_i2c\n"
             platform.init_script += "dtc -O dtb -@ i2c_overlay.dts -o - > /sys/kernel/config/device-tree/overlays/bitbang_i2c/dtbo\n"

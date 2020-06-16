@@ -1,1 +1,1 @@
-from .axi_interface import AxiInterface
+from .axi_interface import AxiEndpoint

@@ -1,6 +1,6 @@
 import unittest
 
-from cores.axi.axi_interface import Response, AxiInterface
+from cores.axi.axi_interface import Response, AxiEndpoint
 from util.sim import SimPlatform
 from cores.csr_bank.csr_bank import CsrBank, ControlSignal
 from soc.zynq.zynq_soc_platform import ZynqSocPlatform
@@ -63,7 +63,7 @@ class TestAxiSlave(unittest.TestCase):
         csr_bank.reg("csr", ControlSignal(32))
 
         def testbench():
-            axi: AxiInterface = platform.axi_lite_master
+            axi: AxiEndpoint = platform.axi_lite_master
             yield axi.read_address.value.eq(0x4000_0000)
             yield axi.read_address.valid.eq(1)
             yield from do_nothing()

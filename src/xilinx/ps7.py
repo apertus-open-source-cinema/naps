@@ -4,7 +4,7 @@ from functools import lru_cache
 from nmigen import *
 from nmigen.build import Clock
 
-from cores.axi import AxiInterface
+from cores.axi import AxiEndpoint
 from os.path import join, dirname
 
 from cores.axi.full_to_lite import AxiFullToLiteBridge
@@ -102,19 +102,23 @@ class Ps7(Ps7Block):
         m.d.comb += [ps7_port.bid.eq(axi.write_response.id)]
         m.d.comb += [axi.write_response.ready.eq(ps7_port.bre.ady)]
 
-    def get_axi_gp_master(self, number, clk) -> AxiInterface:
-        axi = AxiInterface(addr_bits=32, data_bits=32, lite=False, id_bits=12, master=True)
+    gp_master_number = 0
+    def get_axi_gp_master(self, clk) -> AxiEndpoint:
+        axi = AxiEndpoint(addr_bits=32, data_bits=32, lite=False, id_bits=12, master=True)
 
-        ps7_port = self.maxigp[number]
+        ps7_port = self.maxigp[self.gp_master_number]
+        self.gp_master_number += 1
         self.m.d.comb += ps7_port.aclk.eq(clk)
         self._axi_master_helper(axi, ps7_port)
 
         return axi
 
-    def get_axi_hp_slave(self, number, clk) -> AxiInterface:
-        axi = AxiInterface(addr_bits=32, data_bits=64, lite=False, id_bits=12, master=False)
+    hp_slave_number=0
+    def get_axi_hp_slave(self, clk) -> AxiEndpoint:
+        axi = AxiEndpoint(addr_bits=32, data_bits=64, lite=False, id_bits=12, master=False)
 
-        ps7_port = self.saxi.hp[number]
+        ps7_port = self.saxi.hp[self.hp_slave_number]
+        self.hp_slave_number += 1
         self.m.d.comb += ps7_port.aclk.eq(clk)
         self._axi_slave_helper(axi, ps7_port)
 
@@ -126,7 +130,7 @@ class Ps7(Ps7Block):
         m = self.m
         if not self.interconnect:
             self.fck_domain(100e6, domain_name="axi_lite")
-            axi_full_port: AxiInterface = self.get_axi_gp_master(0, ClockSignal("axi_lite"))
+            axi_full_port: AxiEndpoint = self.get_axi_gp_master(ClockSignal("axi_lite"))
             axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_lite")(
                 AxiFullToLiteBridge(axi_full_port)
             )

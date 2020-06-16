@@ -2,7 +2,7 @@ from functools import reduce
 
 from nmigen import *
 
-from . import AxiInterface
+from . import AxiEndpoint
 from util.nmigen import iterator_with_if_elif
 
 
@@ -11,7 +11,7 @@ class AxiInterconnect(Elaboratable):
         """
         A simple single master to many slaves AXI interconnect.
 
-        :type uplink_axi_master: AxiInterface
+        :type uplink_axi_master: AxiEndpoint
         :param uplink_axi_master: The axi master to which the inteconnect is connected.
         """
         self._uplink_axi_master = uplink_axi_master
@@ -24,14 +24,14 @@ class AxiInterconnect(Elaboratable):
 
         :return: A new AxiInterface shaped after the upstream port.
         """
-        downstream_master = AxiInterface.like(self._uplink_axi_master, name="axi_interconnect_downstream")
+        downstream_master = AxiEndpoint.like(self._uplink_axi_master, name="axi_interconnect_downstream")
         self._downstream_ports.append(downstream_master)
         return downstream_master
 
     def elaborate(self, platform):
         m = Module()
 
-        uplink = AxiInterface.like(self._uplink_axi_master, master=False, name="uplink_slave")
+        uplink = AxiEndpoint.like(self._uplink_axi_master, master=False, name="uplink_slave")
         m.d.comb += self._uplink_axi_master.connect_slave(uplink)
 
         # beware: the following works only for axi lite!

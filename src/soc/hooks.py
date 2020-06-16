@@ -2,7 +2,6 @@ from functools import reduce
 from warnings import warn
 
 from nmigen import *
-from nmigen.compat.fhdl.module import CompatModule
 from nmigen.hdl.ast import SignalSet
 from soc.tracing_elaborate import ElaboratableSames
 

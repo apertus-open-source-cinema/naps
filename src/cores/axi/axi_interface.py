@@ -80,13 +80,13 @@ class WriteResponseChannel(Bundle):
             self.id = Signal(id_bits)
 
 
-class AxiInterface(Bundle, MustUse):
+class AxiEndpoint(Bundle, MustUse):
     @staticmethod
     def like(model, master=None, lite=None, name="axi", **kwargs):
         """
         Create an AxiInterface shaped like a given model.
         :param name: the name of the resulting axi port
-        :type model: AxiInterface
+        :type model: AxiEndpoint
         :param model: the model after which the axi port should be created
         :type master: bool
         :param master: overrides the master property of the model
@@ -96,7 +96,7 @@ class AxiInterface(Bundle, MustUse):
         if lite is not None:
             assert model.is_master or lite, "cant make up id_bits out of thin air"
 
-        return AxiInterface(
+        return AxiEndpoint(
             addr_bits=model.addr_bits,
             data_bits=model.data_bits,
             lite=lite if lite is not None else model.is_lite,
@@ -151,9 +151,9 @@ class AxiInterface(Bundle, MustUse):
         of AXI inteconnect.
 
         usage example:
-        >>> stmts += master.connect_slave(slave)
+        >>> m.d.comb += master.connect_slave(slave)
 
-        :type slave: AxiInterface
+        :type slave: AxiEndpoint
         :param slave: the slave to connect.
         :returns the list of
         """

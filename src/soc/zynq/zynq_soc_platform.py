@@ -1,6 +1,6 @@
 from nmigen import Fragment, Module, ClockSignal, DomainRenamer
 
-from cores.axi import AxiInterface
+from cores.axi import AxiEndpoint
 from cores.axi.full_to_lite import AxiFullToLiteBridge
 from cores.axi.interconnect import AxiInterconnect
 from soc.memorymap import Address
@@ -38,13 +38,13 @@ class ZynqSocPlatform(SocPlatform):
                 ps7 = self.get_ps7()
                 ps7.fck_domain(domain_name="axi_csr", requested_frequency=100e6)
                 if not hasattr(platform, "is_sim"):
-                    axi_full_port: AxiInterface = ps7.get_axi_gp_master(0, ClockSignal("axi_csr"))
+                    axi_full_port: AxiEndpoint = ps7.get_axi_gp_master(ClockSignal("axi_csr"))
                     axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_csr")(
                         AxiFullToLiteBridge(axi_full_port)
                     )
                     axi_lite_master = axi_lite_bridge.lite_master
                 else:  # we are in a simulation platform
-                    axi_lite_master = AxiInterface(addr_bits=32, data_bits=32, master=True, lite=True)
+                    axi_lite_master = AxiEndpoint(addr_bits=32, data_bits=32, master=True, lite=True)
                     self.axi_lite_master = axi_lite_master
                 interconnect = m.submodules.interconnect = DomainRenamer("axi_csr")(
                     AxiInterconnect(axi_lite_master)

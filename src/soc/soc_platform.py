@@ -60,6 +60,8 @@ class SocPlatform(ABC):
         print("\ninjecting final fragments")
         inject_subfragments(top_fragment, sames, self.final_to_inject_subfragments)
 
+        print("\n\nexiting soc code\n")
+
         return self.real_prepare(top_fragment, *args, **kwargs)
 
     def BusSlave(

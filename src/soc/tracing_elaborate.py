@@ -1,4 +1,4 @@
-from textwrap import indent
+from types import MethodType
 
 from nmigen import *
 from nmigen.compat import Module as CompatModule
@@ -11,20 +11,20 @@ class ElaboratableSames:
 
     def insert(self, a, b):
         for row in self.sames:
-            if a in row:
-                if b not in row:
-                    row.append(b)
+            if a in row and b not in row:
+                row.append(b)
                 return
-            if b in row:
-                if a not in row:
-                    row.append(a)
+            elif b in row and a not in row:
+                row.append(a)
+                return
+            elif b in row and a in row:
                 return
         self.sames.append([a, b])
 
     def get_row(self, something):
         candidates = list(row for row in self.sames if something in row)
         if len(candidates) == 0:
-            return None
+            raise AssertionError()
         if len(candidates) != 1:
             raise AssertionError()
         return candidates[0]
@@ -52,43 +52,62 @@ class ElaboratableSames:
         )
 
 
+def inject_elaborate_wrapper(obj, sames):
+    if hasattr(obj, 'elaborate') and not isinstance(obj, Fragment):
+
+        def generate_elaborate_wrapper(real_elaborate):
+            def elaborate_wrapper(self, platform):
+                elaborated = real_elaborate(platform)
+                # print("{} ({}) elaborated to {} ({})".format(
+                #     self.__class__.__name__, self,
+                #     elaborated.__class__.__name__, elaborated
+                # ))
+                sames.insert(self, elaborated)
+                inject_elaborate_wrapper(elaborated, sames)
+                return elaborated
+            return elaborate_wrapper
+
+        obj.elaborate = MethodType(generate_elaborate_wrapper(obj.elaborate), obj)
+    else:
+        if not isinstance(obj, (Instance, Fragment)):
+            raise AssertionError()
+
+    if isinstance(obj, Module):
+        submodules = [*obj._named_submodules.values(), *obj._anon_submodules]
+        for elab in submodules:
+            inject_elaborate_wrapper(elab, sames)
+    elif isinstance(obj, CompatModule):
+        submodules = [submod for name, submod in obj.submodules._cm._submodules]
+        for elab in submodules:
+            inject_elaborate_wrapper(elab, sames)
+    elif isinstance(obj, TransformedElaboratable):
+        inject_elaborate_wrapper(obj._elaboratable_, sames)
+        for i in range(len(obj._transforms_)):
+
+            def generate_transform_wrapper(real_transform):
+                def transform_wrapper(self, value, *, src_loc_at=0):
+                    output = real_transform(self, value, src_loc_at=src_loc_at)
+                    sames.insert(value, output)
+                    # print("{} ({}) transformed to {} ({})".format(
+                    #     value.__class__.__name__, value,
+                    #     output.__class__.__name__, output
+                    # ))
+                    return output
+                return transform_wrapper
+
+            obj._transforms_[i].__class__.__call__ = generate_transform_wrapper(obj._transforms_[i].__class__.__call__)
+        sames.insert(obj, obj._elaboratable_)
+    else:
+        if not (isinstance(obj, (Fragment, Instance)) or hasattr(obj, 'elaborate')):
+            raise AssertionError()
+
+
 def fragment_get_with_elaboratable_trace(elaboratable, platform, sames=None):
     # this is a hack to retrieve the elaboratable which produced a specific module
     if sames is None:
         sames = ElaboratableSames()
 
-    def inject_elaborate_wrapper(elaboratable, level=0, text_prefix=""):
-        if isinstance(elaboratable, Module):
-            submodules = [*elaboratable._named_submodules.values(), *elaboratable._anon_submodules]
-            for elab in submodules:
-                inject_elaborate_wrapper(elab, level + 1, text_prefix="\ns> ")
-        elif isinstance(elaboratable, CompatModule):
-            submodules = [submod for name, submod in elaboratable.submodules._cm._submodules]
-            for elab in submodules:
-                inject_elaborate_wrapper(elab, level + 1, text_prefix="\ncs> ")
-        elif isinstance(elaboratable, TransformedElaboratable):
-            inject_elaborate_wrapper(elaboratable._elaboratable_, level=0, text_prefix="\t\tx> ")
-            sames.insert(elaboratable, elaboratable._elaboratable_)
-        else:
-            if not isinstance(elaboratable, (Fragment, Instance, Elaboratable)):
-                raise AssertionError()
-
-        if hasattr(elaboratable, 'elaborate'):
-            real_elaborate = elaboratable.elaborate
-
-            def elaborate_wrapper(platform):
-                print(indent("{}elaborating {} ".format(text_prefix, elaboratable.__class__.__name__), "    " * level),
-                      end="")
-                obj = real_elaborate(platform)
-                sames.insert(elaboratable, obj)
-
-                inject_elaborate_wrapper(obj, 0, text_prefix="\t\te> ")
-                return obj
-
-            elaboratable.elaborate = elaborate_wrapper
-
-    # top level
-    inject_elaborate_wrapper(elaboratable)
+    inject_elaborate_wrapper(elaboratable, sames)
     fragment = Fragment.get(elaboratable, platform)
 
     return fragment, sames

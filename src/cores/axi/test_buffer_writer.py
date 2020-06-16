@@ -2,8 +2,10 @@ import unittest
 
 from nmigen import *
 
+from cores.ring_buffer_address_storage import RingBufferAddressStorage
+from cores.stream.stream import StreamEndpoint
 from util.sim import SimPlatform
-from cores.axi.axi_interface import AxiInterface, Response, AddressChannel, BurstType, DataChannel
+from cores.axi.axi_interface import AxiEndpoint, Response, AddressChannel, BurstType, DataChannel
 from cores.axi.buffer_writer import AxiBufferWriter, AddressGenerator
 from util.sim import wait_for, pulse, do_nothing
 
@@ -33,7 +35,7 @@ def respond_channel(channel, resp=Response.OKAY):
     pulse(channel.valid)
 
 
-def answer_write_burst(axi: AxiInterface):
+def answer_write_burst(axi: AxiEndpoint):
     memory = {}
     addr, burst_len, burst_type, beat_size_bytes = yield from answer_channel(axi.write_address)
     assert 2 ** beat_size_bytes == axi.data_bytes
@@ -52,29 +54,32 @@ def answer_write_burst(axi: AxiInterface):
 
 
 class TestSimAxiWriter(unittest.TestCase):
-    def test_buffer_change(self, buffer_base_list=(1000, 2000), burst_len=16, data_len=50):
-        axi = AxiInterface(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
-        dut = AxiBufferWriter(axi, buffer_base_list, max_burst_length=burst_len, max_buffer_size=0x1000,
-                              fifo_depth=data_len)
+    def test_buffer_change(self, data_len=50):
+        axi = AxiEndpoint(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
+
+        ringbuffer = RingBufferAddressStorage(0x1000, 2, base_address=0)
+        stream_source = StreamEndpoint(Signal(64), is_sink=False)
+
+        dut = AxiBufferWriter(ringbuffer, stream_source, axi, fifo_depth=data_len)
 
         def testbench():
             gold = {}
 
             gold_gen = {
                 "current_buffer": 0,
-                "current_address": buffer_base_list[0]
+                "current_address": ringbuffer.buffer_base_list[0]
             }
 
             def change_buffer():
-                gold_gen["current_buffer"] = (gold_gen["current_buffer"] + 1) % len(buffer_base_list)
-                gold_gen["current_address"] = buffer_base_list[gold_gen["current_buffer"]]
-                yield dut.change_buffer.eq(1)
+                gold_gen["current_buffer"] = (gold_gen["current_buffer"] + 1) % len(ringbuffer.buffer_base_list)
+                gold_gen["current_address"] = ringbuffer.buffer_base_list[gold_gen["current_buffer"]]
+                yield stream_source.last.eq(1)
 
             def put_data(data):
                 gold[gold_gen["current_address"]] = data
                 gold_gen["current_address"] += axi.data_bytes
-                yield dut.data_valid.eq(1)
-                yield dut.data.eq(data)
+                yield stream_source.valid.eq(1)
+                yield stream_source.payload.eq(data)
 
             # first, fill in some data:
             for i in range(data_len):
@@ -82,7 +87,7 @@ class TestSimAxiWriter(unittest.TestCase):
                 # yield dut.change_buffer.eq(0)
                 yield from change_buffer()
                 yield
-            yield dut.data_valid.eq(0)
+            yield stream_source.valid.eq(0)
 
             memory = {}
             accepted = 0
@@ -97,27 +102,29 @@ class TestSimAxiWriter(unittest.TestCase):
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
-        platform.sim(dut, testbench,
-                     [*dut.axi._rhs_signals(), dut.address_generator.request, dut.address_generator.valid,
-                      dut.address_generator.valid])
+        platform.sim(dut, testbench)
 
-    def test_basic(self, buffer_base_list=(1000, 2000), burst_len=16):
-        axi = AxiInterface(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
-        dut = AxiBufferWriter(axi, buffer_base_list, max_burst_length=burst_len, max_buffer_size=0x1000, fifo_depth=50)
+    def test_basic(self, data_len=50):
+        axi = AxiEndpoint(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
+
+        ringbuffer = RingBufferAddressStorage(0x1000, 2, base_address=0)
+        stream_source = StreamEndpoint(Signal(64), is_sink=False)
+
+        dut = AxiBufferWriter(ringbuffer, stream_source, axi, fifo_depth=data_len)
 
         def testbench():
             # first, fill in some data:
-            for i in range(50):
-                yield dut.data.eq(i)
-                yield dut.data_valid.eq(1)
+            for i in range(data_len):
+                yield stream_source.payload.eq(i)
+                yield stream_source.valid.eq(1)
                 yield
-            yield dut.data_valid.eq(0)
+            yield stream_source.valid.eq(0)
 
             memory = {}
             while len(memory) < 50:
                 memory.update((yield from answer_write_burst(axi))[0])
 
-            self.assertEqual({buffer_base_list[0] + i * axi.data_bytes: i for i in range(50)}, memory)
+            self.assertEqual({ringbuffer.buffer_base_list[0] + i * axi.data_bytes: i for i in range(50)}, memory)
             self.assertFalse((yield dut.error))
 
         platform = SimPlatform()
@@ -152,22 +159,22 @@ class TestSimAxiWriter(unittest.TestCase):
 
 class TestAddressGenerator(unittest.TestCase):
     def test_basic(self, inc=5):
-        buffer_base_list = [1000, 2000]
-        dut = AddressGenerator(buffer_base_list, max_buffer_size=0x1000, addr_bits=32, max_incr=inc)
+        ringbuffer = RingBufferAddressStorage(0x1000, 2, base_address=0)
+        dut = AddressGenerator(ringbuffer, addr_bits=32, max_incr=inc)
 
         def testbench():
             yield dut.inc.eq(inc)
             for i in range(10):
                 yield from pulse(dut.request)
                 yield from wait_for(dut.valid, must_clock=False)
-                self.assertEqual(buffer_base_list[0] + i * inc, (yield dut.addr))
+                self.assertEqual(ringbuffer.buffer_base_list[0] + i * inc, (yield dut.addr))
                 yield from pulse(dut.done)
             yield from pulse(dut.change_buffer)
             yield from do_nothing()
             for i in range(10):
                 yield from pulse(dut.request)
                 yield from wait_for(dut.valid)
-                self.assertEqual(buffer_base_list[1] + i * inc, (yield dut.addr))
+                self.assertEqual(ringbuffer.buffer_base_list[1] + i * inc, (yield dut.addr))
                 yield from pulse(dut.done)
 
         platform = SimPlatform()

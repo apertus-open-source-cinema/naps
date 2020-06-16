@@ -9,14 +9,13 @@ python_version = "3.8"
 [dev-packages]
 flake8 = "*"
 coverage = "*"
-pytest = "*"
 pytest-pycharm = "*"
 pylint = "*"
+pytest = "*"
 
 [packages]
 nmigen = {git = "https://github.com/nmigen/nmigen.git"}
 nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
-pytest = "*"
 
 [scripts]
 test = "python -m unittest discover src -b"

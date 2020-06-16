@@ -107,6 +107,11 @@ def nMax(a, b):
     return Mux(a < b, a, b)
 
 
+def nAny(seq):
+    assert isinstance(seq, Iterable)
+    return reduce(lambda a, b: a | b, seq)
+
+
 def max_error_freq(real_freq, requested_freq, max_error_percent=1):
     freq_error = abs((1 - (real_freq / requested_freq)) * 100)
     if freq_error > max_error_percent:
@@ -121,3 +126,16 @@ class TristateIo:
     i: Signal
     o: Signal
     oe: Signal
+
+
+def delay_by(signal, cycles, m):
+    delayed_signal = signal
+    for i in range(cycles):
+        last = delayed_signal
+        if hasattr(signal, 'name'):
+            name = "{}_delayed_{}".format(signal.name, i + 1)
+        else:
+            name = "expression_delayed_{}".format(i + 1)
+        delayed_signal = Signal.like(signal, name=name)
+        m.d.sync += delayed_signal.eq(last)
+    return delayed_signal

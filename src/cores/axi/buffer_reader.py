@@ -3,12 +3,12 @@
 
 from nmigen import *
 
-from . import AxiInterface
+from . import AxiEndpoint
 from cores.csr_bank import ControlSignal, StatusSignal
 
 
 class AxiBufferReader(Elaboratable):
-    def __init__(self, axi_slave: AxiInterface, buffers_base_list):
+    def __init__(self, axi_slave: AxiEndpoint, buffers_base_list):
         self._buffers_base_list = buffers_base_list
         self._axi_slave = axi_slave
 

@@ -1,6 +1,6 @@
 from nmigen import *
 
-from .axi_interface import AxiEndpoint, BurstType
+from .axi_endpoint import AxiEndpoint, BurstType
 from cores.csr_bank import StatusSignal
 from util.nmigen import nMax, mul_by_pot
 from ..ring_buffer_address_storage import RingBufferAddressStorage

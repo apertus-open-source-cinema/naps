@@ -2,7 +2,7 @@ from abc import ABC
 
 from nmigen import *
 
-from cores.axi.axi_interface import Response as AxiResponse, AxiEndpoint
+from cores.axi.axi_endpoint import Response as AxiResponse, AxiEndpoint
 from soc.bus_slave import Response as BusSlaveResponse
 from soc.memorymap import MemoryMap
 

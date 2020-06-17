@@ -5,12 +5,12 @@ from nmigen.build import Clock
 
 from cores.hdmi.tmds import Encoder
 from .cvt import parse_modeline
-from util.bundle import Bundle
 from util.nmigen import max_error_freq
 from cores.csr_bank import ControlSignal, StatusSignal
 from xilinx.io import OSerdes10
 from xilinx.ps7 import Ps7
 from xilinx.clocking import Mmcm
+from .rgb import Rgb
 
 
 class Hdmi(Elaboratable):
@@ -20,13 +20,14 @@ class Hdmi(Elaboratable):
         video_timing = parse_modeline(modeline)
         self.pix_freq = Clock(video_timing.pxclk * 1e6)
 
+        self.rgb = Rgb()
+
         self.hsync_polarity = ControlSignal()
         self.vsync_polarity = ControlSignal()
 
         self.clock_pattern = ControlSignal(10, name="hdmi_clock_pattern", reset=0b1111100000)
 
         self.timing_generator = TimingGenerator(video_timing)
-        self.pattern_generator = BertlPatternGenerator(self.timing_generator.width, self.timing_generator.height)
 
     def elaborate(self, platform):
         m = Module()
@@ -35,13 +36,6 @@ class Hdmi(Elaboratable):
 
         in_pix_domain = DomainRenamer("pix")
         timing = m.submodules.timing_generator = in_pix_domain(self.timing_generator)
-        pattern = m.submodules.pattern_generator = in_pix_domain(self.pattern_generator)
-        rgb = pattern.out
-
-        m.d.comb += [
-            self.pattern_generator.x.eq(self.timing_generator.x),
-            self.pattern_generator.y.eq(self.timing_generator.y)
-        ]
 
         domain_args = {"domain": "pix", "domain_5x": "pix_5x"}
         in_pix_domain = DomainRenamer("pix")
@@ -49,13 +43,16 @@ class Hdmi(Elaboratable):
         serializer_clock = m.submodules.serializer_clock = OSerdes10(self.clock_pattern, **domain_args)
         m.d.comb += self.plugin.clock.eq(serializer_clock.output)
 
-        encoder_b = m.submodules.encoder_b = in_pix_domain(Encoder(rgb.b, Cat(timing.hsync, timing.vsync), timing.active))
+        encoder_b = m.submodules.encoder_b = in_pix_domain(
+            Encoder(self.rgb.b, Cat(timing.hsync, timing.vsync), timing.active))
         serializer_b = m.submodules.serializer_b = OSerdes10(encoder_b.out, **domain_args)
         m.d.comb += self.plugin.data_b.eq(serializer_b.output)
-        encoder_g = m.submodules.encoder_g = in_pix_domain(Encoder(rgb.g, Cat(timing.hsync, timing.vsync), timing.active))
+        encoder_g = m.submodules.encoder_g = in_pix_domain(
+            Encoder(self.rgb.g, Cat(timing.hsync, timing.vsync), timing.active))
         serializer_g = m.submodules.serializer_g = OSerdes10(encoder_g.out, **domain_args)
         m.d.comb += self.plugin.data_g.eq(serializer_g.output)
-        encoder_r = m.submodules.encoder_r = in_pix_domain(Encoder(rgb.r, Cat(timing.hsync, timing.vsync), timing.active))
+        encoder_r = m.submodules.encoder_r = in_pix_domain(
+            Encoder(self.rgb.r, Cat(timing.hsync, timing.vsync), timing.active))
         serializer_r = m.submodules.serializer_r = OSerdes10(encoder_r.out, **domain_args)
         m.d.comb += self.plugin.data_r.eq(serializer_r.output)
 
@@ -67,40 +64,6 @@ class Hdmi(Elaboratable):
         video_timing = parse_modeline(modeline)
         self.timing_generator.driver_set_video_timing(video_timing)
         self.clocking.driver_set_pix_clk(video_timing.pxclk * 1e6)
-
-
-class PluginLowspeedController(Elaboratable):
-    def __init__(self, plugin):
-        self.plugin = plugin
-
-    def elaborate(self, platform):
-        m = Module()
-
-        if hasattr(self.plugin, "output_enable"):  # micro style directly connected hdmi plugin module
-            sigs = [
-                ("output_enable", ControlSignal, 1, 1),
-                ("equalizer", ControlSignal, 2, 0b11),
-                ("dcc_enable", ControlSignal, 1, 0),
-                ("vcc_enable", ControlSignal, 1, 1),
-                ("ddet", ControlSignal, 1, 0),
-                ("ihp", StatusSignal, 1, 0),
-            ]
-        elif hasattr(self.plugin, "out_en"):  # zybo style raw hdmi
-            sigs = ("out_en", ControlSignal, 1, 1),
-        else:
-            sigs = []
-
-        # generate low speed CSR signals
-        for name, signal_type, width, default in sigs:
-            csr_signal = signal_type(width, reset=default)
-            setattr(self, name, csr_signal)
-            io = getattr(self.plugin, name)
-            if signal_type == ControlSignal:
-                m.d.comb += io.eq(csr_signal)
-            else:
-                m.d.comb += csr_signal.eq(io)
-
-        return m
 
 
 class HdmiClocking(Elaboratable):
@@ -199,48 +162,35 @@ class TimingGenerator(Elaboratable):
         return m
 
 
-class Rgb(Bundle):
-    r = Signal(8)
-    g = Signal(8)
-    b = Signal(8)
-
-
-class BertlPatternGenerator(Elaboratable):
-    def __init__(self, width, height):
-        self.x = Signal.like(width)
-        self.y = Signal.like(height)
-        self.out = Rgb()
+class PluginLowspeedController(Elaboratable):
+    def __init__(self, plugin):
+        self.plugin = plugin
 
     def elaborate(self, platform):
         m = Module()
 
-        m.d.comb += self.out.r.eq(self.x[0:8])
-        m.d.comb += self.out.g.eq(self.y[0:8])
-        m.d.comb += self.out.b.eq(Cat(Signal(3), self.y[8:10], self.x[8:11]))
+        if hasattr(self.plugin, "output_enable"):  # micro style directly connected hdmi plugin module
+            sigs = [
+                ("output_enable", ControlSignal, 1, 1),
+                ("equalizer", ControlSignal, 2, 0b11),
+                ("dcc_enable", ControlSignal, 1, 0),
+                ("vcc_enable", ControlSignal, 1, 1),
+                ("ddet", ControlSignal, 1, 0),
+                ("ihp", StatusSignal, 1, 0),
+            ]
+        elif hasattr(self.plugin, "out_en"):  # zybo style raw hdmi
+            sigs = ("out_en", ControlSignal, 1, 1),
+        else:
+            sigs = []
 
-        return m
-
-
-class DimmingPatternGenerator(Elaboratable):
-    def __init__(self, width, height):
-        self.x = Signal(range(width))
-        self.y = Signal(range(height))
-        self.out = Rgb()
-
-    def elaborate(self, platform):
-        m = Module()
-
-        frame_counter = Signal(range(256 * 3 + 1))
-        with m.If((self.x == 0) & (self.y == 0) & (frame_counter < 256 * 3)):
-            m.d.sync += frame_counter.eq(frame_counter + 1)
-        with m.Elif((self.x == 0) & (self.y == 0)):
-            m.d.sync += frame_counter.eq(0)
-
-        with m.If(self.x < 256 * 1):
-            m.d.comb += self.out.r.eq(self.x)
-        with m.Elif(self.x < 256 * 2):
-            m.d.comb += self.out.g.eq(self.x)
-        with m.Elif(self.x < 256 * 3):
-            m.d.comb += self.out.b.eq(self.x)
+        # generate low speed CSR signals
+        for name, signal_type, width, default in sigs:
+            csr_signal = signal_type(width, reset=default)
+            setattr(self, name, csr_signal)
+            io = getattr(self.plugin, name)
+            if signal_type == ControlSignal:
+                m.d.comb += io.eq(csr_signal)
+            else:
+                m.d.comb += csr_signal.eq(io)
 
         return m

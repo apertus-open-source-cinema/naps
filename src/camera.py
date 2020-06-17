@@ -33,12 +33,12 @@ class Top(Elaboratable):
 
         hispi = m.submodules.hispi = Hispi(sensor)
         buffer_writer = m.submodules.buffer_writer = DomainRenamer("hispi")(AxiBufferWriter(ring_buffer, hispi.output))
-        #
-        # hdmi_plugin = platform.request("hdmi", "north")
-        # m.submodules.hdmi = HdmiBufferReader(
-        #     ring_buffer, hdmi_plugin,
-        #     modeline='Modeline "Mode 1" 148.500 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync'
-        # )
+
+        hdmi_plugin = platform.request("hdmi", "north")
+        m.submodules.hdmi = HdmiBufferReader(
+            ring_buffer, hdmi_plugin,
+            modeline='Modeline "Mode 1" 148.500 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync'
+        )
 
         return m
 

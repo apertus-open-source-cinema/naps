@@ -14,7 +14,8 @@ class SyncStreamFifo(Elaboratable):
 
         self.level = StatusSignal(range(depth))
         self.max_level = StatusSignal(range(depth))
-        self.dropped = StatusSignal(32)
+        self.overflow_cnt = StatusSignal(32)
+        self.underrun_cnt = StatusSignal(32)
 
     def elaborate(self, platform):
         m = Module()
@@ -37,7 +38,9 @@ class SyncStreamFifo(Elaboratable):
         m.d.comb += fifo.w_en.eq(input_sink.valid)
 
         with m.If(input_sink.valid & (~input_sink.ready)):
-            m.d.sync += self.dropped.eq(self.dropped + 1)
+            m.d.sync += self.overflow_cnt.eq(self.overflow_cnt + 1)
+        with m.If(self.output.ready & (~self.output.valid)):
+            m.d.sync += self.underrun_cnt.eq(self.underrun_cnt + 1)
 
         if self.output.has_last:
             m.d.comb += Cat(self.output.payload, self.output.last).eq(fifo.r_data)

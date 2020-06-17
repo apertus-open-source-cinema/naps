@@ -17,9 +17,9 @@ END_OF_ACTIVE_LINE = "101"
 START_OF_VERTICAL_BLANKING_LINE = "1001"
 
 
-def matches(signal, pattern_start):
+def ends_with(signal, *patterns):
     return signal.matches(
-        pattern_start + ("-" * (len(signal) - len(pattern_start)))
+        *(pattern + ("-" * (len(signal) - len(pattern))) for pattern in patterns)
     )
 
 
@@ -27,7 +27,7 @@ class LaneManager(Elaboratable):
     def __init__(self, input_data: Signal, sync_pattern=(-1, 0, 0), timeout=2000):
         """
         Aligns the word boundries of one Hispi lane and detects control codes.
-        Compatible only with Streaming-SP mode because it needs end markers.
+        Compatible only with Packetized-SP mode because it needs end markers.
 
         :param sync_pattern: the preamble of a control word (default is correct for most cases)
         :param timeout: Issue a bit slip after a control word wasnt found for n cycles
@@ -44,7 +44,7 @@ class LaneManager(Elaboratable):
         self.do_bitslip = StatusSignal()
         self.performed_bitslips = StatusSignal(32)
 
-        self.output = StreamEndpoint(Signal.like(self.input_data), is_sink=False, last=True)
+        self.output = StreamEndpoint(Signal.like(self.input_data), is_sink=False, has_last=True)
 
     def elaborate(self, platform):
         m = Module()
@@ -72,30 +72,28 @@ class LaneManager(Elaboratable):
 
         # assemble the output stream
         valid = Signal()
-        m.d.comb += valid.eq(
-            matches(self.last_control_word, START_OF_ACTIVE_FRAME_EMBEDDED_DATA) |
-            matches(self.last_control_word, START_OF_ACTIVE_FRAME_IMAGE_DATA) |
-            matches(self.last_control_word, START_OF_ACTIVE_LINE_EMBEDDED_DATA) |
-            matches(self.last_control_word, START_OF_ACTIVE_LINE_IMAGE_DATA)
-        )
+        m.d.comb += valid.eq(ends_with(
+            self.last_control_word,
+            START_OF_ACTIVE_FRAME_EMBEDDED_DATA,
+            START_OF_ACTIVE_FRAME_IMAGE_DATA,
+            START_OF_ACTIVE_LINE_EMBEDDED_DATA,
+            START_OF_ACTIVE_LINE_IMAGE_DATA
+        ))
 
         # delay is needed because we only know that the line finished when the control code is done
         # this is len(sync_pattern) + 1 + 1 cycles after the line really ended
         delayed_valid = delay_by(valid, len(self.sync_pattern) + 2, m)
         delayed_data = delay_by(self.input_data, len(self.sync_pattern) + 2, m)
 
-        with m.If(
-                matches(self.last_control_word, END_OF_ACTIVE_FRAME) |
-                matches(self.last_control_word, END_OF_ACTIVE_LINE)
-        ):
+        with m.If(ends_with(self.last_control_word, END_OF_ACTIVE_FRAME, END_OF_ACTIVE_LINE)):
             m.d.sync += delayed_valid.eq(0)
 
-        with m.If(matches(self.last_control_word, END_OF_ACTIVE_FRAME)):
+        with m.If(ends_with(self.last_control_word, END_OF_ACTIVE_FRAME)):
             m.d.comb += self.output.last.eq(1)
 
         m.d.comb += self.output.payload.eq(delayed_data)
         m.d.comb += self.output.valid.eq(delayed_valid)
-        m.d.comb += self.output.last.eq(matches(self.last_control_word, END_OF_ACTIVE_FRAME))
+        m.d.comb += self.output.last.eq(ends_with(self.last_control_word, END_OF_ACTIVE_FRAME))
 
         return m
 
@@ -107,7 +105,7 @@ class Hispi(Elaboratable):
         self.lanes = len(self.lvds)
         self.bits = bits
 
-        self.output = StreamEndpoint(Signal(len(self.lvds) * bits), is_sink=False, last=True)
+        self.output = StreamEndpoint(Signal(len(self.lvds) * bits), is_sink=False, has_last=True)
 
     def elaborate(self, platform):
         m = Module()

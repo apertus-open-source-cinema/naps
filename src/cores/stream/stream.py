@@ -10,10 +10,10 @@ class StreamEndpoint(Bundle, MustUse):
         return StreamEndpoint(
             payload=Signal.like(other.payload),
             is_sink=other.is_sink if is_sink is None else is_sink,
-            last=other.has_last
+            has_last=other.has_last
         )
 
-    def __init__(self, payload: Value, is_sink, last=True):
+    def __init__(self, payload: Value, is_sink, has_last=True):
         super().__init__()
 
         assert isinstance(is_sink, bool)
@@ -22,7 +22,7 @@ class StreamEndpoint(Bundle, MustUse):
         self.payload = payload
         self.valid = Signal()
         self.ready = Signal()
-        if last:
+        if has_last:
             self.last = Signal()
 
     @property

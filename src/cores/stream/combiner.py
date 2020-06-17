@@ -12,7 +12,7 @@ class StreamCombiner(Elaboratable):
         assert not any(self.has_last is not other.has_last for other in self._streams)
 
         width = sum(len(stream.payload) for stream in self._streams)
-        self.output = StreamEndpoint(payload=Signal(width), is_sink=False, last=self.has_last)
+        self.output = StreamEndpoint(payload=Signal(width), is_sink=False, has_last=self.has_last)
 
         self.different_last_error = StatusSignal()
         self.different_valid_error = StatusSignal()

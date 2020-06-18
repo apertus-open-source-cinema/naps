@@ -139,3 +139,9 @@ def delay_by(signal, cycles, m):
         delayed_signal = Signal.like(signal, name=name)
         m.d.sync += delayed_signal.eq(last)
     return delayed_signal
+
+
+def ends_with(signal, *patterns):
+    return signal.matches(
+        *(pattern + ("-" * (len(signal) - len(pattern))) for pattern in patterns)
+    )

@@ -27,7 +27,7 @@ class HispiPhy(Elaboratable):
         mul = 3
         pll = m.submodules.pll = Mmcm(300e6, mul, 1, input_domain="hispi_x6_in")
         pll.output_domain("hispi_x6", mul * 1)
-        pll.output_domain("hispi_x3", mul * 2)
+        # pll.output_domain("hispi_x3", mul * 2)
         pll.output_domain("hispi_x2", mul * 3)
         pll.output_domain("hispi", mul * 6)
 
@@ -49,7 +49,7 @@ class HispiPhy(Elaboratable):
             m.d.comb += iserdes.rst.eq(ResetSignal("hispi_x6"))
             m.d.comb += iserdes.clkdiv.eq(ClockSignal("hispi_x2"))
 
-            iserdes_output = Cat(iserdes.q[j] for j in reversed(range(1, 7)))
+            iserdes_output = Cat(iserdes.q[j] for j in range(1, 7))
             with m.FSM(domain="hispi_x2"):
                 with m.State("lower"):
                     m.d.hispi_x2 += self.out[i][0:6].eq(iserdes_output)

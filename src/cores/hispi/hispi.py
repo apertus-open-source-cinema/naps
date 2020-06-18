@@ -1,12 +1,12 @@
 from nmigen import *
 
 from cores.csr_bank import StatusSignal
-from cores.hispi.hispi_phy import HispiPhy
+from cores.hispi.s7_phy import HispiPhy
 from cores.stream.combiner import StreamCombiner
 from cores.stream.stream import StreamEndpoint
 
 # those are only the starts of the patterns; they are expanded to the length of the byte
-from util.nmigen import delay_by
+from util.nmigen import delay_by, ends_with
 
 START_OF_ACTIVE_FRAME_IMAGE_DATA = "11000"
 START_OF_ACTIVE_FRAME_EMBEDDED_DATA = "11001"
@@ -15,12 +15,6 @@ START_OF_ACTIVE_LINE_EMBEDDED_DATA = "10001"
 END_OF_ACTIVE_FRAME = "111"
 END_OF_ACTIVE_LINE = "101"
 START_OF_VERTICAL_BLANKING_LINE = "1001"
-
-
-def ends_with(signal, *patterns):
-    return signal.matches(
-        *(pattern + ("-" * (len(signal) - len(pattern))) for pattern in patterns)
-    )
 
 
 class LaneManager(Elaboratable):
@@ -40,14 +34,16 @@ class LaneManager(Elaboratable):
 
         self.last_control_word = StatusSignal(input_data.shape())
         self.cycles_since_last_sync_pattern = StatusSignal(range(timeout))
-
-        self.do_bitslip = StatusSignal()
         self.performed_bitslips = StatusSignal(32)
+        self.last_word = StatusSignal(input_data.shape())
 
+        self.do_bitslip = Signal()
         self.output = StreamEndpoint(Signal.like(self.input_data), is_sink=False, has_last=True)
 
     def elaborate(self, platform):
         m = Module()
+
+        m.d.sync += self.last_word.eq(self.input_data)
 
         with m.If(self.cycles_since_last_sync_pattern < self.timeout):
             m.d.sync += self.cycles_since_last_sync_pattern.eq(self.cycles_since_last_sync_pattern + 1)

@@ -2,6 +2,7 @@ import mmap
 import os
 import struct
 from math import ceil
+from textwrap import indent
 
 
 class DevMem:
@@ -72,3 +73,15 @@ class CSRApiWrapper:
 
                 return devmem.write_int(addr - devmem.base, value)
         raise AttributeError("{} has no attribute {}".format(self.__class__.__name__, name))
+
+    def print_state(self, indentation_level=0, top_name=None):
+        if top_name:
+            print(indent("{}:".format(top_name), "    " * indentation_level))
+        child_names = [name for name in dir(self) if not name.startswith("_")]
+        for child_name in child_names:
+            child = getattr(self, child_name)
+            if isinstance(child, CSRApiWrapper):
+                child.print_state(indentation_level + 1, top_name=child_name)
+            else:
+                print(indent("{}: {}".format(child_name, child), "    " * (indentation_level + 1)))
+

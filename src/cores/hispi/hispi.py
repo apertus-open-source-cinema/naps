@@ -1,6 +1,6 @@
 from nmigen import *
 
-from cores.csr_bank import StatusSignal
+from cores.csr_bank import StatusSignal, ControlSignal
 from cores.hispi.s7_phy import HispiPhy
 from cores.stream.combiner import StreamCombiner
 from cores.stream.stream import StreamEndpoint
@@ -8,9 +8,9 @@ from cores.stream.stream import StreamEndpoint
 # those are only the starts of the patterns; they are expanded to the length of the byte
 from util.nmigen import delay_by, ends_with
 
-START_OF_ACTIVE_FRAME_IMAGE_DATA = "11000"
-START_OF_ACTIVE_FRAME_EMBEDDED_DATA = "11001"
-START_OF_ACTIVE_LINE_IMAGE_DATA = "10000"
+START_OF_ACTIVE_FRAME_IMAGE_DATA = "00011"
+START_OF_ACTIVE_FRAME_EMBEDDED_DATA = "10011"
+START_OF_ACTIVE_LINE_IMAGE_DATA = "00001"
 START_OF_ACTIVE_LINE_EMBEDDED_DATA = "10001"
 END_OF_ACTIVE_FRAME = "111"
 END_OF_ACTIVE_LINE = "101"
@@ -18,7 +18,7 @@ START_OF_VERTICAL_BLANKING_LINE = "1001"
 
 
 class LaneManager(Elaboratable):
-    def __init__(self, input_data: Signal, sync_pattern=(-1, 0, 0), timeout=2000):
+    def __init__(self, input_data: Signal, sync_pattern=(-1, 0, 0)):
         """
         Aligns the word boundries of one Hispi lane and detects control codes.
         Compatible only with Packetized-SP mode because it needs end markers.
@@ -27,14 +27,16 @@ class LaneManager(Elaboratable):
         :param timeout: Issue a bit slip after a control word wasnt found for n cycles
         """
         self.sync_pattern = sync_pattern
-        self.timeout = timeout
         self.input_data = input_data
 
         self.is_aligned = StatusSignal()
 
-        self.last_control_word = StatusSignal(input_data.shape())
-        self.cycles_since_last_sync_pattern = StatusSignal(range(timeout))
+        self.timeout = ControlSignal(32, reset=2000)
+        self.timeouts_to_resync = ControlSignal(32, reset=10000)
+        self.cycles_since_last_sync_pattern = StatusSignal(32)
         self.performed_bitslips = StatusSignal(32)
+        self.aligned_timeouts = StatusSignal(32)
+        self.last_control_word = StatusSignal(input_data.shape())
         self.last_word = StatusSignal(input_data.shape())
 
         self.do_bitslip = Signal()
@@ -48,10 +50,16 @@ class LaneManager(Elaboratable):
         with m.If(self.cycles_since_last_sync_pattern < self.timeout):
             m.d.sync += self.cycles_since_last_sync_pattern.eq(self.cycles_since_last_sync_pattern + 1)
         with m.Else():
-            m.d.sync += self.cycles_since_last_sync_pattern.eq(0)
-            m.d.sync += self.is_aligned.eq(0)
-            m.d.comb += self.do_bitslip.eq(1)
-            m.d.sync += self.performed_bitslips.eq(self.performed_bitslips + 1)
+            with m.If(self.is_aligned):
+                with m.If(self.aligned_timeouts > self.timeouts_to_resync):
+                    m.d.sync += self.is_aligned.eq(0)
+                    m.d.sync += self.aligned_timeouts.eq(0)
+                with m.Else():
+                    m.d.sync += self.aligned_timeouts.eq(self.aligned_timeouts + 1)
+            with m.Else():
+                m.d.sync += self.cycles_since_last_sync_pattern.eq(0)
+                m.d.sync += self.performed_bitslips.eq(self.performed_bitslips + 1)
+                m.d.comb += self.do_bitslip.eq(1)
 
         with m.FSM():
             for i, pattern_byte in enumerate(self.sync_pattern):

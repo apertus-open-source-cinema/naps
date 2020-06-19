@@ -143,5 +143,5 @@ def delay_by(signal, cycles, m):
 
 def ends_with(signal, *patterns):
     return signal.matches(
-        *(pattern + ("-" * (len(signal) - len(pattern))) for pattern in patterns)
+        *(("-" * (len(signal) - len(pattern)) + pattern) for pattern in patterns)
     )

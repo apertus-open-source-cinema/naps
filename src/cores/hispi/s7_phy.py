@@ -27,7 +27,7 @@ class HispiPhy(Elaboratable):
         mul = 3
         pll = m.submodules.pll = Mmcm(300e6, mul, 1, input_domain="hispi_x6_in")
         pll.output_domain("hispi_x6", mul * 1)
-        # pll.output_domain("hispi_x3", mul * 2)
+        pll.output_domain("hispi_x3", mul * 2)
         pll.output_domain("hispi_x2", mul * 3)
         pll.output_domain("hispi", mul * 6)
 
@@ -41,7 +41,6 @@ class HispiPhy(Elaboratable):
                 iobDelay="none",
             )
 
-            m.d.comb += iserdes.bitslip.eq(self.bitslip[i])
             m.d.comb += iserdes.d.eq(self.hispi_lanes[i])
             m.d.comb += iserdes.ce[1].eq(1)
             m.d.comb += iserdes.clk.eq(ClockSignal("hispi_x6"))
@@ -49,11 +48,20 @@ class HispiPhy(Elaboratable):
             m.d.comb += iserdes.rst.eq(ResetSignal("hispi_x6"))
             m.d.comb += iserdes.clkdiv.eq(ClockSignal("hispi_x2"))
 
-            iserdes_output = Cat(iserdes.q[j] for j in range(1, 7))
+            real_bitslip = Signal()
+            with m.If(self.bitslip[i]):
+                m.d.hispi += real_bitslip.eq(~real_bitslip)
+
+            m.d.comb += iserdes.bitslip.eq(self.bitslip[i] & real_bitslip)
+
+            iserdes_output = Cat(iserdes.q[j] for j in reversed(range(1, 7)))
             with m.FSM(domain="hispi_x2"):
                 with m.State("lower"):
                     m.d.hispi_x2 += self.out[i][0:6].eq(iserdes_output)
-                    m.next = "upper"
+                    with m.If(real_bitslip & self.bitslip[i]):
+                        m.next = "lower"
+                    with m.Else():
+                        m.next = "upper"
                 with m.State("upper"):
                     m.d.hispi_x2 += self.out[i][6:12].eq(iserdes_output)
                     m.next = "lower"

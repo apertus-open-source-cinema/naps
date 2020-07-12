@@ -16,6 +16,8 @@ END_OF_ACTIVE_FRAME = "111"
 END_OF_ACTIVE_LINE = "101"
 START_OF_VERTICAL_BLANKING_LINE = "1001"
 
+valid_control_words = [START_OF_ACTIVE_FRAME_IMAGE_DATA, START_OF_ACTIVE_FRAME_EMBEDDED_DATA, START_OF_ACTIVE_LINE_IMAGE_DATA, START_OF_ACTIVE_LINE_EMBEDDED_DATA, END_OF_ACTIVE_FRAME, END_OF_ACTIVE_LINE, START_OF_VERTICAL_BLANKING_LINE]
+
 
 class LaneManager(Elaboratable):
     def __init__(self, input_data: Signal, sync_pattern=(-1, 0, 0)):
@@ -70,9 +72,11 @@ class LaneManager(Elaboratable):
                         m.next = "0"
             with m.State(str(len(self.sync_pattern))):
                 m.next = "0"
-                m.d.sync += self.last_control_word.eq(self.input_data)
-                m.d.sync += self.cycles_since_last_sync_pattern.eq(0)
-                m.d.sync += self.is_aligned.eq(1)
+
+                with m.If(ends_with(self.input_data, *valid_control_words)):
+                    m.d.sync += self.last_control_word.eq(self.input_data)
+                    m.d.sync += self.cycles_since_last_sync_pattern.eq(0)
+                    m.d.sync += self.is_aligned.eq(1)
 
         # assemble the output stream
         valid = Signal()
@@ -121,7 +125,14 @@ class Hispi(Elaboratable):
         streams = []
         for i, lane in enumerate(phy.out):
             lane_manager = m.submodules["lane_manager_{}".format(i)] = DomainRenamer("hispi")(LaneManager(lane))
-            m.d.comb += phy.bitslip[i].eq(lane_manager.do_bitslip)
+
+            # bitslip is synchronous to CLKDIV = hispi_2x
+            # m.d.comb += phy.bitslip[i].eq(lane_manager.do_bitslip)
+            with m.If(phy.bitslip[i]):
+                m.d.hispi_x2 += phy.bitslip[i].eq(0)
+            with m.Elif(lane_manager.do_bitslip):
+                m.d.hispi_x2 += phy.bitslip[i].eq(1)
+
             m.d.comb += self.output.payload[i * self.bits: (i + 1) * self.bits].eq(lane_manager.input_data)
             streams.append(lane_manager.output)
 

@@ -1,4 +1,5 @@
 import unittest
+from tqdm import tqdm
 from os.path import dirname, join
 import lzma
 
@@ -17,8 +18,8 @@ class TestHispi(unittest.TestCase):
         def testbench():
             with lzma.open(join(dirname(__file__), "test_data.txt.lzma"), "r") as f:
                 def lane_n_generator(n):
-                    while True:
-                        line = f.readline()
+                    for line in f:
+                        # line = f.readline()
                         for i in reversed([i * 4 + n for i in range(6)]):
                             val = "1" if line[i] == ord("0") else "0"
                             yield val
@@ -26,7 +27,7 @@ class TestHispi(unittest.TestCase):
                 generator = lane_n_generator(0)
                 last_valid = 0
                 line_ctr = 0
-                for i in range(100000):
+                for i in tqdm(range(10000000)):
                     if (yield dut.do_bitslip):
                         next(generator)
                     word = int("".join(next(generator) for _ in range(12)), 2)

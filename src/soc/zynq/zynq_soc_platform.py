@@ -5,18 +5,16 @@ from cores.axi.full_to_lite import AxiFullToLiteBridge
 from cores.axi.interconnect import AxiInterconnect
 from soc.memorymap import Address
 from soc.soc_platform import SocPlatform
-from xilinx.ps7 import Ps7
+from xilinx.ps7 import PS7
 from cores.axi.axi_lite_bus_slave import AxiLiteBusSlave
 from .program_bitstream_ssh import program_bitstream_ssh
 
 
 class ZynqSocPlatform(SocPlatform):
-    bus_slave_type = AxiLiteBusSlave
     base_address = Address(0x4000_0000, 0, (0x7FFF_FFFF - 0x4000_0000) * 8)
 
     def __init__(self, platform):
         super().__init__(platform)
-        self.ps7 = None
         self.init_script = ""
         platform.toolchain_program = lambda *args, **kwargs: program_bitstream_ssh(self, *args, **kwargs)
 
@@ -35,10 +33,9 @@ class ZynqSocPlatform(SocPlatform):
             if bus_slaves:
                 # generate all the connections
                 m = Module()
-                ps7 = self.get_ps7()
-                ps7.fck_domain(domain_name="axi_csr", requested_frequency=100e6)
+                platform.ps7.fck_domain(domain_name="axi_csr", requested_frequency=100e6)
                 if not hasattr(platform, "is_sim"):
-                    axi_full_port: AxiEndpoint = ps7.get_axi_gp_master(ClockSignal("axi_csr"))
+                    axi_full_port: AxiEndpoint = platform.ps7.get_axi_gp_master(ClockSignal("axi_csr"))
                     axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_csr")(
                         AxiFullToLiteBridge(axi_full_port)
                     )
@@ -65,8 +62,16 @@ class ZynqSocPlatform(SocPlatform):
 
         self.prepare_hooks.append(bus_slaves_connect_hook)
 
-    def get_ps7(self) -> Ps7:
-        if self.ps7 is None:
-            self.ps7 = Ps7(here_is_the_only_place_that_instanciates_ps7=True)
-            self.final_to_inject_subfragments.append((self.ps7, "ps7"))
-        return self.ps7
+        self.ps7 = PS7(here_is_the_only_place_that_instanciates_ps7=True)
+        self.final_to_inject_subfragments.append((self.ps7, "ps7"))
+
+    def elaborateBusSlave(self, bus_slave):
+        m = Module()
+        m.bus_slave = AxiLiteBusSlave(bus_slave.handle_read, bus_slave.handle_write, bus_slave.memorymap)
+        return m
+
+    def elaboratePS7(self, ps7):
+        # we have to hack around the problem, that the ps7 is actually a singleton so the handed-out instances shouldnt
+        # be elaborated.
+        return Module()
+

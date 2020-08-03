@@ -13,7 +13,7 @@ class AxiLiteBusSlave(Elaboratable, ABC):
         A simple (low performance) axi lite slave
         :param handle_read: the callback to insert logic for the read state
         :param handle_write: the callback to insert logic for the write state
-        :param address_range: the address space of the axi slave
+        :param memorymap: the address space of the axi slave
         """
         self.memorymap: MemoryMap = memorymap
 

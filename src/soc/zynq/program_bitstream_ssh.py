@@ -1,7 +1,6 @@
 import subprocess
-from collections import OrderedDict
-from shlex import quote
 from base64 import b64encode
+from shlex import quote
 
 from nmigen.build.run import BuildProducts
 

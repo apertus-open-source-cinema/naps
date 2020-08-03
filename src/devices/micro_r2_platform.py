@@ -1,7 +1,7 @@
 from nmigen.build import Resource, Subsignal, Pins, DiffPairs, Connector, Attrs, PinsN, DiffPairsN
 from nmigen_boards.zturn_lite_z010 import ZTurnLiteZ010Platform
 
-from .gen_plugin_connctotr import gen_plugin_connector
+from devices.plugins.gen_plugin_connector import gen_plugin_connector
 
 
 class MicroR2Platform(ZTurnLiteZ010Platform):

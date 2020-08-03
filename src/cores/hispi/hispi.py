@@ -3,20 +3,20 @@ from nmigen import *
 from cores.csr_bank import StatusSignal, ControlSignal
 from cores.hispi.s7_phy import HispiPhy
 from cores.stream.combiner import StreamCombiner
-from cores.stream.stream import StreamEndpoint
+from util.stream import StreamEndpoint
 
 # those are only the starts of the patterns; they are expanded to the length of the byte
-from util.nmigen import delay_by, ends_with
+from util.nmigen_misc import delay_by, ends_with
 
-START_OF_ACTIVE_FRAME_IMAGE_DATA = "00011"
-START_OF_ACTIVE_FRAME_EMBEDDED_DATA = "10011"
-START_OF_ACTIVE_LINE_IMAGE_DATA = "00001"
-START_OF_ACTIVE_LINE_EMBEDDED_DATA = "10001"
-END_OF_ACTIVE_FRAME = "111"
-END_OF_ACTIVE_LINE = "101"
-START_OF_VERTICAL_BLANKING_LINE = "1001"
-
-valid_control_words = [START_OF_ACTIVE_FRAME_IMAGE_DATA, START_OF_ACTIVE_FRAME_EMBEDDED_DATA, START_OF_ACTIVE_LINE_IMAGE_DATA, START_OF_ACTIVE_LINE_EMBEDDED_DATA, END_OF_ACTIVE_FRAME, END_OF_ACTIVE_LINE, START_OF_VERTICAL_BLANKING_LINE]
+control_words = {
+    "START_OF_ACTIVE_FRAME_IMAGE_DATA": "00011",
+    "START_OF_ACTIVE_FRAME_EMBEDDED_DATA": "10011",
+    "START_OF_ACTIVE_LINE_IMAGE_DATA": "00001",
+    "START_OF_ACTIVE_LINE_EMBEDDED_DATA": "10001",
+    "END_OF_ACTIVE_FRAME": "111",
+    "END_OF_ACTIVE_LINE": "101",
+    "START_OF_VERTICAL_BLANKING_LINE": "1001",
+}
 
 
 class LaneManager(Elaboratable):
@@ -71,21 +71,20 @@ class LaneManager(Elaboratable):
                     with m.Else():
                         m.next = "0"
             with m.State(str(len(self.sync_pattern))):
-                m.next = "0"
-
-                with m.If(ends_with(self.input_data, *valid_control_words)):
+                with m.If(ends_with(self.input_data, *control_words.values())):
                     m.d.sync += self.last_control_word.eq(self.input_data)
                     m.d.sync += self.cycles_since_last_sync_pattern.eq(0)
                     m.d.sync += self.is_aligned.eq(1)
+                m.next = "0"
 
         # assemble the output stream
         valid = Signal()
         m.d.comb += valid.eq(ends_with(
             self.last_control_word,
-            START_OF_ACTIVE_FRAME_EMBEDDED_DATA,
-            START_OF_ACTIVE_FRAME_IMAGE_DATA,
-            START_OF_ACTIVE_LINE_EMBEDDED_DATA,
-            START_OF_ACTIVE_LINE_IMAGE_DATA
+            control_words["START_OF_ACTIVE_FRAME_EMBEDDED_DATA"],
+            control_words["START_OF_ACTIVE_FRAME_IMAGE_DATA"],
+            control_words["START_OF_ACTIVE_LINE_EMBEDDED_DATA"],
+            control_words["START_OF_ACTIVE_LINE_IMAGE_DATA"]
         ))
 
         # delay is needed because we only know that the line finished when the control code is done
@@ -93,15 +92,16 @@ class LaneManager(Elaboratable):
         delayed_valid = delay_by(valid, len(self.sync_pattern) + 2, m)
         delayed_data = delay_by(self.input_data, len(self.sync_pattern) + 2, m)
 
-        with m.If(ends_with(self.last_control_word, END_OF_ACTIVE_FRAME, END_OF_ACTIVE_LINE)):
+        with m.If(ends_with(self.last_control_word,
+                            control_words["END_OF_ACTIVE_FRAME"], control_words["END_OF_ACTIVE_LINE"])):
             m.d.sync += delayed_valid.eq(0)
 
-        with m.If(ends_with(self.last_control_word, END_OF_ACTIVE_FRAME)):
+        with m.If(ends_with(self.last_control_word, control_words["END_OF_ACTIVE_FRAME"])):
             m.d.comb += self.output.last.eq(1)
 
         m.d.comb += self.output.payload.eq(delayed_data)
         m.d.comb += self.output.valid.eq(delayed_valid)
-        m.d.comb += self.output.last.eq(ends_with(self.last_control_word, END_OF_ACTIVE_FRAME))
+        m.d.comb += self.output.last.eq(ends_with(self.last_control_word, control_words["END_OF_ACTIVE_FRAME"]))
 
         return m
 

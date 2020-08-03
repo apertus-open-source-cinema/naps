@@ -4,8 +4,8 @@ from cores.axi.buffer_reader import AxiBufferReader
 from cores.csr_bank import ControlSignal, StatusSignal
 from cores.hdmi.hdmi import Hdmi
 from cores.ring_buffer_address_storage import RingBufferAddressStorage
-from cores.stream.stream import StreamEndpoint
-from util.nmigen import log2
+from util.stream import StreamEndpoint
+from util.nmigen_misc import log2
 
 
 class AddressGenerator(Elaboratable):

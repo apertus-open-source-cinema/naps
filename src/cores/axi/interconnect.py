@@ -3,7 +3,7 @@ from functools import reduce
 from nmigen import *
 
 from . import AxiEndpoint
-from util.nmigen import iterator_with_if_elif
+from util.nmigen_misc import iterator_with_if_elif
 
 
 class AxiInterconnect(Elaboratable):

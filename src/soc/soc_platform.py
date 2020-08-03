@@ -1,18 +1,14 @@
 from abc import ABC
 
-from nmigen import *
-from nmigen.build import Platform
-
-from soc.bus_slave import HandleRead, HandleWrite
-from soc.driver.pydriver import pydriver_hook
+from soc.pydriver.pydriver import pydriver_hook
 from soc.hooks import csr_hook, address_assignment_hook
-from soc.memorymap import MemoryMap
 from soc.tracing_elaborate import fragment_get_with_elaboratable_trace
 
 
 class SocPlatform(ABC):
     bus_slave_type = None
     base_address = None
+    _platform = None
 
     def __init__(self, platform):
         self._platform = platform
@@ -63,24 +59,3 @@ class SocPlatform(ABC):
         print("\n\nexiting soc code\n")
 
         return self.real_prepare(top_fragment, *args, **kwargs)
-
-    def BusSlave(
-        self,
-        handle_read: HandleRead,
-        handle_write: HandleWrite,
-        memorymap: MemoryMap
-    ) -> Module:
-        """
-        Gives an abstract slave for the bus of the Soc.
-        Give read_done or write_done a nonzero argument to indicate a read_write error.
-
-        :param handle_read: a function with the signature handle_read(m, addr, data, read_done) that is used to insert logic to the read path.
-        :param handle_write: a function with the signature handle_write(m, addr, data, write_done) that is used to insert logic to the write path.
-        :param memorymap: the MemoryMap of the peripheral
-        """
-        assert self.bus_slave_type is not None
-        bus_slave = self.bus_slave_type(handle_read, handle_write, memorymap)
-
-        m = Module()  # we will pick this empty module up later in the prepare step. It is just a marker
-        m.bus_slave = bus_slave
-        return m

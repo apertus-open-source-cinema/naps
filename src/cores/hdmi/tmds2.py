@@ -1,6 +1,4 @@
 from nmigen import *
-from nmigen.back.pysim import Simulator
-from nmigen.asserts import *
 
 """
 nMigen port of the following VHDL code, retrieved from

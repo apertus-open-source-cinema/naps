@@ -1,15 +1,15 @@
-# TODO: add tests
 from typing import Iterable
 
 from nmigen import *
 
 from cores.csr_bank import ControlSignal, StatusSignal
-from util.nmigen import TristateIo
+from soc.devicetree.overlay import devicetree_overlay
+from util.nmigen_misc import TristateIo
 
 
 class MmioGpio(Elaboratable):
-    def __init__(self, pads):
-        """ A simple gpio peripheral, that is compatible with the gpio-mmio.c linux kernel driver.
+    def __init__(self, pads, name_suffix=""):
+        """ A simple gpio peripheral, that is compatible with the gpio-mmio.c linux kernel pydriver.
         see https://github.com/torvalds/linux/blob/master/drivers/gpio/gpio-mmio.c
         """
         if isinstance(pads, Record):
@@ -26,8 +26,22 @@ class MmioGpio(Elaboratable):
         self.dat = StatusSignal(w)
         self.dirout = ControlSignal(w)
 
+        self.devicetree_name = "mmio_gpio" + name_suffix
+
     def elaborate(self, platform):
         m = Module()
+
+        overlay_content = """
+            %overlay_name%: gpio-controller@40000000 {
+                    compatible = "brcm,bcm6345-gpio";
+                    reg-names = "set", "dat", "dirout";
+                    reg = <%set% 1>, <%dat% 1>, <%dirout% 1>;
+            
+                    #gpio-cells = <2>;
+                    gpio-controller;
+            };
+        """
+        devicetree_overlay(platform, self.devicetree_name, overlay_content, {"set": self.set, "dat": self.dat, "dirout": self.dirout})
 
         for i, pad in enumerate(self._pads):
             pad: TristateIo

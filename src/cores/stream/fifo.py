@@ -2,7 +2,7 @@ from nmigen import *
 from nmigen.lib.fifo import SyncFIFO
 
 from cores.csr_bank import StatusSignal
-from cores.stream.stream import StreamEndpoint
+from util.stream import StreamEndpoint
 
 
 class SyncStreamFifo(Elaboratable):

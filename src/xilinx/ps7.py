@@ -7,21 +7,16 @@ from nmigen.build import Clock
 from cores.axi import AxiEndpoint
 from os.path import join, dirname
 
-from cores.axi.full_to_lite import AxiFullToLiteBridge
-from cores.axi.interconnect import AxiInterconnect
+from util.instance_helper import InstanceHelper
 from xilinx.clocking import Bufg
-from util.nmigen import max_error_freq
-from xilinx.xilinx_blackbox import XilinxBlackbox
+from util.nmigen_misc import max_error_freq
 
 
-class Ps7Block(XilinxBlackbox):
-    module = "PS7"
-
-class Ps7(Ps7Block):
+class PS7(Elaboratable):
     def __init__(self, here_is_the_only_place_that_instanciates_ps7=False):
         assert here_is_the_only_place_that_instanciates_ps7
-        super().__init__()
         self.m = Module()
+        self.instance = InstanceHelper("+/xilinx/cells_xtra.v", "PS7")
         self.clock_constraints = OrderedDict()
 
     def _axi_slave_helper(self, axi, ps7_port):
@@ -106,7 +101,7 @@ class Ps7(Ps7Block):
     def get_axi_gp_master(self, clk) -> AxiEndpoint:
         axi = AxiEndpoint(addr_bits=32, data_bits=32, lite=False, id_bits=12, master=True)
 
-        ps7_port = self.maxigp[self.gp_master_number]
+        ps7_port = self.instance.maxigp[self.gp_master_number]
         self.gp_master_number += 1
         self.m.d.comb += ps7_port.aclk.eq(clk)
         self._axi_master_helper(axi, ps7_port)
@@ -117,27 +112,12 @@ class Ps7(Ps7Block):
     def get_axi_hp_slave(self, clk) -> AxiEndpoint:
         axi = AxiEndpoint(addr_bits=32, data_bits=64, lite=False, id_bits=12, master=False)
 
-        ps7_port = self.saxi.hp[self.hp_slave_number]
+        ps7_port = self.instance.saxi.hp[self.hp_slave_number]
         self.hp_slave_number += 1
         self.m.d.comb += ps7_port.aclk.eq(clk)
         self._axi_slave_helper(axi, ps7_port)
 
         return axi
-
-    interconnect: AxiInterconnect = None
-
-    def get_axi_lite_port(self):
-        m = self.m
-        if not self.interconnect:
-            self.fck_domain(100e6, domain_name="axi_lite")
-            axi_full_port: AxiEndpoint = self.get_axi_gp_master(ClockSignal("axi_lite"))
-            axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_lite")(
-                AxiFullToLiteBridge(axi_full_port)
-            )
-            self.interconnect = m.submodules.interconnect = DomainRenamer("axi_lite")(
-                AxiInterconnect(axi_lite_bridge.lite_master)
-            )
-        return self.interconnect.get_port()
 
     @staticmethod
     @lru_cache()
@@ -157,7 +137,7 @@ class Ps7(Ps7Block):
         fclk_num = len(self.clock_constraints)
 
         driving_signal = Signal(attrs={"KEEP": "TRUE"}, name="{}_driving_signal".format(domain_name))
-        self.m.d.comb += driving_signal.eq(self.fclk.clk[fclk_num])
+        self.m.d.comb += driving_signal.eq(self.instance.fclk.clk[fclk_num])
 
         bufg = self.m.submodules["fclk_bufg_{}".format(fclk_num)] = Bufg(driving_signal)
 
@@ -169,7 +149,7 @@ class Ps7(Ps7Block):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.ps7_block = super().elaborate(platform)
+        m.submodules.ps7_block = self.instance
         m.submodules.connections = self.m
 
         for i, (clock_signal, bufg_out, frequency, domain_name) in self.clock_constraints.items():
@@ -187,5 +167,10 @@ class Ps7(Ps7Block):
                     .format(freq=int(freq), i=i, name=domain_name)
                 for i, (clock_signal, bufg_out, freq, domain_name) in self.clock_constraints.items()
             ) + platform.init_script
+
+            platform.init_script += "# set the bit width of all axi hp slaves to 64 bits"
+            for base in [0xF8008000, 0xF8009000, 0xF800A000, 0xF800B000]:
+                platform.init_script += "devmem2 0x{:x} w 0".format(base)
+                platform.init_script += "devmem2 0x{:x} w 0xF00".format(base + 0x14)
 
         return m

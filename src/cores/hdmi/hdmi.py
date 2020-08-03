@@ -5,10 +5,10 @@ from nmigen.build import Clock
 
 from cores.hdmi.tmds import Encoder
 from .cvt import parse_modeline
-from util.nmigen import max_error_freq
+from util.nmigen_misc import max_error_freq
 from cores.csr_bank import ControlSignal, StatusSignal
 from xilinx.io import OSerdes10
-from xilinx.ps7 import Ps7
+from xilinx.ps7 import PS7
 from xilinx.clocking import Mmcm
 from .rgb import Rgb
 
@@ -89,7 +89,7 @@ class HdmiClocking(Elaboratable):
             (abs(1 - ((fclk * mul / div) / (self.pix_freq.frequency * 5 * output_div))),
              fclk, mul, div, output_div)
             for fclk, mul, div, output_div in product(
-            [f for f in Ps7.get_possible_fclk_frequencies() if 1e6 <= f <= 100e6],
+            [f for f in PS7.get_possible_fclk_frequencies() if 1e6 <= f <= 100e6],
             Mmcm.vco_multipliers,
             [1],
             range(1, 6)
@@ -102,7 +102,8 @@ class HdmiClocking(Elaboratable):
         m = Module()
 
         self.find_valid_config()
-        platform.get_ps7().fck_domain(self.fclk_freq, "pix_synth_fclk")
+
+        platform.ps7.fck_domain(self.fclk_freq, "pix_synth_fclk")
         mmcm = m.submodules.mmcm = Mmcm(
             input_clock=self.fclk_freq, input_domain="pix_synth_fclk",
             vco_mul=self.mmcm_mul, vco_div=self.mmcm_div

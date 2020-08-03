@@ -1,3 +1,5 @@
+# a helper to generate the plugin connector *on the camera side*
+
 def gen_plugin_connector(*, lvds, gpio=None, i2c=None):
     con = {}
     for i, l in enumerate(lvds):

@@ -5,7 +5,7 @@ from nmigen import *
 from cores.csr_bank import ControlSignal, StatusSignal
 from cores.axi.buffer_writer import AxiBufferWriter
 from cores.ring_buffer_address_storage import RingBufferAddressStorage
-from cores.stream.stream import StreamEndpoint
+from util.stream import StreamEndpoint
 from soc.zynq import ZynqSocPlatform
 from soc.cli import cli
 
@@ -22,9 +22,7 @@ class Top(Elaboratable):
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
 
-        ps7 = platform.get_ps7()
-
-        ps7.fck_domain(requested_frequency=200e6)
+        platform.ps7.fck_domain(requested_frequency=200e6)
         m.d.comb += ResetSignal().eq(self.reset)
 
         ring_buffer = RingBufferAddressStorage(buffer_size=0x1200000, n=4)
@@ -35,7 +33,7 @@ class Top(Elaboratable):
 
         clock_signal = Signal()
         m.d.comb += clock_signal.eq(ClockSignal())
-        axi_slave = ps7.get_axi_hp_slave(clock_signal)
+        axi_slave = platform.ps7.get_axi_hp_slave(clock_signal)
         axi_writer = m.submodules.axi_writer = AxiBufferWriter(ring_buffer, stream_source, axi_slave=axi_slave)
 
         with m.If(axi_writer.stream_source.ready & axi_writer.stream_source.valid):

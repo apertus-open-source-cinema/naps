@@ -1,14 +1,14 @@
 # TODO: implement atomic access (and before think about it)
 # TODO: implemt event regs (depends on #1)
-# TODO: add some kind of arebeiter to prevent driver conflicts (is this the right place?; how should it work?)
+# TODO: add some kind of arebeiter to prevent pydriver conflicts (is this the right place?; how should it work?)
 
 from nmigen import *
 from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 
-from .csr_types import _Csr, StatusSignal, ControlSignal, EventReg
+from soc.bus_slave import Response, BusSlave
 from soc.memorymap import MemoryMap
-from soc.bus_slave import Response
+from .csr_types import _Csr, StatusSignal, ControlSignal
 
 
 class CsrBank(Elaboratable):
@@ -64,9 +64,5 @@ class CsrBank(Elaboratable):
                 write_done(Response.ERR)
 
         m = Module()
-        m.submodules += platform.BusSlave(
-            handle_read,
-            handle_write,
-            self.memorymap
-        )
+        m.submodules += BusSlave(handle_read, handle_write, self.memorymap)
         return m

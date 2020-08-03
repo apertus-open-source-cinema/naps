@@ -5,6 +5,8 @@ from json import loads
 
 @lru_cache()
 def parse_yosys_json(verilog_paths):
+    if isinstance(verilog_paths, str):
+        verilog_paths = [verilog_paths]
     json = yosys_script([
         "\n".join("read_verilog {}".format(path) for path in verilog_paths),
         "write_json"

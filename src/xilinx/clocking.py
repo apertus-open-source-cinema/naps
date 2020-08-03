@@ -3,11 +3,10 @@ from nmigen import *
 from nmigen.build import Clock
 
 from soc.soc_platform import SocPlatform
-from util.python import decimal_range
+from util.decimal_range import decimal_range
 from cores.drp_bridge import DrpInterface, DrpBridge
 from cores.csr_bank import StatusSignal
-
-from xilinx.xilinx_blackbox import XilinxBlackbox
+from util.instance_helper import InstanceParent, InstanceHelper
 
 
 class Bufg(Elaboratable):
@@ -19,8 +18,9 @@ class Bufg(Elaboratable):
         return Instance("BUFG", i_I=self.i, o_O=self.o)
 
 
-class RawPll(XilinxBlackbox):
+class RawPll(InstanceParent):
     module = "PLLE2_ADV"
+    source = "+/xilinx/cells_xtra.v"
 
 
 class Pll(Elaboratable):
@@ -117,10 +117,6 @@ class Pll(Elaboratable):
         return m
 
 
-class RawMmcm(XilinxBlackbox):
-    module = "MMCME2_ADV"
-
-
 class Mmcm(Elaboratable):
     vco_multipliers = list(decimal_range(2, 64, 0.125))
     vco_dividers = list(range(1, 106))
@@ -150,7 +146,7 @@ class Mmcm(Elaboratable):
 
     def __init__(self, input_clock, vco_mul, vco_div, input_domain="sync"):
         Mmcm.is_valid_vco_conf(input_clock, vco_mul, vco_div, exception=True)
-        self._mmcm = RawMmcm(
+        self._mmcm = InstanceHelper("+/xilinx/cells_xtra.v", "MMCME2_ADV")(
             clkin1_period=1 / input_clock * 1e9,
             clkfbout_mult_f=vco_mul, divclk_divide=vco_div,
         )

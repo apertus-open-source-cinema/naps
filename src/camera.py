@@ -22,7 +22,7 @@ class Top(Elaboratable):
         m.submodules.i2c = BitbangI2c(i2c_pads)
 
         sensor = platform.request("sensor")
-        platform.get_ps7().fck_domain(24e6, "sensor_clk")
+        platform.ps7.fck_domain(24e6, "sensor_clk")
         m.d.comb += sensor.clk.eq(ClockSignal("sensor_clk"))
         m.d.comb += sensor.reset.eq(~self.sensor_reset_n)
         # TODO: find more ideomatic way to do this
@@ -32,7 +32,10 @@ class Top(Elaboratable):
         ring_buffer = RingBufferAddressStorage(buffer_size=0x1200000, n=4)
 
         hispi = m.submodules.hispi = Hispi(sensor)
-        buffer_writer = m.submodules.buffer_writer = DomainRenamer("hispi")(AxiBufferWriter(ring_buffer, hispi.output))
+
+        m.domains += ClockDomain("writer")
+        m.d.comb += ClockSignal("writer").eq(ClockSignal("hispi"))  # we omit the reset on purpose
+        buffer_writer = m.submodules.buffer_writer = DomainRenamer("writer")(AxiBufferWriter(ring_buffer, hispi.output))
 
         hdmi_plugin = platform.request("hdmi", "north")
         m.submodules.hdmi = HdmiBufferReader(

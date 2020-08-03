@@ -2,10 +2,10 @@ from nmigen import *
 
 from .axi_endpoint import AxiEndpoint, BurstType
 from cores.csr_bank import StatusSignal
-from util.nmigen import nMax, mul_by_pot
+from util.nmigen_misc import nMax, mul_by_pot
 from ..ring_buffer_address_storage import RingBufferAddressStorage
 from ..stream.fifo import SyncStreamFifo
-from ..stream.stream import StreamEndpoint
+from util.stream import StreamEndpoint
 
 
 class AddressGenerator(Elaboratable):
@@ -83,7 +83,7 @@ class AxiBufferWriter(Elaboratable):
         else:
             clock_signal = Signal()
             m.d.comb += clock_signal.eq(ClockSignal())
-            axi_slave = platform.get_ps7().get_axi_hp_slave(clock_signal)
+            axi_slave = platform.ps7.get_axi_hp_slave(clock_signal)
         axi = AxiEndpoint.like(axi_slave, master=True)
         m.d.comb += axi.connect_slave(axi_slave)
 

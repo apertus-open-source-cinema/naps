@@ -12,7 +12,7 @@ from cores.csr_bank import StatusSignal, ControlSignal, EventReg
 
 class I2cXilinx(Elaboratable):
     def __init__(self, axil_master, pads, base_address, gpo_width=0):
-        """ A axil i2c peripheral meant to be compatible with the Xilinx IIC linux kernel driver.
+        """ A axil i2c peripheral meant to be compatible with the Xilinx IIC linux kernel pydriver.
         see https://japan.xilinx.com/support/documentation/ip_documentation/axi_iic/v2_0/pg090-axi-iic.pdf for register
         map. Currently only the I2C master functionality is implemented.
 

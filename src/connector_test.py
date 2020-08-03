@@ -12,16 +12,15 @@ class Top(Elaboratable):
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
 
-        ps7 = platform.get_ps7()
 
         # clock_setup: the serdes clockdomain has double the frequency of fclk1
-        m.domains += ClockDomain("sync")
-        m.d.comb += ClockSignal().eq(ps7.fclk.clk[0])
+        platform.ps7.fck_domain()
         pll = m.submodules.pll = RawPll(startup_wait=False, ref_jitter1=0.01, clkin1_period=8.0,
                                         clkfbout_mult=8, divclk_divide=1,
                                         clkout0_divide=16, clkout0_phase=0.0,
                                         clkout1_divide=4, clkout1_phase=0.0)
-        m.d.comb += pll.clk.in_[1].eq(ps7.fclk.clk[1])
+        platform.ps7.fck_domain(requested_frequency=200e6, domain_name="pll_clk_in")
+        m.d.comb += pll.clk.in_[1].eq(ClockSignal("pll_clk_in"))
         m.d.comb += pll.clk.fbin.eq(pll.clk.fbout)
         bufg_serdes = m.submodules.bufg_serdes = Bufg(pll.clk.out[0])
         m.domains += ClockDomain("serdes")

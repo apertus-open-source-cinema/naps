@@ -1,7 +1,7 @@
 from nmigen import *
 
 from cores.csr_bank import StatusSignal
-from cores.stream.stream import StreamEndpoint
+from util.stream import StreamEndpoint
 
 
 class StreamCombiner(Elaboratable):

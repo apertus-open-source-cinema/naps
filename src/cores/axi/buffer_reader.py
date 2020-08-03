@@ -3,10 +3,10 @@
 
 from nmigen import *
 
-from cores.csr_bank import ControlSignal, StatusSignal
+from cores.csr_bank import StatusSignal
 from . import AxiEndpoint
 from .axi_endpoint import Response
-from ..stream.stream import StreamEndpoint
+from util.stream import StreamEndpoint
 
 
 class AxiBufferReader(Elaboratable):
@@ -33,7 +33,7 @@ class AxiBufferReader(Elaboratable):
         else:
             clock_signal = Signal()
             m.d.comb += clock_signal.eq(ClockSignal())
-            axi_slave = platform.get_ps7().get_axi_hp_slave(clock_signal)
+            axi_slave = platform.ps7.get_axi_hp_slave(clock_signal)
         axi = AxiEndpoint.like(axi_slave, master=True)
         m.d.comb += axi.connect_slave(axi_slave)
 

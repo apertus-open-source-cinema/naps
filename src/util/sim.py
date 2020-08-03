@@ -2,7 +2,7 @@ import inspect
 from pathlib import Path
 
 from nmigen import *
-from nmigen.back.pysim import Simulator
+from nmigen.sim.pysim import Simulator
 
 
 class SimPlatform:

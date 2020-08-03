@@ -3,7 +3,7 @@ import unittest
 from nmigen import *
 
 from cores.ring_buffer_address_storage import RingBufferAddressStorage
-from cores.stream.stream import StreamEndpoint
+from util.stream import StreamEndpoint
 from util.sim import SimPlatform
 from cores.axi.axi_endpoint import AxiEndpoint, Response, AddressChannel, BurstType, DataChannel
 from cores.axi.buffer_writer import AxiBufferWriter, AddressGenerator

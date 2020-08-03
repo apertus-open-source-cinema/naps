@@ -12,12 +12,7 @@ class MmioGpio(Elaboratable):
         """ A simple gpio peripheral, that is compatible with the gpio-mmio.c linux kernel pydriver.
         see https://github.com/torvalds/linux/blob/master/drivers/gpio/gpio-mmio.c
         """
-        if isinstance(pads, Record):
-            self._pads = pads.fields.values()
-        elif isinstance(pads, Iterable):
-            self._pads = pads
-        else:
-            raise ValueError("unsupported type for pads")
+        self._pads = pads
 
         # see https://github.com/torvalds/linux/blob/master/drivers/gpio/gpio-mmio.c#L473
         # we are using a configuration with one output one input and one direction register

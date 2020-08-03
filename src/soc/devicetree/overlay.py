@@ -24,7 +24,7 @@ def devicetree_overlay(platform, overlay_name, overlay_content, placeholder_subs
 
         formatted_overlay_text = dedent(overlay_content)
         for name, replacement in things_to_replace.items():
-            formatted_overlay_text = formatted_overlay_text.replace("%{}%".format(name), "0x{}".format(replacement))
+            formatted_overlay_text = formatted_overlay_text.replace("%{}%".format(name), replacement)
 
         overlay_text = dedent("""
             /dts-v1/;

@@ -3,7 +3,7 @@ from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
 from cores.csr_bank import ControlSignal, StatusSignal
 from xilinx.clocking import RawPll, Bufg
-from xilinx.io import Oserdes, IdelayCtl, Idelay, Iserdes
+from xilinx.io import Oserdes, IdelayCtrl, Idelay, Iserdes
 from soc.zynq import ZynqSocPlatform
 from soc.cli import cli
 
@@ -59,7 +59,7 @@ class Top(Elaboratable):
         bufg_idelay_refclk = m.submodules.bufg_idelay_refclk = Bufg(pll.clk.out[1])
         m.domains += ClockDomain("idelay_refclk")
         m.d.comb += ClockSignal("idelay_refclk").eq(bufg_idelay_refclk.o)
-        idelay_ctl = m.submodules.idelay_ctl = IdelayCtl()
+        idelay_ctl = m.submodules.idelay_ctl = IdelayCtrl()
         m.d.comb += StatusSignal(name="idelay_crl_rdy").eq(idelay_ctl.rdy)
         m.d.comb += idelay_ctl.refclk.eq(ClockSignal("idelay_refclk"))
         m.d.comb += idelay_ctl.rst.eq(ResetSignal("idelay_refclk"))

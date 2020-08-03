@@ -16,7 +16,7 @@ class PS7(Elaboratable):
     def __init__(self, here_is_the_only_place_that_instanciates_ps7=False):
         assert here_is_the_only_place_that_instanciates_ps7
         self.m = Module()
-        self.instance = InstanceHelper("+/xilinx/cells_xtra.v", "PS7")
+        self.instance = InstanceHelper("+/xilinx/cells_xtra.v", "PS7")()
         self.clock_constraints = OrderedDict()
 
     def _axi_slave_helper(self, axi, ps7_port):

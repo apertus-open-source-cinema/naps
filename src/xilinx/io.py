@@ -1,27 +1,12 @@
 from nmigen import *
 
 from cores.csr_bank import ControlSignal
-from util.instance_helper import InstanceParent
+from util.instance_helper import InstanceHelper
 
-
-class Oserdes(InstanceParent):
-    module = "OSERDESE2"
-    source = "+/xilinx/cells_xtra.v"
-
-
-class Iserdes(InstanceParent):
-    module = "ISERDESE2"
-    source = "+/xilinx/cells_xtra.v"
-
-
-class Idelay(InstanceParent):
-    module = "IDELAYE2"
-    source = "+/xilinx/cells_xtra.v"
-
-
-class IdelayCtl(InstanceParent):
-    module = "IDELAYCTRL"
-    source = "+/xilinx/cells_xtra.v"
+Oserdes = InstanceHelper("+/xilinx/cells_xtra.v", "OSERDESE2")
+Iserdes = InstanceHelper("+/xilinx/cells_xtra.v", "ISERDESE2")
+Idelay = InstanceHelper("+/xilinx/cells_xtra.v", "IDELAYE2")
+IdelayCtrl = InstanceHelper("+/xilinx/cells_xtra.v", "IDELAYCTRL")
 
 
 class OSerdes10(Elaboratable):

@@ -10,8 +10,8 @@ class Top(Elaboratable):
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
 
-        usb3_plugin = platform.request("usb3_plugin", "north")
-        m.submodules.mmio_gpio = MmioGpio(usb3_plugin.gpio)
+        usb3_plugin = platform.request("generic_plugin", "north")
+        m.submodules.mmio_gpio = MmioGpio([getattr(usb3_plugin, "gpio{}".format(i)) for i in range(8)])
 
         return m
 

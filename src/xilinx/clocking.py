@@ -6,7 +6,7 @@ from soc.soc_platform import SocPlatform
 from util.decimal_range import decimal_range
 from cores.drp_bridge import DrpInterface, DrpBridge
 from cores.csr_bank import StatusSignal
-from util.instance_helper import InstanceParent, InstanceHelper
+from util.instance_helper import InstanceHelper
 
 
 class Bufg(Elaboratable):
@@ -18,9 +18,7 @@ class Bufg(Elaboratable):
         return Instance("BUFG", i_I=self.i, o_O=self.o)
 
 
-class RawPll(InstanceParent):
-    module = "PLLE2_ADV"
-    source = "+/xilinx/cells_xtra.v"
+RawPll = InstanceHelper("+/xilinx/cells_xtra.v", "PLLE2_ADV")
 
 
 class Pll(Elaboratable):

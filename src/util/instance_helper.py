@@ -4,14 +4,14 @@ from nmigen.hdl.ast import UserValue
 from util import yosys
 
 
-class InstanceHelper(Elaboratable):
-    """Wraps the a Xilinx ip as a convenient blackbox.
-    """
+def InstanceHelper(source_files, instance_name):
+    return type(instance_name, (HelperedInstance,), {"instance_name": instance_name, "source_files": source_files})
 
-    def __init__(self, source_files, instance_name):
-        self.parameters = {}
-        self.instance_name = instance_name
-        self.ports = yosys.get_module_ports(source_files, instance_name)
+
+class HelperedInstance(Elaboratable):
+    def __init__(self, **kwargs):
+        self.parameters = kwargs
+        self.ports = yosys.get_module_ports(self.source_files, self.instance_name)
         self.signal_proxy = SignalProxy(self.ports)
 
     def __call__(self, *args, **kwargs):
@@ -46,20 +46,6 @@ class InstanceHelper(Elaboratable):
         m.submodules.instance = Instance(self.instance_name, **named_ports, **parameters)
 
         return m
-
-
-class InstanceParent(Elaboratable):
-    def __init__(self, **kwargs):
-        assert hasattr(self, "source") and hasattr(self, "module")
-
-        self.instance = InstanceHelper(self.source, self.module)(**kwargs)
-
-    def __getattr__(self, item):
-        return self.instance.__getattr__(item)
-
-    def elaborate(self, platform):
-        self.instance._MustUse__used = True
-        return self.instance.elaborate(platform)
 
 
 class SignalProxy(UserValue):

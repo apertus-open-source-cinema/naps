@@ -1,4 +1,5 @@
 import math
+from dataclasses import dataclass
 from functools import reduce
 from typing import Iterator, Iterable
 
@@ -6,6 +7,8 @@ from nmigen import *
 from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 from nmigen.hdl.xfrm import TransformedElaboratable
+
+from util.bundle import Bundle
 
 
 def flatten_nmigen_type(nmigen_things):
@@ -102,7 +105,8 @@ def max_error_freq(real_freq, requested_freq, max_error_percent=1):
     return freq_error
 
 
-class TristateIo:
+@dataclass
+class TristateIo(Bundle):
     i: Signal
     o: Signal
     oe: Signal

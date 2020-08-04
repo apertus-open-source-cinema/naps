@@ -38,7 +38,7 @@ if __name__ == '__main__':
     platform = ZynqSocPlatform(SimPlatform())
     output = cxxrtl.convert(platform.prepare(m), platform=platform)
 
-    root = os.path.join("build")
+    root = os.path.join("../build")
     filename = os.path.join(root, "top.cpp")
     elfname = os.path.join(root, "top.elf")
 

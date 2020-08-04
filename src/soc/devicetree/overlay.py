@@ -43,7 +43,7 @@ def devicetree_overlay(platform, overlay_name, overlay_content, placeholder_subs
         platform.add_file("{}_overlay.dts".format(overlay_name), overlay_text.encode("utf-8"))
         print(overlay_text)
         platform.init_script += "mkdir -p /sys/kernel/config/device-tree/overlays/{}\n".format(overlay_name)
-        platform.init_script += "dtc -O dtb -@ i2c_overlay.dts -o - > /sys/kernel/config/device-tree/overlays/{}/dtbo\n\n"\
+        platform.init_script += "dtc -O dtb -@ {0}_overlay.dts -o - > /sys/kernel/config/device-tree/overlays/{0}/dtbo\n\n"\
             .format(overlay_name)
 
     platform.prepare_hooks.append(overlay_hook)

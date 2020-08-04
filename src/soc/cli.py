@@ -12,12 +12,11 @@ import argparse
 
 
 def in_build(subpath):
-    dirname = path.dirname(__file__)
-    return path.join(dirname, '..', 'build', subpath)
+    return path.join('build', subpath)
 
 
 class Cli:
-    def __init__(self, top_class):
+    def __init__(self, top_class, soc=True):
         parser = argparse.ArgumentParser()
         parser.add_argument('-e', help='elaborate', action="store_true")
         parser.add_argument('-b', help='build; implies -e', action="store_true")
@@ -25,7 +24,10 @@ class Cli:
         parser.add_argument('-d', help='device', default='MicroR2')
         self.args = parser.parse_args()
         hardware_platform = getattr(__import__('devices'), "{}Platform".format(self.args.d))
-        self.platform = ZynqSocPlatform(hardware_platform())
+        if soc:
+            self.platform = ZynqSocPlatform(hardware_platform())
+        else:
+            self.platform = hardware_platform()
         self.top_class = top_class
         self.ran = False
 

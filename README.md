@@ -14,6 +14,8 @@ This repo contains:
     * Provides a bus agnostic way to describe (low speed) peripherals
     * Emits Python code that can be used to access the designs CSRs
 * platform definitions for both the AXIOM Beta and the AXIOM Micro in `src/devices/`
-* test gateware to test connectors for their ability to transmit high speed data (via a loopback test) in `connector_test.py`
-* ... and a variety of other smaller half-working experiments
+* a variety of other smaller half-working experiments in `experiments/`
+    * test gateware to test connectors for their ability to transmit high speed data (via a loopback test)
+    * test gateware for the axi writer & reader
+    * test gateware for hdmi
  

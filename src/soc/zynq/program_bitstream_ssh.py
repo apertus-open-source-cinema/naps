@@ -6,8 +6,12 @@ from nmigen.build.run import BuildProducts
 
 from soc.zynq.to_raw_bitstream import bit2bin
 
+default_host = "10.0.1.1"
+default_user = "operator"
+default_password = "axiom"
 
-def run_on_camera(cmd, host="micro", user="operator", password="axiom", sudo=True, sshpass=True):
+
+def run_on_camera(cmd, host=default_host, user=default_user, password=default_password, sudo=True, sshpass=True):
     if sudo:
         cmd = "echo {} | sudo -S bash -c {}".format(password, quote(cmd))
     ssh_cmd = "ssh {}@{} {}".format(user, host, quote(cmd))
@@ -17,7 +21,7 @@ def run_on_camera(cmd, host="micro", user="operator", password="axiom", sudo=Tru
     return subprocess.check_output(ssh_cmd, shell=True)
 
 
-def copy_to_camera(source, destination, host="micro", user="operator", password="axiom", sshpass=True):
+def copy_to_camera(source, destination, host=default_host, user=default_user, password=default_password, sshpass=True):
     scp_cmd = "scp {} {}".format(quote(source), quote("{}@{}:{}".format(user, host, destination)))
     if sshpass:
         scp_cmd = "sshpass -p{} {}".format(password, scp_cmd)

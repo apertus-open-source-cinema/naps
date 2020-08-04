@@ -27,7 +27,7 @@ class MmioGpio(Elaboratable):
         m = Module()
 
         overlay_content = """
-            %overlay_name%: gpio-controller@40000000 {
+            %overlay_name%: %overlay_name%@40000000 {
                     compatible = "brcm,bcm6345-gpio";
                     reg-names = "set", "dat", "dirout";
                     reg = <%set% 1>, <%dat% 1>, <%dirout% 1>;

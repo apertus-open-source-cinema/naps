@@ -172,5 +172,6 @@ class PS7(Elaboratable):
             for base in [0xF8008000, 0xF8009000, 0xF800A000, 0xF800B000]:
                 platform.init_script += "devmem2 0x{:x} w 0".format(base)
                 platform.init_script += "devmem2 0x{:x} w 0xF00".format(base + 0x14)
+            platform.init_script += "\n"
 
         return m

@@ -6,7 +6,7 @@ __all__ = ["AxiomUsb3PluginPlatform"]
 
 class AxiomUsb3PluginPlatform(LatticeMachXO2Platform):
     device = "LCMXO2-1200HC"
-    package = "TQFP100"
+    package = "TG100"
     speed = "6"
     resources = [
         Resource("lvds", 0, DiffPairs("47 43 41 37 30 35", "45 42 40 36 29 34", dir='o'), Attrs(IOSTANDARD="LVDS25")),
@@ -26,7 +26,7 @@ class AxiomUsb3PluginPlatform(LatticeMachXO2Platform):
             Subsignal("gpio", Pins("2 1", dir="io"), Attrs(IOSTANDARD="LVCMOS33")),
             Subsignal("wakeup", PinsN("3", dir="io"), Attrs(IOSTANDARD="LVCMOS33")),
 
-            Subsignal("clk0", Pins("62", dir="i"), Attrs(IOSTANDARD="LVCMOS33")),
+            Subsignal("clk", Pins("62", dir="i"), Attrs(IOSTANDARD="LVCMOS33")),
             Subsignal("clk1", Pins("63", dir="i"), Attrs(IOSTANDARD="LVCMOS33")),
         ),
         Resource("led", 0, Pins("71", dir="o"), Attrs(IOSTANDARD="LVCMOS33"))

@@ -26,7 +26,7 @@ class HdmiDigitizerPlatform(TE0714_03_50_2LPlatform):
                 Subsignal("rxf", PinsN("42", dir="i", conn=("JM2", 0))),
                 Subsignal("txe", PinsN("49", dir="i", conn=("JM2", 0))),
                 Subsignal("wakeup", PinsN("37", dir="io", conn=("JM2", 0))),
-                Subsignal("clk", Pins("40", dir="i", conn=("JM2", 0))),
+                Subsignal("clk", Pins("40", dir="i", conn=("JM2", 0)), Clock(100e63)),
 
                 Attrs(IOSTANDARD="LVCMOS33"),
             ),

@@ -39,18 +39,18 @@ class Pll(Elaboratable):
         vco_freq = input_freq * mul / div
         if 800e6 > vco_freq:
             if exception:
-                raise ValueError
+                raise ValueError(vco_freq)
             return False
         if 1600e6 < vco_freq:
             if exception:
-                raise ValueError
+                raise ValueError(vco_freq)
             return False
         return True
 
-    def __init__(self, input_clock, vco_mul, vco_div, input_domain="sync"):
-        Pll.is_valid_vco_conf(input_clock, vco_mul, vco_div, exception=True)
+    def __init__(self, input_freq, vco_mul, vco_div, input_domain="sync"):
+        Pll.is_valid_vco_conf(input_freq, vco_mul, vco_div, exception=True)
         self._pll = RawPll(
-            clkin1_period=1 / input_clock * 1e9,
+            clkin1_period=1 / input_freq * 1e9,
             clkfbout_mult=vco_mul, divclk_divide=vco_div,
         )
         m = self.m = Module()
@@ -61,8 +61,8 @@ class Pll(Elaboratable):
         self.locked = StatusSignal()
 
         self._input_domain = input_domain
-        self._input_clock = input_clock
-        self._vco = Clock(input_clock * vco_mul / vco_div)
+        self._input_freq = input_freq
+        self._vco = Clock(input_freq * vco_mul / vco_div)
         self._clock_constraints = {}
 
     def output_domain(self, domain_name, divisor, number=None, bufg=True):

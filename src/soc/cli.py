@@ -7,7 +7,7 @@ from os import stat, path
 
 from nmigen.build.run import LocalBuildProducts
 
-from soc.zynq import ZynqSocPlatform
+from soc.platforms.zynq import ZynqSocPlatform
 import argparse
 
 
@@ -16,16 +16,18 @@ def in_build(subpath):
 
 
 class Cli:
-    def __init__(self, top_class, soc=True):
+    def __init__(self, top_class):
         parser = argparse.ArgumentParser()
         parser.add_argument('-e', help='elaborate', action="store_true")
         parser.add_argument('-b', help='build; implies -e', action="store_true")
         parser.add_argument('-p', help='program; programs the last build if used without -b', action="store_true")
         parser.add_argument('-d', help='device', default='MicroR2')
+        parser.add_argument('-s', help='soc platform', default='Zynq')
         self.args = parser.parse_args()
         hardware_platform = getattr(__import__('devices'), "{}Platform".format(self.args.d))
-        if soc:
-            self.platform = ZynqSocPlatform(hardware_platform())
+        if self.args.s:
+            soc_platform = getattr(__import__('soc').platforms, "{}SocPlatform".format(self.args.s))
+            self.platform = soc_platform(hardware_platform())
         else:
             self.platform = hardware_platform()
         self.top_class = top_class

@@ -2,7 +2,7 @@ from nmigen import *
 
 from cores.hdmi.hdmi import Hdmi
 from soc.cli import cli
-from soc.zynq import ZynqSocPlatform
+from soc.platforms.zynq import ZynqSocPlatform
 
 
 class Top(Elaboratable):

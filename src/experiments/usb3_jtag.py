@@ -3,7 +3,7 @@ from nmigen import *
 from cores.mmio_gpio import MmioGpio
 from soc.cli import cli
 
-from soc.zynq import ZynqSocPlatform
+from soc.platforms.zynq import ZynqSocPlatform
 
 
 class Top(Elaboratable):

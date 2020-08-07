@@ -1,5 +1,3 @@
-from abc import ABC
-
 from nmigen import *
 
 from cores.axi.axi_endpoint import Response as AxiResponse, AxiEndpoint
@@ -7,7 +5,7 @@ from soc.bus_slave import Response as BusSlaveResponse
 from soc.memorymap import MemoryMap
 
 
-class AxiLiteBusSlave(Elaboratable, ABC):
+class AxiLiteBusSlave(Elaboratable):
     def __init__(self, handle_read, handle_write, memorymap, bundle_name="axi"):
         """
         A simple (low performance) axi lite slave
@@ -37,9 +35,9 @@ class AxiLiteBusSlave(Elaboratable, ABC):
 
         read_write_done = Signal()
 
-        def read_write_done_callback(success):
+        def read_write_done_callback(error):
             m.d.sync += read_write_done.eq(1)
-            if success == BusSlaveResponse.ERR:
+            if error == BusSlaveResponse.ERR:
                 m.d.sync += resp_out.eq(AxiResponse.SLVERR)
             else:
                 m.d.sync += resp_out.eq(AxiResponse.OKAY)

@@ -39,9 +39,10 @@ class InFastDomain(Elaboratable):
             m.d.comb += platform.request("led", i).eq(counter.output.payload[-(i + 1)])
 
 
+
         return m
 
 
 if __name__ == "__main__":
-    with cli(Top, soc=False) as platform:
+    with cli(Top) as platform:
         pass

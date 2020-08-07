@@ -4,7 +4,7 @@ from shlex import quote
 
 from nmigen.build.run import BuildProducts
 
-from soc.zynq.to_raw_bitstream import bit2bin
+from .to_raw_bitstream import bit2bin
 
 default_host = "10.0.1.1"
 default_user = "operator"

@@ -3,7 +3,7 @@ import unittest
 from nmigen.build import Clock
 
 from cores.hdmi.hdmi import TimingGenerator, Hdmi, HdmiClocking
-from soc.zynq import ZynqSocPlatform
+from soc.platforms.zynq import ZynqSocPlatform
 from cores.csr_bank.test_csr_bank_zynq import axil_read, axil_write
 from util.bundle import Bundle, Signal
 from util.sim import SimPlatform

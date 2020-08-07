@@ -3,7 +3,7 @@ import unittest
 from cores.axi.axi_endpoint import Response, AxiEndpoint
 from util.sim import SimPlatform
 from cores.csr_bank.csr_bank import CsrBank, ControlSignal
-from soc.zynq.zynq_soc_platform import ZynqSocPlatform
+from soc.platforms.zynq import ZynqSocPlatform
 from util.sim import wait_for, do_nothing
 
 

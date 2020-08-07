@@ -9,7 +9,7 @@ from nmigen.back import cxxrtl
 
 from cores.hdmi.cvt import generate_modeline
 from cores.hdmi.hdmi import Hdmi
-from soc.zynq import ZynqSocPlatform
+from soc.platforms.zynq import ZynqSocPlatform
 from util.bundle import Bundle
 from util.sim import SimPlatform
 

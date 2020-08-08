@@ -57,7 +57,6 @@ class Cli:
                 do_build=False
             )
 
-            do_build = True
             if self.args.build:
                 # check if we need to rebuild
                 build_plan_hash = hash_build_plan(build_plan.files)
@@ -67,12 +66,14 @@ class Cli:
                     old_build_plan_files = OrderedDict((replace_date(k, previous_date), open(in_build((replace_date(k, previous_date)))).read()) for k, v in build_plan.files.items())
                     old_build_plan_hash = hash_build_plan(old_build_plan_files)
                     if old_build_plan_hash == build_plan_hash:
-                        do_build = False
+                        needs_rebuild = False
+                    else:
+                        needs_rebuild = True
 
-            if do_build:
-                build_plan.execute_local(in_build())
-                with open(in_build('{}.extra_files.pickle'.format(build_name)), 'wb') as f:
-                    pickle.dump(self.platform.extra_files, f)
+                if needs_rebuild:
+                    build_plan.execute_local(in_build())
+                    with open(in_build('{}.extra_files.pickle'.format(build_name)), 'wb') as f:
+                        pickle.dump(self.platform.extra_files, f)
 
         if self.args.program:
             build_files = glob(in_build('build_{}-*.sh'.format(name)))

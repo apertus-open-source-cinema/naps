@@ -2,7 +2,6 @@
 from itertools import count
 
 from nmigen import *
-from nmigen.build import ResourceError
 
 from cores.ft601.ft601_perf_debug import FT601PerfDebug
 from devices import HdmiDigitizerPlatform, Usb3PluginPlatform

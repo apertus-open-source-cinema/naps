@@ -1,10 +1,10 @@
 from nmigen.build import *
 from nmigen.vendor.lattice_machxo_2_3l import *
 
-__all__ = ["AxiomUsb3PluginPlatform"]
+__all__ = ["Usb3PluginPlatform"]
 
 
-class AxiomUsb3PluginPlatform(LatticeMachXO2Platform):
+class Usb3PluginPlatform(LatticeMachXO2Platform):
     device = "LCMXO2-1200HC"
     package = "TG100"
     speed = "6"

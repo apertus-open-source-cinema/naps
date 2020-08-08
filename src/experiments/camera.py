@@ -1,3 +1,5 @@
+# An experiment that glues everything together and tries to get a full sensor -> hdmi flow working on the micro
+
 import os
 
 from nmigen import *
@@ -8,6 +10,7 @@ from cores.i2c.bitbang_i2c import BitbangI2c
 from cores.csr_bank import ControlSignal
 from cores.ring_buffer_address_storage import RingBufferAddressStorage
 from cores.hdmi.hdmi_buffer_reader import HdmiBufferReader
+from devices import MicroR2Platform
 from soc.cli import cli
 
 
@@ -25,7 +28,7 @@ class Top(Elaboratable):
         platform.ps7.fck_domain(24e6, "sensor_clk")
         m.d.comb += sensor.clk.eq(ClockSignal("sensor_clk"))
         m.d.comb += sensor.reset.eq(~self.sensor_reset_n)
-        # TODO: find more ideomatic way to do this
+        # TODO: find more idiomatic way to do this
         os.environ["NMIGEN_add_constraints"] = \
             "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/hispi_sensor_0__lvds_clk__i]"
 
@@ -47,6 +50,6 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top) as platform:
+    with cli(Top, runs_on=(MicroR2Platform,)) as platform:
         from devices.plugins.hdmi import hdmi_plugin_connect
         hdmi_plugin_connect(platform, "north")

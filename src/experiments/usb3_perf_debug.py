@@ -1,10 +1,13 @@
+# An experiment that allows debugging / diagnosing performance of the FT601 USB3 FIFO ic
+from itertools import count
+
 from nmigen import *
+from nmigen.build import ResourceError
 
 from cores.ft601.ft601_perf_debug import FT601PerfDebug
-from cores.ft601.ft601_stream_sink import FT601StreamSink
-from cores.stream.counter_source import StreamCounterSource
+from devices import HdmiDigitizerPlatform, Usb3PluginPlatform
 from soc.cli import cli
-from xilinx.clocking import Pll
+from util.nmigen_misc import connect_leds
 
 
 class Top(Elaboratable):
@@ -16,12 +19,11 @@ class Top(Elaboratable):
         ft601 = platform.request("ft601")
 
         ft601_perf_debug = m.submodules.ft601_perf_debug = FT601PerfDebug(ft601)
-        for i in range(8):
-            m.d.comb += platform.request("led", i).eq(ft601_perf_debug.idle_counter[(i)])
+        connect_leds(m, platform, ft601_perf_debug.idle_counter, upper_bits=False)
 
         return m
 
 
 if __name__ == "__main__":
-    with cli(Top) as platform:
+    with cli(Top, runs_on=(Usb3PluginPlatform, HdmiDigitizerPlatform)) as platform:
         pass

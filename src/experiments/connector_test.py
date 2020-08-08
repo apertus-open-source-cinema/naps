@@ -1,7 +1,10 @@
+# an experiment to test highspeed connectors for data integrity
+
 from nmigen import *
 from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
 from cores.csr_bank import ControlSignal, StatusSignal
+from devices import MicroR2Platform
 from xilinx.clocking import RawPll, Bufg
 from xilinx.io import Oserdes, IdelayCtrl, Idelay, Iserdes
 from soc.platforms.zynq import ZynqSocPlatform
@@ -154,7 +157,7 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top) as platform:
+    with cli(Top, runs_on=(MicroR2Platform, )) as platform:
         platform.add_resources([
             Resource("loopback", 0,
                      # high speed serial lanes

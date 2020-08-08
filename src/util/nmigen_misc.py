@@ -1,10 +1,12 @@
 import math
 from dataclasses import dataclass
 from functools import reduce
+from itertools import count
 from typing import Iterator, Iterable
 
 from nmigen import *
 from nmigen import Signal
+from nmigen.build import ResourceError
 from nmigen.hdl.ast import UserValue
 from nmigen.hdl.xfrm import TransformedElaboratable
 
@@ -129,3 +131,11 @@ def ends_with(signal, *patterns):
     return signal.matches(
         *(("-" * (len(signal) - len(pattern)) + pattern) for pattern in patterns)
     )
+
+
+def connect_leds(m, platform, signal, upper_bits=True):
+    for i in count(start=0, step=1):
+        try:
+            m.d.comb += platform.request("led", i).eq(signal[i if not upper_bits else -(i + 1)])
+        except ResourceError:
+            break

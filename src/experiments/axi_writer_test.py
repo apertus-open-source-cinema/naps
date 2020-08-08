@@ -1,3 +1,5 @@
+# An experiment to that checks the functionality of the axi writer
+
 import math
 
 from nmigen import *
@@ -5,6 +7,7 @@ from nmigen import *
 from cores.csr_bank import ControlSignal, StatusSignal
 from cores.axi.buffer_writer import AxiBufferWriter
 from cores.ring_buffer_address_storage import RingBufferAddressStorage
+from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
 from util.stream import StreamEndpoint
 from soc.platforms.zynq import ZynqSocPlatform
 from soc.cli import cli
@@ -47,5 +50,5 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top) as platform:
+    with cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform)) as platform:
         pass

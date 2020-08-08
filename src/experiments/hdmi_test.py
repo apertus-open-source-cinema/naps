@@ -1,6 +1,9 @@
+# Test HDMI using a given modeline
+
 from nmigen import *
 
 from cores.hdmi.hdmi import Hdmi
+from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
 from soc.cli import cli
 from soc.platforms.zynq import ZynqSocPlatform
 
@@ -16,7 +19,7 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top) as platform:
+    with cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform)) as platform:
         from devices.zybo_platform import ZyboPlatform
         if not isinstance(platform, ZyboPlatform):
             from devices.plugins.hdmi import hdmi_plugin_connect

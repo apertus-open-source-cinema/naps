@@ -22,5 +22,5 @@ if __name__ == "__main__":
     with cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform)) as platform:
         from devices.zybo_platform import ZyboPlatform
         if not isinstance(platform, ZyboPlatform):
-            from devices.plugins.hdmi import hdmi_plugin_connect
+            from devices.plugins.hdmi_plugin_resource import hdmi_plugin_connect
             hdmi_plugin_connect(platform, "north")

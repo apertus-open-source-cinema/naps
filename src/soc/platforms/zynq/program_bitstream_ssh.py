@@ -6,7 +6,7 @@ from nmigen.build.run import BuildProducts
 
 from .to_raw_bitstream import bit2bin
 
-default_host = "192.168.101.94"
+default_host = "10.42.0.2"
 default_user = "operator"
 default_password = "axiom"
 
@@ -49,7 +49,7 @@ def program_bitstream_ssh(platform, build_products: BuildProducts, name, **kwarg
     init_script += platform.init_script
     fatfile += init_script
 
-    fatfile_name = "build/{}.fatbitstream.sh".format(name)
+    fatfile_name = "{}.fatbitstream.sh".format(name)
     with open(fatfile_name, "w") as f:
         f.write(fatfile)
     copy_to_camera(fatfile_name, "/home/operator/{}.fatbitstream.sh".format(name), **kwargs)

@@ -2,7 +2,6 @@ from nmigen import *
 
 from cores.blink_debug import BlinkDebug
 from cores.jtag.jtag import JTAG
-from util.nmigen_misc import connect_leds
 
 
 class JTAGBusSlave(Elaboratable):
@@ -23,8 +22,7 @@ class JTAGBusSlave(Elaboratable):
         m = Module()
         jtag = m.submodules.jtag = JTAG()
         led = platform.request("led", 0)
-        m.d.comb += led.eq(1)
-        led_debug = m.submodules.led_debug = BlinkDebug(Signal(), divider=18, max_value=8)
+        led_debug = m.submodules.led_debug = BlinkDebug(led, divider=24, max_value=8)
         m.submodules.in_jtag_domain = DomainRenamer("jtag")(self.elaborate_jtag_domain(platform, jtag, led_debug.value))
         return m
 

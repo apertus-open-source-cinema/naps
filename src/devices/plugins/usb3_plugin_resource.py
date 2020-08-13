@@ -12,17 +12,17 @@ def usb3_plugin_connect(platform, plugin_number):
 
             Subsignal(
                 "lvds",
-                Subsignal("lvds0", DiffPairs("lvds0_p", "lvds0_n", dir='o', conn=("plugin", plugin_number)),
+                Subsignal("valid", DiffPairs("lvds0_p", "lvds0_n", dir='o', conn=("plugin", plugin_number)),
                           Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-                Subsignal("lvds1", DiffPairs("lvds1_p", "lvds1_n", dir='o', conn=("plugin", plugin_number)),
+                Subsignal("lvds0", DiffPairs("lvds1_p", "lvds1_n", dir='o', conn=("plugin", plugin_number)),
                           Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-                Subsignal("lvds2", DiffPairs("lvds2_p", "lvds2_n", dir='o', conn=("plugin", plugin_number)),
+                Subsignal("lvds1", DiffPairs("lvds2_p", "lvds2_n", dir='o', conn=("plugin", plugin_number)),
                           Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-                Subsignal("lvds3", DiffPairs("lvds3_p", "lvds3_n", dir='o', conn=("plugin", plugin_number)),
+                Subsignal("lvds2", DiffPairs("lvds3_p", "lvds3_n", dir='o', conn=("plugin", plugin_number)),
                           Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-                Subsignal("valid", DiffPairs("lvds4_p", "lvds4_n", dir='o', conn=("plugin", plugin_number)),
+                Subsignal("clk_word", DiffPairs("lvds4_p", "lvds4_n", dir='o', conn=("plugin", plugin_number)),
                           Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-                Subsignal("clk_word", DiffPairs("lvds5_p", "lvds5_n", dir='o', conn=("plugin", plugin_number)),
+                Subsignal("lvds3", DiffPairs("lvds5_p", "lvds5_n", dir='o', conn=("plugin", plugin_number)),
                           Attrs(IOSTANDARD="DIFF_SSTL18_I")),
             ),
 

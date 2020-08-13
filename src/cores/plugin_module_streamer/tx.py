@@ -12,7 +12,7 @@ from util.stream import StreamEndpoint
 class PluginModuleStreamerTx(Elaboratable):
     def __init__(self, plugin_resource, input: StreamEndpoint, bitclk_domain, training_pattern=0b00000110):
         self.bitclk_domain = bitclk_domain
-        self.plugin_resource = plugin_resource
+        self.plugin_lvds = plugin_resource
         self.input = input
 
         self.training_pattern = ControlSignal(reset=training_pattern)
@@ -24,13 +24,15 @@ class PluginModuleStreamerTx(Elaboratable):
         sink = StreamEndpoint.like(self.input, is_sink=True)
         m.d.comb += sink.connect(self.input)
         
-        m.d.comb += self.plugin_resource.valid.eq(sink.valid & ~self.do_training)
+        m.d.comb += self.plugin_lvds.valid.eq(sink.valid & ~self.do_training)
         m.d.comb += sink.ready.eq(1)
+        
+        m.d.comb += self.plugin_lvds.clk_word.eq(ClockSignal())
 
         for i in range(4):
             value = Signal()
-            m.submodules["lane{}".format(i)] = DDRSerializer(self.plugin_resource["lvds{}".format(i)], value, ddr_clockdomain=self.bitclk_domain)
-            with m.If(self.plugin_resource.valid):
+            m.submodules["lane{}".format(i)] = DDRSerializer(self.plugin_lvds["lvds{}".format(i)], value, ddr_clockdomain=self.bitclk_domain)
+            with m.If(self.plugin_lvds.valid):
                 m.d.comb += value.eq(sink.payload[0+(i*8):8+(i*8)])
             with m.Else():
                 m.d.comb += value.eq(self.training_pattern)

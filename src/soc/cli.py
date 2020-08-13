@@ -1,4 +1,5 @@
 import inspect
+import os
 import pickle
 import re
 from collections import OrderedDict
@@ -8,7 +9,8 @@ from hashlib import sha256
 from json import dumps
 from os import stat, path
 import argparse
-from os.path import exists
+from os.path import exists, isdir
+from warnings import warn
 
 from nmigen.build.run import LocalBuildProducts
 
@@ -69,8 +71,8 @@ class Cli:
                         if old_build_plan_hash == build_plan_hash and exists(
                                 path.join(previous_build_dir, 'extra_files.pickle')):
                             needs_rebuild = False
-                    except FileNotFoundError:
-                        pass
+                    except FileNotFoundError as e:
+                        warn(e)
 
                 if needs_rebuild:
                     build_subdir = name_full + datetime.now().strftime("_%d_%b_%Y__%H_%M_%S")
@@ -83,7 +85,12 @@ class Cli:
             previous_build_dir = get_previous_build_dir(name)
             with open(path.join(previous_build_dir, 'extra_files.pickle'), 'rb') as f:
                 self.platform.extra_files = pickle.load(f)
-            self.platform.toolchain_program(LocalBuildProducts(previous_build_dir), name=name_full)
+            cwd = os.getcwd()
+            try:
+                os.chdir(previous_build_dir)
+                self.platform.toolchain_program(LocalBuildProducts(os.getcwd()), name=name_full)
+            finally:
+                os.chdir(cwd)
 
         if not (self.args.program or self.args.build or self.args.elaborate):
             print("no action specified")
@@ -101,6 +108,7 @@ def hash_build_plan(build_plan_files):
 
 def get_previous_build_dir(basename):
     build_files = glob("build/{}*".format(basename))
+    build_files = [path for path in build_files if isdir(path)]
     if not build_files:
         return None
     sorted_build_files = sorted(build_files, key=lambda x: stat(x).st_mtime, reverse=True)

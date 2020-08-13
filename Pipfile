@@ -18,4 +18,4 @@ nmigen = {git = "https://github.com/nmigen/nmigen.git"}
 nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
 
 [scripts]
-test = "python -m unittest discover src -b"
+test = "pytest src/"

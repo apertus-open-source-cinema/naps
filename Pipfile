@@ -12,6 +12,7 @@ coverage = "*"
 pytest-pycharm = "*"
 pylint = "*"
 pytest = "*"
+tqdm = "*"
 
 [packages]
 nmigen = {git = "https://github.com/nmigen/nmigen.git"}

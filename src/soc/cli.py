@@ -8,6 +8,7 @@ from hashlib import sha256
 from json import dumps
 from os import stat, path
 import argparse
+from os.path import exists
 
 from nmigen.build.run import LocalBuildProducts
 
@@ -44,49 +45,47 @@ class Cli:
         return self.platform
 
     def __exit__(self, exc_type, exc_value, traceback):
-        name = "{file_basename}-{device}".format(
-            file_basename=inspect.stack()[1].filename.split("/")[-1].replace(".py", ""),
-            device=self.args.device
-        )
+        name = inspect.stack()[1].filename.split("/")[-1].replace(".py", "")
+        name_full = "{}_{}".format(name, self.args.device)
 
         if self.args.elaborate or self.args.build:
-            build_name = name + datetime.now().strftime("-%d-%b-%Y--%H-%M-%S")
             build_plan = self.platform.build(
                 self.top_class(),
-                name=build_name,
-                do_build=False
+                name=name_full,
+                do_build=False,
             )
 
             if self.args.build:
-                # check if we need to rebuild
+                needs_rebuild = True
                 build_plan_hash = hash_build_plan(build_plan.files)
-                previous_build_name = get_previous_build_name(name)
-                if previous_build_name:
-                    previous_date = extract_date(previous_build_name)
-                    old_build_plan_files = OrderedDict((replace_date(k, previous_date), open(in_build((replace_date(k, previous_date)))).read()) for k, v in build_plan.files.items())
-                    old_build_plan_hash = hash_build_plan(old_build_plan_files)
-                    if old_build_plan_hash == build_plan_hash:
-                        needs_rebuild = False
-                    else:
-                        needs_rebuild = True
+                previous_build_dir = get_previous_build_dir(name)
+                if previous_build_dir:
+                    try:
+                        old_build_plan_files = OrderedDict(
+                            (k, open(path.join(previous_build_dir, k)).read())
+                            for k, v in build_plan.files.items()
+                        )
+                        old_build_plan_hash = hash_build_plan(old_build_plan_files)
+                        if old_build_plan_hash == build_plan_hash and exists(
+                                path.join(previous_build_dir, 'extra_files.pickle')):
+                            needs_rebuild = False
+                    except FileNotFoundError:
+                        pass
 
                 if needs_rebuild:
-                    build_plan.execute_local(in_build())
-                    with open(in_build('{}.extra_files.pickle'.format(build_name)), 'wb') as f:
+                    build_subdir = name_full + datetime.now().strftime("_%d_%b_%Y__%H_%M_%S")
+                    build_path = path.join("build", build_subdir)
+                    build_plan.execute_local(build_path)
+                    with open(path.join(build_path, 'extra_files.pickle'), 'wb') as f:
                         pickle.dump(self.platform.extra_files, f)
 
         if self.args.program:
-            build_files = glob(in_build('build_{}-*.sh'.format(name)))
-            if not build_files:
-                raise FileNotFoundError(
-                    'no previous build exists for "{}". cant program it without building'.format(name)
-                )
-            sorted_build_files = sorted(build_files, key=lambda x: stat(x).st_mtime, reverse=True)
-            build_name = sorted_build_files[0].replace('build/build_', '').replace('.sh', '')
-            with open(in_build('{}.extra_files.pickle'.format(build_name)), 'rb') as f:
+            previous_build_dir = get_previous_build_dir(name)
+            with open(path.join(previous_build_dir, 'extra_files.pickle'), 'rb') as f:
                 self.platform.extra_files = pickle.load(f)
-            self.platform.toolchain_program(LocalBuildProducts(in_build()), name=build_name)
-        else:
+            self.platform.toolchain_program(LocalBuildProducts(previous_build_dir), name=name_full)
+
+        if not (self.args.program or self.args.build or self.args.elaborate):
             print("no action specified")
             self.parser.print_help()
 
@@ -94,26 +93,14 @@ class Cli:
 cli = Cli
 
 
-def in_build(subpath=''):
-    return path.join('build', subpath)
-
-
-def replace_date(name, replacement=""):
-    return re.sub("-\\d{2}-\\w{3}-\\d{4}--\\d{2}-\\d{2}-\\d{2}", replacement, name)
-
-
-def extract_date(name):
-    return re.search("(-\\d{2}-\\w{3}-\\d{4}--\\d{2}-\\d{2}-\\d{2})", name).group(1)
-
-
 def hash_build_plan(build_plan_files):
-    striped_build_plan = OrderedDict((replace_date(k), replace_date(v)) for k, v in build_plan_files.items())
-    json_repr = dumps(striped_build_plan)
+    build_plan_files = {k: v.decode("utf-8") if isinstance(v, bytes) else v for k, v in build_plan_files.items()}
+    json_repr = dumps(build_plan_files)
     return sha256(json_repr.encode("utf-8")).hexdigest()
 
 
-def get_previous_build_name(basename):
-    build_files = glob(in_build('build_{}-*.sh'.format(basename)))
+def get_previous_build_dir(basename):
+    build_files = glob("build/{}*".format(basename))
     if not build_files:
         return None
     sorted_build_files = sorted(build_files, key=lambda x: stat(x).st_mtime, reverse=True)

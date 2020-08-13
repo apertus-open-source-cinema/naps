@@ -7,9 +7,9 @@ from cores.hdmi.tmds import Encoder
 from .cvt import parse_modeline
 from util.nmigen_misc import max_error_freq
 from cores.csr_bank import ControlSignal, StatusSignal
-from xilinx.io import OSerdes10
-from xilinx.ps7 import PS7
-from xilinx.clocking import Mmcm
+from cores.primitives.xilinx_s7.io import OSerdes10
+from cores.primitives.xilinx_s7.ps7 import PS7
+from cores.primitives.xilinx_s7.clocking import Mmcm
 from .rgb import Rgb
 
 

@@ -5,7 +5,7 @@ from cores.axi.full_to_lite import AxiFullToLiteBridge
 from cores.axi.interconnect import AxiInterconnect
 from soc.memorymap import Address
 from soc.soc_platform import SocPlatform
-from xilinx.ps7 import PS7
+from cores.primitives.xilinx_s7.ps7 import PS7
 from cores.axi.axi_lite_bus_slave import AxiLiteBusSlave
 from .program_bitstream_ssh import program_bitstream_ssh
 

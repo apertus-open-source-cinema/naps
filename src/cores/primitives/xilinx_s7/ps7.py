@@ -8,7 +8,7 @@ from cores.axi import AxiEndpoint
 from os.path import join, dirname
 
 from util.instance_helper import InstanceHelper
-from xilinx.clocking import Bufg
+from cores.primitives.xilinx_s7.clocking import Bufg
 from util.nmigen_misc import max_error_freq
 
 

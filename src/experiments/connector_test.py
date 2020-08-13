@@ -5,8 +5,8 @@ from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
 from cores.csr_bank import ControlSignal, StatusSignal
 from devices import MicroR2Platform
-from xilinx.clocking import RawPll, Bufg
-from xilinx.io import Oserdes, IdelayCtrl, Idelay, Iserdes
+from cores.primitives.xilinx_s7.clocking import RawPll, Bufg
+from cores.primitives.xilinx_s7.io import Oserdes, IdelayCtrl, Idelay, Iserdes
 from soc.platforms.zynq import ZynqSocPlatform
 from soc.cli import cli
 

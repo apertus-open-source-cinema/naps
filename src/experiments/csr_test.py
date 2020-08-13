@@ -1,12 +1,12 @@
 # A simple experiment that demonstrates basic CSR / SOC functionality
-from itertools import count
 
 from nmigen import *
 
+from cores.blink_debug import BlinkDebug
 from cores.csr_bank import StatusSignal, ControlSignal
+from cores.primitives.lattice_machxo2.clocking import Osc
 from devices import Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform
 from soc.cli import cli
-from util.nmigen_misc import connect_leds
 
 
 class Top(Elaboratable):
@@ -17,9 +17,8 @@ class Top(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        if hasattr(platform, "default_clk"):
-            m.d.sync += self.counter.eq(self.counter + 1)
-        connect_leds(m, platform, self.counter, upper_bits=True)
+        m.submodules.osc = Osc()
+        m.d.sync += self.counter.eq(self.counter + 1)
 
         return m
 

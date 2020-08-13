@@ -1,5 +1,5 @@
 from nmigen import *
-from nmigen.lib.fifo import SyncFIFO, AsyncFIFO
+from nmigen.lib.fifo import SyncFIFO, AsyncFIFO, AsyncFIFOBuffered
 
 from cores.csr_bank import StatusSignal
 from util.stream import StreamEndpoint
@@ -53,7 +53,7 @@ class SyncStreamFifo(Elaboratable):
 
 
 class AsyncStreamFifo(Elaboratable):
-    def __init__(self, input, depth, r_domain, w_domain):
+    def __init__(self, input, depth, r_domain, w_domain, buffered=True):
         assert input.is_sink is False
         self.input = input
         self.output = StreamEndpoint.like(input)
@@ -61,6 +61,7 @@ class AsyncStreamFifo(Elaboratable):
         self.r_domain = r_domain
         self.w_domain = w_domain
         self.depth = depth
+        self.buffered = buffered
 
         self.overflow_cnt = StatusSignal(32)
         self.underrun_cnt = StatusSignal(32)
@@ -75,7 +76,8 @@ class AsyncStreamFifo(Elaboratable):
         else:
             fifo_data = input_sink.payload
 
-        fifo = m.submodules.fifo = AsyncFIFO(width=len(fifo_data), depth=self.depth,
+        fifo_type = AsyncFIFOBuffered if self.buffered else AsyncFIFO
+        fifo = m.submodules.fifo = fifo_type(width=len(fifo_data), depth=self.depth,
                                              r_domain=self.r_domain, w_domain=self.w_domain, exact_depth=self.depth)
 
         m.d.comb += input_sink.ready.eq(fifo.w_rdy)

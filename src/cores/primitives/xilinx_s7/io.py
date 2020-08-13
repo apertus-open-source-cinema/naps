@@ -1,4 +1,5 @@
 from nmigen import *
+from nmigen import Elaboratable, Module, ClockSignal, ResetSignal, Cat
 
 from cores.csr_bank import ControlSignal
 from util.instance_helper import InstanceHelper
@@ -64,5 +65,32 @@ class OSerdes10(Elaboratable):
                                  i_SHIFTIN1=0, i_SHIFTIN2=0,
                                  o_SHIFTOUT1=shift[0], o_SHIFTOUT2=shift[1]
                                  )
+
+        return m
+
+
+class DDRSerializer(Elaboratable):
+    def __init__(self, pad, value, ddr_clockdomain, bit_width=8):
+        self.bit_width = bit_width
+        self.x4_clockdomain = ddr_clockdomain
+        self.value = value
+        self.pad = pad
+
+    def elaborate(self, platform):
+        m = Module()
+
+        oserdes = m.submodules.oserdes = Oserdes(
+            data_width=self.bit_width,
+            tristate_width=1,
+            data_rate_oq="ddr",
+            serdes_mode="master",
+            data_rate_tq="buf"
+        )
+        m.d.comb += oserdes.oce.eq(1)
+        m.d.comb += oserdes.clk.eq(ClockSignal(self.x4_clockdomain))
+        m.d.comb += oserdes.clkdiv.eq(ClockSignal())
+        m.d.comb += oserdes.rst.eq(ResetSignal())
+        m.d.comb += Cat(oserdes.d[i] for i in reversed(range(1, 9))).eq(self.value)  # reversed is needed!!1
+        m.d.comb += self.pad.eq(oserdes.oq)
 
         return m

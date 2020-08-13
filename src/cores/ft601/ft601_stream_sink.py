@@ -34,7 +34,7 @@ class FT601StreamSinkNoCDC(Elaboratable):
 
 
 class FT601StreamSink(Elaboratable):
-    def __init__(self, ft601_resource, input_stream, fifo_depth=2048):
+    def __init__(self, ft601_resource, input_stream, fifo_depth=1025):
         self.ft601_resource = ft601_resource
         self.input_stream = input_stream
         self.fifo_depth = fifo_depth

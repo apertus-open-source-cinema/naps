@@ -14,6 +14,7 @@ class UncollectedCsrWarning(Warning):
 class _Csr(MustUse):
     """a marker class to collect the registers easily"""
     _MustUse__warning = UncollectedCsrWarning
+    _MustUse__silence = True
     address = None
 
 

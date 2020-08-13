@@ -1,8 +1,8 @@
 from nmigen import *
 
 from cores.csr_bank import StatusSignal
-from xilinx.clocking import Mmcm
-from xilinx.io import Iserdes
+from cores.primitives.xilinx_s7.clocking import Mmcm
+from cores.primitives.xilinx_s7.io import Iserdes
 
 
 class HispiPhy(Elaboratable):

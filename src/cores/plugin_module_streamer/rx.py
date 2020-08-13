@@ -1,6 +1,7 @@
 from functools import reduce
 
 from nmigen import *
+from nmigen.hdl.ast import Rose
 
 from cores.csr_bank import StatusSignal
 from cores.primitives.lattice_machxo2.clocking import Pll, EClkSync, ClkDiv
@@ -27,14 +28,16 @@ class PluginModuleStreamerRx(Elaboratable):
         pll.output_domain("ddr_domain", 1)
 
         m.submodules.eclk_ddr = EClkSync("ddr_domain", "ddr_domain_eclk")
-        m.submodules.clk_div = ClkDiv("ddr_domain_eclk", "ddr_domain_x1", "sync", div=4)
+        m.submodules.clk_div_half = ClkDiv("ddr_domain_eclk", "ddr_domain_x1_1", "word_x2", div=2)
+        m.submodules.clk_div_quater = ClkDiv("ddr_domain_eclk", "ddr_domain_x1_2", "sync", div=4)
 
         lanes = []
         for i in range(4):
             lane = m.submodules["lane{}".format(i)] = LaneAligner(
                 i=self.plugin["lvds{}".format(i)],
                 in_testpattern_mode=~self.output.valid,
-                ddr_domain="ddr_domain_eclk"
+                ddr_domain="ddr_domain_eclk",
+                word_x2_domain="word_x2",
             )
             lanes.append(lane)
 
@@ -52,13 +55,14 @@ class PluginModuleStreamerRx(Elaboratable):
 
 
 class LaneAligner(Elaboratable):
-    def __init__(self, i, in_testpattern_mode, ddr_domain, testpattern=0b00000110):
+    def __init__(self, i, in_testpattern_mode, ddr_domain, word_x2_domain, testpattern=0b00000110):
         """
         Does bit and lane alignment of one lane usig a given testpattern if in_testpattern_mode is high
         """
         self.i = i
         self.in_testpattern_mode = in_testpattern_mode
         self.testpattern = testpattern
+        self.word_x2_domain = word_x2_domain
         self.ddr_domain = ddr_domain
 
         self.output = Signal(8)
@@ -86,21 +90,7 @@ class LaneAligner(Elaboratable):
             o_Z=delayed,
         )
 
-        bitslip = Signal()
-        m.submodules.iddr = Instance(
-            "IDDRX2E",
-
-            i_D=delayed,
-            i_ECLK=ClockSignal(self.ddr_domain),
-            i_SCLK=ClockSignal(),
-            i_RST=ResetSignal(),
-            i_ALIGNWD=bitslip,
-
-            o_Q0=self.output[0],
-            o_Q1=self.output[1],
-            o_Q2=self.output[2],
-            o_Q3=self.output[3],
-        )
+        iserdes = m.submodules.iserdes = FakeX8ISerdes(delayed, self.ddr_domain, self.word_x2_domain)
 
         with m.If(self.in_testpattern_mode):
             with m.FSM():
@@ -132,7 +122,7 @@ class LaneAligner(Elaboratable):
 
                 with m.State("ALIGN_WORD"):
                     with m.If(self.output != self.testpattern):
-                        m.d.comb += bitslip.eq(1)
+                        m.d.comb += iserdes.bitslip.eq(1)
                         m.next = "ALIGN_WORD"
                     with m.Else():
                         m.d.sync += self.word_aligned.eq(1)
@@ -142,5 +132,54 @@ class LaneAligner(Elaboratable):
                     with m.If(self.output != self.testpattern):
                         m.d.sync += self.error.eq(1)
                         # TODO: retrain if this is the case after we finished basic debugging
+
+        return m
+
+
+class FakeX8ISerdes(Elaboratable):
+    def __init__(self, input, ddr_domain, word_x2_domain):
+        self.input = input
+        self.output = Signal(8)
+        self.bitslip = Signal()
+
+        self.word_x2_domain = word_x2_domain
+        self.ddr_domain = ddr_domain
+
+    def elaborate(self, platform):
+        m = Module()
+
+        serdes_output = Signal(4)
+        real_bitslip = Signal()
+
+        bitslip = Rose(self.bitslip, domain=self.word_x2_domain)
+
+        with m.If(bitslip):
+            m.d[self.word_x2_domain] += real_bitslip.eq(~real_bitslip)
+
+        lower_upper = Signal()
+        with m.If(bitslip & ~real_bitslip):
+            m.d[self.word_x2_domain] += lower_upper.eq(lower_upper)
+        with m.Else():
+            m.d[self.word_x2_domain] += lower_upper.eq(~lower_upper)
+
+        with m.If(lower_upper):
+            m.d[self.word_x2_domain] += self.output[0:4].eq(serdes_output)
+        with m.Else():
+            m.d[self.word_x2_domain] += self.output[4:8].eq(serdes_output)
+
+        m.submodules.iddr = Instance(
+            "IDDRX2E",
+
+            i_D=self.input,
+            i_ECLK=ClockSignal(self.ddr_domain),
+            i_SCLK=ClockSignal(),
+            i_RST=ResetSignal(),
+            i_ALIGNWD=(bitslip & real_bitslip),
+
+            o_Q0=serdes_output[0],
+            o_Q1=serdes_output[1],
+            o_Q2=serdes_output[2],
+            o_Q3=serdes_output[3],
+        )
 
         return m

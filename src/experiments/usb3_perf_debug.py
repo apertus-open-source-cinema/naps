@@ -18,7 +18,8 @@ class Top(Elaboratable):
 
         ft601 = platform.request("ft601")
         ft601_perf_debug = m.submodules.ft601_perf_debug = FT601PerfDebug(ft601)
-        connect_leds(m, platform, ft601_perf_debug.idle_counter, upper_bits=False)
+        m.d.comb += platform.request("led", 0).eq(1)
+        #connect_leds(m, platform, Const(1), upper_bits=False)
 
         return m
 

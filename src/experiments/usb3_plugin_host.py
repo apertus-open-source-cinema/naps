@@ -4,6 +4,9 @@
 from nmigen import *
 
 from cores.mmio_gpio import MmioGpio
+from cores.plugin_module_streamer.tx import PluginModuleStreamerTx
+from cores.primitives.xilinx_s7.clocking import Pll
+from cores.stream.counter_source import StreamCounterSource
 from devices import MicroR2Platform
 from soc.cli import cli
 
@@ -14,13 +17,32 @@ class Top(Elaboratable):
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
 
-        usb3_plugin = platform.request("generic_plugin", "north")
-        m.submodules.mmio_gpio = MmioGpio([getattr(usb3_plugin, "gpio{}".format(i)) for i in range(8)])
+        platform.ps7.fck_domain(50e6, "fclk_100")
+        pll = m.submodules.pll = Pll(50e6, 16, 1, input_domain="fclk_100")
+        pll.output_domain("bitclk", 4)
+        pll.output_domain("sync", 16)
+
+        usb3_plugin = platform.request("usb3_plugin", "north")
+
+        m.submodules.mmio_gpio = MmioGpio([
+            usb3_plugin.jtag.tms,
+            usb3_plugin.jtag.tck,
+            usb3_plugin.jtag.tdi,
+            usb3_plugin.jtag.tdo,
+
+            usb3_plugin.jtag_enb,
+            usb3_plugin.program,
+            usb3_plugin.init,
+            usb3_plugin.done,
+        ])
+
+        counter = m.submodules.counter = StreamCounterSource(32)
+        m.submodules.tx = PluginModuleStreamerTx(usb3_plugin.lvds, counter.output, bitclk_domain="bitclk")
 
         return m
 
 
 if __name__ == "__main__":
     with cli(Top, runs_on=(MicroR2Platform, )) as platform:
-        from devices.plugins.generic import generic_plugin_connect
-        generic_plugin_connect(platform, "north")
+        from devices.plugins.usb3 import usb3_plugin_connect
+        usb3_plugin_connect(platform, "north")

@@ -2,6 +2,7 @@
 
 from nmigen import *
 
+from cores.csr_bank import ControlSignal
 from cores.ft601.ft601_stream_sink import FT601StreamSink
 from cores.plugin_module_streamer.rx import PluginModuleStreamerRx
 from devices import Usb3PluginPlatform
@@ -10,7 +11,7 @@ from soc.cli import cli
 
 class Top(Elaboratable):
     def __init__(self):
-        pass
+        self.test_register = ControlSignal()
 
     def elaborate(self, platform):
         m = Module()

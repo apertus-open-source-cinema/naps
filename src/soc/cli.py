@@ -72,7 +72,8 @@ class Cli:
                                 path.join(previous_build_dir, 'extra_files.pickle')):
                             needs_rebuild = False
                     except FileNotFoundError as e:
-                        warn(e)
+                        warn("something went wrong while determining if a rebuild is nescessary :(. "
+                             "Rebuilding unconditionally ...\n" + str(e))
 
                 if needs_rebuild:
                     build_subdir = name_full + datetime.now().strftime("_%d_%b_%Y__%H_%M_%S")

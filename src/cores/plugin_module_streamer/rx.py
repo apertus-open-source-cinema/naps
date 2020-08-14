@@ -24,7 +24,7 @@ class PluginModuleStreamerRx(Elaboratable):
         m.domains += ClockDomain("wclk_in")
         m.d.comb += ClockSignal("wclk_in").eq(self.plugin.clk_word)
 
-        pll = m.submodules.pll = Pll(100e6, 4, 1, "wclk_in")
+        pll = m.submodules.pll = Pll(50e6, 4, 1, "wclk_in")
         pll.output_domain("ddr_domain", 1)
 
         m.submodules.eclk_ddr = EClkSync("ddr_domain", "ddr_domain_eclk")

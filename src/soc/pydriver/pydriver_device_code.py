@@ -1,48 +1,31 @@
-import mmap
-import os
-import struct
-from math import ceil
+from abc import ABC, abstractmethod
 from textwrap import indent
 
 
-class DevMem:
-    word = 4
-    mask = ~(word - 1)
+class MemoryAccessor(ABC):
+    base = 0
 
-    def __init__(self, base_addr, bytes=None, filename='/dev/mem'):
-        if bytes is None:
-            bytes = mmap.PAGESIZE
+    @abstractmethod
+    def read(self, addr):
+        raise NotImplementedError()
 
-        assert (base_addr % mmap.PAGESIZE) == 0
-
-        bytes = int(ceil(bytes / mmap.PAGESIZE) * mmap.PAGESIZE)
-
-        self.base = base_addr
-
-        self.f = os.open(filename, os.O_RDWR | os.O_SYNC)
-        self.mem = mmap.mmap(self.f, bytes, mmap.MAP_SHARED, mmap.PROT_READ | mmap.PROT_WRITE, offset=base_addr)
-
-    def __del__(self):
-        os.close(self.f)
-
-    def read_int(self, offset):
-        self.mem.seek(offset)
-        return struct.unpack('I', self.mem.read(4))[0]
-
-    def write_int(self, offset, din):
-        self.mem.seek(offset)
-        return self.mem.write(struct.pack('I', din))
-
-
-devmem = DevMem(0x4000_0000)
+    @abstractmethod
+    def write(self, addr, value):
+        raise NotImplementedError()
 
 
 class CSRApiWrapper:
+    def __init__(self, memory_accessor: MemoryAccessor):
+        object.__setattr__(self, "_memory_accessor", memory_accessor)
+        for k, v in self.__class__.__dict__.items():
+            if isinstance(v, type) and issubclass(v, CSRApiWrapper):
+                object.__setattr__(self, k[1:].lower(), v(memory_accessor))
+
     def __getattribute__(self, name):
-        if name.startswith("__"):
+        if name.startswith("__") or name == "print_state":
             return object.__getattribute__(self, name)
 
-        if name in self.__class__.__dict__:
+        if name in {**self.__dict__, **self.__class__.__dict__}:
             obj = object.__getattribute__(self, name)
 
             if not isinstance(obj, tuple):
@@ -50,7 +33,7 @@ class CSRApiWrapper:
             else:
                 addr, bit_start, bit_len = obj
 
-                val = devmem.read_int(addr - devmem.base)
+                val = self._memory_accessor.read(addr - self._memory_accessor.base)
                 val = val >> bit_start
 
                 return val & (0xffffffff >> (32 - bit_len))
@@ -71,17 +54,16 @@ class CSRApiWrapper:
                 value = value & (0xffffffff >> (32 - bit_len))
                 value = value << bit_start
 
-                return devmem.write_int(addr - devmem.base, value)
+                return self._memory_accessor.write(addr - self._memory_accessor.base, value)
         raise AttributeError("{} has no attribute {}".format(self.__class__.__name__, name))
 
-    def print_state(self, indentation_level=0, top_name=None):
+    def print_state(self, indentation_level=-1, top_name=None):
         if top_name:
             print(indent("{}:".format(top_name), "    " * indentation_level))
-        child_names = [name for name in dir(self) if not name.startswith("_")]
+        child_names = [name for name in dir(self) if not name.startswith("_") if name != "print_state"]
         for child_name in child_names:
             child = getattr(self, child_name)
             if isinstance(child, CSRApiWrapper):
                 child.print_state(indentation_level + 1, top_name=child_name)
             else:
                 print(indent("{}: {}".format(child_name, child), "    " * (indentation_level + 1)))
-

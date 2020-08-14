@@ -22,7 +22,7 @@ class JTAGBusSlave(Elaboratable):
         m = Module()
         jtag = m.submodules.jtag = JTAG()
         led = platform.request("led", 0)
-        led_debug = m.submodules.led_debug = BlinkDebug(led, divider=24, max_value=8)
+        led_debug = m.submodules.led_debug = DomainRenamer("wclk_in")(BlinkDebug(led, divider=22, max_value=8))
         m.submodules.in_jtag_domain = DomainRenamer("jtag")(self.elaborate_jtag_domain(platform, jtag, led_debug.value))
         return m
 

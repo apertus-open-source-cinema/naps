@@ -2,7 +2,7 @@ from nmigen import *
 
 
 class BlinkDebug(Elaboratable):
-    def __init__(self, led, divider=21, max_value=8):
+    def __init__(self, led, divider=20, max_value=8):
         self.led = led
         self.max_value = max_value
         self.divider = divider

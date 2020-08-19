@@ -3,7 +3,7 @@ from nmigen import tracer
 from nmigen._unused import MustUse
 from nmigen.hdl.ast import UserValue
 
-from soc.bus_slave import Response
+from soc.peripheral import Response
 from soc.memorymap import Address
 
 

@@ -1,30 +1,24 @@
 from nmigen import *
 
 from cores.axi.axi_endpoint import Response as AxiResponse, AxiEndpoint
-from soc.bus_slave import Response as BusSlaveResponse
-from soc.memorymap import MemoryMap
+from soc.peripheral import Response as BusSlaveResponse, Peripheral
 
 
-class AxiLiteBusSlave(Elaboratable):
-    def __init__(self, handle_read, handle_write, memorymap, bundle_name="axi"):
+class AxiLitePeripheralConnector(Elaboratable):
+    def __init__(self, peripheral: Peripheral, bundle_name="axi"):
         """
-        A simple (low performance) axi lite slave
-        :param handle_read: the callback to insert logic for the read state
-        :param handle_write: the callback to insert logic for the write state
-        :param memorymap: the address space of the axi slave
+        A simple (low performance) axi lite `PeripheralConnector` for connecting `Peripheral`s to an AXI Lite Bus.
+        :param peripheral: The peripheral which this controller should handle
         """
-        self.memorymap: MemoryMap = memorymap
-
-        assert callable(handle_read) and callable(handle_write)
-        self.handle_read = handle_read
-        self.handle_write = handle_write
+        assert callable(peripheral.handle_read) and callable(peripheral.handle_write)
+        self.peripheral = peripheral
 
         self.axi = AxiEndpoint(master=False, addr_bits=32, data_bits=32, lite=True, name=bundle_name)
 
     def elaborate(self, platform):
         m = Module()
 
-        address_range = self.memorymap.own_offset_normal_resources.range()
+        address_range = self.peripheral.range()
 
         assert address_range is not None
         assert address_range.start < address_range.stop
@@ -60,7 +54,7 @@ class AxiLiteBusSlave(Elaboratable):
                 # Only write read and resp if we are in the READ state. Otherwise all bits are '0'.
                 # This allows us to simply or the data output of multiple axi slaves together.
 
-                self.handle_read(m, addr, read_out, read_write_done_callback)
+                self.peripheral.handle_read(m, addr, read_out, read_write_done_callback)
                 with m.If(read_write_done):
                     m.d.sync += read_write_done.eq(0)
                     m.next = "READ_DONE"
@@ -77,7 +71,7 @@ class AxiLiteBusSlave(Elaboratable):
                 m.next = "WRITE"
             with m.State("WRITE"):
                 with m.If(self.axi.write_data.valid):
-                    self.handle_write(m, addr, self.axi.write_data.value, read_write_done_callback)
+                    self.peripheral.handle_write(m, addr, self.axi.write_data.value, read_write_done_callback)
                     with m.If(read_write_done):
                         m.d.sync += read_write_done.eq(0)
                         m.next = "WRITE_DONE"

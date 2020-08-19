@@ -31,8 +31,7 @@ def csr_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
             if csr_signals:
                 m = Module()
 
-                csr_bank = CsrBank()
-                m.submodules += csr_bank
+                csr_bank = m.submodules.csr_bank = CsrBank()
                 for name, signal in csr_signals:
                     if isinstance(signal, ControlSignal):
                         csr_bank.reg(name, signal)
@@ -43,6 +42,7 @@ def csr_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
                     elif isinstance(signal, EventReg):
                         raise NotImplementedError()
 
+                # the CSRs of an Elaboratable should live in its namespace and not in a sub namespace called csr_bank
                 fragment.memorymap = csr_bank.memorymap
                 platform.to_inject_subfragments.append((m, "ignore"))
 
@@ -54,8 +54,8 @@ def csr_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
 def address_assignment_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
     def inner(fragment):
         module = sames.get_module(fragment)
-        if hasattr(module, "bus_slave"):  # we have the fragment of a marker module for a bus slave
-            fragment.memorymap = module.bus_slave.memorymap
+        if hasattr(module, "peripheral"):  # we have the fragment of a marker module for a peripheral
+            fragment.memorymap = module.peripheral.memorymap
             return
 
         # depth first recursion
@@ -82,3 +82,30 @@ def address_assignment_hook(platform, top_fragment: Fragment, sames: Elaboratabl
     print("memorymap:\n" + "\n".join(
         "    {}: {!r}".format(k, v) for k, v in top_memorymap.flatten().items()))
     platform.memorymap = top_memorymap
+
+
+def peripherals_collect_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
+    platform.peripherals = []
+
+    def collect_peripherals(platform, fragment: Fragment, sames):
+        module = sames.get_module(fragment)
+        if module:
+            if hasattr(module, "peripheral"):
+                platform.peripherals.append(module.peripheral)
+        for (f, name) in fragment.subfragments:
+            collect_peripherals(platform, f, sames)
+
+    collect_peripherals(platform, top_fragment, sames)
+
+    ranges = [peripheral.range() for peripheral in platform.peripherals]
+
+    def range_overlapping(x, y):
+        if x.start == x.stop or y.start == y.stop:
+            return False
+        return ((x.start < y.stop and x.stop > y.start) or
+                (x.stop > y.start and y.stop > x.start))
+
+    for a in ranges:
+        for b in ranges:
+            if a is not b and range_overlapping(a, b):
+                raise AssertionError("{!r} overlaps with {!r}".format(a, b))

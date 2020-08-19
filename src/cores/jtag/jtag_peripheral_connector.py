@@ -2,26 +2,24 @@ from nmigen import *
 
 from cores.blink_debug import BlinkDebug
 from cores.jtag.jtag import JTAG
+from soc.memorymap import MemoryMap
 
 
-class JTAGBusSlave(Elaboratable):
-    def __init__(self, handle_read, handle_write):
+class JTAGPeripheralConnector(Elaboratable):
+    def __init__(self, peripheral):
         """
-        A simple BusSlave implemention for querying peripherals via JTAG in debug situations.
-        This code does not handle memorymap stuff. Use in combination with BusSlavesAggregator
-
-        :param handle_read:
-        :param handle_write:
+        A simple `PeripheralConnector` implementation for querying `Peripheral`s via JTAG in debug situations.
+        This code does not handle memorymap stuff. Use in combination with PeripheralsAggregator
         """
 
-        assert callable(handle_read) and callable(handle_write)
-        self.handle_read = handle_read
-        self.handle_write = handle_write
+        assert callable(peripheral.handle_read) and callable(peripheral.handle_write)
+        assert isinstance(peripheral.memorymap, MemoryMap)
+        self.peripheral = peripheral
 
     def elaborate(self, platform):
         m = Module()
         jtag = m.submodules.jtag = JTAG()
-        led = platform.request("led", 0)
+        led = Signal()  # platform.request("led", 0)
         led_debug = m.submodules.led_debug = DomainRenamer("wclk_in")(BlinkDebug(led, divider=22, max_value=8))
         m.submodules.in_jtag_domain = DomainRenamer("jtag")(self.elaborate_jtag_domain(platform, jtag, led_debug.value))
         return m
@@ -69,7 +67,7 @@ class JTAGBusSlave(Elaboratable):
             # read states
             with m.State("READ_WAIT"):
                 m.d.comb += led_debug.eq(2)
-                self.handle_read(m, addr, data, read_write_done_callback)
+                self.peripheral.handle_read(m, addr, data, read_write_done_callback)
                 with m.If(read_write_done):
                     m.d.comb += jtag.tdo.eq(1)
                     next_on_jtag_shift("READ0")
@@ -97,7 +95,7 @@ class JTAGBusSlave(Elaboratable):
                         next_on_jtag_shift("WRITE_WAIT")
             with m.State("WRITE_WAIT"):
                 m.d.comb += led_debug.eq(5)
-                self.handle_write(m, addr, data, read_write_done_callback)
+                self.peripheral.handle_write(m, addr, data, read_write_done_callback)
                 with m.If(read_write_done):
                     m.d.comb += jtag.tdo.eq(1)
                     next_on_jtag_shift("WRITE_STATUS")

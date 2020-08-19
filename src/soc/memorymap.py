@@ -123,8 +123,10 @@ class MemoryMapRow:
     writable: bool
     obj: object
 
+
 class UnusedMemoryMap(Warning):
     pass
+
 
 class MemoryMap(MustUse):
     def __init__(self, place_at=None, parent=None, top=False, bus_word_width=32):

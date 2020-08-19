@@ -14,11 +14,11 @@ class MemoryAccessor(ABC):
         raise NotImplementedError()
 
 
-class CSRApiWrapper:
+class HardwareProxy:
     def __init__(self, memory_accessor: MemoryAccessor):
         object.__setattr__(self, "_memory_accessor", memory_accessor)
         for k, v in self.__class__.__dict__.items():
-            if isinstance(v, type) and issubclass(v, CSRApiWrapper):
+            if isinstance(v, type) and issubclass(v, HardwareProxy):
                 object.__setattr__(self, k[1:].lower(), v(memory_accessor))
 
     def __getattribute__(self, name):
@@ -63,7 +63,7 @@ class CSRApiWrapper:
         child_names = [name for name in dir(self) if not name.startswith("_") if name != "print_state"]
         for child_name in child_names:
             child = getattr(self, child_name)
-            if isinstance(child, CSRApiWrapper):
+            if isinstance(child, HardwareProxy):
                 child.print_state(indentation_level + 1, top_name=child_name)
             else:
                 print(indent("{}: {}".format(child_name, child), "    " * (indentation_level + 1)))

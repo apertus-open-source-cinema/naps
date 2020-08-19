@@ -6,7 +6,7 @@ from nmigen import *
 from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 
-from soc.bus_slave import Response, BusSlave
+from soc.peripheral import Response, Peripheral
 from soc.memorymap import MemoryMap
 from .csr_types import _Csr, StatusSignal, ControlSignal
 
@@ -64,5 +64,5 @@ class CsrBank(Elaboratable):
                 write_done(Response.ERR)
 
         m = Module()
-        m.submodules += BusSlave(handle_read, handle_write, self.memorymap)
+        m.submodules += Peripheral(handle_read, handle_write, self.memorymap)
         return m

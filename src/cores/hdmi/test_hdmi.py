@@ -51,7 +51,7 @@ class TestHdmi(unittest.TestCase):
                 yield from axil_write(axi, addr.address, testdata)
                 # self.assertEqual(testdata, (yield from axil_read(axi, addr.address)))
 
-        platform.sim(dut, (testbench, "axi_csr"))
+        platform.sim(dut, (testbench, "axi_lite"))
 
     def test_mmcm_calculation(self):
         clocking = HdmiClocking(Clock(79.75e6))

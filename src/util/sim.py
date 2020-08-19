@@ -2,6 +2,7 @@ import inspect
 from pathlib import Path
 
 from nmigen import *
+from nmigen.hdl.ast import UserValue
 from nmigen.sim.pysim import Simulator
 
 
@@ -9,6 +10,9 @@ class SimPlatform:
     def __init__(self):
         self.clocks = {}
         self.is_sim = True
+
+    def request(self, name, number=None):
+        return FakeResource(name)
 
     def prepare(self, top_fragment, *args, **kwargs):
         # we filter all the instances out, because they give wired behaviour; TODO: this doesnt work :(
@@ -52,6 +56,21 @@ class SimPlatform:
 
     def add_file(self, filename, contents):
         pass
+
+
+class FakeResource(UserValue):
+    def __init__(self, name):
+        super().__init__()
+        self.name = name
+
+    def lower(self):
+        return Signal(name=self.name)
+
+    def __getattr__(self, item):
+        return FakeResource(name="{}__{}".format(self.name, item))
+
+    def __getitem__(self, item):
+        return FakeResource(name="{}__{}".format(self.name, item))
 
 
 def wait_for(expr, timeout=100, must_clock=True):

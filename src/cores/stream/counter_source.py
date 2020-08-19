@@ -3,7 +3,7 @@ from nmigen import *
 from util.stream import StreamEndpoint
 
 
-class StreamCounterSource(Elaboratable):
+class CounterStreamSource(Elaboratable):
     def __init__(self, width):
         self.output = StreamEndpoint(Signal(width), is_sink=False, has_last=False)
 

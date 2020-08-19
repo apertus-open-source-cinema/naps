@@ -6,7 +6,7 @@ from nmigen import *
 from cores.mmio_gpio import MmioGpio
 from cores.plugin_module_streamer.tx import PluginModuleStreamerTx
 from cores.primitives.xilinx_s7.clocking import Pll
-from cores.stream.counter_source import StreamCounterSource
+from cores.stream.counter_source import CounterStreamSource
 from devices import MicroR2Platform
 from soc.cli import cli
 
@@ -36,7 +36,7 @@ class Top(Elaboratable):
             usb3_plugin.done,
         ])
 
-        counter = m.submodules.counter = StreamCounterSource(32)
+        counter = m.submodules.counter = CounterStreamSource(32)
         m.submodules.tx = PluginModuleStreamerTx(usb3_plugin.lvds, counter.output, bitclk_domain="bitclk")
 
         return m

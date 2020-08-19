@@ -3,7 +3,7 @@
 from nmigen import *
 
 from soc.soc_platform import SocPlatform
-from soc.bus_slave import Response, BusSlave
+from soc.peripheral import Response, Peripheral
 from soc.memorymap import MemoryMap
 from util.bundle import Bundle
 
@@ -56,7 +56,7 @@ class DrpBridge(Elaboratable):
         memorymap = MemoryMap()
         memorymap.allocate("drp", writable=True, bits=2**len(self.drp_interface.address) * 8)
 
-        m.submodules += BusSlave(
+        m.submodules += Peripheral(
             handle_read,
             handle_write,
             memorymap

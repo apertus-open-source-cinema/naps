@@ -1,21 +1,24 @@
 from nmigen import *
-from nmigen.lib.fifo import SyncFIFO, AsyncFIFO, AsyncFIFOBuffered
+from nmigen.lib.fifo import SyncFIFO, AsyncFIFO, AsyncFIFOBuffered, SyncFIFOBuffered
 
 from cores.csr_bank import StatusSignal
 from util.stream import StreamEndpoint
 
 
 class SyncStreamFifo(Elaboratable):
-    def __init__(self, input: StreamEndpoint, depth: int):
+    def __init__(self, input: StreamEndpoint, depth: int, buffered=True, fwtf=False):
         assert input.is_sink is False
         self.input = input
         self.output = StreamEndpoint.like(input)
         self.depth = depth
+        self.buffered = buffered
+        self.fwtf = fwtf
 
-        self.level = StatusSignal(range(depth))
-        self.max_level = StatusSignal(range(depth))
+        self.max_w_level = StatusSignal(range(depth))
         self.overflow_cnt = StatusSignal(32)
         self.underrun_cnt = StatusSignal(32)
+        self.r_level = StatusSignal(range(depth + 1))
+        self.w_level = StatusSignal(range(depth + 1))
 
     def elaborate(self, platform):
         m = Module()
@@ -27,11 +30,17 @@ class SyncStreamFifo(Elaboratable):
         else:
             fifo_data = input_sink.payload
 
-        fifo = m.submodules.fifo = SyncFIFO(width=len(fifo_data), depth=self.depth, fwft=False)
+        if self.buffered:
+            assert not self.fwtf
+            fifo = m.submodules.fifo = SyncFIFOBuffered(width=len(fifo_data), depth=self.depth)
+        else:
+            fifo = m.submodules.fifo = SyncFIFO(width=len(fifo_data), depth=self.depth, fwft=self.fwtf)
 
-        m.d.comb += self.level.eq(fifo.level)
-        with m.If(self.level > self.max_level):
-            m.d.sync += self.max_level.eq(self.level)
+        m.d.comb += self.r_level.eq(fifo.r_level)
+        m.d.comb += self.w_level.eq(fifo.w_level)
+
+        with m.If(self.w_level > self.max_w_level):
+            m.d.sync += self.max_w_level.eq(self.w_level)
 
         m.d.comb += input_sink.ready.eq(fifo.w_rdy)
         m.d.comb += fifo.w_data.eq(fifo_data)
@@ -53,7 +62,7 @@ class SyncStreamFifo(Elaboratable):
 
 
 class AsyncStreamFifo(Elaboratable):
-    def __init__(self, input, depth, r_domain, w_domain, buffered=True):
+    def __init__(self, input, depth, r_domain, w_domain, buffered=True, exact_depth=False):
         assert input.is_sink is False
         self.input = input
         self.output = StreamEndpoint.like(input)
@@ -61,10 +70,13 @@ class AsyncStreamFifo(Elaboratable):
         self.r_domain = r_domain
         self.w_domain = w_domain
         self.depth = depth
+        self.exact_depth = exact_depth
         self.buffered = buffered
 
         self.overflow_cnt = StatusSignal(32)
         self.underrun_cnt = StatusSignal(32)
+        self.r_level = StatusSignal(range(depth + 1))
+        self.w_level = StatusSignal(range(depth + 1))
 
     def elaborate(self, platform):
         m = Module()
@@ -78,7 +90,10 @@ class AsyncStreamFifo(Elaboratable):
 
         fifo_type = AsyncFIFOBuffered if self.buffered else AsyncFIFO
         fifo = m.submodules.fifo = fifo_type(width=len(fifo_data), depth=self.depth,
-                                             r_domain=self.r_domain, w_domain=self.w_domain, exact_depth=self.depth)
+                                             r_domain=self.r_domain, w_domain=self.w_domain, exact_depth=self.exact_depth)
+
+        m.d.comb += self.r_level.eq(fifo.r_level)
+        m.d.comb += self.w_level.eq(fifo.w_level)
 
         m.d.comb += input_sink.ready.eq(fifo.w_rdy)
         m.d.comb += fifo.w_data.eq(fifo_data)

@@ -110,7 +110,7 @@ class AxiBufferWriter(Elaboratable):
                 with m.If(address_generator.valid & data.valid):
                     # we are doing a full transaction
                     next_burst_length = Signal(range(self.max_burst_length + 1))
-                    m.d.comb += next_burst_length.eq(nMax(data_fifo.level, self.max_burst_length))
+                    m.d.comb += next_burst_length.eq(nMax(data_fifo.r_level, self.max_burst_length))
                     m.d.sync += current_burst_length_minus_one.eq(next_burst_length - 1)
                     m.d.sync += address_generator.inc.eq(mul_by_pot(next_burst_length, axi.data_bytes))
                     m.next = "ADDRESS"

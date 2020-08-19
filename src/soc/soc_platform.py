@@ -1,12 +1,11 @@
 from abc import ABC
 
-from soc.pydriver.pydriver import pydriver_hook
-from soc.hooks import csr_hook, address_assignment_hook
+from soc.pydriver.generate import pydriver_hook
+from soc.hooks import csr_hook, address_assignment_hook, peripherals_collect_hook
 from soc.tracing_elaborate import fragment_get_with_elaboratable_trace
 
 
 class SocPlatform(ABC):
-    bus_slave_type = None
     base_address = None
     _platform = None
 
@@ -24,6 +23,7 @@ class SocPlatform(ABC):
 
         self.prepare_hooks.append(csr_hook)
         self.prepare_hooks.append(address_assignment_hook)
+        self.prepare_hooks.append(peripherals_collect_hook)
         self.prepare_hooks.append(pydriver_hook)
 
     # we pass through all platform methods, because we pretend to be one
@@ -43,13 +43,14 @@ class SocPlatform(ABC):
         def inject_subfragments(top_fragment, sames, to_inject_subfragments):
             for elaboratable, name in to_inject_subfragments:
                 fragment, fragment_sames = fragment_get_with_elaboratable_trace(elaboratable, self, sames)
+                print("<- injecting fragment '{}'".format(name))
                 top_fragment.add_subfragment(fragment, name)
             self.to_inject_subfragments = []
 
         print("\n# ELABORATING SOC PLATFORM ADDITIONS")
         inject_subfragments(top_fragment, sames, self.to_inject_subfragments)
         for hook in self.prepare_hooks:
-            print("\nrunning {}".format(hook.__name__))
+            print("-> running {}".format(hook.__name__))
             hook(self, top_fragment, sames)
             inject_subfragments(top_fragment, sames, self.to_inject_subfragments)
 

@@ -55,7 +55,7 @@ class TestAxiSlave(unittest.TestCase):
                 yield from axil_write(axi, addr, testdata)
                 self.assertEqual(testdata, (yield from axil_read(axi, addr)))
 
-        platform.sim(csr_bank, (testbench, "axi_csr"))
+        platform.sim(csr_bank, (testbench, "axi_lite"))
 
     def test_simple_test_csr_bank(self):
         platform = ZynqSocPlatform(SimPlatform())
@@ -68,5 +68,4 @@ class TestAxiSlave(unittest.TestCase):
             yield axi.read_address.valid.eq(1)
             yield from do_nothing()
 
-
-        platform.sim(csr_bank, (testbench, "axi_csr"))
+        platform.sim(csr_bank, (testbench, "axi_lite"))

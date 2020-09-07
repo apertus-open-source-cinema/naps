@@ -13,7 +13,7 @@ class JTAGPeripheralConnector(Elaboratable):
         """
 
         assert callable(peripheral.handle_read) and callable(peripheral.handle_write)
-        assert isinstance(peripheral.memorymap, MemoryMap)
+        assert isinstance(peripheral.range, range)
         self.peripheral = peripheral
 
     def elaborate(self, platform):

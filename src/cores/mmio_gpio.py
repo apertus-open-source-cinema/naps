@@ -4,7 +4,7 @@ from nmigen import *
 
 from cores.csr_bank import ControlSignal, StatusSignal
 from soc.devicetree.overlay import devicetree_overlay
-from util.nmigen_misc import TristateIo
+from util.sim import TristateIo
 
 
 class MmioGpio(Elaboratable):

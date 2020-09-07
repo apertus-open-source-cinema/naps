@@ -12,14 +12,14 @@ class PeripheralsAggregator:
 
     def add_peripheral(self, peripheral):
         assert callable(peripheral.handle_read) and callable(peripheral.handle_write)
-        assert isinstance(peripheral.memorymap, MemoryMap)
+        assert isinstance(peripheral.range(), range)
         self.downstream_peripherals.append(peripheral)
 
     @property
     def range(self):
         return range(
-            start=min(*(p.range.start for p in self.downstream_peripherals)),
-            stop=max(*(p.range.stop for p in self.downstream_peripherals))
+            min(*(p.range().start for p in self.downstream_peripherals)),
+            max(*(p.range().stop for p in self.downstream_peripherals))
         )
 
     def handle_read(self, m, addr, data, read_done_callback):

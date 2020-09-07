@@ -4,7 +4,7 @@ from nmigen.build import Clock
 
 from cores.hdmi.hdmi import TimingGenerator, Hdmi, HdmiClocking
 from soc.platforms.zynq import ZynqSocPlatform
-from cores.csr_bank.test_csr_bank_zynq import axil_read, axil_write
+from cores.axi.sim_util import axil_read, axil_write
 from util.bundle import Bundle, Signal
 from util.sim import SimPlatform
 from cores.hdmi.cvt import generate_modeline, parse_modeline

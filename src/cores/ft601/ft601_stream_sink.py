@@ -36,7 +36,7 @@ class FT601StreamSinkNoCDC(Elaboratable):
             in_transaction = Signal()
             m.d.sync += in_transaction.eq(ft.write)
             with m.If(in_transaction):
-                m.d.comb += ft.write.eq(sink.valid)
+                m.d.comb += ft.write.eq(sink.valid & ft.txe)
                 m.d.comb += sink.ready.eq(ft.txe)
             with m.Else():
                 m.d.comb += ft.write.eq(sink.valid & self.safe_to_begin_new_transaction)
@@ -47,7 +47,7 @@ class FT601StreamSinkNoCDC(Elaboratable):
 
 
 class FT601StreamSink(Elaboratable):
-    def __init__(self, ft601_resource, input_stream, fifo_depth=2048, begin_transactions_at_level=1):
+    def __init__(self, ft601_resource, input_stream, fifo_depth=2048, begin_transactions_at_level=2000):
         self.ft601_resource = ft601_resource
         self.input_stream = input_stream
         self.fifo_depth = fifo_depth

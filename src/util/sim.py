@@ -1,18 +1,30 @@
 import inspect
+from dataclasses import dataclass
 from pathlib import Path
 
 from nmigen import *
+from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 from nmigen.sim.pysim import Simulator
+
+from util.bundle import Bundle
 
 
 class SimPlatform:
     def __init__(self):
         self.clocks = {}
         self.is_sim = True
+        self.processes = []
+        self.handed_out_resources = {}
 
-    def request(self, name, number=None):
-        return FakeResource(name)
+    def request(self, name, number=0):
+        string = "{}#{}".format(name, number)
+        if string not in self.handed_out_resources:
+            self.handed_out_resources[string] = FakeResource(string, self.handed_out_resources)
+        return self.handed_out_resources[string]
+
+    def add_file(self, filename, contents):
+        pass
 
     def prepare(self, top_fragment, *args, **kwargs):
         # we filter all the instances out, because they give wired behaviour; TODO: this doesnt work :(
@@ -29,7 +41,13 @@ class SimPlatform:
         filter_instances(top_fragment)
         return top_fragment
 
-    def sim(self, dut, testbench, traces=(), filename=None):
+    def add_process(self, generator, domain=None):
+        self.processes.append((generator, domain))
+
+    def add_sim_clock(self, domain_name, frequency):
+        self.clocks[domain_name] = frequency
+
+    def sim(self, dut, testbench=None, traces=(), filename=None):
         dut = self.prepare(dut)
         simulator = Simulator(dut)
         for name, frequency in self.clocks.items():
@@ -42,35 +60,43 @@ class SimPlatform:
 
         if isinstance(testbench, tuple):
             generator, domain = testbench
+            self.add_process(generator, domain)
+        elif inspect.isgeneratorfunction(testbench):
+            self.add_process(testbench, "sync")
+        elif testbench is None:
+            pass
         else:
-            generator = testbench
-            domain = "sync"
-        simulator.add_sync_process(generator, domain=domain)
+            raise TypeError("unknown type for testbench")
+
+        for generator, domain in self.processes:
+            simulator.add_sync_process(generator, domain=domain)
+
         Path(".sim_results/").mkdir(exist_ok=True)
         with simulator.write_vcd(".sim_results/{}.vcd".format(filename), ".sim_results/{}.gtkw".format(filename),
                                  traces=traces):
             simulator.run()
 
-    def add_sim_clock(self, domain_name, frequency):
-        self.clocks[domain_name] = frequency
-
-    def add_file(self, filename, contents):
-        pass
-
 
 class FakeResource(UserValue):
-    def __init__(self, name):
+    def __init__(self, name, handed_out_resources):
         super().__init__()
+        self.handed_out_resources = handed_out_resources
         self.name = name
 
     def lower(self):
         return Signal(name=self.name)
 
     def __getattr__(self, item):
-        return FakeResource(name="{}__{}".format(self.name, item))
+        string = "{}.{}".format(self.name, item)
+        if string not in self.handed_out_resources:
+            self.handed_out_resources[string] = FakeResource(string, self.handed_out_resources)
+        return self.handed_out_resources[string]
 
     def __getitem__(self, item):
-        return FakeResource(name="{}__{}".format(self.name, item))
+        string = "{}.{}".format(self.name, item)
+        if string not in self.handed_out_resources:
+            self.handed_out_resources[string] = FakeResource(string, self.handed_out_resources)
+        return self.handed_out_resources[string]
 
 
 def wait_for(expr, timeout=100, must_clock=True):
@@ -94,3 +120,11 @@ def pulse(signal, length=1, after=0):
 def do_nothing(length=10):
     for i in range(length):
         yield  # we expect that nothing happens here
+
+
+class TristateIo(Bundle):
+    def __init__(self, shape=None):
+        super().__init__()
+        self.i = Signal(shape)
+        self.o = Signal(shape)
+        self.oe = Signal()

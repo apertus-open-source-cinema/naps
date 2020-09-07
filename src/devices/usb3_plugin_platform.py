@@ -14,7 +14,7 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
             Subsignal("reset", PinsN("4", dir="o"), Attrs(IO_TYPE="LVCMOS33")),
 
             Subsignal("data", Pins("75 74 70 69 68 67 66 65 64 61 60 59 58 57 54 53 83 84 85 86 87 88 96 97 98 99 7 8 21 24 20 25", dir="io"), Attrs(IO_TYPE="LVCMOS33")),
-            Subsignal("be", Pins("19 18 17 16", dir="io"), Attrs(IO_TYPE="LVCMOS33")),
+            Subsignal("be", Pins("019 18 17 16", dir="io"), Attrs(IO_TYPE="LVCMOS33")),
             Subsignal("oe", PinsN("9", dir="o"), Attrs(IO_TYPE="LVCMOS33")),
 
             Subsignal("read", PinsN("10", dir="o"), Attrs(IO_TYPE="LVCMOS33")),

@@ -1,5 +1,4 @@
 import math
-from dataclasses import dataclass
 from functools import reduce
 from itertools import count
 from typing import Iterator, Iterable
@@ -9,8 +8,6 @@ from nmigen import Signal
 from nmigen.build import ResourceError
 from nmigen.hdl.ast import UserValue
 from nmigen.hdl.xfrm import TransformedElaboratable
-
-from util.bundle import Bundle
 
 
 def flatten_nmigen_type(nmigen_things):
@@ -105,13 +102,6 @@ def max_error_freq(real_freq, requested_freq, max_error_percent=1):
                          .format(requested_freq / 1e6, max_error_percent, freq_error,
                                  real_freq / 1e6))
     return freq_error
-
-
-@dataclass
-class TristateIo(Bundle):
-    i: Signal
-    o: Signal
-    oe: Signal
 
 
 def delay_by(signal, cycles, m):

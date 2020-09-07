@@ -5,7 +5,7 @@ from nmigen import *
 from nmigen.lib.fifo import AsyncFIFOBuffered, AsyncFIFO
 
 from cores.stream.fifo import AsyncStreamFifo
-from cores.stream.util_test import write_to_stream, read_from_stream
+from cores.stream.sim_util import write_to_stream, read_from_stream
 from util.stream import StreamEndpoint
 
 

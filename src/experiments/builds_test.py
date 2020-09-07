@@ -10,7 +10,7 @@ class TestBuilds(unittest.TestCase):
 
 
 for file in glob("{}/*.py".format(dirname(__file__))):
-    if "test_builds" in file:  # we are not executing ourselves
+    if "builds_test" in file:  # we are not executing ourselves
         continue
 
     try:

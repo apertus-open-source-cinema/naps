@@ -1,4 +1,4 @@
-from nmigen import Fragment
+from nmigen import Fragment, Signal
 
 from cores.jtag.jtag_peripheral_connector import JTAGPeripheralConnector
 from soc.peripherals_aggregator import PeripheralsAggregator
@@ -12,6 +12,8 @@ class JTAGSocPlatform(SocPlatform):
     def __init__(self, platform):
         super().__init__(platform)
         self.init_script = ""
+
+        self.jtag_signals = Signal(4)
 
         def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
             if platform.peripherals:

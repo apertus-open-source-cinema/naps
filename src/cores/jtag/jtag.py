@@ -5,8 +5,8 @@ from nmigen.vendor.xilinx_7series import Xilinx7SeriesPlatform
 
 class JTAG(Elaboratable):
     def __init__(self):
-        self.tck = Signal()
-        self.shift = Signal()
+        self.shift_read = Signal()
+        self.shift_write = Signal()
         self.tdi = Signal()
         self.tdo = Signal()
         self.reset = Signal()
@@ -15,30 +15,33 @@ class JTAG(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.domains += ClockDomain("jtag")
-        m.d.comb += ClockSignal("jtag").eq(self.tck)
-
         if isinstance(platform, Xilinx7SeriesPlatform):
             # we delay tdi and shift by one cycle to match the behaviour of the lattice jtag primitives
+            tck = Signal()
             m.submodules.inst = Instance(
                 "BSCANE2",
                 p_JTAG_CHAIN=1,
 
-                o_TCK=self.tck,
+                o_TCK=tck,
                 o_TDI=self.tdi,
                 o_SHIFT=self.shift,
                 o_RESET=self.reset,
 
                 i_TDO=self.tdo,
             )
+
+            m.domains += ClockDomain("jtag")
+            m.d.comb += ClockSignal("jtag").eq(tck)
         elif isinstance(platform, LatticeMachXO2Platform):
             # the lattice jtag primitive is rather wired and has a one cycle delay on tdi
             # we hack around this in the jtag state machine
             jce1 = Signal()
             jrti1 = Signal()
             jshift = Signal()
-            jtck = Signal()
+            jtck = Signal(attrs={"KEEP": "TRUE"})
             jrstn = Signal()
+
+            platform.add_clock_constraint(jtck, 1e6)
             m.submodules += Instance(
                 "JTAGF",
                 i_JTDO1=self.tdo,
@@ -51,9 +54,15 @@ class JTAG(Elaboratable):
                 o_JUPDATE=self.update,
             )
             m.d.comb += self.reset.eq(~jrstn)
-            m.d.jtag += self.shift.eq(jshift)
-            m.d.comb += self.tck.eq(~jtck)
 
-            m.d.comb += platform.jtag_signals.eq(Cat(self.tdi, self.tdo, jtck, jshift, jrti1, jce1, jrstn, self.update))
+            m.d.comb += self.shift_write.eq(jshift)
+            # we delay the shift signal for read by one clock cycle because tdi is also delayed by one clock cycle
+            m.domains += ClockDomain("jtagn")
+            m.d.comb += ClockSignal("jtagn").eq(jtck)
+            m.d.jtagn += self.shift_read.eq(jshift)
+
+            # we must sample tdi on the negedge
+            m.domains += ClockDomain("jtag")
+            m.d.comb += ClockSignal("jtag").eq(~jtck)
 
         return m

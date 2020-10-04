@@ -34,12 +34,12 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
         Resource("led", 0, Pins("71", dir="o"), Attrs(IO_TYPE="LVCMOS33")),
 
         Resource("plugin_stream_input", 0,
-            Subsignal("valid", DiffPairs("45", "47", dir="i"), Attrs(IO_TYPE="LVDS25")),
-            Subsignal("lvds0", DiffPairs("42", "43", dir="i"), Attrs(IO_TYPE="LVDS25")),
-            Subsignal("lvds1", DiffPairs("40", "41", dir="i"), Attrs(IO_TYPE="LVDS25")),
-            Subsignal("lvds2", DiffPairs("36", "37", dir="i"), Attrs(IO_TYPE="LVDS25")),  # TODO: move to 37 / 38 in the next rev
-            Subsignal("clk_word", DiffPairs("34", "35", dir="i"), Attrs(IO_TYPE="LVDS25"), Clock(100e6)),
-            Subsignal("lvds3", DiffPairs("29", "30", dir="i"), Attrs(IO_TYPE="LVDS25")),
+            Subsignal("valid", DiffPairs("45", "47", dir="i"), Attrs(IO_TYPE="LVDS25")),  # lvds0
+            Subsignal("lvds0", DiffPairs("42", "43", dir="i"), Attrs(IO_TYPE="LVDS25")),  # lvds1
+            Subsignal("lvds1", DiffPairs("40", "41", dir="i"), Attrs(IO_TYPE="LVDS25")),  # lvds2
+            Subsignal("lvds2", DiffPairs("36", "37", dir="i"), Attrs(IO_TYPE="LVDS25")),  # lvds3 TODO: move to 37 / 38 in the next rev
+            Subsignal("lvds3", DiffPairs("29", "30", dir="i"), Attrs(IO_TYPE="LVDS25")),  # lvds4
+            Subsignal("clk_word", DiffPairs("34", "35", dir="i"), Attrs(IO_TYPE="LVDS25"), Clock(50e6)),  # lvds5
         )
     ]
     connectors = []

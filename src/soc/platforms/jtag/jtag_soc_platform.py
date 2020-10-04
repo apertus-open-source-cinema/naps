@@ -1,3 +1,5 @@
+from os.path import join, dirname
+
 from nmigen import Fragment, Signal
 
 from cores.jtag.jtag_peripheral_connector import JTAGPeripheralConnector
@@ -8,12 +10,12 @@ from soc.soc_platform import SocPlatform
 
 class JTAGSocPlatform(SocPlatform):
     base_address = Address(address=0x0000_0000, bit_offset=0, bit_len=0xFFFF_FFFF * 8)
+    pydriver_memory_accessor = open(join(dirname(__file__), "memory_accessor_openocd.py")).read()
 
     def __init__(self, platform):
         super().__init__(platform)
         self.init_script = ""
-
-        self.jtag_signals = Signal(4)
+        self.jtag_signals = Signal(11)
 
         def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
             if platform.peripherals:

@@ -142,18 +142,8 @@ class JTAGAccessor:
         return self._writecmd('drscan {} {} {}'.format(self.tap_name, len, value))
 
 
+MemoryAccessor = JTAGAccessor
+
+
 class TransactionNotSuccessfulException(Exception):
     pass
-
-
-if __name__ == "__main__":
-    jtag_csr = JTAGAccessor("127.0.0.1", 4444, debug=False, spawn_server=True)
-
-    import random
-
-    for _ in range(0, 1024):
-        rand = random.randint(0, 2 ** 32 - 1)
-        # rand = random.randint(2**32 - 1024, 2**32)
-        jtag_csr.write(4, rand)
-        read = jtag_csr.read(3)[0]
-        assert read == rand, "{} != {}".format(read, rand)

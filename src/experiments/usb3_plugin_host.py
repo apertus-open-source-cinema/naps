@@ -17,8 +17,8 @@ class Top(Elaboratable):
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
 
-        platform.ps7.fck_domain(50e6, "fclk_100")
-        pll = m.submodules.pll = Pll(50e6, 16, 1, input_domain="fclk_100")
+        platform.ps7.fck_domain(50e6, "fclk_in")
+        pll = m.submodules.pll = Pll(50e6, 16, 1, input_domain="fclk_in")
         pll.output_domain("bitclk", 4)
         pll.output_domain("sync", 16)
 

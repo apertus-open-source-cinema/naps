@@ -7,7 +7,7 @@ from soc.tracing_elaborate import ElaboratableSames
 from soc.memorymap import MemoryMap
 
 
-def gen_hardware_proxy_python_code(mmap: MemoryMap, name="top", superclass="", top=True) -> str:
+def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass="", top=True) -> str:
     name = name.lower()
     class_name = ("_" if not top else "") + name.capitalize()
     to_return = "class {}({}):\n".format(class_name, superclass)
@@ -20,15 +20,21 @@ def gen_hardware_proxy_python_code(mmap: MemoryMap, name="top", superclass="", t
     return to_return
 
 
-def generate_pydriver(top_memorymap):
-    with open(join(dirname(__file__), "hardware_proxy.py")) as f:
-        pycode = f.read()
-        pycode += "\n\n## GENERATED CODE: ###\n"
-        pycode += gen_hardware_proxy_python_code(top_memorymap, superclass="HardwareProxy")
-        return pycode
+def generate_pydriver(top_memorymap, memory_accessor):
+    pycode = "# pydriver hardware access file"
+    pycode += "\n\n## HARDWARE PROXY STATIC: ###\n"
+    pycode += open(join(dirname(__file__), "hardware_proxy.py")).read()
+    pycode += "\n\n## HARDWARE PROXY DYNAMIC: ###\n"
+    pycode += gen_hardware_proxy_python_code(top_memorymap, superclass="HardwareProxy")
+    pycode += "\n\n## MEMORY ACCESSOR: ###\n"
+    pycode += memory_accessor
+    pycode += "\n\n## INTERACTIVE SHELL: ###\n"
+    pycode += open(join(dirname(__file__), "interactive.py")).read()
+    return pycode
 
 
 def pydriver_hook(platform: Platform, top_fragment, sames: ElaboratableSames):
-    memorymap = top_fragment.memorymap
-    pydriver = generate_pydriver(memorymap)
-    platform.add_file("generate.py", pydriver.encode("utf-8"))
+    if hasattr(platform, "pydriver_memory_accessor"):
+        memorymap = top_fragment.memorymap
+        pydriver = generate_pydriver(memorymap, platform.pydriver_memory_accessor)
+        platform.add_file("pydriver.py", pydriver.encode("utf-8"))

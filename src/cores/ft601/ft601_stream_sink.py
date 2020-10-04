@@ -26,13 +26,13 @@ class FT601StreamSinkNoCDC(Elaboratable):
 
         m.d.comb += ft.oe.eq(0)  # we are driving the data bits all the time
         m.d.comb += ft.data.oe.eq(1)
+        m.d.comb += platform.request("led", 0).eq(ft.write)
 
         if self.safe_to_begin_new_transaction is None:
             m.d.comb += ft.data.o.eq(sink.payload)
             m.d.comb += sink.ready.eq(ft.txe)
             m.d.comb += ft.write.eq(sink.valid)
         else:
-            m.d.comb += platform.request("led", 0).eq(self.safe_to_begin_new_transaction)
             in_transaction = Signal()
             m.d.sync += in_transaction.eq(ft.write)
             with m.If(in_transaction):
@@ -47,7 +47,7 @@ class FT601StreamSinkNoCDC(Elaboratable):
 
 
 class FT601StreamSink(Elaboratable):
-    def __init__(self, ft601_resource, input_stream, fifo_depth=2048, begin_transactions_at_level=2000):
+    def __init__(self, ft601_resource, input_stream, fifo_depth=2048, begin_transactions_at_level=2040):
         self.ft601_resource = ft601_resource
         self.input_stream = input_stream
         self.fifo_depth = fifo_depth
@@ -59,7 +59,7 @@ class FT601StreamSink(Elaboratable):
         m.domains += ClockDomain("ft601")
         m.d.comb += ClockSignal("ft601").eq(self.ft601_resource.clk)
 
-        cdc_fifo = m.submodules.cdc_fifo = AsyncStreamFifo(self.input_stream, self.fifo_depth, r_domain="ft601", w_domain="sync", buffered=False)
+        cdc_fifo = m.submodules.cdc_fifo = AsyncStreamFifo(self.input_stream, self.fifo_depth, r_domain="ft601", w_domain="sync", buffered=True)
         save_to_begin_new_transaction = Signal()
         m.d.comb += save_to_begin_new_transaction.eq(cdc_fifo.r_level >= self.begin_transactions_at_level)
         m.submodules.ft601 = DomainRenamer("ft601")(FT601StreamSinkNoCDC(

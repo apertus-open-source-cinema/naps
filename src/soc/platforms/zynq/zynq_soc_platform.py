@@ -1,3 +1,5 @@
+from os.path import join, dirname
+
 from nmigen import Fragment, Module, ClockSignal, DomainRenamer
 
 from cores.axi import AxiEndpoint
@@ -12,6 +14,7 @@ from .program_bitstream_ssh import program_bitstream_ssh
 
 class ZynqSocPlatform(SocPlatform):
     base_address = Address(0x4000_0000, 0, (0x7FFF_FFFF - 0x4000_0000) * 8)
+    pydriver_memory_accessor = open(join(dirname(__file__), "memory_accessor_devmem.py")).read()
 
     def __init__(self, platform):
         super().__init__(platform)

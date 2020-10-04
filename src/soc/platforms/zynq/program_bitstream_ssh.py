@@ -6,7 +6,7 @@ from nmigen.build.run import BuildProducts
 
 from .to_raw_bitstream import bit2bin
 
-default_host = "192.168.0.179"
+default_host = "10.42.0.50"
 default_user = "operator"
 default_password = "axiom"
 

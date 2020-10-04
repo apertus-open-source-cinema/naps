@@ -8,7 +8,7 @@ class DevMemAccessor:
     word = 4
     mask = ~(word - 1)
 
-    def __init__(self, base_addr, bytes=None, filename='/dev/mem'):
+    def __init__(self, base_addr=0x4000_0000, bytes=None, filename='/dev/mem'):
         if bytes is None:
             bytes = mmap.PAGESIZE
 
@@ -33,4 +33,4 @@ class DevMemAccessor:
         return self.mem.write(struct.pack('I', to_write))
 
 
-# devmem = DevMem(0x4000_0000)
+MemoryAccessor = DevMemAccessor

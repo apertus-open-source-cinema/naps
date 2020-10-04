@@ -20,9 +20,9 @@ def usb3_plugin_connect(platform, plugin_number):
                           Attrs(IOSTANDARD="DIFF_SSTL18_I")),
                 Subsignal("lvds2", DiffPairs("lvds3_p", "lvds3_n", dir='o', conn=("plugin", plugin_number)),
                           Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-                Subsignal("clk_word", DiffPairs("lvds4_p", "lvds4_n", dir='o', conn=("plugin", plugin_number)),
+                Subsignal("lvds3", DiffPairs("lvds4_p", "lvds4_n", dir='o', conn=("plugin", plugin_number)),
                           Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-                Subsignal("lvds3", DiffPairs("lvds5_p", "lvds5_n", dir='o', conn=("plugin", plugin_number)),
+                Subsignal("clk_word", DiffPairs("lvds5_p", "lvds5_n", dir='o', conn=("plugin", plugin_number)),
                           Attrs(IOSTANDARD="DIFF_SSTL18_I")),
             ),
 

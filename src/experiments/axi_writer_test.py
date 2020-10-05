@@ -30,7 +30,7 @@ class Top(Elaboratable):
 
         ring_buffer = RingBufferAddressStorage(buffer_size=0x1200000, n=4)
 
-        stream_source = StreamEndpoint(Signal(64), is_sink=False, has_last=True)
+        stream_source = StreamEndpoint(64, is_sink=False, has_last=True)
         m.d.comb += self.data_ready.eq(stream_source.ready)
         m.d.comb += stream_source.valid.eq(self.data_valid)
 
@@ -50,5 +50,5 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform)) as platform:
+    with cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform), possible_socs=(ZynqSocPlatform,)) as platform:
         pass

@@ -6,6 +6,8 @@ from nmigen import *
 from cores.ft601.ft601_perf_debug import FT601PerfDebug
 from devices import HdmiDigitizerPlatform, Usb3PluginPlatform
 from soc.cli import cli
+from soc.platforms import ZynqSocPlatform
+from soc.platforms.jtag.jtag_soc_platform import JTAGSocPlatform
 from util.nmigen_misc import connect_leds
 
 
@@ -25,5 +27,5 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(Usb3PluginPlatform, HdmiDigitizerPlatform)) as platform:
+    with cli(Top, runs_on=(Usb3PluginPlatform, HdmiDigitizerPlatform), possible_socs=(JTAGSocPlatform, ZynqSocPlatform)) as platform:
         pass

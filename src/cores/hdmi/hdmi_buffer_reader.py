@@ -23,7 +23,7 @@ class AddressGenerator(Elaboratable):
         self.data_width = data_width
         self.max_line_width = max_line_width
 
-        self.output = StreamEndpoint(Signal(address_width), is_sink=False, has_last=False)
+        self.output = StreamEndpoint(address_width, is_sink=False, has_last=False)
 
     def elaborate(self, platform):
         m = Module()
@@ -70,7 +70,7 @@ class HdmiBufferReader(Elaboratable):
         m.d.comb += addr_gen.line_words_read.eq(hdmi.timing_generator.width)
 
         reader = m.submodules.reader = in_pix_domain(AxiBufferReader(addr_gen.output))
-        output = StreamEndpoint.like(reader.output, is_sink=True)
+        output = StreamEndpoint.like(reader.output, is_sink=True, name="hdmi_reader_output_sink")
         m.d.comb += output.connect(reader.output)
 
         ctr = Signal(range(4))

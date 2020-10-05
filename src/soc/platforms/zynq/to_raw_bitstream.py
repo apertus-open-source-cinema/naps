@@ -1,4 +1,5 @@
 import struct
+import sys
 from io import BytesIO
 
 
@@ -11,7 +12,7 @@ def flip32(data):
     return d
 
 
-def bit2bin(bitstream, flip_data=False):
+def bit2bin(bitstream, flip_data=True):
     bitfile = BytesIO(bitstream)
 
     short = struct.Struct('>H')
@@ -45,8 +46,17 @@ def bit2bin(bitstream, flip_data=False):
         elif k in KEYNAMES:
             l = short.unpack(bitfile.read(2))[0]
             d = bitfile.read(l)
-            #print(KEYNAMES[k], d)
         else:
             print("Unexpected key: %s" % k)
             l = short.unpack(bitfile.read(2))[0]
             d = bitfile.read(l)
+
+
+if __name__ == "__main__":
+    input_file_name = sys.argv[1]
+    if input_file_name == "-":
+        input_file = sys.stdin
+    else:
+        input_file = open(input_file_name, 'rb')
+    input_bitstream = input_file.read()
+    sys.stdout.write(bit2bin(input_bitstream))

@@ -42,12 +42,13 @@ class LaneManager(Elaboratable):
         self.last_word = StatusSignal(input_data.shape())
 
         self.do_bitslip = Signal()
-        self.output = StreamEndpoint(Signal.like(self.input_data), is_sink=False, has_last=True)
+        self.output = StreamEndpoint(self.input_data.shape(), is_sink=False, has_last=True)
 
     def elaborate(self, platform):
         m = Module()
 
         m.d.sync += self.last_word.eq(self.input_data)
+        m.d.comb += self.output.payload.eq(self.input_data)
 
         with m.If(self.cycles_since_last_sync_pattern < self.timeout):
             m.d.sync += self.cycles_since_last_sync_pattern.eq(self.cycles_since_last_sync_pattern + 1)
@@ -113,7 +114,7 @@ class Hispi(Elaboratable):
         self.lanes = len(self.lvds)
         self.bits = bits
 
-        self.output = StreamEndpoint(Signal(len(self.lvds) * bits), is_sink=False, has_last=True)
+        self.output = StreamEndpoint(len(self.lvds) * bits, is_sink=False, has_last=True)
 
     def elaborate(self, platform):
         m = Module()

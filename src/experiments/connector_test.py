@@ -157,7 +157,7 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(MicroR2Platform, )) as platform:
+    with cli(Top, runs_on=(MicroR2Platform, ), possible_socs=(ZynqSocPlatform,)) as platform:
         platform.add_resources([
             Resource("loopback", 0,
                      # high speed serial lanes

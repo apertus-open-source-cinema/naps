@@ -1,17 +1,18 @@
 import inspect
-from dataclasses import dataclass
 from pathlib import Path
 
 from nmigen import *
 from nmigen import Signal
 from nmigen.hdl.ast import UserValue
-from nmigen.sim.pysim import Simulator
+from nmigen.sim import Simulator
 
 from util.bundle import Bundle
 
 
 class SimPlatform:
     def __init__(self):
+        self.command_templates = []
+
         self.clocks = {}
         self.is_sim = True
         self.processes = []

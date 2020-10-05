@@ -18,7 +18,7 @@ class AxiBufferReader(Elaboratable):
         assert address_source.has_last is False
         self.address_source = address_source
         self.axi_slave = axi_slave
-        self.output = StreamEndpoint(Signal(axi_data_width), is_sink=False, has_last=False)
+        self.output = StreamEndpoint(axi_data_width, is_sink=False, has_last=False)
 
         self.last_resp = StatusSignal(Response)
         self.error_count = StatusSignal(32)
@@ -39,7 +39,7 @@ class AxiBufferReader(Elaboratable):
 
         assert len(self.output.payload) == axi.data_bits
 
-        address_stream = StreamEndpoint.like(self.address_source, is_sink=True)
+        address_stream = StreamEndpoint.like(self.address_source, is_sink=True, name="address_sink")
         m.d.comb += address_stream.connect(self.address_source)
         assert len(address_stream.payload) == axi.addr_bits
 

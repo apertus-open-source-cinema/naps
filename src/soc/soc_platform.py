@@ -12,10 +12,18 @@ class SocPlatform(ABC):
     def __init__(self, platform):
         self._platform = platform
 
-        # we inject our prepare method into the platform
-        if self._platform:
-            self.real_prepare = self._platform.prepare
-            self._platform.prepare = self.prepare
+        # inject our prepare method into the platform as a starting point for all our hooks
+        self.real_prepare = self._platform.prepare
+        self._platform.prepare = self.prepare
+
+        # inject fatbitstream generation into the platforms templates
+        self.command_templates = [
+            *self._platform.command_templates,
+            r"""
+            {{invoke_tool("base64")}}
+                {{name}}.bit > {{name}}.fatbitstream
+            """
+        ]
 
         self.prepare_hooks = []
         self.to_inject_subfragments = []

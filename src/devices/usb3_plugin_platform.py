@@ -43,3 +43,6 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
         )
     ]
     connectors = []
+
+    def toolchain_program(self, products, name, **kwargs):
+        pass

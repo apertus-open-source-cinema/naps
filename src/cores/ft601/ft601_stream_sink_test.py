@@ -2,7 +2,6 @@ from nmigen import *
 from unittest import TestCase
 
 from cores.ft601.ft601_stream_sink import FT601StreamSink
-from cores.stream.counter_source import CounterStreamSource
 from util.sim import SimPlatform, TristateIo
 from util.stream import StreamEndpoint
 
@@ -29,14 +28,14 @@ class TestFt601StreamSink(TestCase):
         platform.add_sim_clock("ft601", 100e6)
 
         ft601 = Ft601FakeResource()
-        counter_source = StreamEndpoint(Signal(32), is_sink=False, has_last=False)
+        counter_source = StreamEndpoint(32, is_sink=False, has_last=False)
         m.d.sync += counter_source.payload.eq(counter_source.payload + 1)
         m.d.comb += counter_source.valid.eq(1)
-        m.submodules.dut = dut = FT601StreamSink(ft601, counter_source)
+        m.submodules.dut = FT601StreamSink(ft601, counter_source)
 
         def testbench():
             read = []
-            for i in range(5):
+            for i in range(3):
                 yield ft601.txe.eq(1)
                 written = 0
                 began = False

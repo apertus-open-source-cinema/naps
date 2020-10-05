@@ -5,7 +5,7 @@ from util.stream import StreamEndpoint
 
 class CounterStreamSource(Elaboratable):
     def __init__(self, width):
-        self.output = StreamEndpoint(Signal(width), is_sink=False, has_last=False)
+        self.output = StreamEndpoint(width, is_sink=False, has_last=False)
 
     def elaborate(self, platform):
         m = Module()

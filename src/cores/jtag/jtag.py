@@ -18,18 +18,21 @@ class JTAG(Elaboratable):
         if isinstance(platform, Xilinx7SeriesPlatform):
             # we delay tdi and shift by one cycle to match the behaviour of the lattice jtag primitives
             tck = Signal()
+            shift = Signal()
             m.submodules.inst = Instance(
                 "BSCANE2",
                 p_JTAG_CHAIN=1,
 
                 o_TCK=tck,
                 o_TDI=self.tdi,
-                o_SHIFT=self.shift,
+                o_SHIFT=shift,
                 o_RESET=self.reset,
 
                 i_TDO=self.tdo,
             )
 
+            m.d.comb += self.shift_read.eq(shift)
+            m.d.comb += self.shift_write.eq(shift)
             m.domains += ClockDomain("jtag")
             m.d.comb += ClockSignal("jtag").eq(tck)
         elif isinstance(platform, LatticeMachXO2Platform):

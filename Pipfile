@@ -13,6 +13,8 @@ pytest-pycharm = "*"
 pylint = "*"
 pytest = "*"
 tqdm = "*"
+pytest-xdist = "*"
+psutil = "*"
 
 [packages]
 nmigen = {git = "https://github.com/nmigen/nmigen.git"}

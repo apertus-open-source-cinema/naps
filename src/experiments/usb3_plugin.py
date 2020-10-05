@@ -9,6 +9,7 @@ from cores.plugin_module_streamer.rx import PluginModuleStreamerRx
 from cores.stream.counter_source import CounterStreamSource
 from devices import Usb3PluginPlatform
 from soc.cli import cli
+from soc.platforms.jtag.jtag_soc_platform import JTAGSocPlatform
 from util.stream import StreamEndpoint
 
 
@@ -26,7 +27,8 @@ class Top(Elaboratable):
         counter = Signal(24)
         m.d.sync += counter.eq(counter + 1)
 
-        jtag_analyze = StreamEndpoint(Cat(platform.jtag_signals, counter[0:21]), is_sink=False, has_last=False)
+        jtag_analyze = StreamEndpoint(32, is_sink=False, has_last=False)
+        m.d.comb += jtag_analyze.payload.eq(Cat(platform.jtag_signals, counter[0:21]))
         m.d.comb += jtag_analyze.valid.eq(1)
 
         in_domain = DomainRenamer("wclk_in")
@@ -40,5 +42,5 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(Usb3PluginPlatform,)) as platform:
+    with cli(Top, runs_on=(Usb3PluginPlatform,), possible_socs=(JTAGSocPlatform,)) as platform:
         pass

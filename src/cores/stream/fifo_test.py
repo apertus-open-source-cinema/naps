@@ -1,8 +1,8 @@
 import unittest
 
-from nmigen.sim.pysim import Simulator
+from nmigen.sim import Simulator
 from nmigen import *
-from nmigen.lib.fifo import AsyncFIFOBuffered, AsyncFIFO
+from cores.stream.fifo_out_of_tree_fix import AsyncFIFO
 
 from cores.stream.fifo import AsyncStreamFifo
 from cores.stream.sim_util import write_to_stream, read_from_stream
@@ -34,7 +34,7 @@ class TestFifo(unittest.TestCase):
 
     def test_sim_asnyc_stream_fifo(self):
         m = Module()
-        input = StreamEndpoint(Signal(32), is_sink=False, has_last=False)
+        input = StreamEndpoint(32, is_sink=False, has_last=False)
         fifo = m.submodules.fifo = AsyncStreamFifo(input, 1024, r_domain="sync", w_domain="sync", buffered=False)
 
         def testbench():

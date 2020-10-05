@@ -58,7 +58,7 @@ class TestSimAxiWriter(unittest.TestCase):
         axi = AxiEndpoint(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
 
         ringbuffer = RingBufferAddressStorage(0x1000, 2, base_address=0)
-        stream_source = StreamEndpoint(Signal(64), is_sink=False)
+        stream_source = StreamEndpoint(64, is_sink=False, has_last=True)
 
         dut = AxiBufferWriter(ringbuffer, stream_source, axi, fifo_depth=data_len)
 
@@ -108,7 +108,7 @@ class TestSimAxiWriter(unittest.TestCase):
         axi = AxiEndpoint(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
 
         ringbuffer = RingBufferAddressStorage(0x1000, 2, base_address=0)
-        stream_source = StreamEndpoint(Signal(64), is_sink=False)
+        stream_source = StreamEndpoint(64, is_sink=False, has_last=True)
 
         dut = AxiBufferWriter(ringbuffer, stream_source, axi, fifo_depth=data_len)
 

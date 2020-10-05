@@ -7,6 +7,8 @@ from cores.csr_bank import StatusSignal, ControlSignal
 from cores.primitives.lattice_machxo2.clocking import Osc
 from devices import Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform
 from soc.cli import cli
+from soc.platforms import ZynqSocPlatform
+from soc.platforms.jtag.jtag_soc_platform import JTAGSocPlatform
 
 
 class Top(Elaboratable):
@@ -24,5 +26,5 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform)) as platform:
+    with cli(Top, runs_on=(Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform), possible_socs=(JTAGSocPlatform, ZynqSocPlatform)) as platform:
         pass

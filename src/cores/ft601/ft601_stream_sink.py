@@ -16,7 +16,7 @@ class FT601StreamSinkNoCDC(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        sink = StreamEndpoint.like(self.input_stream, is_sink=True)
+        sink = StreamEndpoint.like(self.input_stream, is_sink=True, name="ft601_sink")
         m.d.comb += sink.connect(self.input_stream)
 
         ft = self.ft_601_resource

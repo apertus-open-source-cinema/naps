@@ -14,7 +14,7 @@ class PluginModuleStreamerRx(Elaboratable):
         This module needs to run in the word clock domain of the bus.
         """
         self.plugin = plugin
-        self.output = StreamEndpoint(Signal(32), is_sink=False, has_last=False)
+        self.output = StreamEndpoint(32, is_sink=False, has_last=False)
 
         self.ready = StatusSignal()
 

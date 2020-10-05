@@ -1,3 +1,5 @@
+from typing import Union
+
 from nmigen import *
 from nmigen._unused import MustUse
 
@@ -6,20 +8,21 @@ from util.bundle import Bundle
 
 class StreamEndpoint(Bundle, MustUse):
     @staticmethod
-    def like(other, is_sink=None):
+    def like(other, is_sink=None, name=None):
         return StreamEndpoint(
-            payload=Signal.like(other.payload),
+            payload_shape=other.payload.shape(),
             is_sink=other.is_sink if is_sink is None else is_sink,
-            has_last=other.has_last
+            has_last=other.has_last,
+            name=name or (other.name + "_$like")
         )
 
-    def __init__(self, payload: Value, is_sink, has_last=True):
-        super().__init__()
+    def __init__(self, payload_shape: Union[Shape, int], is_sink, has_last=False, name=None):
+        super().__init__(name=name)
 
         assert isinstance(is_sink, bool)
         self.is_sink = is_sink
 
-        self.payload = payload
+        self.payload = Signal(payload_shape)
         self.valid = Signal()
         self.ready = Signal()
         if has_last:

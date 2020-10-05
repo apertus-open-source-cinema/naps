@@ -21,7 +21,7 @@ class PluginModuleStreamerTx(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        sink = StreamEndpoint.like(self.input, is_sink=True)
+        sink = StreamEndpoint.like(self.input, is_sink=True, name="plugin_module_streamer_sink")
         m.d.comb += sink.connect(self.input)
         
         m.d.comb += self.plugin_lvds.valid.eq(sink.valid & ~self.do_training)

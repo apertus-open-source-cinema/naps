@@ -18,8 +18,8 @@ class PeripheralsAggregator:
     @property
     def range(self):
         return range(
-            min(*(p.range().start for p in self.downstream_peripherals)),
-            max(*(p.range().stop for p in self.downstream_peripherals))
+            min(p.range().start for p in self.downstream_peripherals),
+            max(p.range().stop for p in self.downstream_peripherals)
         )
 
     def handle_read(self, m, addr, data, read_done_callback):

@@ -12,6 +12,7 @@ from cores.ring_buffer_address_storage import RingBufferAddressStorage
 from cores.hdmi.hdmi_buffer_reader import HdmiBufferReader
 from devices import MicroR2Platform
 from soc.cli import cli
+from soc.platforms import ZynqSocPlatform
 
 
 class Top(Elaboratable):
@@ -50,6 +51,6 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(MicroR2Platform,)) as platform:
+    with cli(Top, runs_on=(MicroR2Platform,), possible_socs=(ZynqSocPlatform,)) as platform:
         from devices.plugins.hdmi_plugin_resource import hdmi_plugin_connect
         hdmi_plugin_connect(platform, "north")

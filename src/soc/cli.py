@@ -18,7 +18,7 @@ __all__ = ["cli"]
 
 
 class Cli:
-    def __init__(self, top_class, runs_on):
+    def __init__(self, top_class, runs_on, possible_socs=(None,)):
         parser = argparse.ArgumentParser()
         parser.add_argument('-e', '--elaborate', help='Elaborates the experiment', action="store_true")
         parser.add_argument('-b', '--build',
@@ -29,15 +29,18 @@ class Cli:
         runs_on_choices = [plat.__name__.replace("Platform", "") for plat in runs_on]
         parser.add_argument('-d', '--device', help='specify the device to build for', choices=runs_on_choices,
                             required=True)
-        parser.add_argument('-s', '--soc', help='specifies the soc platform to build for')
+        runs_on_choices = [plat.__name__.replace("SocPlatform", "") for plat in possible_socs if plat is not None]
+        parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=runs_on_choices)
         self.parser = parser
         self.args = parser.parse_args()
 
         hardware_platform = getattr(__import__('devices'), "{}Platform".format(self.args.device))
         if self.args.soc:
             soc_platform = getattr(__import__('soc.platforms').platforms, "{}SocPlatform".format(self.args.soc))
+            assert soc_platform in possible_socs
             self.platform = soc_platform(hardware_platform())
         else:
+            assert None in possible_socs
             self.platform = hardware_platform()
         self.top_class = top_class
         self.ran = False

@@ -19,7 +19,7 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform)) as platform:
+    with cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform), possible_socs=(ZynqSocPlatform, )) as platform:
         from devices.zybo_platform import ZyboPlatform
         if not isinstance(platform, ZyboPlatform):
             from devices.plugins.hdmi_plugin_resource import hdmi_plugin_connect

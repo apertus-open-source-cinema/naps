@@ -1,5 +1,5 @@
 from nmigen import *
-from nmigen.lib.fifo import SyncFIFO, AsyncFIFO, AsyncFIFOBuffered, SyncFIFOBuffered
+from cores.stream.fifo_out_of_tree_fix import SyncFIFO, AsyncFIFO, AsyncFIFOBuffered, SyncFIFOBuffered
 
 from cores.csr_bank import StatusSignal
 from util.stream import StreamEndpoint
@@ -9,7 +9,7 @@ class SyncStreamFifo(Elaboratable):
     def __init__(self, input: StreamEndpoint, depth: int, buffered=True, fwtf=False):
         assert input.is_sink is False
         self.input = input
-        self.output = StreamEndpoint.like(input)
+        self.output = StreamEndpoint.like(input, name="stream_fifo_output")
         self.depth = depth
         self.buffered = buffered
         self.fwtf = fwtf
@@ -23,7 +23,7 @@ class SyncStreamFifo(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        input_sink = StreamEndpoint.like(self.input, is_sink=True)
+        input_sink = StreamEndpoint.like(self.input, is_sink=True, name="stream_fifo_input")
         m.d.comb += input_sink.connect(self.input)
         if input_sink.has_last:
             fifo_data = Cat(input_sink.payload, input_sink.last)
@@ -65,7 +65,7 @@ class AsyncStreamFifo(Elaboratable):
     def __init__(self, input, depth, r_domain, w_domain, buffered=True, exact_depth=False):
         assert input.is_sink is False
         self.input = input
-        self.output = StreamEndpoint.like(input)
+        self.output = StreamEndpoint.like(input, name="stream_fifo_output")
 
         self.r_domain = r_domain
         self.w_domain = w_domain
@@ -81,7 +81,7 @@ class AsyncStreamFifo(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        input_sink = StreamEndpoint.like(self.input, is_sink=True)
+        input_sink = StreamEndpoint.like(self.input, is_sink=True, name="stream_fifo_input")
         m.d.comb += input_sink.connect(self.input)
         if input_sink.has_last:
             fifo_data = Cat(input_sink.payload, input_sink.last)

@@ -6,7 +6,7 @@ from nmigen.build.run import BuildProducts
 
 from .to_raw_bitstream import bit2bin
 
-default_host = "10.42.0.50"
+default_host = "10.42.0.224"
 default_user = "operator"
 default_password = "axiom"
 
@@ -33,24 +33,32 @@ def self_extracting_blob(data, path):
     return "base64 -d > {} <<EOF\n{}\nEOF\n\n".format(quote(path), b64encode(data).decode("ASCII"))
 
 
-def program_bitstream_ssh(platform, build_products: BuildProducts, name, **kwargs):
-    fatfile = ""
+def pack_zynq_bitstream():
+    pass
+
+
+def build_fatbitstream(pack_bitstream=pack_zynq_bitstream):
+    fatstring = ""
 
     bitstream_name = "{}.bit".format(name)
     bin_bitstream = bit2bin(build_products.get(bitstream_name), flip_data=True)
-    fatfile += self_extracting_blob(bin_bitstream, "/usr/lib/firmware/{}.bin".format(name))
+    fatstring += self_extracting_blob(bin_bitstream, "/usr/lib/firmware/{}.bin".format(name))
 
-    fatfile += "\n# extra files:\n"
+    fatstring += "\n# extra files:\n"
     for path, contents in platform.extra_files.items():
-        fatfile += self_extracting_blob(contents, path) + "\n"
+        fatstring += self_extracting_blob(contents, path) + "\n"
 
     init_script = "\n# init script:\n"
     init_script += "echo {}.bin > /sys/class/fpga_manager/fpga0/firmware\n".format(name)
     init_script += platform.init_script
-    fatfile += init_script
+    fatstring += init_script
 
+    fatstring
+
+
+def program_bitstream_ssh(platform, build_products: BuildProducts, name, **kwargs):
     fatfile_name = "{}.fatbitstream.sh".format(name)
     with open(fatfile_name, "w") as f:
-        f.write(fatfile)
+        f.write()
     copy_to_camera(fatfile_name, "/home/operator/{}.fatbitstream.sh".format(name), **kwargs)
     run_on_camera("bash /home/operator/{}.fatbitstream.sh".format(name), **kwargs)

@@ -129,3 +129,20 @@ def connect_leds(m, platform, signal, upper_bits=True):
             m.d.comb += platform.request("led", i).eq(signal[i if not upper_bits else -(i + 1)])
         except ResourceError:
             break
+
+
+def get_design_domains(fragment: Fragment):
+    """
+    recursively iterates the given fragment and all its subfragments to find all domains used in the design.
+
+    :rtype: set
+    :returns: A set with the names of all clockdomains
+    """
+
+    domains = set()
+    for domain in fragment.drivers.keys():
+        if domain is not None:
+            domains.add(domain)
+    for subfragment, name in fragment.subfragments:
+        domains.update(get_design_domains(subfragment))
+    return domains

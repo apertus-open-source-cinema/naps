@@ -91,8 +91,8 @@ class AxiBufferWriter(Elaboratable):
             self.ringbuffer, axi.addr_bits, max_incr=self.max_burst_length * axi.data_bytes
         )
 
-        data_fifo = m.submodules.data_fifo = SyncStreamFifo(self.stream_source, depth=self.fifo_depth)
-        data = StreamEndpoint.like(data_fifo.output, is_sink=True)
+        data_fifo = m.submodules.data_fifo = SyncStreamFifo(self.stream_source, depth=self.fifo_depth, buffered=False)
+        data = StreamEndpoint.like(data_fifo.output, is_sink=True, name="data_sink")
         m.d.comb += data.connect(data_fifo.output)
 
         assert len(data.payload) <= axi.data_bits

@@ -2,6 +2,8 @@ import subprocess
 from functools import lru_cache
 from json import loads
 
+from nmigen._toolchain.yosys import find_yosys
+
 
 @lru_cache()
 def parse_yosys_json(verilog_paths):
@@ -54,5 +56,5 @@ def yosys_script(commands):
     :param commands: a list of commands to run
     :return: the stdout of yosys
     """
-    commandline = 'yosys -q -p "{}"'.format(";\n".join(commands))
-    return subprocess.check_output(commandline, shell=True, stderr=subprocess.PIPE)
+
+    return find_yosys(lambda ver: ver >= (0, 9)).run(["-q", "-p {}".format(";\n".join(commands))])

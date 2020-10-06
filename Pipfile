@@ -18,7 +18,9 @@ psutil = "*"
 
 [packages]
 nmigen = {git = "https://github.com/nmigen/nmigen.git"}
+yowasp-yosys = "*"
 nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
 
 [scripts]
-test = "pytest src/"
+test = "pytest -n 8 src/"
+test_fast = "pytest -n 8 -k 'not hispi' src/"

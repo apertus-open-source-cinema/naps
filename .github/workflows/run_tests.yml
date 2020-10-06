@@ -13,5 +13,8 @@ jobs:
         command: install -d --sequential --skip-lock
     - name: Test
       uses: VaultVulp/action-pipenv@v2.0.1
+      env:
+        NMIGEN_USE_YOSYS: system
+        YOSYS: yowasp-yosys
       with:
         command: run test

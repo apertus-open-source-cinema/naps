@@ -15,6 +15,7 @@ pytest = "*"
 tqdm = "*"
 pytest-xdist = "*"
 psutil = "*"
+pytest-github-actions-annotate-failures = "*"
 
 [packages]
 nmigen = {git = "https://github.com/nmigen/nmigen.git"}

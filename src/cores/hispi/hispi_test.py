@@ -27,11 +27,14 @@ class TestHispi(unittest.TestCase):
                 generator = lane_n_generator(0)
                 last_valid = 0
                 line_ctr = 0
-                for i in tqdm(range(10000000)):
-                    if (yield dut.do_bitslip):
-                        next(generator)
-                    word = int("".join(next(generator) for _ in range(12)), 2)
-                    yield input_data.eq(word)
+                for i in range(100000):
+                    try:
+                        if (yield dut.do_bitslip):
+                            next(generator)
+                        word = int("".join(reversed([next(generator) for _ in range(12)])), 2)  # TODO: figure out, how this reversed() affects the real world
+                        yield input_data.eq(word)
+                    except RuntimeError:  # this is raised when we are done instead of StopIteration
+                        break
 
                     if (last_valid == 0) and ((yield dut.output.valid) == 1):
                         last_valid = 1

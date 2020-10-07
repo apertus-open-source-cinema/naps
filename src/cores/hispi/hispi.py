@@ -35,10 +35,18 @@ class LaneManager(Elaboratable):
 
         self.timeout = ControlSignal(32, reset=2000)
         self.timeouts_to_resync = ControlSignal(32, reset=10000)
-        self.cycles_since_last_sync_pattern = StatusSignal(32)
+        self.since_last_sync_pattern_or_bitslip = StatusSignal(32)
         self.performed_bitslips = StatusSignal(32)
-        self.aligned_timeouts = StatusSignal(32)
-        self.last_control_word = StatusSignal(input_data.shape())
+        self.timeouts_since_alignment = StatusSignal(32)
+        self.last_control_word = StatusSignal(
+            input_data.shape(),
+            decoder=lambda x: next((
+                "{}/{:012b}".format(control_word, x)
+                for control_word, ending
+                in control_words.items()
+                if "{:012b}".format(x).endswith(ending)
+            ), "UNKNOWN/{:012b}".format(x))
+        )
         self.last_word = StatusSignal(input_data.shape())
 
         self.do_bitslip = Signal()
@@ -50,33 +58,39 @@ class LaneManager(Elaboratable):
         m.d.sync += self.last_word.eq(self.input_data)
         m.d.comb += self.output.payload.eq(self.input_data)
 
-        with m.If(self.cycles_since_last_sync_pattern < self.timeout):
-            m.d.sync += self.cycles_since_last_sync_pattern.eq(self.cycles_since_last_sync_pattern + 1)
+        with m.If(self.since_last_sync_pattern_or_bitslip < self.timeout):
+            m.d.sync += self.since_last_sync_pattern_or_bitslip.eq(self.since_last_sync_pattern_or_bitslip + 1)
         with m.Else():
             with m.If(self.is_aligned):
-                with m.If(self.aligned_timeouts > self.timeouts_to_resync):
+                with m.If(self.timeouts_since_alignment > self.timeouts_to_resync):
                     m.d.sync += self.is_aligned.eq(0)
-                    m.d.sync += self.aligned_timeouts.eq(0)
+                    m.d.sync += self.timeouts_since_alignment.eq(0)
                 with m.Else():
-                    m.d.sync += self.aligned_timeouts.eq(self.aligned_timeouts + 1)
+                    m.d.sync += self.timeouts_since_alignment.eq(self.timeouts_since_alignment + 1)
             with m.Else():
-                m.d.sync += self.cycles_since_last_sync_pattern.eq(0)
+                m.d.sync += self.since_last_sync_pattern_or_bitslip.eq(0)
                 m.d.sync += self.performed_bitslips.eq(self.performed_bitslips + 1)
                 m.d.comb += self.do_bitslip.eq(1)
 
         with m.FSM():
             for i, pattern_byte in enumerate(self.sync_pattern):
-                with m.State(str(i)):
+                with m.State("sync{}".format(i)):
                     with m.If(self.input_data == Const(pattern_byte, self.input_data.shape())):
-                        m.next = str(i + 1)
+                        if i < len(self.sync_pattern) - 1:
+                            m.next = "sync{}".format(i + 1)
+                        else:
+                            m.next = "control_word"
                     with m.Else():
-                        m.next = "0"
-            with m.State(str(len(self.sync_pattern))):
+                        with m.If(self.input_data == Const(self.sync_pattern[0], self.input_data.shape())):
+                            m.next = "sync1"
+                        with m.Else():
+                            m.next = "sync0"
+            with m.State("control_word"):
                 with m.If(ends_with(self.input_data, *control_words.values())):
                     m.d.sync += self.last_control_word.eq(self.input_data)
-                    m.d.sync += self.cycles_since_last_sync_pattern.eq(0)
+                    m.d.sync += self.since_last_sync_pattern_or_bitslip.eq(0)
                     m.d.sync += self.is_aligned.eq(1)
-                m.next = "0"
+                m.next = "sync0"
 
         # assemble the output stream
         valid = Signal()

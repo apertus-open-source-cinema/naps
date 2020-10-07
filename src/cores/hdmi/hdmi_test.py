@@ -7,7 +7,8 @@ from soc.platforms.zynq import ZynqSocPlatform
 from cores.axi.sim_util import axil_read, axil_write
 from util.bundle import Bundle, Signal
 from util.sim import SimPlatform
-from cores.hdmi.cvt import generate_modeline, parse_modeline
+from cores.hdmi.parse_modeline import parse_modeline
+from cores.hdmi.cvt_python import generate_modeline
 from util.nmigen_misc import get_signals
 
 

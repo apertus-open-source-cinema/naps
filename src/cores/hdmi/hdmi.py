@@ -4,7 +4,7 @@ from nmigen import *
 from nmigen.build import Clock
 
 from cores.hdmi.tmds import Encoder
-from .cvt import parse_modeline
+from .parse_modeline import parse_modeline
 from util.nmigen_misc import max_error_freq
 from cores.csr_bank import ControlSignal, StatusSignal
 from cores.primitives.xilinx_s7.io import OSerdes10

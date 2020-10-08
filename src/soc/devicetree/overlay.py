@@ -4,6 +4,8 @@ from textwrap import dedent, indent
 
 from nmigen import Fragment
 
+from soc.fatbitstream import FatbitstreamContext
+
 
 def devicetree_overlay(platform, overlay_name, overlay_content, placeholder_substitutions_dict=None):
     if placeholder_substitutions_dict is None:
@@ -40,11 +42,15 @@ def devicetree_overlay(platform, overlay_name, overlay_content, placeholder_subs
                 };
             };
         """ % indent(formatted_overlay_text, "                        "))
-        platform.add_file("{}_overlay.dts".format(overlay_name), overlay_text.encode("utf-8"))
         print(overlay_text)
-        platform.init_script += "mkdir -p /sys/kernel/config/device-tree/overlays/{}\n".format(overlay_name)
-        platform.init_script += "dtc -O dtb -@ {0}_overlay.dts -o - > /sys/kernel/config/device-tree/overlays/{0}/dtbo\n\n"\
-            .format(overlay_name)
+
+        fc = FatbitstreamContext.get(platform)
+        fc.self_extracting_blobs["{}_overlay.dts".format(overlay_name)] = overlay_text
+        fc.init_commands.append("mkdir -p /sys/kernel/config/device-tree/overlays/{}\n".format(overlay_name))
+        fc.init_commands.append(
+            "dtc -O dtb -@ {0}_overlay.dts -o - > /sys/kernel/config/device-tree/overlays/{0}/dtbo\n\n"
+                .format(overlay_name)
+        )
 
     platform.prepare_hooks.append(overlay_hook)
     return overlay_name

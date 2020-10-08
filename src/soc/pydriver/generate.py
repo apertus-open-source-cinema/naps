@@ -2,6 +2,8 @@ from textwrap import indent
 from os.path import dirname, join
 
 from nmigen.build import Platform
+
+from soc.fatbitstream import FatbitstreamContext
 from soc.tracing_elaborate import ElaboratableSames
 
 from soc.memorymap import MemoryMap
@@ -37,4 +39,5 @@ def pydriver_hook(platform: Platform, top_fragment, sames: ElaboratableSames):
     if hasattr(platform, "pydriver_memory_accessor"):
         memorymap = top_fragment.memorymap
         pydriver = generate_pydriver(memorymap, platform.pydriver_memory_accessor)
-        platform.add_file("pydriver.py", pydriver.encode("utf-8"))
+        fc = FatbitstreamContext.get(platform)
+        fc.self_extracting_blobs["pydriver.py"] = pydriver

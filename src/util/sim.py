@@ -24,9 +24,6 @@ class SimPlatform:
             self.handed_out_resources[string] = FakeResource(string, self.handed_out_resources)
         return self.handed_out_resources[string]
 
-    def add_file(self, filename, contents):
-        pass
-
     def prepare(self, top_fragment, *args, **kwargs):
         # we filter all the instances out, because they give wired behaviour; TODO: this doesnt work :(
         top_fragment: Fragment = Fragment.get(top_fragment, self)

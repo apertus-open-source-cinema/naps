@@ -1,7 +1,6 @@
 import inspect
 import os
 import pickle
-import re
 from collections import OrderedDict
 from datetime import datetime
 from glob import glob
@@ -15,6 +14,21 @@ from warnings import warn
 from nmigen.build.run import LocalBuildProducts
 
 __all__ = ["cli"]
+
+
+def hash_build_plan(build_plan_files):
+    build_plan_files = {k: v.decode("utf-8") if isinstance(v, bytes) else v for k, v in build_plan_files.items()}
+    json_repr = dumps(build_plan_files)
+    return sha256(json_repr.encode("utf-8")).hexdigest()
+
+
+def get_previous_build_dir(basename):
+    build_files = glob("build/{}*".format(basename))
+    build_files = [path for path in build_files if isdir(path)]
+    if not build_files:
+        return None
+    sorted_build_files = sorted(build_files, key=lambda x: stat(x).st_mtime, reverse=True)
+    return sorted_build_files[0].replace('build/build_', '').replace('.sh', '')
 
 
 class Cli:
@@ -51,19 +65,19 @@ class Cli:
 
     def __exit__(self, exc_type, exc_value, traceback):
         name = inspect.stack()[1].filename.split("/")[-1].replace(".py", "")
-        name_full = "{}_{}".format(name, self.args.device)
+        dir_basename = "{}_{}_{}".format(name, self.args.device, self.args.soc)
 
         if self.args.elaborate or self.args.build:
             build_plan = self.platform.build(
                 self.top_class(),
-                name=name_full,
+                name=name,
                 do_build=False,
             )
 
             if self.args.build:
                 needs_rebuild = True
                 build_plan_hash = hash_build_plan(build_plan.files)
-                previous_build_dir = get_previous_build_dir(name)
+                previous_build_dir = get_previous_build_dir(dir_basename)
                 if previous_build_dir:
                     try:
                         old_build_plan_files = OrderedDict(
@@ -79,20 +93,20 @@ class Cli:
                              "Rebuilding unconditionally ...\n" + str(e))
 
                 if needs_rebuild:
-                    build_subdir = name_full + datetime.now().strftime("_%d_%b_%Y__%H_%M_%S")
+                    build_subdir = dir_basename + datetime.now().strftime("__%d_%b_%Y__%H_%M_%S")
                     build_path = path.join("build", build_subdir)
                     build_plan.execute_local(build_path)
                     with open(path.join(build_path, 'extra_files.pickle'), 'wb') as f:
                         pickle.dump(self.platform.extra_files, f)
 
         if self.args.program:
-            previous_build_dir = get_previous_build_dir(name)
+            previous_build_dir = get_previous_build_dir(dir_basename)
             with open(path.join(previous_build_dir, 'extra_files.pickle'), 'rb') as f:
                 self.platform.extra_files = pickle.load(f)
             cwd = os.getcwd()
             try:
                 os.chdir(previous_build_dir)
-                self.platform.toolchain_program(LocalBuildProducts(os.getcwd()), name=name_full)
+                self.platform.toolchain_program(LocalBuildProducts(os.getcwd()), name=name)
             finally:
                 os.chdir(cwd)
 
@@ -102,18 +116,3 @@ class Cli:
 
 
 cli = Cli
-
-
-def hash_build_plan(build_plan_files):
-    build_plan_files = {k: v.decode("utf-8") if isinstance(v, bytes) else v for k, v in build_plan_files.items()}
-    json_repr = dumps(build_plan_files)
-    return sha256(json_repr.encode("utf-8")).hexdigest()
-
-
-def get_previous_build_dir(basename):
-    build_files = glob("build/{}*".format(basename))
-    build_files = [path for path in build_files if isdir(path)]
-    if not build_files:
-        return None
-    sorted_build_files = sorted(build_files, key=lambda x: stat(x).st_mtime, reverse=True)
-    return sorted_build_files[0].replace('build/build_', '').replace('.sh', '')

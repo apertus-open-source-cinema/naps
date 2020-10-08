@@ -59,4 +59,4 @@ if __name__ == "__main__":
     else:
         input_file = open(input_file_name, 'rb')
     input_bitstream = input_file.read()
-    sys.stdout.write(bit2bin(input_bitstream))
+    sys.stdout.buffer.write(bit2bin(input_bitstream))

@@ -10,6 +10,7 @@ from soc.memorymap import Address
 from soc.soc_platform import SocPlatform
 from cores.primitives.xilinx_s7.ps7 import PS7
 from .program_bitstream_ssh import program_bitstream_ssh
+from ...fatbitstream import FatbitstreamContext
 
 
 class ZynqSocPlatform(SocPlatform):
@@ -20,8 +21,6 @@ class ZynqSocPlatform(SocPlatform):
         super().__init__(platform)
         self.ps7 = PS7(here_is_the_only_place_that_instanciates_ps7=True)
         self.final_to_inject_subfragments.append((self.ps7, "ps7"))
-
-        self.init_script = ""
 
         def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
             if platform.peripherals:
@@ -46,6 +45,12 @@ class ZynqSocPlatform(SocPlatform):
                     m.submodules += controller
                 platform.to_inject_subfragments.append((m, "axi_lite"))
         self.prepare_hooks.append(peripherals_connect_hook)
+
+    def pack_bitstream_fatbitstream(self, builder):
+        self.add_file("to_raw_bitstream.py", open(join(dirname(__file__), "to_raw_bitstream.py")).read())
+        builder.append_host("python3 to_raw_bitstream.py {{name}}.bit > {{name}}.bin")
+        builder.append_self_extracting_blob_from_file("{{name}}.bin", "/usr/lib/firmware/{{name}}.bin")
+        builder.append_command("echo {{name}}.bin > /sys/class/fpga_manager/fpga0/firmware\n")
 
     def toolchain_program(self, *args, **kwargs):
         program_bitstream_ssh(self, *args, **kwargs)

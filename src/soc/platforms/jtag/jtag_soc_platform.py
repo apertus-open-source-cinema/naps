@@ -14,7 +14,6 @@ class JTAGSocPlatform(SocPlatform):
 
     def __init__(self, platform):
         super().__init__(platform)
-        self.init_script = ""
         self.jtag_signals = Signal(11)
 
         def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
@@ -25,4 +24,8 @@ class JTAGSocPlatform(SocPlatform):
 
                 jtag_controller = JTAGPeripheralConnector(aggregator)
                 platform.to_inject_subfragments.append((jtag_controller, "jtag_controller"))
+
         self.prepare_hooks.append(peripherals_connect_hook)
+
+    def pack_bitstream_fatbitstream(self):
+        raise NotImplementedError()

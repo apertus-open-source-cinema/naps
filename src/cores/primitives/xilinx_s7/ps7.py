@@ -7,6 +7,7 @@ from nmigen.build import Clock
 from cores.axi import AxiEndpoint
 from os.path import join, dirname
 
+from soc.fatbitstream import FatbitstreamContext
 from util.instance_helper import InstanceHelper
 from cores.primitives.xilinx_s7.clocking import Bufg
 from util.nmigen_misc import max_error_freq
@@ -159,19 +160,22 @@ class PS7(Elaboratable):
             else:  # we are a sim platform
                 platform.add_sim_clock(domain_name, frequency)
 
-        if hasattr(platform, "init_script"):
-            platform.init_script = "\n".join(
+        fc = FatbitstreamContext.get(platform)
+        fc.init_commands.insert(
+            0,  # we insert this code at the beginning of the init sequence because otherwise the zynq might hang
+                # (e.g. when the clock is not setup but we try to access something via axi)
+            "\n".join(
                 "# clockdomain '{name}':\n"
                 "echo 1 > /sys/class/fclk/fclk{i}/enable\n"
                 "echo {freq} > /sys/class/fclk/fclk{i}/set_rate\n"
                     .format(freq=int(freq), i=i, name=domain_name)
                 for i, (clock_signal, bufg_out, freq, domain_name) in self.clock_constraints.items()
-            ) + platform.init_script
-
-            platform.init_script += "# set the bit width of all axi hp slaves to 64 bits"
-            for base in [0xF8008000, 0xF8009000, 0xF800A000, 0xF800B000]:
-                platform.init_script += "devmem2 0x{:x} w 0".format(base)
-                platform.init_script += "devmem2 0x{:x} w 0xF00".format(base + 0x14)
-            platform.init_script += "\n"
+            )
+        )
+        fc.init_commands.append("# set the bit width of all axi hp slaves to 64 bits")
+        for base in [0xF8008000, 0xF8009000, 0xF800A000, 0xF800B000]:
+            fc.init_commands.append("devmem2 0x{:x} w 0".format(base))
+            fc.init_commands.append("devmem2 0x{:x} w 0xF00".format(base + 0x14))
+        fc.init_commands.append("\n")
 
         return m

@@ -1,8 +1,8 @@
 # A simple experiment that demonstrates basic CSR / SOC functionality
 
 from nmigen import *
+from nmigen.vendor.xilinx_7series import Xilinx7SeriesPlatform
 
-from cores.blink_debug import BlinkDebug
 from cores.csr_bank import StatusSignal, ControlSignal
 from cores.primitives.lattice_machxo2.clocking import Osc
 from devices import Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform
@@ -19,7 +19,8 @@ class Top(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.osc = Osc()
+        #m.submodules.osc = Osc()
+        platform.ps7.fck_domain(requested_frequency=100e6)
         m.d.sync += self.counter.eq(self.counter + 1)
 
         return m

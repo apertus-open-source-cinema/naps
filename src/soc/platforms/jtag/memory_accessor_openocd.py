@@ -12,13 +12,7 @@ class JTAGAccessor:
         if spawn_server:
             addr = "127.0.0.1"
             port = 4444
-            openocd_script = (
-                'source [find interface/ftdi/digilent_jtag_hs3.cfg];'
-                'source [find cpld/xilinx-xc7.cfg]; transport select jtag;'
-                'adapter_khz 20000;'
-                'init;'
-            )
-            os.system('openocd -c "{}" > /dev/null 2>&1 &'.format(openocd_script))
+            os.system('openocd -f openocd.cfg > /dev/null 2>&1 &')
             time.sleep(0.1)
             self.tap_name = "xc7.tap"
 

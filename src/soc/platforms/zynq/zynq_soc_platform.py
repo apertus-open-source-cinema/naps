@@ -10,7 +10,6 @@ from soc.memorymap import Address
 from soc.soc_platform import SocPlatform
 from cores.primitives.xilinx_s7.ps7 import PS7
 from .program_bitstream_ssh import program_bitstream_ssh
-from ...fatbitstream import FatbitstreamContext
 
 
 class ZynqSocPlatform(SocPlatform):

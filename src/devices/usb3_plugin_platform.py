@@ -3,6 +3,9 @@ from nmigen.vendor.lattice_machxo_2_3l import *
 
 __all__ = ["Usb3PluginPlatform"]
 
+from soc.fatbitstream import FatbitstreamContext
+from soc.platforms.zynq.program_bitstream_ssh import program_bitstream_ssh
+
 
 class Usb3PluginPlatform(LatticeMachXO2Platform):
     device = "LCMXO2-2000HC"
@@ -44,5 +47,23 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
     ]
     connectors = []
 
-    def toolchain_program(self, products, name, **kwargs):
-        pass
+    def __init__(self):
+        super().__init__()
+        fc = FatbitstreamContext.get(self)
+        fc.self_extracting_blobs["openocd.cfg"] = r"""
+        adapter driver sysfsgpio
+
+        sysfsgpio_tms_num 898
+        sysfsgpio_tck_num 899
+        sysfsgpio_tdi_num 900
+        sysfsgpio_tdo_num 901
+        
+        bindto 0.0.0.0
+        transport select jtag
+        jtag newtap dut tap -expected-id 0x012bb043 -irlen 8 -irmask 0xFF
+        init
+        scan_chain
+        """
+
+    def toolchain_program(self, *args, **kwargs):
+        program_bitstream_ssh(self, *args, **kwargs)

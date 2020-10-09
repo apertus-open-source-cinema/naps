@@ -1,4 +1,5 @@
 from abc import ABC
+from types import new_class
 
 from soc.fatbitstream import FatbitstreamContext
 from soc.pydriver.generate import pydriver_hook
@@ -8,32 +9,35 @@ from soc.tracing_elaborate import fragment_get_with_elaboratable_trace
 
 class SocPlatform(ABC):
     base_address = None
-    _platform = None
+    _wrapped_platform = None
+
+    # we build a new type that combines the soc and the real platform class
+    def __new__(cls, platform, *args, **kwargs):
+        return super(SocPlatform, cls).__new__(type(cls.__name__, (cls, platform.__class__), vars(platform)))
 
     # we pass through all platform methods, because we pretend to be a platform
     def __getattr__(self, item):
-        return getattr(self._platform, item)
-
-    # we also pretend to be the class. a bit evil but works for now
-    @property
-    def __class__(self):
-        return self._platform.__class__
+        return getattr(self._wrapped_platform, item)
 
     def __init__(self, platform):
-        self._platform = platform
+        self._wrapped_platform = platform
 
         # inject our prepare method into the platform as a starting point for all our hooks
-        self.real_prepare = self._platform.prepare
-        self._platform.prepare = self.prepare
+        self.real_prepare = self._wrapped_platform.prepare
+        self._wrapped_platform.prepare = self.prepare
 
         # inject fatbitstream generation into the platforms templates
         # we it this way because command_templates might be a property object that cant be written to directly
-        original_command_templates = self._platform.command_templates
-        self._platform.extra_command_templates = []
-        self._platform.__class__.command_templates = property(lambda plat: [
+        original_command_templates = self._wrapped_platform.command_templates
+        self._wrapped_platform.extra_command_templates = []
+        self._wrapped_platform.__class__.command_templates = property(lambda plat: [
             *original_command_templates,
             *plat.extra_command_templates
         ])
+
+        # store a reference in the platform that is wrapped to be able to retrieve it during e.g. fatbitstream
+        # generation
+        self._wrapped_platform._soc_platform = self
 
         self.prepare_hooks = []
         self.to_inject_subfragments = []
@@ -45,7 +49,7 @@ class SocPlatform(ABC):
         self.prepare_hooks.append(pydriver_hook)
 
     # we override the prepare method of the real platform to be able to inject stuff into the design
-    def prepare(self, elaboratable, name, *args, **kwargs):
+    def prepare(self, elaboratable, name="top", *args, **kwargs):
         print("# ELABORATING MAIN DESIGN")
         top_fragment, sames = fragment_get_with_elaboratable_trace(elaboratable, self)
 
@@ -68,7 +72,7 @@ class SocPlatform(ABC):
 
         print("\ninjecting fatbitstream generation code")
         fc = FatbitstreamContext.get(self)
-        self._platform.extra_command_templates.extend(fc.generate_fatbitstream_generator(name))
+        self._wrapped_platform.extra_command_templates.extend(fc.generate_fatbitstream_generator(name))
 
         print("\n\nexiting soc code\n")
 

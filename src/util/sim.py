@@ -18,13 +18,16 @@ class SimPlatform:
         self.processes = []
         self.handed_out_resources = {}
 
+    def add_file(self, name, contents):
+        pass
+
     def request(self, name, number=0):
         string = "{}#{}".format(name, number)
         if string not in self.handed_out_resources:
             self.handed_out_resources[string] = FakeResource(string, self.handed_out_resources)
         return self.handed_out_resources[string]
 
-    def prepare(self, top_fragment, *args, **kwargs):
+    def prepare(self, top_fragment, name="top", *args, **kwargs):
         # we filter all the instances out, because they give wired behaviour; TODO: this doesnt work :(
         top_fragment: Fragment = Fragment.get(top_fragment, self)
 

@@ -13,6 +13,9 @@ class FatbitstreamContext:
         Implements a singleton-like pattern here to have exactly one FatbitstreamContext per Platform instance
         :rtype: FatbitstreamContext
         """
+        if hasattr(platform, "_wrapped_platform"):  # we cant check directly for isinstance SocPlatform here because of cyclic imports
+            platform = platform._wrapped_platform
+
         if platform not in cls.platform_to_context_dict:
             cls.platform_to_context_dict[platform] = FatbitstreamContext(platform, called_by_get_classmethod=True)
         return cls.platform_to_context_dict[platform]
@@ -33,18 +36,24 @@ class FatbitstreamContext:
         builder.append_host("\n")
         builder.append_host("touch {{name}}.fatbitstream.sh")
         builder.append_command("#!/bin/bash\n")
-        builder.append_host('echo -n "# Fatbitstream for "{}" on platform {} with soc {}. Build on $(date)" >> {{{{name}}}}.fatbitstream.sh'.format(
-            build_name, self._platform._platform.__class__.__name__, self._platform._platform.__class__.__name__,
+        builder.append_command('"# Fatbitstream for "{}" on platform {} with soc {}. Build on $(date)\n"'.format(
+            build_name, self._platform.__class__.__name__, self._platform._soc_platform.__class__.__name__,
             datetime.now().strftime("%d.%b.%Y %H:%M:%S")
-        ))
+        ), do_quote=False)
 
-        assert hasattr(self._platform, "pack_bitstream_fatbitstream")
-        builder.append_command("\n\n### fpga bitstream loading  ###\n")
-        self._platform.pack_bitstream_fatbitstream(builder)
+        # we create a directory for all the files we will eventually unpack to allow multiple fatbitstreams
+        # to coexist in the same top directory. this is for example important when we want to load a plugin module
+        # (with JTAGSoc) in parallel with a Zynq bitstream.
+        builder.append_command("mkdir -p '{{name}}.fatbitstream.d'\n")
+        builder.append_command("cd '{{name}}.fatbitstream.d'\n")
 
         builder.append_command("\n\n### driver unpacking ###\n")
         for filename, contents in self.self_extracting_blobs.items():
             builder.append_self_extracting_blob_from_string(contents, filename)
+
+        assert hasattr(self._platform._soc_platform, "pack_bitstream_fatbitstream")
+        builder.append_command("\n\n### fpga bitstream loading  ###\n")
+        self._platform._soc_platform.pack_bitstream_fatbitstream(builder)
 
         builder.append_command("\n\n### init script ###\n")
         for cmd in self.init_commands:
@@ -62,8 +71,8 @@ class _FatbitstreamBuilder:
     def append_host(self, cmd):
         self.cmds.append(cmd)
 
-    def append_command(self, cmd, quote_cmd=True):
-        self.append_host("echo -ne {} >> {{{{name}}}}.fatbitstream.sh".format(quote(cmd.replace("\n", "\\n")) if quote_cmd else cmd.replace("\n", "\\n")))
+    def append_command(self, cmd, do_quote=True):
+        self.append_host("echo -ne {} >> {{{{name}}}}.fatbitstream.sh".format(quote(cmd.replace("\n", "\\n")) if do_quote else cmd.replace("\n", "\\n")))
 
     def append_self_extracting_blob_from_string(self, string, path):
         self.append_command("base64 -d > {} <<EOF\n{}\nEOF\n".format(quote(path), b64encode(string.encode("utf-8")).decode("ASCII")))
@@ -71,5 +80,5 @@ class _FatbitstreamBuilder:
     def append_self_extracting_blob_from_file(self, src_path, target_path):
         self.append_command(
             '"base64 -d > {} <<EOF\\n$(base64 -w0 {})\\nEOF\\n"'.format(quote(target_path), quote(src_path)),
-            quote_cmd=False
+            do_quote=False
         )

@@ -32,7 +32,7 @@ class OSerdes10(Elaboratable):
 
         m.submodules += Instance("OSERDESE2",
                                  p_DATA_WIDTH=10, p_TRISTATE_WIDTH=1,
-                                 p_DATA_RATE_OQ="DDR", p_DATA_RATE_TQ="DDR",
+                                 p_DATA_RATE_OQ="DDR", p_DATA_RATE_TQ="SDR",
                                  p_SERDES_MODE="MASTER",
 
                                  o_OQ=self.output,
@@ -50,7 +50,7 @@ class OSerdes10(Elaboratable):
 
         m.submodules += Instance("OSERDESE2",
                                  p_DATA_WIDTH=10, p_TRISTATE_WIDTH=1,
-                                 p_DATA_RATE_OQ="DDR", p_DATA_RATE_TQ="DDR",
+                                 p_DATA_RATE_OQ="DDR", p_DATA_RATE_TQ="SDR",
                                  p_SERDES_MODE="SLAVE",
 
                                  i_OCE=ce,

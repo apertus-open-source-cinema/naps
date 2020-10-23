@@ -1,3 +1,5 @@
+from textwrap import dedent
+
 from nmigen.build import *
 from nmigen.vendor.lattice_machxo_2_3l import *
 
@@ -50,7 +52,7 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
     def __init__(self):
         super().__init__()
         fc = FatbitstreamContext.get(self)
-        fc.self_extracting_blobs["openocd.cfg"] = r"""
+        fc.self_extracting_blobs["openocd.cfg"] = dedent(r"""
         adapter driver sysfsgpio
 
         sysfsgpio_tms_num 898
@@ -63,7 +65,7 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
         jtag newtap dut tap -expected-id 0x012bb043 -irlen 8 -irmask 0xFF
         init
         scan_chain
-        """
+        """)
 
     def toolchain_program(self, *args, **kwargs):
         program_bitstream_ssh(self, *args, **kwargs)

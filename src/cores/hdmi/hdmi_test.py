@@ -34,9 +34,7 @@ class TestHdmi(unittest.TestCase):
         platform = ZynqSocPlatform(SimPlatform())
 
         class Pins(Bundle):
-            data_r = Signal()
-            data_g = Signal()
-            data_b = Signal()
+            data = Signal(3)
             clock = Signal()
 
         dut = Hdmi(Pins(), generate_clocks=False, modeline=generate_modeline(640, 480, 60))

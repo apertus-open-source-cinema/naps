@@ -1,7 +1,7 @@
 class JTAGAccessor:
     base = 0
 
-    def __init__(self, addr="127.0.0.1", port=4444, timeout=1024, debug=False, spawn_server=False, tap_name="dut.tap",
+    def __init__(self, addr="127.0.0.1", port=4444, timeout=1024, debug=False, spawn_server=True, tap_name="dut.tap",
                  lattice_quirk=True):
         import socket
         import os
@@ -14,7 +14,6 @@ class JTAGAccessor:
             port = 4444
             os.system('openocd -f openocd.cfg > /dev/null 2>&1 &')
             time.sleep(0.1)
-            self.tap_name = "xc7.tap"
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.s.connect((addr, port))

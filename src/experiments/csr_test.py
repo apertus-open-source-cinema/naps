@@ -9,6 +9,7 @@ from devices import Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatf
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform
 from soc.platforms.jtag.jtag_soc_platform import JTAGSocPlatform
+from util.nmigen_misc import connect_leds
 
 
 class Top(Elaboratable):
@@ -23,10 +24,13 @@ class Top(Elaboratable):
             platform.ps7.fck_domain(requested_frequency=100e6)
             m.d.sync += self.counter.eq(self.counter + 1)
         elif isinstance(platform, LatticeMachXO2Platform):
+            print("using lattice osc")
             osc = m.submodules.osc = Osc()
             m.d.sync += self.counter.eq(self.counter + 1)
         else:
             m.d.comb += self.counter.eq(42)  # we dont have a clock source so we cant count
+
+        connect_leds(m, platform, self.test_reg)
 
         return m
 

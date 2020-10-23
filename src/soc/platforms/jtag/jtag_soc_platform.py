@@ -28,5 +28,5 @@ class JTAGSocPlatform(SocPlatform):
         self.prepare_hooks.append(peripherals_connect_hook)
 
     def pack_bitstream_fatbitstream(self, builder):
-        builder.append_self_extracting_blob_from_file("{{name}}.svf", "bitstream_jtag.svf")
-        builder.append_command("openocd -f openocd.cfg -c 'svf -tap dut.tap -quiet bitstream_jtag.svf; shutdown'\n")
+        builder.append_self_extracting_blob_from_file("{{name}}_sram.svf", "bitstream_jtag.svf")
+        builder.append_command("openocd -f openocd.cfg -c 'svf -tap dut.tap -quiet -progress bitstream_jtag.svf; shutdown'\n")

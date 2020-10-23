@@ -25,9 +25,7 @@ def hdmi_plugin_connect(platform, plugin_number):
     platform.add_resources([
         Resource("hdmi", plugin_number,
              Subsignal("clock", DiffPairs("lvds3_p", "lvds3_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-             Subsignal("data_b", DiffPairs("lvds2_p", "lvds2_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-             Subsignal("data_g", DiffPairs("lvds1_p", "lvds1_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-             Subsignal("data_r", DiffPairs("lvds0_p", "lvds0_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="DIFF_SSTL18_I")),
+             Subsignal("data", DiffPairs("lvds2_p lvds1_p lvds0_p", "lvds2_n lvds1_n lvds0_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="DIFF_SSTL18_I")),
              *lowspeed_signals
         )
     ])

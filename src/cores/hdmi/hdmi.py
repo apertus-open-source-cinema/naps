@@ -46,15 +46,15 @@ class Hdmi(Elaboratable):
         encoder_b = m.submodules.encoder_b = in_pix_domain(
             Encoder(self.rgb.b, Cat(timing.hsync, timing.vsync), timing.active))
         serializer_b = m.submodules.serializer_b = OSerdes10(encoder_b.out, **domain_args)
-        m.d.comb += self.plugin.data_b.eq(serializer_b.output)
+        m.d.comb += self.plugin.data[0].eq(serializer_b.output)
         encoder_g = m.submodules.encoder_g = in_pix_domain(
             Encoder(self.rgb.g, Cat(timing.hsync, timing.vsync), timing.active))
         serializer_g = m.submodules.serializer_g = OSerdes10(encoder_g.out, **domain_args)
-        m.d.comb += self.plugin.data_g.eq(serializer_g.output)
+        m.d.comb += self.plugin.data[1].eq(serializer_g.output)
         encoder_r = m.submodules.encoder_r = in_pix_domain(
             Encoder(self.rgb.r, Cat(timing.hsync, timing.vsync), timing.active))
         serializer_r = m.submodules.serializer_r = OSerdes10(encoder_r.out, **domain_args)
-        m.d.comb += self.plugin.data_r.eq(serializer_r.output)
+        m.d.comb += self.plugin.data[2].eq(serializer_r.output)
 
         m.submodules.plugin = PluginLowspeedController(self.plugin)
 

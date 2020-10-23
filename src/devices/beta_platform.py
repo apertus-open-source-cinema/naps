@@ -19,7 +19,7 @@ class BetaPlatform(MicroZedZ020Platform):
 
             Connector("plugin", "north",
                       gen_plugin_connector(
-                          lvds=["68 70", "74 76", "82 84", "94 92", "93 91", "89 87"]),
+                          lvds=["68 70", "74 76", "82 84", "92 94", "93 91", "89 87"]),
                       conn=("expansion", 0),
                       ),
         ])

@@ -2,7 +2,7 @@
 
 from nmigen import *
 
-from cores.stream.fifo import AsyncStreamFifo
+from cores.stream.fifo import AsyncStreamFifo, SyncStreamFifo
 from util.stream import StreamEndpoint
 
 
@@ -47,10 +47,10 @@ class FT601StreamSinkNoCDC(Elaboratable):
 
 
 class FT601StreamSink(Elaboratable):
-    def __init__(self, ft601_resource, input_stream, fifo_depth=2048, begin_transactions_at_level=2040):
+    def __init__(self, ft601_resource, input_stream, async_fifo_depth=128, begin_transactions_at_level=2040):
         self.ft601_resource = ft601_resource
         self.input_stream = input_stream
-        self.fifo_depth = fifo_depth
+        self.async_fifo_depth = async_fifo_depth
         self.begin_transactions_at_level = begin_transactions_at_level
 
     def elaborate(self, platform):
@@ -59,12 +59,16 @@ class FT601StreamSink(Elaboratable):
         m.domains += ClockDomain("ft601")
         m.d.comb += ClockSignal("ft601").eq(self.ft601_resource.clk)
 
-        cdc_fifo = m.submodules.cdc_fifo = AsyncStreamFifo(self.input_stream, self.fifo_depth, r_domain="ft601", w_domain="sync", buffered=True)
+        # we use two fifos here as a performance optimization because (i guess) large async fifos are bad for fmax
+        # TODO: verify hypothesis
+        cdc_fifo = m.submodules.cdc_fifo = AsyncStreamFifo(self.input_stream, self.async_fifo_depth, w_domain="sync", r_domain="ft601", buffered=True)
+        sync_fifo_depth = (self.begin_transactions_at_level + 1 - self.async_fifo_depth)
+        buffer_fifo = m.submodules.buffer_fifo = DomainRenamer("ft601")(SyncStreamFifo(cdc_fifo.output, sync_fifo_depth, buffered=True))
         save_to_begin_new_transaction = Signal()
-        m.d.comb += save_to_begin_new_transaction.eq(cdc_fifo.r_level >= self.begin_transactions_at_level)
+        m.d.comb += save_to_begin_new_transaction.eq((buffer_fifo.r_level + cdc_fifo.r_level) >= self.begin_transactions_at_level)
         m.submodules.ft601 = DomainRenamer("ft601")(FT601StreamSinkNoCDC(
             self.ft601_resource,
-            cdc_fifo.output,
+            buffer_fifo.output,
             save_to_begin_new_transaction,
         ))
 

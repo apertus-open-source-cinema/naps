@@ -28,7 +28,7 @@ class Top(Elaboratable):
         m.d.sync += counter.eq(counter + 1)
 
         jtag_analyze = StreamEndpoint(32, is_sink=False, has_last=False)
-        m.d.comb += jtag_analyze.payload.eq(Cat(platform.jtag_signals, counter[0:21]))
+        m.d.comb += jtag_analyze.payload.eq(platform.jtag_signals)
         m.d.comb += jtag_analyze.valid.eq(1)
 
         in_domain = DomainRenamer("wclk_in")
@@ -36,7 +36,7 @@ class Top(Elaboratable):
         counter = m.submodules.counter = in_domain(CounterStreamSource(32))
 
         ft601 = platform.request("ft601")
-        m.submodules.ft601 = in_domain(FT601StreamSink(ft601, jtag_analyze))
+        m.submodules.ft601 = in_domain(FT601StreamSink(ft601, counter.output))
 
         return m
 

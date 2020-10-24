@@ -1,5 +1,4 @@
 import unittest
-from tqdm import tqdm
 from os.path import dirname, join
 import lzma
 

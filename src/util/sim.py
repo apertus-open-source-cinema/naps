@@ -50,6 +50,7 @@ class SimPlatform:
 
     def sim(self, dut, testbench=None, traces=(), filename=None):
         dut = self.prepare(dut)
+        self.fragment = dut
         simulator = Simulator(dut)
         for name, frequency in self.clocks.items():
             simulator.add_clock(1 / frequency, domain=name)

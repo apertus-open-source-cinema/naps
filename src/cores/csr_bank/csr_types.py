@@ -25,6 +25,7 @@ class ControlSignal(UserValue, _Csr):
 
     def __init__(self, shape=None, *, address=None, read_strobe=None, write_strobe=None, name=None, src_loc_at=0, **kwargs):
         super().__init__(src_loc_at=-1)
+        self.src_loc_at = src_loc_at
         self._shape = shape
         self._kwargs = kwargs
         self.name = name or tracer.get_var_name(depth=2 + src_loc_at, default="$signal")
@@ -34,7 +35,7 @@ class ControlSignal(UserValue, _Csr):
         self.read_strobe = read_strobe
 
     def lower(self):
-        return Signal(self._shape, name=self.name, **self._kwargs)
+        return Signal(self._shape, name=self.name, **self._kwargs, src_loc_at=self.src_loc_at + 1)
 
 
 class StatusSignal(UserValue, _Csr):

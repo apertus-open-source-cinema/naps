@@ -31,26 +31,19 @@ class JTAG(Elaboratable):
         elif isinstance(platform, LatticeMachXO2Platform):
             print("using lattice MACHXO2 JTAG primitive")
             # the lattice jtag primitive is rather wired and has a one cycle delay on tdi
-            # we hack around this in the jtag state machine
-            jshift = Signal()
             jtck = Signal(attrs={"KEEP": "TRUE"})
-
             platform.add_clock_constraint(jtck, 1e6)
+
             m.submodules.jtag_primitive = Instance(
                 "JTAGF",
                 i_JTDO1=self.tdo,
                 o_JTDI=self.tdi,
                 o_JTCK=jtck,
-                o_JSHIFT=jshift,
+                o_JSHIFT=self.shift,
             )
-
-            # we delay the shift signal for by one clock cycle because tdi is also delayed by one clock cycle
-            m.domains += ClockDomain("jtagn")
-            m.d.comb += ClockSignal("jtagn").eq(jtck)
-            m.d.jtagn += self.shift.eq(jshift)
 
             # we must sample tdi on the negedge
             m.domains += ClockDomain("jtag")
-            m.d.comb += ClockSignal("jtag").eq(~jtck)
+            m.d.comb += ClockSignal("jtag").eq(jtck)
 
         return m

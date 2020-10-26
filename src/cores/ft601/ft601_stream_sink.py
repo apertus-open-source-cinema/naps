@@ -2,6 +2,7 @@
 
 from nmigen import *
 
+from cores.stream.counter_debug_tool import StreamCounterDebugTool
 from cores.stream.fifo import AsyncStreamFifo, SyncStreamFifo
 from util.stream import StreamEndpoint
 
@@ -26,7 +27,6 @@ class FT601StreamSinkNoCDC(Elaboratable):
 
         m.d.comb += ft.oe.eq(0)  # we are driving the data bits all the time
         m.d.comb += ft.data.oe.eq(1)
-        m.d.comb += platform.request("led", 0).eq(ft.write)
 
         if self.safe_to_begin_new_transaction is None:
             m.d.comb += ft.data.o.eq(sink.payload)
@@ -39,9 +39,10 @@ class FT601StreamSinkNoCDC(Elaboratable):
                 m.d.comb += ft.write.eq(sink.valid & ft.txe)
                 m.d.comb += sink.ready.eq(ft.txe)
             with m.Else():
-                m.d.comb += ft.write.eq(sink.valid & self.safe_to_begin_new_transaction)
                 m.d.comb += sink.ready.eq(ft.txe & self.safe_to_begin_new_transaction)
+                m.d.comb += ft.write.eq(sink.valid & self.safe_to_begin_new_transaction)
             m.d.comb += ft.data.o.eq(sink.payload)
+        m.d.comb += platform.request("led", 0).eq(ft.txe)
 
         return m
 
@@ -62,8 +63,8 @@ class FT601StreamSink(Elaboratable):
         # we use two fifos here as a performance optimization because (i guess) large async fifos are bad for fmax
         # TODO: verify hypothesis
         cdc_fifo = m.submodules.cdc_fifo = AsyncStreamFifo(self.input_stream, self.async_fifo_depth, w_domain="sync", r_domain="ft601", buffered=True)
-        sync_fifo_depth = (self.begin_transactions_at_level + 1 - self.async_fifo_depth)
-        buffer_fifo = m.submodules.buffer_fifo = DomainRenamer("ft601")(SyncStreamFifo(cdc_fifo.output, sync_fifo_depth, buffered=True))
+        buffer_fifo_depth = (self.begin_transactions_at_level + 1 - self.async_fifo_depth)
+        buffer_fifo = m.submodules.buffer_fifo = DomainRenamer("ft601")(SyncStreamFifo(cdc_fifo.output, buffer_fifo_depth, buffered=True))
         save_to_begin_new_transaction = Signal()
         m.d.comb += save_to_begin_new_transaction.eq((buffer_fifo.r_level + cdc_fifo.r_level) >= self.begin_transactions_at_level)
         m.submodules.ft601 = DomainRenamer("ft601")(FT601StreamSinkNoCDC(

@@ -1,8 +1,7 @@
 class JTAGAccessor:
     base = 0
 
-    def __init__(self, addr="127.0.0.1", port=4444, timeout=1024, debug=False, spawn_server=True, tap_name="dut.tap",
-                 lattice_quirk=True):
+    def __init__(self, addr="127.0.0.1", port=4444, timeout=1024, debug=False, spawn_server=True, tap_name="dut.tap"):
         import socket
         import os
         import time
@@ -20,7 +19,6 @@ class JTAGAccessor:
         self.timeout = timeout
         self.debug = debug
         self.spawn_server = spawn_server
-        self.lattice_quirk = lattice_quirk
 
         # skip some strange random shit
         self._readline(decode=False)
@@ -30,73 +28,46 @@ class JTAGAccessor:
             self._writeline("shutdown")
 
     def read(self, addr):
-        # RESET jtag csr
-        self._reset()
-
         # USER1
         self._irscan(0x32)
 
-        # READ command
-        self._drscan(1, 0)
+        self._shift_bit(1)  # wakeup
+        self._shift_word(addr)  # address
+        self._shift_bit(0)  # read
 
-        # ADDRESS
-        self._drscan(32, addr)
-
-        # POLL for read completion
+        # read wait
         timeout = self.timeout
-        while self._drscan(1, 0) != "01":
-            if timeout == 0:
-                raise Exception("read poll completion polling timeout")
+        for t in range(timeout):
 
-            timeout -= 1
+            if self._shift_bit(1) == 1:
+                break
+            if t == timeout - 1:
+                raise TimeoutError()
 
-            pass
-
-        # DATA
-        data = self._drscan(32, 0)
-
-        # RESP code
-        resp = int(self._drscan(1, 0))
-        if resp != 0:
+        data = self._shift_word(0)
+        if self._shift_bit(0) != 0:  # read status
             raise TransactionNotSuccessfulException()
-
-        data = int(data, 16)
-        if self.lattice_quirk:
-            data = data >> 1
 
         return data
 
     def write(self, addr, value):
-        # RESET jtag csr
-        self._reset()
-
         # USER1
         self._irscan(0x32)
 
-        # WRITE command
-        self._drscan(1, 1)
+        self._shift_bit(1)  # wakeup
+        self._shift_word(addr)  # address
+        self._shift_bit(1)  # write
+        self._shift_word(value)
 
-        # ADDRESS
-        self._drscan(32, addr)
-
-        # DATA
-        self._drscan(32, value)
-
-        # Poll for write completion
+        # write wait
         timeout = self.timeout
-        while self._drscan(1, 0) != "01":
-            if timeout == 0:
-                raise Exception("write poll completion polling timeout")
-
-            timeout -= 1
-            pass
-
-        # RESP code
-        resp = int(self._drscan(1, 0))
-        if resp != 0:
+        for t in range(timeout):
+            if self._shift_bit(1) == 1:
+                break
+            if t == timeout - 1:
+                raise TimeoutError()
+        if self._shift_bit(0) != 0:  # write status
             raise TransactionNotSuccessfulException()
-
-        return
 
     def _writeline(self, message):
         message += "\n"
@@ -125,11 +96,15 @@ class JTAGAccessor:
         # print(ret)
         return ret
 
+    def _shift_word(self, write):
+        return self._drscan(32, write)
+
+    def _shift_bit(self, write):
+        return self._drscan(1, write)
+
+
     def _irscan(self, instruction):
         return self._writecmd('irscan {} {}'.format(self.tap_name, instruction))
-
-    def _reset(self):
-        return self._writecmd('reset halt')
 
     def _drscan(self, len, value):
         return self._writecmd('drscan {} {} {}'.format(self.tap_name, len, value))

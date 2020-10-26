@@ -42,7 +42,6 @@ class JTAG(Elaboratable):
                 o_JTDI=self.tdi,
                 o_JTCK=jtck,
                 o_JSHIFT=jshift,
-                o_JUPDATE=self.update,
             )
 
             # we delay the shift signal for by one clock cycle because tdi is also delayed by one clock cycle

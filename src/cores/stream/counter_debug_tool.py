@@ -22,8 +22,8 @@ class StreamCounterDebugTool(Elaboratable):
         with m.If(self.input_stream.valid):
             m.d.sync += counter.eq(counter + 1)
 
-        m.d.comb += self.input_stream.ready.eq(self.output.ready)
-        m.d.comb += self.output.valid.eq(self.input_stream.valid)
-        m.d.comb += self.output.eq(Cat(input_sink.payload[:input_sink.payload.width // 2], counter))
+        m.d.comb += input_sink.ready.eq(self.output.ready)
+        m.d.comb += self.output.valid.eq(input_sink.valid)
+        m.d.comb += self.output.payload.eq(Cat(input_sink.payload[:input_sink.payload.width // 2], counter))
 
         return m

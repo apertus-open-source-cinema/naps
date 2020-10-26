@@ -17,6 +17,9 @@ class JTAG(Bundle):
 
 
 class TestPeripheral(Elaboratable):
+    def range(self):
+        return range(0, 1024)
+
     def __init__(self):
         self.mem = Memory(width=32, depth=1024, init=list(range(1024)))
         self.read_port = self.mem.read_port()

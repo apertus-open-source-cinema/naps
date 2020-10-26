@@ -1,4 +1,6 @@
-from soc.memorymap import MemoryMap
+from nmigen import  *
+
+from soc.peripheral import Response
 from util.nmigen_misc import iterator_with_if_elif
 
 
@@ -15,7 +17,6 @@ class PeripheralsAggregator:
         assert isinstance(peripheral.range(), range)
         self.downstream_peripherals.append(peripheral)
 
-    @property
     def range(self):
         return range(
             min(p.range().start for p in self.downstream_peripherals),
@@ -25,11 +26,29 @@ class PeripheralsAggregator:
     def handle_read(self, m, addr, data, read_done_callback):
         for cond, peripheral in iterator_with_if_elif(self.downstream_peripherals, m):
             address_range = peripheral.memorymap.own_offset_normal_resources.range()
-            with cond((addr >= address_range.start) & (addr < address_range.stop)):
-                peripheral.handle_read(m, addr - address_range.start, data, read_done_callback)
+            translated_address_range = range(
+                address_range.start - self.range().start,
+                address_range.stop - self.range().start,
+            )
+            with cond((addr >= translated_address_range.start) & (addr < translated_address_range.stop)):
+                peripheral.handle_read(m, addr - translated_address_range.start, data, read_done_callback)
+        if self.downstream_peripherals:
+            with m.Else():
+                read_done_callback(Response.ERR)
+        else:
+            read_done_callback(Response.ERR)
 
     def handle_write(self, m, addr, data, write_done_callback):
         for cond, peripheral in iterator_with_if_elif(self.downstream_peripherals, m):
             address_range = peripheral.memorymap.own_offset_normal_resources.range()
-            with cond((addr >= address_range.start) & (addr < address_range.stop)):
-                peripheral.handle_write(m, addr - address_range.start, data, write_done_callback)
+            translated_address_range = range(
+                address_range.start - self.range().start,
+                address_range.stop - self.range().start,
+            )
+            with cond((addr >= translated_address_range.start) & (addr < translated_address_range.stop)):
+                peripheral.handle_write(m, addr - translated_address_range.start, data, write_done_callback)
+        if self.downstream_peripherals:
+            with m.Else():
+                write_done_callback(Response.ERR)
+        else:
+            write_done_callback(Response.ERR)

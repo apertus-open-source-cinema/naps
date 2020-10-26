@@ -12,7 +12,7 @@ class JTAGPeripheralConnector(Elaboratable):
         """
 
         assert callable(peripheral.handle_read) and callable(peripheral.handle_write)
-        assert isinstance(peripheral.range, range)
+        assert isinstance(peripheral.range(), range)
         self.peripheral = peripheral
 
     def elaborate(self, platform):
@@ -32,6 +32,8 @@ class JTAGPeripheralConnectorFSM(Elaboratable):
 
     def elaborate(self, platform):
         dbg_value = self.dbg
+        address_range = self.peripheral.range()
+
 
         m = Module()
         jtag = self.jtag
@@ -82,7 +84,7 @@ class JTAGPeripheralConnectorFSM(Elaboratable):
             # read states
             with m.State("READ_WAIT"):
                 m.d.comb += dbg_value.eq(4)
-                self.peripheral.handle_read(m, addr, data, read_write_done_callback)
+                self.peripheral.handle_read(m, addr - address_range.start, data, read_write_done_callback)
                 with m.If((~jtag.tdi) & jtag.shift):  # we are requested to abort the waiting
                     m.next = "IDLE0"
                 with m.Elif(read_write_done & jtag.shift):
@@ -111,7 +113,7 @@ class JTAGPeripheralConnectorFSM(Elaboratable):
                         next_on_jtag_shift("WRITE_WAIT")
             with m.State("WRITE_WAIT"):
                 m.d.comb += dbg_value.eq(7)
-                self.peripheral.handle_write(m, addr, data, read_write_done_callback)
+                self.peripheral.handle_write(m, addr - address_range.start, data, read_write_done_callback)
                 with m.If((~jtag.tdi) & jtag.shift):  # we are requested to abort the waiting
                     m.next = "IDLE0"
                 with m.If(read_write_done & jtag.shift):

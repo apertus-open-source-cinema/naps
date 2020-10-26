@@ -10,13 +10,14 @@ from soc.memorymap import Address
 from soc.soc_platform import SocPlatform
 from cores.primitives.xilinx_s7.ps7 import PS7
 from .program_bitstream_ssh import program_bitstream_ssh
+from ...peripherals_aggregator import PeripheralsAggregator
 
 
 class ZynqSocPlatform(SocPlatform):
     base_address = Address(0x4000_0000, 0, (0x7FFF_FFFF - 0x4000_0000) * 8)
     pydriver_memory_accessor = open(join(dirname(__file__), "memory_accessor_devmem.py")).read()
 
-    def __init__(self, platform):
+    def __init__(self, platform, use_axi_interconnect=False):
         super().__init__(platform)
         self.ps7 = PS7(here_is_the_only_place_that_instanciates_ps7=True)
         self.final_to_inject_subfragments.append((self.ps7, "ps7"))
@@ -34,13 +35,21 @@ class ZynqSocPlatform(SocPlatform):
                 else:  # we are in a simulation platform
                     axi_lite_master = AxiEndpoint(addr_bits=32, data_bits=32, master=True, lite=True)
                     self.axi_lite_master = axi_lite_master
-                interconnect = m.submodules.interconnect = DomainRenamer("axi_lite")(
-                    AxiInterconnect(axi_lite_master)
-                )
 
-                for peripheral in platform.peripherals:
-                    controller = DomainRenamer("axi_lite")(AxiLitePeripheralConnector(peripheral))
-                    m.d.comb += interconnect.get_port().connect_slave(controller.axi)
+                if use_axi_interconnect:
+                    interconnect = m.submodules.interconnect = DomainRenamer("axi_lite")(
+                        AxiInterconnect(axi_lite_master)
+                    )
+                    for peripheral in platform.peripherals:
+                        controller = DomainRenamer("axi_lite")(AxiLitePeripheralConnector(peripheral))
+                        m.d.comb += interconnect.get_port().connect_slave(controller.axi)
+                        m.submodules += controller
+                else:
+                    aggregator = PeripheralsAggregator()
+                    for peripheral in platform.peripherals:
+                        aggregator.add_peripheral(peripheral)
+                    controller = DomainRenamer("axi_lite")(AxiLitePeripheralConnector(aggregator))
+                    m.d.comb += axi_lite_master.connect_slave(controller.axi)
                     m.submodules += controller
                 platform.to_inject_subfragments.append((m, "axi_lite"))
         self.prepare_hooks.append(peripherals_connect_hook)

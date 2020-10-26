@@ -9,8 +9,8 @@ from cores.axi.sim_util import axil_read, axil_write
 
 
 class TestAxiSlave(unittest.TestCase):
-    def test_csr_bank(self, num_csr=10, testdata=0x12345678):
-        platform = ZynqSocPlatform(SimPlatform())
+    def check_csr_bank(self, num_csr=10, testdata=0x12345678, use_axi_interconnect=False):
+        platform = ZynqSocPlatform(SimPlatform(), use_axi_interconnect)
         csr_bank = CsrBank()
         for i in range(num_csr):
             csr_bank.reg("csr#{}".format(i), ControlSignal(32))
@@ -23,6 +23,12 @@ class TestAxiSlave(unittest.TestCase):
                 self.assertEqual(testdata, (yield from axil_read(axi, addr)))
 
         platform.sim(csr_bank, (testbench, "axi_lite"))
+
+    def test_csr_bank_aggregator(self):
+        self.check_csr_bank(use_axi_interconnect=False)
+
+    def test_csr_bank_interconnect(self):
+        self.check_csr_bank(use_axi_interconnect=True)
 
     def test_simple_test_csr_bank(self):
         platform = ZynqSocPlatform(SimPlatform())

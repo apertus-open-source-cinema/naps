@@ -2,7 +2,6 @@
 
 from nmigen import *
 
-from cores.blink_debug import BlinkDebug
 from cores.csr_bank import ControlSignal
 from cores.ft601.ft601_stream_sink import FT601StreamSink
 from cores.plugin_module_streamer.rx import PluginModuleStreamerRx

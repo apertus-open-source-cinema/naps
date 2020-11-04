@@ -1,8 +1,8 @@
 import unittest
 
+from nmigen.lib.fifo import AsyncFIFO
 from nmigen.sim import Simulator
 from nmigen import *
-from cores.stream.fifo_out_of_tree_fix import AsyncFIFO
 
 from cores.stream.fifo import AsyncStreamFifo
 from cores.stream.sim_util import write_to_stream, read_from_stream

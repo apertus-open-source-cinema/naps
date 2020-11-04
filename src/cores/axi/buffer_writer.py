@@ -1,7 +1,7 @@
 from nmigen import *
 
 from .axi_endpoint import AxiEndpoint, BurstType
-from cores.csr_bank import StatusSignal
+from cores.csr_bank import StatusSignal, ControlSignal
 from util.nmigen_misc import nMax, mul_by_pot
 from ..ring_buffer_address_storage import RingBufferAddressStorage
 from ..stream.fifo import SyncStreamFifo
@@ -13,6 +13,7 @@ class AddressGenerator(Elaboratable):
         self.base_addrs = ringbuffer.buffer_base_list
         self.max_buffer_size = ringbuffer.buffer_size
         self.current_buffer = ringbuffer.current_write_buffer
+
 
         # this is pessimistic but we rather allocate larger buffers and _really_ not write anywhere else
         self.max_addrs = Array(addr_base + self.max_buffer_size - (2 * max_incr) for addr_base in self.base_addrs)
@@ -58,6 +59,8 @@ class AxiBufferWriter(Elaboratable):
         self.ringbuffer = ringbuffer
         self.current_buffer = ringbuffer.current_write_buffer
 
+        self.reset = ControlSignal(reset=1)
+
         assert stream_source.is_sink is False
         assert stream_source.has_last
         self.stream_source = stream_source
@@ -75,6 +78,8 @@ class AxiBufferWriter(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
+
+        m.d.comb += ResetSignal().eq(self.reset)
 
         if self.axi_slave is not None:
             assert not self.axi_slave.is_lite

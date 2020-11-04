@@ -3,7 +3,7 @@ from types import new_class
 
 from soc.fatbitstream import FatbitstreamContext
 from soc.pydriver.generate import pydriver_hook
-from soc.hooks import csr_hook, address_assignment_hook, peripherals_collect_hook
+from soc.hooks import csr_and_driver_method_hook, address_assignment_hook, peripherals_collect_hook
 from soc.tracing_elaborate import fragment_get_with_elaboratable_trace
 
 
@@ -43,7 +43,7 @@ class SocPlatform(ABC):
         self.to_inject_subfragments = []
         self.final_to_inject_subfragments = []
 
-        self.prepare_hooks.append(csr_hook)
+        self.prepare_hooks.append(csr_and_driver_method_hook)
         self.prepare_hooks.append(address_assignment_hook)
         self.prepare_hooks.append(peripherals_collect_hook)
         self.prepare_hooks.append(pydriver_hook)

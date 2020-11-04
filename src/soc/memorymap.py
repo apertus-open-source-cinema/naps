@@ -7,6 +7,8 @@ from typing import List
 
 from nmigen._unused import MustUse
 
+from soc.pydriver.drivermethod import DriverMethod
+
 
 class Address:
     @staticmethod
@@ -139,24 +141,49 @@ class MemoryMap(MustUse):
         self.bus_word_width = bus_word_width
         self.place_at: Address = place_at
 
-        self.top = top
+        self.is_top = top
         self._parent = parent
         self._inlined_offset = None
 
         self.entries: List[MemoryMapRow] = []
+        self.aliases = {}
+        self.driver_methods = {}
         self.frozen = False
         self._MustUse__warning = UnusedMemoryMap
 
     def __repr__(self):
-        return "<Memorymap top={} byte_len={}>".format(self.top, self.byte_len)
+        return "<Memorymap top={} byte_len={} at {}>".format(self.is_top, self.byte_len, hex(id(self)))
 
     @property
-    def top(self):
-        return self._MustUse__silence
+    def is_empty(self):
+        return not self.entries
 
-    @top.setter
-    def top(self, val):
-        self._MustUse__silence = val
+    @property
+    def _MustUse__silence(self):
+        return self.is_top or self._parent is not None or self.is_empty
+
+    @property
+    def top_memorymap(self):
+        if self.is_top:
+            return self
+        elif self._parent is not None:
+            return self._parent.top_memorymap
+        else:
+            raise ValueError("self is not the toplevel memorymap and is not assigned to one")
+
+    @property
+    def path(self):
+        if self.is_top:
+            return ()
+        elif self._parent is not None:
+            my_row: MemoryMapRow = next(row for row in self._parent.subranges if row.obj == self)
+            return (*self._parent.path, my_row.name)
+        else:
+            raise ValueError("self is not the toplevel memorymap and is not assigned to one")
+
+    @property
+    def was_inlined(self):
+        return self._inlined_offset is not None
 
     @property
     def bus_word_width_bytes(self):
@@ -167,32 +194,8 @@ class MemoryMap(MustUse):
         return [row for row in self.entries if isinstance(row.obj, MemoryMap)]
 
     @property
-    def normal_resources(self):
+    def direct_children(self):
         return [row for row in self.entries if not isinstance(row.obj, MemoryMap)]
-
-    @property
-    def own_offset_normal_resources(self):
-        own_offset = self.own_offset
-        own_offset.bit_len = self.normal_resources_byte_len * 8
-        return own_offset
-
-    @property
-    def own_offset(self) -> Address:
-        if not self.top:
-            if self._parent and self._inlined_offset:
-                return self._parent.own_offset.translate(self._inlined_offset)
-            elif self._parent:
-                own_row_candidates = [row for row in self._parent.subranges if row.obj == self]
-                assert len(own_row_candidates) == 1
-                return self._parent.own_offset.translate(own_row_candidates[0].address)
-            else:
-                raise ValueError("the location of the memorymap cant be determined. "
-                                 "self is not the toplevel memorymap and is not assigned to one")
-        else:
-            if self.place_at:
-                return Address(self.place_at.address, 0, self.byte_len * 8)
-            else:
-                return Address(0, 0, self.byte_len * 8)
 
     @property
     def byte_len(self) -> int:
@@ -210,19 +213,45 @@ class MemoryMap(MustUse):
         return int(ceil(real_size / self.bus_word_width_bytes) * self.bus_word_width_bytes)
 
     @property
-    def normal_resources_byte_len(self):
+    def direct_children_byte_len(self):
         """
         Calculate the size (based on the _normal_ resource with the highest address part) of the memorymap
         :return: the size of the memorymap in bytes (aligned to the bus word width)
         """
-        if not self.entries:
+        if not self.direct_children:
             return 0
         real_size = max(
             row.address.address + ceil((row.address.bit_offset + row.address.bit_len) / 8)
-            for row in self.normal_resources
+            for row in self.direct_children
         )
         # automatically round up to the next word with self.access_with
         return int(ceil(real_size / self.bus_word_width_bytes) * self.bus_word_width_bytes)
+
+    @property
+    def absolute_range_of_direct_children(self):
+        own_offset = self.own_offset
+        own_offset.bit_len = self.direct_children_byte_len * 8
+        return own_offset
+
+    @property
+    def own_offset(self) -> Address:
+        if self.is_empty:
+            return Address(0, 0, 0)
+        if not self.is_top:
+            if self._parent and self._inlined_offset:
+                return self._parent.own_offset.translate(self._inlined_offset)
+            elif self._parent:
+                own_row_candidates = [row for row in self._parent.subranges if row.obj == self]
+                assert len(own_row_candidates) == 1
+                return self._parent.own_offset.translate(own_row_candidates[0].address)
+            else:
+                raise ValueError("the location of the memorymap cant be determined. "
+                                 "self is not the toplevel memorymap and is not assigned to one")
+        else:
+            if self.place_at:
+                return Address(self.place_at.address, 0, self.byte_len * 8)
+            else:
+                return Address(0, 0, self.byte_len * 8)
 
     def is_free(self, check_address):
         """
@@ -262,8 +291,19 @@ class MemoryMap(MustUse):
         self.entries.append(MemoryMapRow(name, address, writable, obj))
         return address
 
+    def add_alias(self, name, obj):
+        """
+        Adds an alias to a resource somewhere else in the hierarchy.
+        :param name: the name of the resource
+        :param obj: the object with which one can find the other resource
+        """
+        self.aliases[name] = obj
+
+    def add_driver_method(self, name, drivermethod):
+        assert isinstance(drivermethod, DriverMethod)
+        self.driver_methods[name] = drivermethod
+
     def _added_to(self, parent, inlined_offset=None):
-        self._MustUse__used = True
         self.frozen = True
         self._parent = parent
         self._inlined_offset = inlined_offset
@@ -292,29 +332,20 @@ class MemoryMap(MustUse):
         else:  # add the memorymap as a regular resource. this is later interpreted as hierarchical memorymaps
             return self.allocate(name, True, bits=subrange.byte_len * 8, address=place_at, obj=subrange._added_to(self))
 
-    def flatten(self, hierarchy_separator="."):
-        to_return = {}
-        for row in self.normal_resources:
-            to_return[row.name] = row.address
-        for row in self.subranges:
-            results = row.obj.flatten(hierarchy_separator)
-            for key, value in results.items():
-                to_return["{}{}{}".format(row.name, hierarchy_separator, key)] = row.address.translate(value)
-        if self.top:
-            return {k: self.own_offset.translate(v) for k, v in to_return.items()}
-        else:
-            return to_return
-
-    def find_recursive(self, obj):
+    def find_recursive(self, obj, go_up=False):
         """
         Searches recursively for the given object and returns the associated address.
         If the object is not found, None is returned
+        :param go_up: Determine if we should search upwards in the hierarchy if we are not the top memorymap
         :rtype: Address
         :param obj: the object to look for
         """
 
-        for row in self.normal_resources:
-            if row.obj is obj:
+        if go_up:
+            return self.top_memorymap.find_recursive(obj, go_up=False)
+
+        for row in self.direct_children:
+            if row.obj is obj or row is obj:
                 return self.own_offset.translate(row.address)
 
         for row in self.subranges:
@@ -323,3 +354,17 @@ class MemoryMap(MustUse):
                 return sub_result
 
         return None
+
+    @property
+    def flattened(self):
+        to_return = {}
+        for row in self.direct_children:
+            to_return[(*self.path, row.name)] = self.find_recursive(row, go_up=True)
+        for name, obj in self.aliases.items():
+            to_return[(*self.path, name)] = self.find_recursive(obj, go_up=True)
+        for name, method in self.driver_methods.items():
+            to_return[(*self.path, name)] = method
+        for row in self.subranges:
+            to_return.update(row.obj.flattened)
+
+        return to_return

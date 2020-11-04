@@ -27,7 +27,7 @@ class CsrBank(Elaboratable):
         def handle_read(m, addr, data, read_done):
             for iter_addr in range(0, self.memorymap.byte_len + 1, self.memorymap.bus_word_width_bytes):
                 with m.If(iter_addr == addr):
-                    for row in self.memorymap.normal_resources:
+                    for row in self.memorymap.direct_children:
                         bits_of_word = row.address.bits_of_word(iter_addr)
                         if bits_of_word:
                             word_range, signal_range = bits_of_word
@@ -46,7 +46,7 @@ class CsrBank(Elaboratable):
             handled = Signal()
             for iter_addr in range(0, self.memorymap.byte_len + 1, self.memorymap.bus_word_width_bytes):
                 with m.If(iter_addr == addr):
-                    for row in self.memorymap.normal_resources:
+                    for row in self.memorymap.direct_children:
                         bits_of_word = row.address.bits_of_word(iter_addr)
                         if bits_of_word and row.writable:
                             word_range, signal_range = bits_of_word

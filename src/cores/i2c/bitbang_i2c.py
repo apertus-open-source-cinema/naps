@@ -15,7 +15,7 @@ class BitbangI2c(Elaboratable):
         m.submodules.mmio_gpio = self.mmio_gpio
 
         overlay_content = """
-            %overlay_name": i2c@0 {
+            %overlay_name%: i2c@0 {
                 compatible = "i2c-gpio";
                 sda-gpios = <&%mmio_gpio% 1 6>;
                 scl-gpios = <&%mmio_gpio% 0 6>;

@@ -44,7 +44,7 @@ class TestHdmi(unittest.TestCase):
         def testbench():
             axi = platform.axi_lite_master
             memorymap = platform.memorymap
-            for name, addr in memorymap.flatten().items():
+            for name, addr in memorymap.flattened.items():
                 print(name, addr)
                 yield from axil_read(axi, addr.address)
                 yield from axil_write(axi, addr.address, testdata)

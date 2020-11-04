@@ -1,8 +1,10 @@
 from nmigen import *
+from nmigen.hdl.ast import Rose
 
 from cores.csr_bank import StatusSignal
 from cores.primitives.xilinx_s7.clocking import Mmcm
 from cores.primitives.xilinx_s7.io import Iserdes
+from nmigen.lib.cdc import FFSynchronizer
 
 
 class HispiPhy(Elaboratable):
@@ -34,7 +36,7 @@ class HispiPhy(Elaboratable):
         for i in range(0, len(self.hispi_lanes)):
             iserdes = m.submodules["hispi_iserdes_" + str(i)] = Iserdes(
                 data_width=6,
-                data_rate="ddr",
+                data_rate="DDR",
                 serdes_mode="master",
                 interface_type="networking",
                 num_ce=1,
@@ -48,26 +50,42 @@ class HispiPhy(Elaboratable):
             m.d.comb += iserdes.rst.eq(ResetSignal("hispi_x6"))
             m.d.comb += iserdes.clkdiv.eq(ClockSignal("hispi_x2"))
 
-            real_bitslip = Signal()
-            with m.If(self.bitslip[i]):
-                m.d.hispi += real_bitslip.eq(~real_bitslip)
+            data = Signal(12)
+            iserdes_output = Cat(iserdes.q[j] for j in range(1, 7))
+            lower_upper_half = Signal()
+            m.d.hispi_x2 += lower_upper_half.eq(~lower_upper_half)
+            with m.If(lower_upper_half):
+                m.d.hispi_x2 += data[6:12].eq(iserdes_output)
+            with m.Else():
+                m.d.hispi_x2 += data[0:6].eq(iserdes_output)
 
-            m.d.comb += iserdes.bitslip.eq(self.bitslip[i] & real_bitslip)
+            data_in_hispi_domain = Signal(12)
+            m.submodules["data_cdc_{}".format(i)] = FFSynchronizer(data, data_in_hispi_domain, o_domain="hispi")
 
-            iserdes_output = Cat(iserdes.q[j] for j in reversed(range(1, 7)))
-            # iserdes_output = Cat(iserdes.q[j] for j in range(1, 7))
-            with m.FSM(domain="hispi_x2"):
-                with m.State("lower"):
-                    m.d.hispi_x2 += self.out[i][0:6].eq(iserdes_output)
-                    with m.If(real_bitslip & self.bitslip[i]):
-                        m.next = "lower"
-                    with m.Else():
-                        m.next = "upper"
-                with m.State("upper"):
-                    m.d.hispi_x2 += self.out[i][6:12].eq(iserdes_output)
-                    with m.If(real_bitslip & self.bitslip[i]):
-                        m.next = "upper"
-                    with m.Else():
-                        m.next = "lower"
+            bitslip = Signal()
+            was_bitslip = Signal()
+            m.d.hispi += was_bitslip.eq(bitslip)
+            with m.If(self.bitslip[i] & ~was_bitslip):
+                m.d.hispi += bitslip.eq(1)
+            with m.Else():
+                m.d.hispi += bitslip.eq(0)
+
+            iserdes_or_emulated_bitslip = Signal()
+            with m.If(bitslip):
+                m.d.hispi += iserdes_or_emulated_bitslip.eq(~iserdes_or_emulated_bitslip)
+
+            m.d.comb += iserdes.bitslip.eq(bitslip & iserdes_or_emulated_bitslip)
+
+            order = Signal()
+            with m.If(bitslip & ~iserdes_or_emulated_bitslip):
+                m.d.hispi += order.eq(~order)
+
+            with m.If(order):
+                m.d.hispi += self.out[i].eq(Cat(data_in_hispi_domain[0:6], data_in_hispi_domain[6:12]))
+            with m.Else():
+                m.d.hispi += self.out[i].eq(Cat(data_in_hispi_domain[6:12], data_in_hispi_domain[0:6]))
+            out_status_signal = StatusSignal(12, name="out_{}".format(i))
+            setattr(self, "out_{}".format(i), out_status_signal)
+            m.d.comb += out_status_signal.eq(data_in_hispi_domain)
 
         return m

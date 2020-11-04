@@ -40,6 +40,7 @@ class FatbitstreamContext:
             build_name, self._platform.__class__.__name__, self._platform._soc_platform.__class__.__name__,
             datetime.now().strftime("%d.%b.%Y %H:%M:%S")
         ), do_quote=False)
+        builder.append_command("set -euo pipefail\n")
 
         # we create a directory for all the files we will eventually unpack to allow multiple fatbitstreams
         # to coexist in the same top directory. this is for example important when we want to load a plugin module

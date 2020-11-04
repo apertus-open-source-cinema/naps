@@ -5,7 +5,7 @@ from cores.hispi.s7_phy import HispiPhy
 from cores.stream.combiner import StreamCombiner
 from util.stream import StreamEndpoint
 
-# those are only the starts of the patterns; they are expanded to the length of the byte
+# those are only the starts of the patterns; they are expanded to the length of the word
 from util.nmigen_misc import delay_by, ends_with
 
 control_words = {
@@ -73,9 +73,9 @@ class LaneManager(Elaboratable):
                 m.d.comb += self.do_bitslip.eq(1)
 
         with m.FSM():
-            for i, pattern_byte in enumerate(self.sync_pattern):
+            for i, pattern_word in enumerate(self.sync_pattern):
                 with m.State("sync{}".format(i)):
-                    with m.If(self.input_data == Const(pattern_byte, self.input_data.shape())):
+                    with m.If(self.input_data == Const(pattern_word, self.input_data.shape())):
                         if i < len(self.sync_pattern) - 1:
                             m.next = "sync{}".format(i + 1)
                         else:

@@ -37,7 +37,7 @@ class Peripheral(Elaboratable):
         self.memorymap = memorymap
 
     def range(self):
-        return self.memorymap.own_offset_normal_resources.range()
+        return self.memorymap.absolute_range_of_direct_children.range()
 
     def elaborate(self, platform):
         m = Module()

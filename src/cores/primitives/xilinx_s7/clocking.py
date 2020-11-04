@@ -93,6 +93,7 @@ class Pll(Elaboratable):
 
         frequency = self._vco.frequency / divisor
         self._clock_constraints[number] = (clock_signal, frequency)
+        print("PLL: creating domain '{}' with frequency {}Mhz".format(domain_name, frequency / 1e6))
         return Clock(frequency)
 
     def elaborate(self, platform):
@@ -189,6 +190,7 @@ class Mmcm(Elaboratable):
 
         frequency = self._vco.frequency / divisor
         self._clock_constraints[number] = (clock_signal, frequency)
+        print("MMCM: creating domain '{}' with frequency {}Mhz".format(domain_name, frequency / 1e6))
         return Clock(frequency)
 
     def elaborate(self, platform):

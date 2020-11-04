@@ -1,6 +1,5 @@
 from nmigen import *
 
-from cores.blink_debug import BlinkDebug
 from cores.jtag.jtag import JTAG
 
 

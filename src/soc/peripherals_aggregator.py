@@ -25,7 +25,7 @@ class PeripheralsAggregator:
 
     def handle_read(self, m, addr, data, read_done_callback):
         for cond, peripheral in iterator_with_if_elif(self.downstream_peripherals, m):
-            address_range = peripheral.memorymap.own_offset_normal_resources.range()
+            address_range = peripheral.memorymap.absolute_range_of_direct_children.range()
             translated_address_range = range(
                 address_range.start - self.range().start,
                 address_range.stop - self.range().start,
@@ -40,7 +40,7 @@ class PeripheralsAggregator:
 
     def handle_write(self, m, addr, data, write_done_callback):
         for cond, peripheral in iterator_with_if_elif(self.downstream_peripherals, m):
-            address_range = peripheral.memorymap.own_offset_normal_resources.range()
+            address_range = peripheral.memorymap.absolute_range_of_direct_children.range()
             translated_address_range = range(
                 address_range.start - self.range().start,
                 address_range.stop - self.range().start,

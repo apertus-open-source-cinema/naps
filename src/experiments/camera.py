@@ -5,14 +5,18 @@ import os
 from nmigen import *
 
 from cores.axi.buffer_writer import AxiBufferWriter
+from cores.debug.clocking_debug import ClockingDebug
 from cores.hispi.hispi import Hispi
+from cores.hispi.s7_phy import HispiPhy
 from cores.i2c.bitbang_i2c import BitbangI2c
 from cores.csr_bank import ControlSignal
 from cores.ring_buffer_address_storage import RingBufferAddressStorage
 from cores.hdmi.hdmi_buffer_reader import HdmiBufferReader
+from cores.stream.fifo import AsyncStreamFifo
 from devices import MicroR2Platform
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform
+from util.stream import StreamEndpoint
 
 
 class Top(Elaboratable):
@@ -21,6 +25,8 @@ class Top(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
+
+        clocking = m.submodules.clocking = ClockingDebug("sensor_clk", "hispi", "writer")
 
         i2c_pads = platform.request("i2c")
         m.submodules.i2c = BitbangI2c(i2c_pads)
@@ -33,13 +39,22 @@ class Top(Elaboratable):
         os.environ["NMIGEN_add_constraints"] = \
             "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/hispi_sensor_0__lvds_clk__i]"
 
-        ring_buffer = RingBufferAddressStorage(buffer_size=0x1200000, n=4)
+        ring_buffer = RingBufferAddressStorage(buffer_size=0x1000000, n=4)
 
         hispi = m.submodules.hispi = Hispi(sensor)
+        # phy = m.submodules.phy = HispiPhy()
+        # m.d.comb += phy.hispi_clk.eq(sensor.lvds_clk)
+        # m.d.comb += phy.hispi_lanes.eq(sensor.lvds)
+        #
+        # counter = Signal(16)
+        # m.d.hispi += counter.eq(counter + 1)
+        # hispi_phy_stream = StreamEndpoint(64, is_sink=False, has_last=True)
+        # m.d.comb += hispi_phy_stream.payload.eq(Cat(phy.out, counter))
+        # m.d.comb += hispi_phy_stream.valid.eq(1)
 
-        m.domains += ClockDomain("writer")
-        m.d.comb += ClockSignal("writer").eq(ClockSignal("hispi"))  # we omit the reset on purpose
-        buffer_writer = m.submodules.buffer_writer = DomainRenamer("writer")(AxiBufferWriter(ring_buffer, hispi.output))
+        platform.ps7.fck_domain(200e6, "writer")
+        writer_fifo = m.submodules.writer_fifo = AsyncStreamFifo(hispi.output, 2048, r_domain="writer", w_domain="hispi")
+        buffer_writer = m.submodules.buffer_writer = DomainRenamer("writer")(AxiBufferWriter(ring_buffer, writer_fifo.output))
 
         hdmi_plugin = platform.request("hdmi", "north")
         m.submodules.hdmi = HdmiBufferReader(

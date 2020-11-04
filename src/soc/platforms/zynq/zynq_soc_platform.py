@@ -25,7 +25,7 @@ class ZynqSocPlatform(SocPlatform):
         def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
             if platform.peripherals:
                 m = Module()
-                platform.ps7.fck_domain(domain_name="axi_lite", requested_frequency=100e6)
+                platform.ps7.fck_domain(domain_name="axi_lite", requested_frequency=10e6)
                 if not hasattr(platform, "is_sim"):  # we are not in a simulation platform
                     axi_full_port: AxiEndpoint = platform.ps7.get_axi_gp_master(ClockSignal("axi_lite"))
                     axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_lite")(

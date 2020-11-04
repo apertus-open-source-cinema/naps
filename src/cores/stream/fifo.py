@@ -1,5 +1,5 @@
 from nmigen import *
-from cores.stream.fifo_out_of_tree_fix import SyncFIFO, AsyncFIFO, AsyncFIFOBuffered, SyncFIFOBuffered
+from nmigen.lib.fifo import SyncFIFOBuffered, SyncFIFO, AsyncFIFOBuffered, AsyncFIFO
 
 from cores.csr_bank import StatusSignal
 from util.stream import StreamEndpoint

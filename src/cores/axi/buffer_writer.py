@@ -2,7 +2,7 @@ from nmigen import *
 
 from .axi_endpoint import AxiEndpoint, BurstType
 from cores.csr_bank import StatusSignal, ControlSignal
-from util.nmigen_misc import nMax, mul_by_pot
+from util.nmigen_misc import nMin, mul_by_pot
 from ..ring_buffer_address_storage import RingBufferAddressStorage
 from ..stream.fifo import SyncStreamFifo
 from util.stream import StreamEndpoint
@@ -59,8 +59,6 @@ class AxiBufferWriter(Elaboratable):
         self.ringbuffer = ringbuffer
         self.current_buffer = ringbuffer.current_write_buffer
 
-        self.reset = ControlSignal(reset=1)
-
         assert stream_source.is_sink is False
         assert stream_source.has_last
         self.stream_source = stream_source
@@ -78,8 +76,6 @@ class AxiBufferWriter(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-
-        m.d.comb += ResetSignal().eq(self.reset)
 
         if self.axi_slave is not None:
             assert not self.axi_slave.is_lite
@@ -115,7 +111,7 @@ class AxiBufferWriter(Elaboratable):
                 with m.If(address_generator.valid & data.valid):
                     # we are doing a full transaction
                     next_burst_length = Signal(range(self.max_burst_length + 1))
-                    m.d.comb += next_burst_length.eq(nMax(data_fifo.r_level, self.max_burst_length))
+                    m.d.comb += next_burst_length.eq(nMin(data_fifo.r_level, self.max_burst_length))
                     m.d.sync += current_burst_length_minus_one.eq(next_burst_length - 1)
                     m.d.sync += address_generator.inc.eq(mul_by_pot(next_burst_length, axi.data_bytes))
                     m.next = "ADDRESS"

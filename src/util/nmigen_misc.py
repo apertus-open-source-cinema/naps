@@ -85,7 +85,7 @@ def mul_by_pot(x, constant_multiplier_is_pot):
     return x << log2(constant_multiplier_is_pot)
 
 
-def nMax(a, b):
+def nMin(a, b):
     return Mux(a < b, a, b)
 
 

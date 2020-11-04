@@ -22,6 +22,7 @@ from util.stream import StreamEndpoint
 class Top(Elaboratable):
     def __init__(self):
         self.sensor_reset_n = ControlSignal(name='sensor_reset', reset=1)
+        self.writer_reset = ControlSignal(reset=1)
 
     def elaborate(self, platform):
         m = Module()
@@ -53,6 +54,7 @@ class Top(Elaboratable):
         # m.d.comb += hispi_phy_stream.valid.eq(1)
 
         platform.ps7.fck_domain(200e6, "writer")
+        m.d.comb += ResetSignal("writer").eq(self.writer_reset)
         writer_fifo = m.submodules.writer_fifo = AsyncStreamFifo(hispi.output, 2048, r_domain="writer", w_domain="hispi")
         buffer_writer = m.submodules.buffer_writer = DomainRenamer("writer")(AxiBufferWriter(ring_buffer, writer_fifo.output))
 

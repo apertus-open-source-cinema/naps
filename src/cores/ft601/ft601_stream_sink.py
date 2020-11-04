@@ -63,7 +63,7 @@ class FT601StreamSink(Elaboratable):
         # we use two fifos here as a performance optimization because (i guess) large async fifos are bad for fmax
         # TODO: verify hypothesis
         cdc_fifo = m.submodules.cdc_fifo = AsyncStreamFifo(self.input_stream, self.async_fifo_depth, w_domain="sync", r_domain="ft601", buffered=True)
-        buffer_fifo_depth = (self.begin_transactions_at_level + 1 - self.async_fifo_depth)
+        buffer_fifo_depth = (self.begin_transactions_at_level + 2 - self.async_fifo_depth)
         buffer_fifo = m.submodules.buffer_fifo = DomainRenamer("ft601")(SyncStreamFifo(cdc_fifo.output, buffer_fifo_depth, buffered=True))
         save_to_begin_new_transaction = Signal()
         m.d.comb += save_to_begin_new_transaction.eq((buffer_fifo.r_level + cdc_fifo.r_level) >= self.begin_transactions_at_level)

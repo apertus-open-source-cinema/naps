@@ -16,6 +16,7 @@ from cores.stream.fifo import AsyncStreamFifo
 from devices import MicroR2Platform
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform
+from soc.pydriver.drivermethod import driver_method
 from util.stream import StreamEndpoint
 
 
@@ -43,28 +44,43 @@ class Top(Elaboratable):
         ring_buffer = RingBufferAddressStorage(buffer_size=0x1000000, n=4)
 
         hispi = m.submodules.hispi = Hispi(sensor)
-        # phy = m.submodules.phy = HispiPhy()
-        # m.d.comb += phy.hispi_clk.eq(sensor.lvds_clk)
-        # m.d.comb += phy.hispi_lanes.eq(sensor.lvds)
-        #
-        # counter = Signal(16)
-        # m.d.hispi += counter.eq(counter + 1)
-        # hispi_phy_stream = StreamEndpoint(64, is_sink=False, has_last=True)
-        # m.d.comb += hispi_phy_stream.payload.eq(Cat(phy.out, counter))
-        # m.d.comb += hispi_phy_stream.valid.eq(1)
+
+        counter = Signal(16)
+        m.d.hispi += counter.eq(counter + 1)
+        hispi_phy_stream = StreamEndpoint(64, is_sink=False, has_last=True)
+        m.d.comb += hispi_phy_stream.payload.eq(Cat(hispi.phy.out, counter))
+        m.d.comb += hispi_phy_stream.valid.eq(1)
 
         platform.ps7.fck_domain(200e6, "writer")
         m.d.comb += ResetSignal("writer").eq(self.writer_reset)
-        writer_fifo = m.submodules.writer_fifo = AsyncStreamFifo(hispi.output, 2048, r_domain="writer", w_domain="hispi")
+        writer_fifo = m.submodules.writer_fifo = AsyncStreamFifo(hispi_phy_stream, 2048, r_domain="writer", w_domain="hispi")
         buffer_writer = m.submodules.buffer_writer = DomainRenamer("writer")(AxiBufferWriter(ring_buffer, writer_fifo.output))
 
-        hdmi_plugin = platform.request("hdmi", "north")
-        m.submodules.hdmi = HdmiBufferReader(
-            ring_buffer, hdmi_plugin,
-            modeline='Modeline "Mode 1" 148.500 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync'
-        )
+        # hdmi_plugin = platform.request("hdmi", "north")
+        # m.submodules.hdmi = HdmiBufferReader(
+        #     ring_buffer, hdmi_plugin,
+        #     modeline='Modeline "Mode 1" 148.500 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync'
+        # )
 
         return m
+
+    @driver_method
+    def dump_buffer(self):
+        self.writer_reset = 1
+        self.writer_reset = 0
+        enable_bitslip = self.hispi.phy.enable_bitslip
+        self.hispi.phy.enable_bitslip = 0
+        from time import sleep
+        sleep(0.1)
+        from os import system
+        system("sudo dd if=/dev/mem bs=4096 skip=260046848 count=16777216 iflag=skip_bytes,count_bytes of=buffer.out")
+        self.hispi.phy.enable_bitslip = enable_bitslip
+
+
+    @driver_method
+    def kick_camera(self):
+        from os import system
+        system("cat /axiom-api/scripts/kick/value")
 
 
 if __name__ == "__main__":

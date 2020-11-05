@@ -26,6 +26,7 @@ class TestHispi(unittest.TestCase):
             def lane_n_generator(n):
                 with lzma.open(join(dirname(__file__), datafile), "r") as f:
                     for line in f:
+                        line = line.replace(b" ", b"")
                         for i in range(12):
                             val = "0" if line[i + (n * 12)] == ord("0") else "1"
                             yield val
@@ -33,7 +34,7 @@ class TestHispi(unittest.TestCase):
             generator = lane_n_generator(0)
             last_valid = 0
             line_ctr = 0
-            for i in range(100000):
+            for i in range(200000):
                 try:
                     if (yield dut.do_bitslip):
                         next(generator)
@@ -50,11 +51,10 @@ class TestHispi(unittest.TestCase):
                     line_ctr += 1
                 elif (last_valid == 1) and ((yield dut.output.valid) == 0):
                     last_valid = 0
-                    print((line_ctr + 1) * 4)
-                    #assert (line_ctr + 1) * 4 == 2304
+                    assert (line_ctr + 1) * 4 == 2304
 
                 yield
-            assert (yield dut.is_aligned) == 1
+            assert (yield dut.is_aligned) == 1, "dut is not aligned"
 
         platform.add_sim_clock("sync", 100e6)
         platform.sim(dut, testbench)

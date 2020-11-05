@@ -33,7 +33,7 @@ class LaneManager(Elaboratable):
 
         self.is_aligned = StatusSignal()
 
-        self.timeout = ControlSignal(32, reset=2000)
+        self.timeout = ControlSignal(32, reset=10000)
         self.timeouts_to_resync = ControlSignal(32, reset=10000)
         self.since_last_sync_pattern_or_bitslip = StatusSignal(32)
         self.performed_bitslips = StatusSignal(32)
@@ -129,11 +129,12 @@ class Hispi(Elaboratable):
         self.bits = bits
 
         self.output = StreamEndpoint(len(self.lvds) * bits, is_sink=False, has_last=True)
+        self.phy = HispiPhy(num_lanes=self.lanes, bits=self.bits)
 
     def elaborate(self, platform):
         m = Module()
 
-        phy = m.submodules.phy = HispiPhy(num_lanes=self.lanes, bits=self.bits)
+        phy = m.submodules.phy = self.phy
         m.d.comb += phy.hispi_clk.eq(self.lvds_clk)
         m.d.comb += phy.hispi_lanes.eq(self.lvds)
 

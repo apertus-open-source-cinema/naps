@@ -135,11 +135,13 @@ class TimingGenerator(Elaboratable):
         self.vsync_start = ControlSignal(vertical_signals_shape, reset=video_timing.vsync_start)
         self.vsync_end = ControlSignal(vertical_signals_shape, reset=video_timing.vsync_end)
 
-        self.x = StatusSignal(horizontal_signals_shape, name="x")
-        self.y = StatusSignal(vertical_signals_shape, name="y")
-        self.active = StatusSignal(name="active")
-        self.hsync = StatusSignal(name="hsync")
-        self.vsync = StatusSignal(name="vsync")
+        self.x = StatusSignal(horizontal_signals_shape,)
+        self.y = StatusSignal(vertical_signals_shape)
+        self.active = StatusSignal()
+        self.blanking_x = StatusSignal()
+        self.blanking_y = StatusSignal()
+        self.hsync = StatusSignal()
+        self.vsync = StatusSignal()
 
     def elaborate(self, plat):
         m = Module()
@@ -155,6 +157,8 @@ class TimingGenerator(Elaboratable):
                 m.d.sync += self.y.eq(0)
 
         m.d.comb += [
+            self.blanking_x.eq(self.x >= self.width),
+            self.blanking_y.eq(self.y >= self.height),
             self.active.eq((self.x < self.width) & (self.y < self.height)),
             self.hsync.eq((self.x >= self.hsync_start) & (self.x < self.hsync_end)),
             self.vsync.eq((self.y >= self.vsync_start) & (self.y < self.vsync_end))

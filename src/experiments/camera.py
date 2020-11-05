@@ -6,6 +6,7 @@ from nmigen import *
 
 from cores.axi.buffer_writer import AxiBufferWriter
 from cores.debug.clocking_debug import ClockingDebug
+from cores.hdmi.cvt_python import generate_modeline
 from cores.hispi.hispi import Hispi
 from cores.hispi.s7_phy import HispiPhy
 from cores.i2c.bitbang_i2c import BitbangI2c
@@ -28,7 +29,7 @@ class Top(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        clocking = m.submodules.clocking = ClockingDebug("sensor_clk", "hispi", "writer")
+        clocking = m.submodules.clocking = ClockingDebug("sensor_clk", "hispi", "axi_hp")
 
         i2c_pads = platform.request("i2c")
         m.submodules.i2c = BitbangI2c(i2c_pads)
@@ -45,22 +46,19 @@ class Top(Elaboratable):
 
         hispi = m.submodules.hispi = Hispi(sensor)
 
-        counter = Signal(16)
-        m.d.hispi += counter.eq(counter + 1)
-        hispi_phy_stream = StreamEndpoint(64, is_sink=False, has_last=True)
-        m.d.comb += hispi_phy_stream.payload.eq(Cat(hispi.phy.out, counter))
-        m.d.comb += hispi_phy_stream.valid.eq(1)
+        platform.ps7.fck_domain(200e6, "axi_hp")
 
-        platform.ps7.fck_domain(200e6, "writer")
+        m.domains += ClockDomain("writer")
+        m.d.comb += ClockSignal("writer").eq(ClockSignal("axi_hp"))
         m.d.comb += ResetSignal("writer").eq(self.writer_reset)
-        writer_fifo = m.submodules.writer_fifo = AsyncStreamFifo(hispi_phy_stream, 2048, r_domain="writer", w_domain="hispi")
+        writer_fifo = m.submodules.writer_fifo = AsyncStreamFifo(hispi.output, 2048, r_domain="writer", w_domain="hispi")
         buffer_writer = m.submodules.buffer_writer = DomainRenamer("writer")(AxiBufferWriter(ring_buffer, writer_fifo.output))
 
-        # hdmi_plugin = platform.request("hdmi", "north")
-        # m.submodules.hdmi = HdmiBufferReader(
-        #     ring_buffer, hdmi_plugin,
-        #     modeline='Modeline "Mode 1" 148.500 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync'
-        # )
+        hdmi_plugin = platform.request("hdmi", "north")
+        m.submodules.hdmi = HdmiBufferReader(
+            ring_buffer, hdmi_plugin,
+            modeline=generate_modeline(1280, 720, 60)
+        )
 
         return m
 

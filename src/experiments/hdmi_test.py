@@ -1,7 +1,10 @@
-# Test HDMI using a given modeline
+# Test HDMI output using a given modeline by displaying a solid (adjustable) color
 
 from nmigen import *
 
+from cores.csr_bank import ControlSignal
+from cores.debug.clocking_debug import ClockingDebug
+from cores.hdmi.cvt_python import generate_modeline
 from cores.hdmi.hdmi import Hdmi
 from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
 from soc.cli import cli
@@ -9,11 +12,22 @@ from soc.platforms.zynq import ZynqSocPlatform
 
 
 class Top(Elaboratable):
+    def __init__(self):
+        self.r = ControlSignal(8, reset=0xFA)
+        self.g = ControlSignal(8, reset=0x87)
+        self.b = ControlSignal(8, reset=0x56)
+
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
 
         hdmi_plugin = platform.request("hdmi", "north")
-        m.submodules.hdmi = Hdmi(hdmi_plugin, modeline='Modeline "Mode 1" 148.500 1920 2008 2052 2200 1080 1084 1089 1125 +hsync +vsync')
+        hdmi = m.submodules.hdmi = Hdmi(hdmi_plugin, generate_modeline(1920, 1080, 60))
+
+        clocking_debug = m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x")
+        
+        m.d.comb += hdmi.rgb.r.eq(self.r)
+        m.d.comb += hdmi.rgb.g.eq(self.g)
+        m.d.comb += hdmi.rgb.b.eq(self.b)
 
         return m
 

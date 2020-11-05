@@ -1,6 +1,3 @@
-# TODO: figure out api
-# TODO: implement
-
 from nmigen import *
 
 from cores.csr_bank import StatusSignal
@@ -44,12 +41,12 @@ class AxiBufferReader(Elaboratable):
         assert len(address_stream.payload) == axi.addr_bits
 
         # we dont generate bursts for now
-        m.d.comb += axi.read_address.valid.eq(address_stream.valid)
+        m.d.comb += axi.read_address.valid.eq(address_stream.valid & self.output.ready)
         m.d.comb += axi.read_address.value.eq(address_stream.payload)
         m.d.comb += address_stream.ready.eq(axi.read_address.ready)
         m.d.comb += axi.read_address.burst_len.eq(0)
 
-        m.d.comb += axi.read_data.ready.eq(self.output.ready)
+        m.d.comb += axi.read_data.ready.eq(self.output.ready)  # TODO: this does not really work as a handling
         m.d.comb += axi.read_data.last.eq(1)
         m.d.comb += self.output.valid.eq(axi.read_data.valid)
         m.d.comb += self.output.payload.eq(axi.read_data.value)

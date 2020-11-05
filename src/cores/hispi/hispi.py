@@ -111,9 +111,6 @@ class LaneManager(Elaboratable):
                             control_words["END_OF_ACTIVE_FRAME"], control_words["END_OF_ACTIVE_LINE"])):
             m.d.sync += delayed_valid.eq(0)
 
-        with m.If(ends_with(self.last_control_word, control_words["END_OF_ACTIVE_FRAME"])):
-            m.d.comb += self.output.last.eq(1)
-
         m.d.comb += self.output.payload.eq(delayed_data)
         m.d.comb += self.output.valid.eq(delayed_valid)
         m.d.comb += self.output.last.eq(ends_with(self.last_control_word, control_words["END_OF_ACTIVE_FRAME"]))
@@ -127,6 +124,9 @@ class Hispi(Elaboratable):
         self.lvds = sensor.lvds
         self.lanes = len(self.lvds)
         self.bits = bits
+
+        self.width = StatusSignal(range(10000))
+        self.height = StatusSignal(range(10000))
 
         self.output = StreamEndpoint(len(self.lvds) * bits, is_sink=False, has_last=True)
         self.phy = HispiPhy(num_lanes=self.lanes, bits=self.bits)
@@ -142,15 +142,25 @@ class Hispi(Elaboratable):
         for i, lane in enumerate(phy.out):
             lane_manager = m.submodules["lane_manager_{}".format(i)] = DomainRenamer("hispi")(LaneManager(lane))
 
-            # bitslip is synchronous to CLKDIV = hispi_2x
-            # m.d.comb += phy.bitslip[i].eq(lane_manager.do_bitslip)
-            with m.If(phy.bitslip[i]):
-                m.d.hispi_x2 += phy.bitslip[i].eq(0)
-            with m.Elif(lane_manager.do_bitslip):
-                m.d.hispi_x2 += phy.bitslip[i].eq(1)
+            m.d.comb += phy.bitslip[i].eq(lane_manager.do_bitslip)
 
             m.d.comb += self.output.payload[i * self.bits: (i + 1) * self.bits].eq(lane_manager.input_data)
             streams.append(lane_manager.output)
+
+            if i == 0:
+                was_valid = Signal()
+                m.d.hispi += was_valid.eq(lane_manager.output.valid)
+                with_counter = Signal.like(self.width)
+                height_counter = Signal.like(self.height)
+                with m.If(lane_manager.output.valid):
+                    m.d.hispi += with_counter.eq(with_counter + 1)
+                with m.Elif(was_valid):
+                    m.d.hispi += self.width.eq(with_counter * self.lanes)
+                    m.d.hispi += with_counter.eq(0)
+                    m.d.hispi += height_counter.eq(height_counter + 1)
+                with m.If(lane_manager.output.last & (height_counter > 10)):
+                    m.d.hispi += self.height.eq(height_counter)
+                    m.d.hispi += height_counter.eq(0)
 
         stream_combiner = m.submodules.stream_combiner = DomainRenamer("hispi")(StreamCombiner(streams))
         m.d.comb += self.output.connect(stream_combiner.output, allow_back_to_back=True)

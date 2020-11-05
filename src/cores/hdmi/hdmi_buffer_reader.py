@@ -1,9 +1,12 @@
 from nmigen import *
+from nmigen.hdl.ast import Rose
+from nmigen.lib.cdc import FFSynchronizer
 
 from cores.axi.buffer_reader import AxiBufferReader
 from cores.csr_bank import ControlSignal, StatusSignal
 from cores.hdmi.hdmi import Hdmi
 from cores.ring_buffer_address_storage import RingBufferAddressStorage
+from cores.stream.fifo import AsyncStreamFifo
 from util.stream import StreamEndpoint
 from util.nmigen_misc import log2
 
@@ -17,6 +20,8 @@ class AddressGenerator(Elaboratable):
         self.next_frame = Signal()
         self.line_words_total = ControlSignal(32, reset=2304 // 4)
         self.line_words_read = StatusSignal(32)
+        self.read_buffer = StatusSignal(ringbuffer.current_write_buffer.shape())
+        self.frames_read = StatusSignal(32)
 
         self.ringbuffer = ringbuffer
         self.address_width = address_width
@@ -40,14 +45,16 @@ class AddressGenerator(Elaboratable):
                 m.d.sync += self.output.payload.eq(line_base + self.line_words_total)
                 m.d.sync += line_base.eq(line_base + self.line_words_total)
 
-        with m.If(self.next_frame):
-            read_buffer = Signal.like(self.ringbuffer.current_write_buffer)
+        last_next_frame = Signal()
+        m.d.sync += last_next_frame.eq(self.next_frame)
+        with m.If(self.next_frame & ~last_next_frame):
+            m.d.sync += self.frames_read.eq(self.frames_read + 1)
             with m.If(self.ringbuffer.current_write_buffer == 0):
-                m.d.comb += read_buffer.eq(len(self.ringbuffer.buffer_base_list) - 1)
+                m.d.comb += self.read_buffer.eq(len(self.ringbuffer.buffer_base_list) - 1)
             with m.Else():
-                m.d.comb += read_buffer.eq(self.ringbuffer.current_write_buffer - 1)
-            m.d.sync += self.output.payload.eq(self.ringbuffer.buffer_base_list[read_buffer])
-            m.d.sync += line_base.eq(self.ringbuffer.buffer_base_list[read_buffer])
+                m.d.comb += self.read_buffer.eq(self.ringbuffer.current_write_buffer - 1)
+            m.d.sync += self.output.payload.eq(self.ringbuffer.buffer_base_list[self.read_buffer])
+            m.d.sync += line_base.eq(self.ringbuffer.buffer_base_list[self.read_buffer])
 
         return m
 
@@ -63,26 +70,34 @@ class HdmiBufferReader(Elaboratable):
 
         hdmi = m.submodules.hdmi = Hdmi(self.hdmi_plugin, self.modeline)
 
-        in_pix_domain = DomainRenamer("pix")
-
-        addr_gen = m.submodules.addr_gen = in_pix_domain(AddressGenerator(self.ring_buffer))
-        m.d.comb += addr_gen.next_frame.eq(hdmi.timing_generator.vsync)
+        addr_gen = m.submodules.addr_gen = DomainRenamer("axi_hp")(AddressGenerator(self.ring_buffer))
         m.d.comb += addr_gen.line_words_read.eq(hdmi.timing_generator.width)
+        m.submodules.next_frame_sync = FFSynchronizer(i=hdmi.timing_generator.blanking_y, o=addr_gen.next_frame, o_domain="axi_hp")
+        reader = m.submodules.reader = DomainRenamer("axi_hp")(AxiBufferReader(addr_gen.output))
 
-        reader = m.submodules.reader = in_pix_domain(AxiBufferReader(addr_gen.output))
-        output = StreamEndpoint.like(reader.output, is_sink=True, name="hdmi_reader_output_sink")
-        m.d.comb += output.connect(reader.output)
+        m.domains += ClockDomain("buffer_reader_fifo")
+        m.d.comb += ClockSignal("buffer_reader_fifo").eq(ClockSignal("axi_hp"))
+        last_blanking_y = Signal()
+        m.d.pix += last_blanking_y.eq(hdmi.timing_generator.blanking_y)
+        m.d.comb += ResetSignal("buffer_reader_fifo").eq(hdmi.timing_generator.blanking_y & ~last_blanking_y)
+        pixel_fifo = m.submodules.pixel_fifo = AsyncStreamFifo(reader.output, depth=128, w_domain="buffer_reader_fifo", r_domain="pix")
 
+        output = StreamEndpoint.like(pixel_fifo.output, is_sink=True, name="hdmi_reader_output_sink")
+        m.d.comb += output.connect(pixel_fifo.output)
+
+        value = Signal(12)
         ctr = Signal(range(4))
-        with m.If(ctr == 3):
-            m.d.comb += output.ready.eq(1)
-            m.d.pix += ctr.eq(0)
+        with m.If(hdmi.timing_generator.active):
+            with m.If(ctr == 3):
+                m.d.comb += output.ready.eq(1)
+                m.d.pix += ctr.eq(0)
+            with m.Else():
+                m.d.pix += ctr.eq(ctr + 1)
+            for i in range(4):
+                with m.If(ctr == i):
+                    m.d.comb += value.eq(output.payload[i * 12:i * 12 + 12])
         with m.Else():
-            m.d.pix += ctr.eq(ctr + 1)
-        value = Signal(8)
-        for i in range(4):
-            with m.If(ctr == i):
-                m.d.comb += value.eq(output.payload[i * 12:i * 12 + 8])
+            m.d.pix += ctr.eq(0)
 
         m.d.comb += hdmi.rgb.r.eq(value)
         m.d.comb += hdmi.rgb.g.eq(value)

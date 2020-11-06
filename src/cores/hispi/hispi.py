@@ -3,6 +3,7 @@ from nmigen import *
 from cores.csr_bank import StatusSignal, ControlSignal
 from cores.hispi.s7_phy import HispiPhy
 from cores.stream.combiner import StreamCombiner
+from soc.pydriver.drivermethod import driver_property
 from util.stream import StreamEndpoint
 
 # those are only the starts of the patterns; they are expanded to the length of the word
@@ -127,6 +128,7 @@ class Hispi(Elaboratable):
 
         self.width = StatusSignal(range(10000))
         self.height = StatusSignal(range(10000))
+        self.frame_count = StatusSignal(32)
 
         self.output = StreamEndpoint(len(self.lvds) * bits, is_sink=False, has_last=True)
         self.phy = HispiPhy(num_lanes=self.lanes, bits=self.bits)
@@ -159,6 +161,7 @@ class Hispi(Elaboratable):
                     m.d.hispi += with_counter.eq(0)
                     m.d.hispi += height_counter.eq(height_counter + 1)
                 with m.If(lane_manager.output.last & (height_counter > 10)):
+                    m.d.hispi += self.frame_count.eq(self.frame_count + 1)
                     m.d.hispi += self.height.eq(height_counter)
                     m.d.hispi += height_counter.eq(0)
 
@@ -166,3 +169,10 @@ class Hispi(Elaboratable):
         m.d.comb += self.output.connect(stream_combiner.output, allow_back_to_back=True)
 
         return m
+
+    @driver_property
+    def fps(self):
+        from time import sleep
+        start_frames = self.frame_count
+        sleep(1)
+        return self.frame_count - start_frames

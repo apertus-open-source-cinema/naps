@@ -17,8 +17,8 @@ class Hdmi(Elaboratable):
     def __init__(self, plugin, modeline, generate_clocks=True):
         self.plugin = plugin
         self.generate_clocks = generate_clocks
-        video_timing = parse_modeline(modeline)
-        self.pix_freq = Clock(video_timing.pxclk * 1e6)
+        self.initial_video_timing = parse_modeline(modeline)
+        self.pix_freq = Clock(self.initial_video_timing.pxclk * 1e6)
 
         self.rgb = Rgb()
 
@@ -27,7 +27,7 @@ class Hdmi(Elaboratable):
 
         self.clock_pattern = ControlSignal(10, name="hdmi_clock_pattern", reset=0b1111100000)
 
-        self.timing_generator = TimingGenerator(video_timing)
+        self.timing_generator = TimingGenerator(self.initial_video_timing)
 
     def elaborate(self, platform):
         m = Module()
@@ -138,8 +138,8 @@ class TimingGenerator(Elaboratable):
         self.x = StatusSignal(horizontal_signals_shape,)
         self.y = StatusSignal(vertical_signals_shape)
         self.active = StatusSignal()
-        self.blanking_x = StatusSignal()
-        self.blanking_y = StatusSignal()
+        self.is_blanking_x = StatusSignal()
+        self.is_blanking_y = StatusSignal()
         self.hsync = StatusSignal()
         self.vsync = StatusSignal()
 
@@ -157,8 +157,8 @@ class TimingGenerator(Elaboratable):
                 m.d.sync += self.y.eq(0)
 
         m.d.comb += [
-            self.blanking_x.eq(self.x >= self.width),
-            self.blanking_y.eq(self.y >= self.height),
+            self.is_blanking_x.eq(self.x >= self.width),
+            self.is_blanking_y.eq(self.y >= self.height),
             self.active.eq((self.x < self.width) & (self.y < self.height)),
             self.hsync.eq((self.x >= self.hsync_start) & (self.x < self.hsync_end)),
             self.vsync.eq((self.y >= self.vsync_start) & (self.y < self.vsync_end))

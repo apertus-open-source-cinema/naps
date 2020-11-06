@@ -176,6 +176,10 @@ class PS7(Elaboratable):
         for base in [0xF8008000, 0xF8009000, 0xF800A000, 0xF800B000]:
             fc.init_commands.append("devmem2 0x{:x} w 0".format(base))
             fc.init_commands.append("devmem2 0x{:x} w 0xF00".format(base + 0x14))
+        fc.init_commands.append("# set urgent to all axi hp slaves")
+        fc.init_commands.append("devmem2 0xF8000600 w 0xcc")
+
+
         fc.init_commands.append("\n")
 
         return m

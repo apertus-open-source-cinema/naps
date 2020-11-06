@@ -55,7 +55,7 @@ class Top(Elaboratable):
         hdmi_plugin = platform.request("hdmi", "north")
         m.submodules.hdmi_buffer_reader = HdmiBufferReader(
             ring_buffer, hdmi_plugin,
-            modeline=generate_modeline(1280, 720, 30)
+            modeline=generate_modeline(1920, 1080, 30)
         )
 
         return m

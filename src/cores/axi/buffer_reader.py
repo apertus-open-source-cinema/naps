@@ -23,6 +23,7 @@ class AxiBufferReader(Elaboratable):
         self.outstanding = StatusSignal(32)
         self.state = StatusSignal(2)
         self.allow_flush = ControlSignal()
+        self.force_flush = ControlSignal()
         self.limit_outstanding = ControlSignal()
         self.max_outstanding = ControlSignal(32, reset=2048)
 
@@ -47,38 +48,41 @@ class AxiBufferReader(Elaboratable):
         m.d.comb += address_stream.connect(self.address_source)
         assert len(address_stream.payload) == axi.addr_bits
 
-        with m.FSM():
-            def common():
-                m.d.comb += axi.read_address.valid.eq(address_stream.valid)
-                m.d.comb += axi.read_address.value.eq(address_stream.payload)
-                m.d.comb += address_stream.ready.eq(axi.read_address.ready)
-                m.d.comb += axi.read_address.burst_len.eq(0)  # we dont generate bursts
+        with m.If(self.force_flush):
+            m.d.comb += axi.read_data.ready.eq(1)
+        with m.Else():
+            with m.FSM():
+                def common():
+                    m.d.comb += axi.read_address.valid.eq(address_stream.valid)
+                    m.d.comb += axi.read_address.value.eq(address_stream.payload)
+                    m.d.comb += address_stream.ready.eq(axi.read_address.ready)
+                    m.d.comb += axi.read_address.burst_len.eq(0)  # we dont generate bursts
 
-                m.d.comb += axi.read_data.ready.eq(self.output.ready)
-                m.d.comb += self.output.valid.eq(axi.read_data.valid)
-                m.d.comb += self.output.payload.eq(axi.read_data.value)
+                    m.d.comb += axi.read_data.ready.eq(self.output.ready)
+                    m.d.comb += self.output.valid.eq(axi.read_data.valid)
+                    m.d.comb += self.output.payload.eq(axi.read_data.value)
 
-                with m.If(self.flush & (self.outstanding > 1) & self.allow_flush):
-                    m.next = "flush"
+                    with m.If(self.flush & (self.outstanding > 1) & self.allow_flush):
+                        m.next = "flush"
 
-            with m.State("normal"):
-                m.d.comb += self.state.eq(0)
-                common()
-                with m.If((self.outstanding >= self.max_outstanding) & self.limit_outstanding):
-                    m.next = "limit_outstanding"
+                with m.State("normal"):
+                    m.d.comb += self.state.eq(0)
+                    common()
+                    with m.If((self.outstanding >= self.max_outstanding) & self.limit_outstanding):
+                        m.next = "limit_outstanding"
 
-            with m.State("limit_outstanding"):
-                m.d.comb += self.state.eq(1)
-                common()
-                m.d.comb += address_stream.ready.eq(0)
-                with m.If((self.outstanding < self.max_outstanding) | ~axi.read_data.valid):
-                    m.next = "normal"
+                with m.State("limit_outstanding"):
+                    m.d.comb += self.state.eq(1)
+                    common()
+                    m.d.comb += address_stream.ready.eq(0)
+                    with m.If((self.outstanding < self.max_outstanding) | ~axi.read_data.valid):
+                        m.next = "normal"
 
-            with m.State("flush"):
-                m.d.comb += self.state.eq(2)
-                m.d.comb += axi.read_data.ready.eq(1)
-                with m.If(self.outstanding == 0 & ~axi.read_data.ready):
-                    m.next = "normal"
+                with m.State("flush"):
+                    m.d.comb += self.state.eq(2)
+                    m.d.comb += axi.read_data.ready.eq(1)
+                    with m.If(self.outstanding == 0 & ~axi.read_data.ready):
+                        m.next = "normal"
 
         m.d.sync += self.last_resp.eq(axi.read_data.resp)
         with m.If(axi.read_data.valid & (axi.read_data.resp != Response.OKAY)):

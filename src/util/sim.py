@@ -6,9 +6,6 @@ from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 from nmigen.sim import Simulator
 
-from util.packedstruct import PackedStruct
-
-
 class SimPlatform:
     def __init__(self):
         self.command_templates = []
@@ -124,9 +121,8 @@ def do_nothing(length=10):
         yield  # we expect that nothing happens here
 
 
-class TristateIo(PackedStruct):
+class TristateIo:
     def __init__(self, shape=None):
-        super().__init__()
         self.i = Signal(shape)
         self.o = Signal(shape)
         self.oe = Signal()

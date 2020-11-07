@@ -5,12 +5,11 @@ from nmigen import *
 from soc.soc_platform import SocPlatform
 from soc.peripheral import Response, Peripheral
 from soc.memorymap import MemoryMap
-from util.packedstruct import PackedStruct
 
 
-class DrpInterface(PackedStruct):
+# TODO: let this be an `Interface`
+class DrpInterface:
     def __init__(self, DWE, DEN, DADDR, DI, DO, DRDY, DCLK):
-        super().__init__()
         self.data_write_enable: Signal = DWE
         self.data_enable: Signal = DEN
         self.address: Signal = DADDR

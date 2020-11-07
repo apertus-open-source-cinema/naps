@@ -1,6 +1,6 @@
 from nmigen import Signal
 
-from util.packedstruct import PackedStruct
+from util.packed_struct import PackedStruct
 
 
 class Rgb(PackedStruct):

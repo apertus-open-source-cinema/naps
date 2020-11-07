@@ -4,13 +4,11 @@ from nmigen import *
 
 from cores.jtag.jtag_peripheral_connector import JTAGPeripheralConnectorFSM
 from soc.peripheral import Response
-from util.packedstruct import PackedStruct
 from util.sim import SimPlatform
 
 
-class JTAG(PackedStruct):
+class JTAG:
     def __init__(self):
-        super().__init__()
         self.tdi = Signal()
         self.tdo = Signal()
         self.shift = Signal()

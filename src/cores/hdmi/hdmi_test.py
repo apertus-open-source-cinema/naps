@@ -1,11 +1,11 @@
 import unittest
 
+from nmigen import *
 from nmigen.build import Clock
 
 from cores.hdmi.hdmi import TimingGenerator, Hdmi, HdmiClocking
 from soc.platforms.zynq import ZynqSocPlatform
 from cores.axi.sim_util import axil_read, axil_write
-from util.packedstruct import PackedStruct, Signal
 from util.sim import SimPlatform
 from cores.hdmi.parse_modeline import parse_modeline
 from cores.hdmi.cvt_python import generate_modeline
@@ -33,9 +33,10 @@ class TestHdmi(unittest.TestCase):
     def test_hdmi_registers(self, testdata=0x1):
         platform = ZynqSocPlatform(SimPlatform())
 
-        class Pins(PackedStruct):
-            data = Signal(3)
-            clock = Signal()
+        class Pins:
+            def __init__(self):
+                self.data = Signal(3)
+                self.clock = Signal()
 
         dut = Hdmi(Pins(), generate_clocks=False, modeline=generate_modeline(640, 480, 60))
 

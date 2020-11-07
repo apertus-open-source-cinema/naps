@@ -2,10 +2,10 @@ from typing import Union
 
 from nmigen import *
 
-from util.braid import Braid, down, up
+from util.interface import Interface, down, up
 
 
-class Stream(Braid):
+class Stream(Interface):
     @staticmethod
     def like(model, name=None):
         return Stream(model.payload.shape(), has_last=hasattr(model, "last"), name=name)

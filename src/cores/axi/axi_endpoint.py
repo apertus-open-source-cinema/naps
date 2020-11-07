@@ -4,7 +4,7 @@ from enum import Enum
 from nmigen import *
 from nmigen.hdl.ast import UserValue, MustUse
 
-from util.packedstruct import PackedStruct
+from util.interface import Interface, up, down
 
 
 class Response(Enum):
@@ -32,12 +32,12 @@ class ProtectionType(UserValue):
         return Signal(3, reset=int("".join(str(int(x)) for x in [self.privileged, not self.secure, self.is_instruction]), 2))
 
 
-class AddressChannel(PackedStruct):
+class AddressChannel(Interface):
     def __init__(self, addr_bits, lite, id_bits, data_bytes, **kwargs):
         assert addr_bits % 8 == 0
         super().__init__(**kwargs)
 
-        self.ready = Signal()
+        self.ready = up(Signal())
         self.valid = Signal()
         self.value = Signal(addr_bits)
 
@@ -49,12 +49,12 @@ class AddressChannel(PackedStruct):
             self.protection_type = Signal(ProtectionType().shape())
 
 
-class DataChannel(PackedStruct):
+class DataChannel(Interface):
     def __init__(self, data_bits, read, lite, id_bits, **kwargs):
         assert data_bits % 8 == 0
         super().__init__(**kwargs)
 
-        self.ready = Signal()
+        self.ready = up(Signal())
         self.valid = Signal()
         self.value = Signal(data_bits)
         if read:
@@ -68,11 +68,11 @@ class DataChannel(PackedStruct):
             self.id = Signal(id_bits)
 
 
-class WriteResponseChannel(PackedStruct):
+class WriteResponseChannel(Interface):
     def __init__(self, lite, id_bits, **kwargs):
         super().__init__(**kwargs)
 
-        self.ready = Signal()
+        self.ready = up(Signal())
         self.valid = Signal()
         self.resp = Signal(Response)
 
@@ -80,7 +80,7 @@ class WriteResponseChannel(PackedStruct):
             self.id = Signal(id_bits)
 
 
-class AxiEndpoint(PackedStruct, MustUse):
+class AxiEndpoint(Interface, MustUse):
     @staticmethod
     def like(model, master=None, lite=None, name="axi", **kwargs):
         """
@@ -119,13 +119,12 @@ class AxiEndpoint(PackedStruct, MustUse):
         super().__init__(**kwargs)
 
         if id_bits:
-            assert not lite, "there is no id tracking with axi lite"
+            assert not lite, "there is no id tracking on axi lite buses"
         if lite:
             assert id_bits is None
         if not master:
             self._MustUse__silence = True
 
-        # metadata
         self.is_master = master
         if master:
             self.num_slaves = 0
@@ -136,14 +135,13 @@ class AxiEndpoint(PackedStruct, MustUse):
         self.is_lite = lite
         self.id_bits = id_bits
 
-        # signals
         lite_args = {"lite": lite, "id_bits": id_bits}
-        self.read_address = AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args)
-        self.read_data = DataChannel(data_bits, read=True, **lite_args)
+        self.read_address = down(AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args))
+        self.read_data = up(DataChannel(data_bits, read=True, **lite_args))
 
-        self.write_address = AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args)
-        self.write_data = DataChannel(data_bits, read=False, **lite_args)
-        self.write_response = WriteResponseChannel(**lite_args)
+        self.write_address = down(AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args))
+        self.write_data = down(DataChannel(data_bits, read=False, **lite_args))
+        self.write_response = up(WriteResponseChannel(**lite_args))
 
     def connect_slave(self, slave):
         """
@@ -164,50 +162,4 @@ class AxiEndpoint(PackedStruct, MustUse):
         full = not master.is_lite
         assert self.num_slaves == 0, "Only one Slave can be added to an AXI master without an interconnect"
 
-        stmts = []
-
-        stmts += [slave.read_address.value.eq(master.read_address.value)]
-        stmts += [slave.read_address.valid.eq(master.read_address.valid)]
-        if full:
-            stmts += [slave.read_address.id.eq(master.read_address.id)]
-            stmts += [slave.read_address.burst_type.eq(master.read_address.burst_type)]
-            stmts += [slave.read_address.burst_len.eq(master.read_address.burst_len)]
-            stmts += [slave.read_address.beat_size_bytes.eq(master.read_address.beat_size_bytes)]
-            stmts += [slave.read_address.protection_type.eq(master.read_address.protection_type)]
-        stmts += [master.read_address.ready.eq(slave.read_address.ready)]
-
-        stmts += [master.read_data.value.eq(slave.read_data.value)]
-        stmts += [master.read_data.valid.eq(slave.read_data.valid)]
-        stmts += [master.read_data.resp.eq(slave.read_data.resp)]
-        if full:
-            stmts += [master.read_data.id.eq(slave.read_data.id)]
-            stmts += [master.read_data.last.eq(slave.read_data.last)]
-        stmts += [slave.read_data.ready.eq(master.read_data.ready)]
-
-        stmts += [slave.write_address.value.eq(master.write_address.value)]
-        stmts += [slave.write_address.valid.eq(master.write_address.valid)]
-        if full:
-            stmts += [slave.write_address.id.eq(master.write_address.id)]
-            stmts += [slave.write_address.burst_type.eq(master.write_address.burst_type)]
-            stmts += [slave.write_address.burst_len.eq(master.write_address.burst_len)]
-            stmts += [slave.write_address.beat_size_bytes.eq(master.write_address.beat_size_bytes)]
-            stmts += [slave.write_address.protection_type.eq(master.write_address.protection_type)]
-        stmts += [master.write_address.ready.eq(slave.write_address.ready)]
-
-        stmts += [slave.write_data.value.eq(master.write_data.value)]
-        stmts += [slave.write_data.valid.eq(master.write_data.valid)]
-        stmts += [slave.write_data.byte_strobe.eq(master.write_data.byte_strobe)]
-        if full:
-            stmts += [slave.write_data.id.eq(master.write_data.id)]
-            stmts += [slave.write_data.last.eq(master.write_data.last)]
-        stmts += [master.write_data.ready.eq(slave.write_data.ready)]
-
-        stmts += [master.write_response.resp.eq(slave.write_response.resp)]
-        stmts += [master.write_response.valid.eq(slave.write_response.valid)]
-        if full:
-            stmts += [master.write_response.id.eq(slave.write_response.id)]
-        stmts += [slave.write_response.ready.eq(master.write_response.ready)]
-
-        self._MustUse__used = True
-        self.num_slaves += 1
-        return stmts
+        return self.connect_downstream(slave)

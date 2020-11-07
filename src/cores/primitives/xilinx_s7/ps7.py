@@ -22,7 +22,7 @@ class PS7(Elaboratable):
 
     def _axi_slave_helper(self, axi, ps7_port):
         m = self.m
-        m.d.comb += [ps7_port.araddr.eq(axi.read_address.value)]
+        m.d.comb += [ps7_port.araddr.eq(axi.read_address.payload)]
         m.d.comb += [ps7_port.arvalid.eq(axi.read_address.valid)]
         m.d.comb += [ps7_port.arid.eq(axi.read_address.id)]
         m.d.comb += [ps7_port.arburst.eq(axi.read_address.burst_type)]
@@ -31,14 +31,14 @@ class PS7(Elaboratable):
         m.d.comb += [ps7_port.arprot.eq(axi.read_address.protection_type)]
         m.d.comb += [axi.read_address.ready.eq(ps7_port.arready)]
 
-        m.d.comb += [axi.read_data.value.eq(ps7_port.rdata)]
+        m.d.comb += [axi.read_data.payload.eq(ps7_port.rdata)]
         m.d.comb += [axi.read_data.resp.eq(ps7_port.rre.sp)]
         m.d.comb += [axi.read_data.valid.eq(ps7_port.rvalid)]
         m.d.comb += [axi.read_data.id.eq(ps7_port.rid)]
         m.d.comb += [axi.read_data.last.eq(ps7_port.rlast)]
         m.d.comb += [ps7_port.rre.ady.eq(axi.read_data.ready)]
 
-        m.d.comb += [ps7_port.awaddr.eq(axi.write_address.value)]
+        m.d.comb += [ps7_port.awaddr.eq(axi.write_address.payload)]
         m.d.comb += [ps7_port.awvalid.eq(axi.write_address.valid)]
         m.d.comb += [ps7_port.awid.eq(axi.write_address.id)]
         m.d.comb += [ps7_port.awburst.eq(axi.write_address.burst_type)]
@@ -47,7 +47,7 @@ class PS7(Elaboratable):
         m.d.comb += [ps7_port.awprot.eq(axi.write_address.protection_type)]
         m.d.comb += [axi.write_address.ready.eq(ps7_port.awready)]
 
-        m.d.comb += [ps7_port.wdata.eq(axi.write_data.value)]
+        m.d.comb += [ps7_port.wdata.eq(axi.write_data.payload)]
         m.d.comb += [ps7_port.wvalid.eq(axi.write_data.valid)]
         m.d.comb += [ps7_port.wstrb.eq(axi.write_data.byte_strobe)]
         m.d.comb += [ps7_port.wid.eq(axi.write_data.id)]
@@ -61,7 +61,7 @@ class PS7(Elaboratable):
 
     def _axi_master_helper(self, axi, ps7_port):
         m = self.m
-        m.d.comb += [axi.read_address.value.eq(ps7_port.araddr)]
+        m.d.comb += [axi.read_address.payload.eq(ps7_port.araddr)]
         m.d.comb += [axi.read_address.valid.eq(ps7_port.arvalid)]
         m.d.comb += [axi.read_address.id.eq(ps7_port.arid)]
         m.d.comb += [axi.read_address.burst_type.eq(ps7_port.arburst)]
@@ -70,14 +70,14 @@ class PS7(Elaboratable):
         m.d.comb += [axi.read_address.protection_type.eq(ps7_port.arprot)]
         m.d.comb += [ps7_port.arready.eq(axi.read_address.ready)]
 
-        m.d.comb += [ps7_port.rdata.eq(axi.read_data.value)]
+        m.d.comb += [ps7_port.rdata.eq(axi.read_data.payload)]
         m.d.comb += [ps7_port.rre.sp.eq(axi.read_data.resp)]
         m.d.comb += [ps7_port.rvalid.eq(axi.read_data.valid)]
         m.d.comb += [ps7_port.rid.eq(axi.read_data.id)]
         m.d.comb += [ps7_port.rlast.eq(axi.read_data.last)]
         m.d.comb += [axi.read_data.ready.eq(ps7_port.rre.ady)]
 
-        m.d.comb += [axi.write_address.value.eq(ps7_port.awaddr)]
+        m.d.comb += [axi.write_address.payload.eq(ps7_port.awaddr)]
         m.d.comb += [axi.write_address.valid.eq(ps7_port.awvalid)]
         m.d.comb += [axi.write_address.id.eq(ps7_port.awid)]
         m.d.comb += [axi.write_address.burst_type.eq(ps7_port.awburst)]
@@ -86,7 +86,7 @@ class PS7(Elaboratable):
         m.d.comb += [axi.write_address.protection_type.eq(ps7_port.awprot)]
         m.d.comb += [ps7_port.awready.eq(axi.write_address.ready)]
 
-        m.d.comb += [axi.write_data.value.eq(ps7_port.wdata)]
+        m.d.comb += [axi.write_data.payload.eq(ps7_port.wdata)]
         m.d.comb += [axi.write_data.valid.eq(ps7_port.wvalid)]
         m.d.comb += [axi.write_data.byte_strobe.eq(ps7_port.wstrb)]
         m.d.comb += [axi.write_data.id.eq(ps7_port.wid)]

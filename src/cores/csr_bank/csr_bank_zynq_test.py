@@ -37,7 +37,7 @@ class TestAxiSlave(unittest.TestCase):
 
         def testbench():
             axi: AxiEndpoint = platform.axi_lite_master
-            yield axi.read_address.value.eq(0x4000_0000)
+            yield axi.read_address.payload.eq(0x4000_0000)
             yield axi.read_address.valid.eq(1)
             yield from do_nothing()
 

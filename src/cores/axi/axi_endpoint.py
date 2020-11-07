@@ -4,7 +4,7 @@ from enum import Enum
 from nmigen import *
 from nmigen.hdl.ast import UserValue, MustUse
 
-from util.interface import Interface, up, down
+from util.bundle import Bundle, UPWARDS, DOWNWARDS
 
 
 class Response(Enum):
@@ -32,14 +32,14 @@ class ProtectionType(UserValue):
         return Signal(3, reset=int("".join(str(int(x)) for x in [self.privileged, not self.secure, self.is_instruction]), 2))
 
 
-class AddressChannel(Interface):
+class AddressChannel(Bundle):
     def __init__(self, addr_bits, lite, id_bits, data_bytes, **kwargs):
         assert addr_bits % 8 == 0
         super().__init__(**kwargs)
 
-        self.ready = up(Signal())
+        self.ready = Signal() @ UPWARDS
         self.valid = Signal()
-        self.value = Signal(addr_bits)
+        self.payload = Signal(addr_bits)
 
         if not lite:
             self.id = Signal(id_bits)
@@ -49,14 +49,14 @@ class AddressChannel(Interface):
             self.protection_type = Signal(ProtectionType().shape())
 
 
-class DataChannel(Interface):
+class DataChannel(Bundle):
     def __init__(self, data_bits, read, lite, id_bits, **kwargs):
         assert data_bits % 8 == 0
         super().__init__(**kwargs)
 
-        self.ready = up(Signal())
+        self.ready = Signal() @ UPWARDS
         self.valid = Signal()
-        self.value = Signal(data_bits)
+        self.payload = Signal(data_bits)
         if read:
             self.resp = Signal(Response)
         else:
@@ -68,11 +68,11 @@ class DataChannel(Interface):
             self.id = Signal(id_bits)
 
 
-class WriteResponseChannel(Interface):
+class WriteResponseChannel(Bundle):
     def __init__(self, lite, id_bits, **kwargs):
         super().__init__(**kwargs)
 
-        self.ready = up(Signal())
+        self.ready = Signal() @ UPWARDS
         self.valid = Signal()
         self.resp = Signal(Response)
 
@@ -80,7 +80,7 @@ class WriteResponseChannel(Interface):
             self.id = Signal(id_bits)
 
 
-class AxiEndpoint(Interface, MustUse):
+class AxiEndpoint(Bundle, MustUse):
     @staticmethod
     def like(model, master=None, lite=None, name="axi", **kwargs):
         """
@@ -136,12 +136,12 @@ class AxiEndpoint(Interface, MustUse):
         self.id_bits = id_bits
 
         lite_args = {"lite": lite, "id_bits": id_bits}
-        self.read_address = down(AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args))
-        self.read_data = up(DataChannel(data_bits, read=True, **lite_args))
+        self.read_address = AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args) @ DOWNWARDS
+        self.read_data = DataChannel(data_bits, read=True, **lite_args) @ UPWARDS
 
-        self.write_address = down(AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args))
-        self.write_data = down(DataChannel(data_bits, read=False, **lite_args))
-        self.write_response = up(WriteResponseChannel(**lite_args))
+        self.write_address = AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args) @ DOWNWARDS
+        self.write_data = DataChannel(data_bits, read=False, **lite_args) @ DOWNWARDS
+        self.write_response = WriteResponseChannel(**lite_args) @DOWNWARDS
 
     def connect_slave(self, slave):
         """

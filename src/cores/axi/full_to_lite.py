@@ -18,20 +18,20 @@ class AxiFullToLiteBridge(Elaboratable):
         lite_master = self.lite_master
 
         m.d.comb += [
-            lite_master.read_address.value.eq(full_slave.read_address.value),
+            lite_master.read_address.payload.eq(full_slave.read_address.payload),
             lite_master.read_address.valid.eq(full_slave.read_address.valid),
             full_slave.read_address.ready.eq(lite_master.read_address.ready),
 
-            full_slave.read_data.value.eq(lite_master.read_data.value),
+            full_slave.read_data.payload.eq(lite_master.read_data.payload),
             full_slave.read_data.valid.eq(lite_master.read_data.valid),
             full_slave.read_data.resp.eq(lite_master.read_data.resp),
             lite_master.read_data.ready.eq(full_slave.read_data.ready),
 
-            lite_master.write_address.value.eq(full_slave.write_address.value),
+            lite_master.write_address.payload.eq(full_slave.write_address.payload),
             lite_master.write_address.valid.eq(full_slave.write_address.valid),
             full_slave.write_address.ready.eq(lite_master.write_address.ready),
 
-            lite_master.write_data.value.eq(full_slave.write_data.value),
+            lite_master.write_data.payload.eq(full_slave.write_data.payload),
             lite_master.write_data.valid.eq(full_slave.write_data.valid),
             lite_master.write_data.byte_strobe.eq(full_slave.write_data.byte_strobe),
             full_slave.write_data.ready.eq(lite_master.write_data.ready),

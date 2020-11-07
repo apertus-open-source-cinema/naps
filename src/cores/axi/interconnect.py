@@ -37,13 +37,13 @@ class AxiInterconnect(Elaboratable):
         # beware: the following works only for axi lite!
 
         for downstream_port in self._downstream_ports:
-            m.d.comb += downstream_port.read_address.value.eq(uplink.read_address.value)
+            m.d.comb += downstream_port.read_address.payload.eq(uplink.read_address.payload)
             m.d.comb += downstream_port.read_address.valid.eq(uplink.read_address.valid)
 
-            m.d.comb += downstream_port.write_address.value.eq(uplink.write_address.value)
+            m.d.comb += downstream_port.write_address.payload.eq(uplink.write_address.payload)
             m.d.comb += downstream_port.write_address.valid.eq(uplink.write_address.valid)
 
-            m.d.comb += downstream_port.write_data.value.eq(uplink.write_data.value)
+            m.d.comb += downstream_port.write_data.payload.eq(uplink.write_data.payload)
             m.d.comb += downstream_port.write_data.valid.eq(uplink.write_data.valid)
             m.d.comb += downstream_port.write_data.byte_strobe.eq(uplink.write_data.byte_strobe)
 
@@ -59,7 +59,7 @@ class AxiInterconnect(Elaboratable):
         for conditional, downstream_port in iterator_with_if_elif(self._downstream_ports, m):
             with conditional(downstream_port.read_data.valid):
                 m.d.comb += uplink.read_data.valid.eq(1)
-                m.d.comb += uplink.read_data.value.eq(downstream_port.read_data.value)
+                m.d.comb += uplink.read_data.payload.eq(downstream_port.read_data.payload)
                 m.d.comb += uplink.read_data.resp.eq(downstream_port.read_data.resp)
                 m.d.comb += downstream_port.read_data.ready.eq(uplink.read_data.ready)
         for conditional, downstream_port in iterator_with_if_elif(self._downstream_ports, m):

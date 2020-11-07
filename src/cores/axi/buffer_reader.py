@@ -47,13 +47,13 @@ class AxiBufferReader(Elaboratable):
             with m.FSM():
                 def common():
                     m.d.comb += axi.read_address.valid.eq(self.address_source.valid)
-                    m.d.comb += axi.read_address.value.eq(self.address_source.payload)
+                    m.d.comb += axi.read_address.payload.eq(self.address_source.payload)
                     m.d.comb += self.address_source.ready.eq(axi.read_address.ready)
                     m.d.comb += axi.read_address.burst_len.eq(0)  # we dont generate bursts
 
                     m.d.comb += axi.read_data.ready.eq(self.output.ready)
                     m.d.comb += self.output.valid.eq(axi.read_data.valid)
-                    m.d.comb += self.output.payload.eq(axi.read_data.value)
+                    m.d.comb += self.output.payload.eq(axi.read_data.payload)
 
                     with m.If(self.flush & (self.outstanding > 1) & self.allow_flush):
                         m.next = "flush"

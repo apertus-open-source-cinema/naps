@@ -108,7 +108,7 @@ class AxiBufferWriter(Elaboratable):
 
             with m.State("ADDRESS"):
                 m.d.comb += self.state.eq(1)
-                m.d.comb += axi.write_address.value.eq(address_generator.addr)
+                m.d.comb += axi.write_address.payload.eq(address_generator.addr)
                 m.d.comb += axi.write_address.burst_len.eq(current_burst_length_minus_one)
                 m.d.comb += axi.write_address.burst_type.eq(BurstType.INCR)
                 m.d.comb += axi.write_address.valid.eq(1)
@@ -132,7 +132,7 @@ class AxiBufferWriter(Elaboratable):
                     m.d.comb += address_generator.change_buffer.eq(1)
                     m.next = "FLUSH"
 
-                m.d.comb += axi.write_data.value.eq(data_fifo.output.payload)
+                m.d.comb += axi.write_data.payload.eq(data_fifo.output.payload)
                 m.d.comb += axi.write_data.valid.eq(1)
 
                 with m.If(axi.write_data.ready):

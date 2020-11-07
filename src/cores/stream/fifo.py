@@ -14,8 +14,6 @@ class SyncStreamFifo(Elaboratable):
         self.fwtf = fwtf
 
         self.max_w_level = StatusSignal(range(depth))
-        self.overflow_cnt = StatusSignal(32)
-        self.underrun_cnt = StatusSignal(32)
         self.r_level = StatusSignal(range(depth + 1))
         self.w_level = StatusSignal(range(depth + 1))
 
@@ -43,11 +41,6 @@ class SyncStreamFifo(Elaboratable):
         m.d.comb += fifo.w_data.eq(fifo_data)
         m.d.comb += fifo.w_en.eq(self.input.valid)
 
-        with m.If(self.input.valid & (~self.input.ready)):
-            m.d.sync += self.overflow_cnt.eq(self.overflow_cnt + 1)
-        with m.If(self.output.ready & (~self.output.valid)):
-            m.d.sync += self.underrun_cnt.eq(self.underrun_cnt + 1)
-
         if hasattr(self.output, "last"):
             m.d.comb += Cat(self.output.payload, self.output.last).eq(fifo.r_data)
         else:
@@ -69,8 +62,6 @@ class AsyncStreamFifo(Elaboratable):
         self.exact_depth = exact_depth
         self.buffered = buffered
 
-        self.overflow_cnt = StatusSignal(32)
-        self.underrun_cnt = StatusSignal(32)
         self.r_level = StatusSignal(range(depth + 1))
         self.w_level = StatusSignal(range(depth + 1))
 
@@ -92,11 +83,6 @@ class AsyncStreamFifo(Elaboratable):
         m.d.comb += self.input.ready.eq(fifo.w_rdy)
         m.d.comb += fifo.w_data.eq(fifo_data)
         m.d.comb += fifo.w_en.eq(self.input.valid)
-
-        with m.If(self.input.valid & (~self.input.ready)):
-            m.d[self.w_domain] += self.overflow_cnt.eq(self.overflow_cnt + 1)
-        with m.If(self.output.ready & (~self.output.valid)):
-            m.d[self.r_domain] += self.underrun_cnt.eq(self.underrun_cnt + 1)
 
         if hasattr(self.output, "last"):
             m.d.comb += Cat(self.output.payload, self.output.last).eq(fifo.r_data)

@@ -16,13 +16,13 @@ def answer_channel(channel, always_ready=True):
     yield from wait_for(channel.valid)
     if isinstance(channel, AddressChannel):
         to_return = (
-            (yield channel.value),
+            (yield channel.payload),
             (yield channel.burst_len) + 1,
             (yield channel.burst_type),
             (yield channel.beat_size_bytes)
         )
     elif isinstance(channel, DataChannel):
-        to_return = ((yield channel.value), (yield channel.last), (yield channel.byte_strobe))
+        to_return = ((yield channel.payload), (yield channel.last), (yield channel.byte_strobe))
     if not always_ready:
         yield from pulse(channel.ready)
     else:

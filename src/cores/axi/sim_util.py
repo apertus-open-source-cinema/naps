@@ -3,7 +3,7 @@ from util.sim import wait_for
 
 
 def write_to_axi_channel(channel, value):
-    yield channel.value.eq(value)
+    yield channel.payload.eq(value)
     yield channel.valid.eq(1)
     yield from wait_for(channel.ready)
     yield channel.valid.eq(0)
@@ -12,8 +12,8 @@ def write_to_axi_channel(channel, value):
 def read_from_axi_channel(channel):
     yield from wait_for(channel.valid)
     yield channel.ready.eq(1)
-    if hasattr(channel, "value"):
-        result = (yield channel.value)
+    if hasattr(channel, "payload"):
+        result = (yield channel.payload)
     else:
         result = None
     response = (yield channel.resp)

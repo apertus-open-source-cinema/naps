@@ -25,8 +25,8 @@ class AxiLitePeripheralConnector(Elaboratable):
         assert address_range is not None
         assert address_range.start < address_range.stop
 
-        addr = Signal.like(self.axi.read_address.value)
-        read_out = Signal.like(self.axi.read_data.value)
+        addr = Signal.like(self.axi.read_address.payload)
+        read_out = Signal.like(self.axi.read_data.payload)
         resp_out = Signal.like(self.axi.read_data.resp)
 
         read_write_done = Signal()
@@ -44,13 +44,13 @@ class AxiLitePeripheralConnector(Elaboratable):
                 def in_range(signal):
                     return (signal >= address_range.start) & (signal < address_range.stop)
 
-                with m.If(self.axi.read_address.valid & in_range(self.axi.read_address.value)):
+                with m.If(self.axi.read_address.valid & in_range(self.axi.read_address.payload)):
                     m.next = "FETCH_READ_ADDRESS"
-                with m.Elif(self.axi.write_address.valid & in_range(self.axi.write_address.value)):
+                with m.Elif(self.axi.write_address.valid & in_range(self.axi.write_address.payload)):
                     m.next = "FETCH_WRITE_ADDRESS"
 
             with m.State("FETCH_READ_ADDRESS"):
-                m.d.sync += addr.eq(self.axi.read_address.value - address_range.start)
+                m.d.sync += addr.eq(self.axi.read_address.payload - address_range.start)
                 m.d.comb += self.axi.read_address.ready.eq(1)
                 m.next = "READ"
                 m.d.sync += timeout_counter.eq(0)
@@ -66,20 +66,20 @@ class AxiLitePeripheralConnector(Elaboratable):
                     m.d.sync += read_write_done.eq(1)
                     m.d.sync += resp_out.eq(AxiResponse.DECERR)
             with m.State("READ_DONE"):
-                m.d.comb += self.axi.read_data.value.eq(read_out)
+                m.d.comb += self.axi.read_data.payload.eq(read_out)
                 m.d.comb += self.axi.read_data.resp.eq(resp_out)
                 m.d.comb += self.axi.read_data.valid.eq(1)
                 with m.If(self.axi.read_data.ready):
                     m.next = "IDLE"
 
             with m.State("FETCH_WRITE_ADDRESS"):
-                m.d.sync += addr.eq(self.axi.write_address.value - address_range.start)
+                m.d.sync += addr.eq(self.axi.write_address.payload - address_range.start)
                 m.d.comb += self.axi.write_address.ready.eq(1)
                 m.next = "WRITE"
                 m.d.sync += timeout_counter.eq(0)
             with m.State("WRITE"):
                 with m.If(self.axi.write_data.valid):
-                    self.peripheral.handle_write(m, addr, self.axi.write_data.value, read_write_done_callback)
+                    self.peripheral.handle_write(m, addr, self.axi.write_data.payload, read_write_done_callback)
                     m.d.sync += timeout_counter.eq(timeout_counter + 1)
                     with m.If(read_write_done):
                         m.d.sync += read_write_done.eq(0)

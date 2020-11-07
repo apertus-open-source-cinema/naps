@@ -1,5 +1,6 @@
 from dataclasses import dataclass
 from enum import Enum
+from typing import TypeVar
 
 from nmigen import *
 from nmigen import tracer
@@ -7,7 +8,7 @@ from nmigen import tracer
 from util.py_util import camel_to_snake
 
 
-class Interface:
+class Bundle:
     def __init__(self, name=None, src_loc_at=1):
         self.name = name or tracer.get_var_name(depth=2 + src_loc_at, default=camel_to_snake(self.__class__.__name__))
         self._directions = {}
@@ -16,8 +17,8 @@ class Interface:
         if isinstance(value, Port):
             self._directions[key] = value.direction
             value = value.to_wrap
-        elif isinstance(value, (Value, Interface)):  # TODO: do we really want this behaviour also for values
-            self._directions[key] = Direction.DOWN
+        elif isinstance(value, (Value, Bundle)):  # TODO: do we really want this behaviour also for values
+            self._directions[key] = Direction.DOWNWARDS
 
         if hasattr(value, "name") and isinstance(value.name, str):
             if value.name == "$signal":  # with up() and down() we are breaking nmigens tracer
@@ -52,34 +53,34 @@ class Interface:
             (getattr(upstream, k), getattr(downstream, k), upstream._directions[k])
             for k in upstream._directions.keys()
         ]:
-            if direction == Direction.DOWN:
+            if direction == Direction.DOWNWARDS:
                 if isinstance(d, Value):
                     statements += [d.eq(u)]
-                elif isinstance(d, Interface):
-                    statements += Interface._connect(u, d)
+                elif isinstance(d, Bundle):
+                    statements += Bundle._connect(u, d)
             else:
                 if isinstance(u, Value):
                     statements += [u.eq(d)]
-                elif isinstance(u, Interface):
-                    statements += Interface._connect(d, u)
+                elif isinstance(u, Bundle):
+                    statements += Bundle._connect(d, u)
 
         return statements
 
 
 class Direction(Enum):
-    DOWN = 0
-    UP = 1
+    DOWNWARDS = 0
+    UPWARDS = 1
+
+    T = TypeVar('T')  # we lie about the return type to get nice IDE completions
+    def __rmatmul__(self, other: T) -> T:
+        return Port(self, other)
+
+
+DOWNWARDS = Direction.DOWNWARDS
+UPWARDS = Direction.UPWARDS
 
 
 @dataclass
 class Port:
     direction: Direction
     to_wrap: object
-
-
-def up(to_wrap):
-    return Port(to_wrap=to_wrap, direction=Direction.UP)
-
-
-def down(to_wrap):
-    return Port(to_wrap=to_wrap, direction=Direction.DOWN)

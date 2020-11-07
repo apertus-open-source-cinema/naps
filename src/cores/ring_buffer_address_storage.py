@@ -1,9 +1,9 @@
 from cores.csr_bank import StatusSignal
-from util.bundle import Bundle
+from util.packedstruct import PackedStruct
 from nmigen import *
 
 
-class RingBufferAddressStorage(Bundle):
+class RingBufferAddressStorage(PackedStruct):
     def __init__(self, buffer_size, n, base_address=0x0f80_0000):
         super().__init__()
         self.buffer_size = buffer_size

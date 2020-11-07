@@ -2,23 +2,19 @@
 
 from nmigen import *
 
-from cores.stream.counter_debug_tool import StreamCounterDebugTool
 from cores.stream.fifo import AsyncStreamFifo, SyncStreamFifo
-from util.stream import StreamEndpoint
+from util.stream import Stream
 
 
 class FT601StreamSinkNoCDC(Elaboratable):
-    def __init__(self, ft601_resource, input_stream: StreamEndpoint, save_to_begin_new_transaction=None):
+    def __init__(self, ft601_resource, input: Stream, save_to_begin_new_transaction=None):
         self.ft_601_resource = ft601_resource
-        assert len(input_stream.payload) == 32
-        self.input_stream = input_stream
+        assert len(input.payload) == 32
+        self.input = input
         self.safe_to_begin_new_transaction = save_to_begin_new_transaction
 
     def elaborate(self, platform):
         m = Module()
-
-        sink = StreamEndpoint.like(self.input_stream, is_sink=True, name="ft601_sink")
-        m.d.comb += sink.connect(self.input_stream)
 
         ft = self.ft_601_resource
 
@@ -29,19 +25,19 @@ class FT601StreamSinkNoCDC(Elaboratable):
         m.d.comb += ft.data.oe.eq(1)
 
         if self.safe_to_begin_new_transaction is None:
-            m.d.comb += ft.data.o.eq(sink.payload)
-            m.d.comb += sink.ready.eq(ft.txe)
-            m.d.comb += ft.write.eq(sink.valid)
+            m.d.comb += ft.data.o.eq(self.input.payload)
+            m.d.comb += self.input.ready.eq(ft.txe)
+            m.d.comb += ft.write.eq(self.input.valid)
         else:
             in_transaction = Signal()
             m.d.sync += in_transaction.eq(ft.write)
             with m.If(in_transaction):
-                m.d.comb += ft.write.eq(sink.valid & ft.txe)
-                m.d.comb += sink.ready.eq(ft.txe)
+                m.d.comb += ft.write.eq(self.input.valid & ft.txe)
+                m.d.comb += self.input.ready.eq(ft.txe)
             with m.Else():
-                m.d.comb += sink.ready.eq(ft.txe & self.safe_to_begin_new_transaction)
-                m.d.comb += ft.write.eq(sink.valid & self.safe_to_begin_new_transaction)
-            m.d.comb += ft.data.o.eq(sink.payload)
+                m.d.comb += self.input.ready.eq(ft.txe & self.safe_to_begin_new_transaction)
+                m.d.comb += ft.write.eq(self.input.valid & self.safe_to_begin_new_transaction)
+            m.d.comb += ft.data.o.eq(self.input.payload)
         m.d.comb += platform.request("led", 0).eq(ft.txe)
 
         return m

@@ -1,18 +1,18 @@
 from nmigen import *
 
 from cores.csr_bank import StatusSignal
-from util.stream import StreamEndpoint
+from util.stream import Stream
 
 
 class StreamCombiner(Elaboratable):
     def __init__(self, streams):
         self._streams = streams
 
-        self.has_last = self._streams[0].has_last
+        self.has_last = hasattr(self._streams[0], "last")
         assert not any(self.has_last is not other.has_last for other in self._streams)
 
         width = sum(len(stream.payload) for stream in self._streams)
-        self.output = StreamEndpoint(width, is_sink=False, has_last=self.has_last)
+        self.output = Stream(width, has_last=self.has_last)
 
         self.different_last_error = StatusSignal()
         self.different_valid_error = StatusSignal()
@@ -22,8 +22,6 @@ class StreamCombiner(Elaboratable):
 
         highest_bit = 0
         for i, stream in enumerate(self._streams):
-            sink = StreamEndpoint.like(stream, is_sink=True, name="stream_combiner_sink_{}".format(i))
-            sink.connect(stream)
             m.d.comb += stream.ready.eq(self.output.ready)
             m.d.comb += self.output.payload[highest_bit:highest_bit + len(stream.payload)].eq(stream.payload)
             highest_bit += len(stream.payload)

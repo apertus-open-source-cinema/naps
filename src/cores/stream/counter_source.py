@@ -1,16 +1,19 @@
 from nmigen import *
 
-from util.stream import StreamEndpoint
+from cores.csr_bank import ControlSignal
+from util.stream import Stream
 
 
 class CounterStreamSource(Elaboratable):
-    def __init__(self, width):
-        self.output = StreamEndpoint(width, is_sink=False, has_last=False)
+    def __init__(self, width, count_if_not_ready=False):
+        self.output = Stream(width, has_last=False)
+
+        self.count_if_not_ready = ControlSignal(reset=count_if_not_ready)
 
     def elaborate(self, platform):
         m = Module()
 
-        with m.If(self.output.ready):
+        with m.If(self.output.ready | self.count_if_not_ready):
             m.d.comb += self.output.valid.eq(1)
             m.d.sync += self.output.payload.eq(self.output.payload + 1)
 

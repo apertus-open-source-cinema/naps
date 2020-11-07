@@ -1,12 +1,12 @@
 from nmigen import *
 
-from .axi_endpoint import AxiEndpoint, BurstType
-from cores.csr_bank import StatusSignal, ControlSignal
+from util.stream import Stream
+from .axi_endpoint import BurstType
+from cores.csr_bank import StatusSignal
 from util.nmigen_misc import nMin, mul_by_pot
+from .util import get_axi_master_from_maybe_slave
 from ..ring_buffer_address_storage import RingBufferAddressStorage
 from ..stream.fifo import SyncStreamFifo
-from util.stream import StreamEndpoint
-
 
 class AddressGenerator(Elaboratable):
     def __init__(self, ringbuffer: RingBufferAddressStorage, addr_bits, max_incr):
@@ -52,15 +52,14 @@ class AxiBufferWriter(Elaboratable):
     def __init__(
             self,
             ringbuffer: RingBufferAddressStorage,
-            stream_source: StreamEndpoint,
+            stream_source: Stream,
             axi_slave=None,
             fifo_depth=32, max_burst_length=16
     ):
         self.ringbuffer = ringbuffer
         self.current_buffer = ringbuffer.current_write_buffer
 
-        assert stream_source.is_sink is False
-        assert stream_source.has_last
+        assert hasattr(stream_source, "last")
         self.stream_source = stream_source
 
         self.axi_slave = axi_slave
@@ -77,26 +76,14 @@ class AxiBufferWriter(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        if self.axi_slave is not None:
-            assert not self.axi_slave.is_lite
-            assert not self.axi_slave.is_master
-            axi_slave = self.axi_slave
-        else:
-            clock_signal = Signal()
-            m.d.comb += clock_signal.eq(ClockSignal())
-            axi_slave = platform.ps7.get_axi_hp_slave(clock_signal)
-        axi = AxiEndpoint.like(axi_slave, master=True)
-        m.d.comb += axi.connect_slave(axi_slave)
+        axi = get_axi_master_from_maybe_slave(self.axi_slave, m, platform)
 
         address_generator = m.submodules.address_generator = AddressGenerator(
             self.ringbuffer, axi.addr_bits, max_incr=self.max_burst_length * axi.data_bytes
         )
 
         data_fifo = m.submodules.data_fifo = SyncStreamFifo(self.stream_source, depth=self.fifo_depth, buffered=False)
-        data = StreamEndpoint.like(data_fifo.output, is_sink=True, name="data_sink")
-        m.d.comb += data.connect(data_fifo.output)
-
-        assert len(data.payload) <= axi.data_bits
+        assert len(data_fifo.output.payload) <= axi.data_bits
 
         # we do not currently care about the write responses
         m.d.comb += axi.write_response.ready.eq(1)
@@ -108,7 +95,7 @@ class AxiBufferWriter(Elaboratable):
                 m.d.comb += self.state.eq(0)
                 m.d.sync += self.burst_position.eq(0)
                 m.d.comb += address_generator.request.eq(1)
-                with m.If(address_generator.valid & data.valid):
+                with m.If(address_generator.valid & data_fifo.output.valid):
                     # we are doing a full transaction
                     next_burst_length = Signal(range(self.max_burst_length + 1))
                     m.d.comb += next_burst_length.eq(nMin(data_fifo.r_level, self.max_burst_length))
@@ -127,7 +114,7 @@ class AxiBufferWriter(Elaboratable):
                 m.d.comb += axi.write_address.valid.eq(1)
                 with m.If(axi.write_address.ready):
                     m.next = "TRANSFER_DATA"
-                    m.d.comb += data.ready.eq(1)
+                    m.d.comb += data_fifo.output.ready.eq(1)
                     m.d.comb += address_generator.done.eq(1)
 
             def last_logic():
@@ -140,20 +127,20 @@ class AxiBufferWriter(Elaboratable):
             with m.State("TRANSFER_DATA"):
                 m.d.comb += self.state.eq(2)
 
-                with m.If(data.last):
+                with m.If(data_fifo.output.last):
                     m.d.sync += self.buffers_written.eq(self.buffers_written + 1)
                     m.d.comb += address_generator.change_buffer.eq(1)
                     m.next = "FLUSH"
 
-                m.d.comb += axi.write_data.value.eq(data.payload)
+                m.d.comb += axi.write_data.value.eq(data_fifo.output.payload)
                 m.d.comb += axi.write_data.valid.eq(1)
 
                 with m.If(axi.write_data.ready):
                     m.d.sync += self.words_written.eq(self.words_written + 1)
                     m.d.sync += self.burst_position.eq(self.burst_position + 1)
-                    with m.If((self.burst_position < current_burst_length_minus_one) & ~data.last):
-                        m.d.comb += data.ready.eq(1)
-                        with m.If((~data.valid)):
+                    with m.If((self.burst_position < current_burst_length_minus_one) & ~data_fifo.output.last):
+                        m.d.comb += data_fifo.output.ready.eq(1)
+                        with m.If((~data_fifo.output.valid)):
                             # we have checked this earlier so this should never be a problem
                             m.d.sync += self.error.eq(1)
                 last_logic()

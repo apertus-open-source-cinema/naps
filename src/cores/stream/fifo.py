@@ -2,14 +2,13 @@ from nmigen import *
 from nmigen.lib.fifo import SyncFIFOBuffered, SyncFIFO, AsyncFIFOBuffered, AsyncFIFO
 
 from cores.csr_bank import StatusSignal
-from util.stream import StreamEndpoint
+from util.stream import Stream
 
 
 class SyncStreamFifo(Elaboratable):
-    def __init__(self, input: StreamEndpoint, depth: int, buffered=True, fwtf=False):
-        assert input.is_sink is False
+    def __init__(self, input: Stream, depth: int, buffered=True, fwtf=False):
         self.input = input
-        self.output = StreamEndpoint.like(input, name="stream_fifo_output")
+        self.output = Stream.like(input)
         self.depth = depth
         self.buffered = buffered
         self.fwtf = fwtf
@@ -23,12 +22,10 @@ class SyncStreamFifo(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        input_sink = StreamEndpoint.like(self.input, is_sink=True, name="stream_fifo_input")
-        m.d.comb += input_sink.connect(self.input)
-        if input_sink.has_last:
-            fifo_data = Cat(input_sink.payload, input_sink.last)
+        if hasattr(self.input, "last"):
+            fifo_data = Cat(self.input.payload, self.input.last)
         else:
-            fifo_data = input_sink.payload
+            fifo_data = self.input.payload
 
         if self.buffered:
             assert not self.fwtf
@@ -42,16 +39,16 @@ class SyncStreamFifo(Elaboratable):
         with m.If(self.w_level > self.max_w_level):
             m.d.sync += self.max_w_level.eq(self.w_level)
 
-        m.d.comb += input_sink.ready.eq(fifo.w_rdy)
+        m.d.comb += self.input.ready.eq(fifo.w_rdy)
         m.d.comb += fifo.w_data.eq(fifo_data)
-        m.d.comb += fifo.w_en.eq(input_sink.valid)
+        m.d.comb += fifo.w_en.eq(self.input.valid)
 
-        with m.If(input_sink.valid & (~input_sink.ready)):
+        with m.If(self.input.valid & (~self.input.ready)):
             m.d.sync += self.overflow_cnt.eq(self.overflow_cnt + 1)
         with m.If(self.output.ready & (~self.output.valid)):
             m.d.sync += self.underrun_cnt.eq(self.underrun_cnt + 1)
 
-        if self.output.has_last:
+        if hasattr(self.output, "last"):
             m.d.comb += Cat(self.output.payload, self.output.last).eq(fifo.r_data)
         else:
             m.d.comb += self.output.payload.eq(fifo.r_data)
@@ -63,9 +60,8 @@ class SyncStreamFifo(Elaboratable):
 
 class AsyncStreamFifo(Elaboratable):
     def __init__(self, input, depth, r_domain, w_domain, buffered=True, exact_depth=False):
-        assert input.is_sink is False
         self.input = input
-        self.output = StreamEndpoint.like(input, name="stream_fifo_output")
+        self.output = Stream.like(input)
 
         self.r_domain = r_domain
         self.w_domain = w_domain
@@ -81,12 +77,10 @@ class AsyncStreamFifo(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        input_sink = StreamEndpoint.like(self.input, is_sink=True, name="stream_fifo_input")
-        m.d.comb += input_sink.connect(self.input)
-        if input_sink.has_last:
-            fifo_data = Cat(input_sink.payload, input_sink.last)
+        if hasattr(self.input, "last"):
+            fifo_data = Cat(self.input.payload, self.input.last)
         else:
-            fifo_data = input_sink.payload
+            fifo_data = self.input.payload
 
         fifo_type = AsyncFIFOBuffered if self.buffered else AsyncFIFO
         fifo = m.submodules.fifo = fifo_type(width=len(fifo_data), depth=self.depth,
@@ -95,16 +89,16 @@ class AsyncStreamFifo(Elaboratable):
         m.d.comb += self.r_level.eq(fifo.r_level)
         m.d.comb += self.w_level.eq(fifo.w_level)
 
-        m.d.comb += input_sink.ready.eq(fifo.w_rdy)
+        m.d.comb += self.input.ready.eq(fifo.w_rdy)
         m.d.comb += fifo.w_data.eq(fifo_data)
-        m.d.comb += fifo.w_en.eq(input_sink.valid)
+        m.d.comb += fifo.w_en.eq(self.input.valid)
 
-        with m.If(input_sink.valid & (~input_sink.ready)):
+        with m.If(self.input.valid & (~self.input.ready)):
             m.d[self.w_domain] += self.overflow_cnt.eq(self.overflow_cnt + 1)
         with m.If(self.output.ready & (~self.output.valid)):
             m.d[self.r_domain] += self.underrun_cnt.eq(self.underrun_cnt + 1)
 
-        if self.output.has_last:
+        if hasattr(self.output, "last"):
             m.d.comb += Cat(self.output.payload, self.output.last).eq(fifo.r_data)
         else:
             m.d.comb += self.output.payload.eq(fifo.r_data)

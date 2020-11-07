@@ -3,7 +3,7 @@ from nmigen import *
 from nmigen.build import Clock
 
 from soc.soc_platform import SocPlatform
-from util.decimal_range import decimal_range
+from util.py_util import decimal_range
 from cores.drp_bridge import DrpInterface, DrpBridge
 from cores.csr_bank import StatusSignal
 from util.instance_helper import InstanceHelper

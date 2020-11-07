@@ -11,7 +11,7 @@ from cores.hispi.hispi import Hispi
 from cores.i2c.bitbang_i2c import BitbangI2c
 from cores.csr_bank import ControlSignal
 from cores.ring_buffer_address_storage import RingBufferAddressStorage
-from cores.hdmi.hdmi_buffer_reader import HdmiBufferReader
+from cores.hdmi.hdmi_buffer_reader import HdmiBufferReader, LinuxFramebuffer
 from cores.stream.fifo import AsyncStreamFifo
 from devices import MicroR2Platform
 from soc.cli import cli
@@ -55,7 +55,8 @@ class Top(Elaboratable):
         hdmi_plugin = platform.request("hdmi", "north")
         m.submodules.hdmi_buffer_reader = HdmiBufferReader(
             ring_buffer, hdmi_plugin,
-            modeline=generate_modeline(1920, 1080, 30)
+            modeline=generate_modeline(1280, 720, 30),
+            data_interpreter_class=LinuxFramebuffer
         )
 
         return m

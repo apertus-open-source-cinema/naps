@@ -3,11 +3,11 @@ import unittest
 from nmigen import *
 
 from cores.ring_buffer_address_storage import RingBufferAddressStorage
-from util.stream import StreamEndpoint
 from util.sim import SimPlatform
 from cores.axi.axi_endpoint import AxiEndpoint, Response, AddressChannel, BurstType, DataChannel
 from cores.axi.buffer_writer import AxiBufferWriter, AddressGenerator
 from util.sim import wait_for, pulse, do_nothing
+from util.stream import Stream
 
 
 def answer_channel(channel, always_ready=True):
@@ -58,7 +58,7 @@ class TestSimAxiWriter(unittest.TestCase):
         axi = AxiEndpoint(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
 
         ringbuffer = RingBufferAddressStorage(0x1000, 2, base_address=0)
-        stream_source = StreamEndpoint(64, is_sink=False, has_last=True)
+        stream_source = Stream(64, has_last=True)
 
         dut = AxiBufferWriter(ringbuffer, stream_source, axi, fifo_depth=data_len)
 
@@ -108,7 +108,7 @@ class TestSimAxiWriter(unittest.TestCase):
         axi = AxiEndpoint(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
 
         ringbuffer = RingBufferAddressStorage(0x1000, 2, base_address=0)
-        stream_source = StreamEndpoint(64, is_sink=False, has_last=True)
+        stream_source = Stream(64, has_last=True)
 
         dut = AxiBufferWriter(ringbuffer, stream_source, axi, fifo_depth=data_len)
 

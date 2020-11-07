@@ -1,9 +1,9 @@
 from nmigen import Signal
 
-from util.bundle import Bundle
+from util.packedstruct import PackedStruct
 
 
-class Rgb(Bundle):
+class Rgb(PackedStruct):
     r = Signal(8)
     g = Signal(8)
     b = Signal(8)

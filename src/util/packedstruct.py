@@ -1,4 +1,3 @@
-import re
 from dataclasses import dataclass
 
 from nmigen import *
@@ -6,9 +5,11 @@ from nmigen import tracer
 from nmigen._utils import union
 from nmigen.hdl.ast import UserValue, SignalSet
 
+from util.py_util import camel_to_snake
+
 
 @dataclass
-class Bundle(UserValue):
+class PackedStruct(UserValue):
     def __init__(self, name=None, src_loc_at=1):
         super().__init__()
         self.name = name or tracer.get_var_name(depth=2 + src_loc_at, default=camel_to_snake(self.__class__.__name__))
@@ -40,8 +41,3 @@ class Bundle(UserValue):
 
     def _rhs_signals(self):
         return union((f._rhs_signals() for f in self._nmigen_fields().values()), start=SignalSet())
-
-
-def camel_to_snake(name):
-    name = re.sub('(.)([A-Z][a-z]+)', r'\1_\2', name)
-    return re.sub('([a-z0-9])([A-Z])', r'\1_\2', name).lower()

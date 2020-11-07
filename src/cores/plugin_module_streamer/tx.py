@@ -4,13 +4,12 @@
 from nmigen import *
 
 from cores.csr_bank import ControlSignal
-from cores.primitives.xilinx_s7.clocking import Pll
 from cores.primitives.xilinx_s7.io import DDRSerializer
-from util.stream import StreamEndpoint
+from util.stream import Stream
 
 
 class PluginModuleStreamerTx(Elaboratable):
-    def __init__(self, plugin_resource, input: StreamEndpoint, bitclk_domain, training_pattern=0b00000110):
+    def __init__(self, plugin_resource, input: Stream, bitclk_domain, training_pattern=0b00000110):
         self.bitclk_domain = bitclk_domain
         self.plugin_lvds = plugin_resource
         self.input = input
@@ -20,12 +19,9 @@ class PluginModuleStreamerTx(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-
-        sink = StreamEndpoint.like(self.input, is_sink=True, name="plugin_module_streamer_sink")
-        m.d.comb += sink.connect(self.input)
         
-        m.d.comb += self.plugin_lvds.valid.eq(sink.valid & ~self.do_training)
-        m.d.comb += sink.ready.eq(1)
+        m.d.comb += self.plugin_lvds.valid.eq(self.input.valid & ~self.do_training)
+        m.d.comb += self.input.ready.eq(1)
         
         m.d.comb += self.plugin_lvds.clk_word.eq(ClockSignal())
 
@@ -33,10 +29,9 @@ class PluginModuleStreamerTx(Elaboratable):
             value = Signal()
             m.submodules["lane{}".format(i)] = DDRSerializer(self.plugin_lvds["lvds{}".format(i)], value, ddr_clockdomain=self.bitclk_domain)
             with m.If(self.plugin_lvds.valid):
-                m.d.comb += value.eq(sink.payload[0+(i*8):8+(i*8)])
+                m.d.comb += value.eq(self.input.payload[0+(i*8):8+(i*8)])
             with m.Else():
                 m.d.comb += value.eq(self.training_pattern)
-
 
         return m
 

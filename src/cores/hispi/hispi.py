@@ -4,10 +4,10 @@ from cores.csr_bank import StatusSignal, ControlSignal
 from cores.hispi.s7_phy import HispiPhy
 from cores.stream.combiner import StreamCombiner
 from soc.pydriver.drivermethod import driver_property
-from util.stream import StreamEndpoint
 
 # those are only the starts of the patterns; they are expanded to the length of the word
 from util.nmigen_misc import delay_by, ends_with
+from util.stream import Stream
 
 control_words = {
     "START_OF_ACTIVE_FRAME_IMAGE_DATA": "00011",
@@ -51,7 +51,7 @@ class LaneManager(Elaboratable):
         self.last_word = StatusSignal(input_data.shape())
 
         self.do_bitslip = Signal()
-        self.output = StreamEndpoint(self.input_data.shape(), is_sink=False, has_last=True)
+        self.output = Stream(self.input_data.shape(), has_last=True)
 
     def elaborate(self, platform):
         m = Module()
@@ -130,7 +130,7 @@ class Hispi(Elaboratable):
         self.height = StatusSignal(range(10000))
         self.frame_count = StatusSignal(32)
 
-        self.output = StreamEndpoint(len(self.lvds) * bits, is_sink=False, has_last=True)
+        self.output = Stream(len(self.lvds) * bits, has_last=True)
         self.phy = HispiPhy(num_lanes=self.lanes, bits=self.bits)
 
     def elaborate(self, platform):
@@ -166,7 +166,7 @@ class Hispi(Elaboratable):
                     m.d.hispi += height_counter.eq(0)
 
         stream_combiner = m.submodules.stream_combiner = DomainRenamer("hispi")(StreamCombiner(streams))
-        m.d.comb += self.output.connect(stream_combiner.output, allow_back_to_back=True)
+        m.d.comb += self.output.connect_upstream(stream_combiner.output)
 
         return m
 

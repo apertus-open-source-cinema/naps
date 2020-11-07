@@ -5,11 +5,11 @@ import lzma
 from nmigen import Signal
 
 from cores.hispi.hispi import LaneManager
-from util.bundle import Bundle
+from util.packedstruct import PackedStruct
 from util.sim import SimPlatform
 
 
-class FakeSensorResource(Bundle):
+class FakeSensorResource(PackedStruct):
     def __init__(self):
         super().__init__()
         self.lvds = Signal(4)

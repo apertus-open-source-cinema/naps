@@ -8,9 +8,9 @@ from cores.csr_bank import ControlSignal, StatusSignal
 from cores.axi.buffer_writer import AxiBufferWriter
 from cores.ring_buffer_address_storage import RingBufferAddressStorage
 from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
-from util.stream import StreamEndpoint
 from soc.platforms.zynq import ZynqSocPlatform
 from soc.cli import cli
+from util.stream import Stream
 
 
 class Top(Elaboratable):
@@ -30,7 +30,7 @@ class Top(Elaboratable):
 
         ring_buffer = RingBufferAddressStorage(buffer_size=0x1200000, n=4)
 
-        stream_source = StreamEndpoint(64, is_sink=False, has_last=True)
+        stream_source = Stream(64, has_last=True)
         m.d.comb += self.data_ready.eq(stream_source.ready)
         m.d.comb += stream_source.valid.eq(self.data_valid)
 

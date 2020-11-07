@@ -5,7 +5,7 @@ from nmigen.hdl.ast import Rose
 
 from cores.csr_bank import StatusSignal
 from cores.primitives.lattice_machxo2.clocking import Pll, EClkSync, ClkDiv
-from util.stream import StreamEndpoint
+from util.stream import Stream
 
 
 class PluginModuleStreamerRx(Elaboratable):
@@ -14,7 +14,7 @@ class PluginModuleStreamerRx(Elaboratable):
         This module needs to run in the word clock domain of the bus.
         """
         self.plugin = plugin
-        self.output = StreamEndpoint(32, is_sink=False, has_last=False)
+        self.output = Stream(32, has_last=False)
 
         self.ready = StatusSignal()
 

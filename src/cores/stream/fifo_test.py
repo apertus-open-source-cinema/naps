@@ -6,7 +6,7 @@ from nmigen import *
 
 from cores.stream.fifo import AsyncStreamFifo, SyncStreamFifo
 from cores.stream.sim_util import write_to_stream, read_from_stream
-from util.stream import StreamEndpoint
+from util.stream import Stream
 
 
 class TestFifo(unittest.TestCase):
@@ -34,7 +34,7 @@ class TestFifo(unittest.TestCase):
 
     def test_sim_asnyc_stream_fifo(self):
         m = Module()
-        input = StreamEndpoint(32, is_sink=False, has_last=False)
+        input = Stream(32, has_last=False)
         fifo = m.submodules.fifo = AsyncStreamFifo(input, 1024, r_domain="sync", w_domain="sync", buffered=False)
 
         def testbench():

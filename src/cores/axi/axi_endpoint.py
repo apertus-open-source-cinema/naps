@@ -4,7 +4,7 @@ from enum import Enum
 from nmigen import *
 from nmigen.hdl.ast import UserValue, MustUse
 
-from util.bundle import Bundle
+from util.packedstruct import PackedStruct
 
 
 class Response(Enum):
@@ -32,7 +32,7 @@ class ProtectionType(UserValue):
         return Signal(3, reset=int("".join(str(int(x)) for x in [self.privileged, not self.secure, self.is_instruction]), 2))
 
 
-class AddressChannel(Bundle):
+class AddressChannel(PackedStruct):
     def __init__(self, addr_bits, lite, id_bits, data_bytes, **kwargs):
         assert addr_bits % 8 == 0
         super().__init__(**kwargs)
@@ -49,7 +49,7 @@ class AddressChannel(Bundle):
             self.protection_type = Signal(ProtectionType().shape())
 
 
-class DataChannel(Bundle):
+class DataChannel(PackedStruct):
     def __init__(self, data_bits, read, lite, id_bits, **kwargs):
         assert data_bits % 8 == 0
         super().__init__(**kwargs)
@@ -68,7 +68,7 @@ class DataChannel(Bundle):
             self.id = Signal(id_bits)
 
 
-class WriteResponseChannel(Bundle):
+class WriteResponseChannel(PackedStruct):
     def __init__(self, lite, id_bits, **kwargs):
         super().__init__(**kwargs)
 
@@ -80,7 +80,7 @@ class WriteResponseChannel(Bundle):
             self.id = Signal(id_bits)
 
 
-class AxiEndpoint(Bundle, MustUse):
+class AxiEndpoint(PackedStruct, MustUse):
     @staticmethod
     def like(model, master=None, lite=None, name="axi", **kwargs):
         """

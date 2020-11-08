@@ -22,4 +22,3 @@ nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
 
 [scripts]
 test = "pytest --forked -n 8 src/"
-test_fast = "pytest --forked -n 8 -k 'not hispi' src/"

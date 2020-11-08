@@ -129,7 +129,7 @@ class TE0714_03_50_2LPlatform(Xilinx7SeriesPlatform):
         with products.extract("{}.bit".format(name)) as bitstream_filename:
             subprocess.check_call([
                 openocd,
-                "-c", "source [find interface/ftdi/digilent_jtag_hs3.cfg];"
+                "-c", "source [find bus/ftdi/digilent_jtag_hs3.cfg];"
                       "transport select jtag;"
                       "source [find cpld/xilinx-xc7.cfg];"
                       "source [find cpld/jtagspi.cfg];"

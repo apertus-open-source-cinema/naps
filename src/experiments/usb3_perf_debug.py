@@ -1,14 +1,12 @@
 # An experiment that allows debugging / diagnosing performance of the FT601 USB3 FIFO ic
-from itertools import count
 
 from nmigen import *
 
-from cores.ft601.ft601_perf_debug import FT601PerfDebug
+from lib.io.ft601.ft601_perf_debug import FT601PerfDebug
 from devices import HdmiDigitizerPlatform, Usb3PluginPlatform
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform
 from soc.platforms.jtag.jtag_soc_platform import JTAGSocPlatform
-from util.nmigen_misc import connect_leds
 
 
 class Top(Elaboratable):

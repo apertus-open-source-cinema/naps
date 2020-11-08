@@ -2,14 +2,14 @@
 
 from nmigen import *
 
-from cores.csr_bank import ControlSignal
-from cores.ft601.ft601_stream_sink import FT601StreamSink
-from cores.plugin_module_streamer.rx import PluginModuleStreamerRx
-from cores.stream.counter_source import CounterStreamSource
+from lib.peripherals.csr_bank import ControlSignal
+from lib.io.ft601.ft601_stream_sink import FT601StreamSink
+from lib.io.plugin_module_streamer.rx import PluginModuleStreamerRx
+from lib.bus.stream.counter_source import CounterStreamSource
 from devices import Usb3PluginPlatform
 from soc.cli import cli
 from soc.platforms.jtag.jtag_soc_platform import JTAGSocPlatform
-from util.stream import Stream
+from lib.bus.stream.stream import Stream
 
 
 class Top(Elaboratable):

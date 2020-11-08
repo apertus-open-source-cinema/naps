@@ -3,10 +3,10 @@
 
 from nmigen import *
 
-from cores.mmio_gpio import MmioGpio
-from cores.plugin_module_streamer.tx import PluginModuleStreamerTx
-from cores.primitives.xilinx_s7.clocking import Pll
-from cores.stream.counter_source import CounterStreamSource
+from lib.peripherals.mmio_gpio import MmioGpio
+from lib.io.plugin_module_streamer.tx import PluginModuleStreamerTx
+from lib.primitives.xilinx_s7.clocking import Pll
+from lib.bus.stream.counter_source import CounterStreamSource
 from devices import MicroR2Platform
 from soc.cli import cli
 

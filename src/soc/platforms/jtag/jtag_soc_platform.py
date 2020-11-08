@@ -2,7 +2,7 @@ from os.path import join, dirname
 
 from nmigen import Fragment, Signal
 
-from cores.jtag.jtag_peripheral_connector import JTAGPeripheralConnector
+from lib.bus.jtag.jtag_peripheral_connector import JTAGPeripheralConnector
 from soc.peripherals_aggregator import PeripheralsAggregator
 from soc.memorymap import Address
 from soc.soc_platform import SocPlatform

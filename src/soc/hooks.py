@@ -6,7 +6,7 @@ from nmigen.hdl.ast import SignalSet
 from soc.pydriver.drivermethod import DriverMethod
 from soc.tracing_elaborate import ElaboratableSames
 
-from cores.csr_bank import CsrBank, _Csr, ControlSignal, StatusSignal, EventReg
+from lib.peripherals.csr_bank import CsrBank, _Csr, ControlSignal, StatusSignal, EventReg
 from soc.memorymap import MemoryMap
 
 

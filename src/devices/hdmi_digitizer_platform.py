@@ -32,7 +32,7 @@ class HdmiDigitizerPlatform(TE0714_03_50_2LPlatform):
             ),
         ])
 
-        # 'source [find interface/ftdi/digilent_jtag_hs3.cfg];'
+        # 'source [find bus/ftdi/digilent_jtag_hs3.cfg];'
         # 'source [find cpld/xilinx-xc7.cfg]; transport select jtag;'
         # 'adapter_khz 20000;'
         # 'init;'

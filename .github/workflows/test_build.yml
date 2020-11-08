@@ -20,7 +20,7 @@ jobs:
         NMIGEN_USE_YOSYS: system
         YOSYS: yowasp-yosys
       run:
-        pipenv run python src/experiments/hdmi_test.py -b -d ${{ matrix.device }} -s ${{ matrix.soc_platform }}
+        pipenv run python src/experiments/hdmi_demo.py -b -d ${{ matrix.device }} -s ${{ matrix.soc_platform }}
     - name: upload
       uses: actions/upload-artifact@v2
       with:

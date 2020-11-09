@@ -2,12 +2,12 @@ from nmigen import *
 
 from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.io.hispi.s7_phy import HispiPhy
-from lib.bus.stream.combiner import StreamCombiner
 from soc.pydriver.drivermethod import driver_property
 
 # those are only the starts of the patterns; they are expanded to the length of the word
 from util.nmigen_misc import delay_by, ends_with
-from lib.bus.stream.stream import Stream
+from lib.bus.stream.stream import Stream, PacketizedStream
+from lib.bus.stream.image_stream import ImageStream
 
 control_words = {
     "START_OF_ACTIVE_FRAME_IMAGE_DATA": "00011",
@@ -36,9 +36,11 @@ class LaneManager(Elaboratable):
 
         self.timeout = ControlSignal(32, reset=10000)
         self.timeouts_to_resync = ControlSignal(32, reset=10000)
+
         self.since_last_sync_pattern_or_bitslip = StatusSignal(32)
         self.performed_bitslips = StatusSignal(32)
         self.timeouts_since_alignment = StatusSignal(32)
+        self.last_word = StatusSignal(input_data.shape())
         self.last_control_word = StatusSignal(
             input_data.shape(),
             decoder=lambda x: next((
@@ -48,10 +50,9 @@ class LaneManager(Elaboratable):
                 if "{:012b}".format(x).endswith(ending)
             ), "UNKNOWN/{:012b}".format(x))
         )
-        self.last_word = StatusSignal(input_data.shape())
 
         self.do_bitslip = Signal()
-        self.output = Stream(self.input_data.shape(), has_last=True)
+        self.output = ImageStream(self.input_data.shape())
 
     def elaborate(self, platform):
         m = Module()
@@ -130,7 +131,7 @@ class Hispi(Elaboratable):
         self.height = StatusSignal(range(10000))
         self.frame_count = StatusSignal(32)
 
-        self.output = Stream(len(self.lvds) * bits, has_last=True)
+        self.output = ImageStream(len(self.lvds) * bits)
         self.phy = HispiPhy(num_lanes=self.lanes, bits=self.bits)
 
     def elaborate(self, platform):

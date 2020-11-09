@@ -1,3 +1,4 @@
+import inspect
 from dataclasses import dataclass
 from enum import Enum
 from typing import TypeVar
@@ -10,7 +11,7 @@ from util.py_util import camel_to_snake
 
 class Bundle:
     def __init__(self, name=None, src_loc_at=1):
-        self.name = name or tracer.get_var_name(depth=2 + src_loc_at, default=camel_to_snake(self.__class__.__name__))
+        self.name = name or tracer.get_var_name(depth=1 + src_loc_at, default="$" + camel_to_snake(self.__class__.__name__))
         self._directions = {}
 
     def __setattr__(self, key, value):
@@ -21,7 +22,7 @@ class Bundle:
             self._directions[key] = Direction.DOWNWARDS
 
         if hasattr(value, "name") and isinstance(value.name, str):
-            if value.name == "$signal":  # with up() and down() we are breaking nmigens tracer
+            if value.name.startswith("$"):  # with @UPWARDS and @DOWNWARDS we are breaking nmigens tracer
                 value.name = key
             value.name = format("{}__{}".format(self.name, value.name))
         if hasattr(value, "_update_name") and callable(value._update_name):
@@ -38,31 +39,43 @@ class Bundle:
     def __repr__(self):
         return "<{}(Interface) name={}>".format(self.__class__.__name__, self.name)
 
-    def connect_upstream(self, upstream):
-        return self._connect(upstream, self)
+    def connect_upstream(self, upstream, allow_partial=False):
+        return self._connect(upstream, self, allow_partial)
 
-    def connect_downstream(self, downstream):
-        return self._connect(self, downstream)
+    def connect_downstream(self, downstream, allow_partial=False):
+        return self._connect(self, downstream, allow_partial)
+
+    @property
+    def _downwards_ports(self):
+        return [k for k, v in self._directions.items() if v == Direction.DOWNWARDS]
+
+    @property
+    def _upwards_ports(self):
+        return [k for k, v in self._directions.items() if v == Direction.UPWARDS]
 
     @staticmethod
-    def _connect(upstream, downstream):
-        assert upstream._directions == downstream._directions
-        statements = []
+    def _connect(upstream, downstream, allow_partial):
+        assert isinstance(upstream, Bundle) and isinstance(downstream, Bundle)
+        if not allow_partial:
+            assert upstream._directions == downstream._directions
 
-        for u, d, direction in [
-            (getattr(upstream, k), getattr(downstream, k), upstream._directions[k])
-            for k in upstream._directions.keys()
-        ]:
-            if direction == Direction.DOWNWARDS:
+        statements = []
+        for k in upstream._downwards_ports:
+            if hasattr(upstream, k) and hasattr(downstream, k):
+                assert upstream._directions[k] == downstream._directions[k]
+                u, d = getattr(upstream, k), getattr(downstream, k)
                 if isinstance(d, Value):
                     statements += [d.eq(u)]
                 elif isinstance(d, Bundle):
-                    statements += Bundle._connect(u, d)
-            else:
+                    statements += Bundle._connect(u, d, allow_partial)
+        for k in downstream._upwards_ports:
+            if hasattr(upstream, k) and hasattr(downstream, k):
+                assert upstream._directions[k] == downstream._directions[k]
+                u, d = getattr(upstream, k), getattr(downstream, k)
                 if isinstance(u, Value):
                     statements += [u.eq(d)]
                 elif isinstance(u, Bundle):
-                    statements += Bundle._connect(d, u)
+                    statements += Bundle._connect(d, u, allow_partial)
 
         return statements
 

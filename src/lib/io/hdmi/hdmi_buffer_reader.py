@@ -2,15 +2,15 @@ from nmigen import *
 from nmigen.lib.cdc import FFSynchronizer
 
 from lib.bus.axi.buffer_reader import AxiBufferReader
+from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.io.hdmi.hdmi import Hdmi
 from lib.io.hdmi.parse_modeline import VideoTiming
 from lib.bus.ring_buffer import RingBufferAddressStorage
-from lib.bus.stream.fifo import AsyncStreamFifo
 from soc.devicetree.overlay import devicetree_overlay
 from soc.pydriver.drivermethod import driver_property
 from util.nmigen_misc import iterator_with_if_elif
-from lib.bus.stream.stream import Stream
+from lib.bus.stream.stream import Stream, PacketizedStream
 
 
 class HdmiBufferReader(Elaboratable):
@@ -45,7 +45,7 @@ class HdmiBufferReader(Elaboratable):
         m.domains += ClockDomain("buffer_reader_fifo")
         m.d.comb += ClockSignal("buffer_reader_fifo").eq(ClockSignal("axi_hp"))
         m.d.comb += ResetSignal("buffer_reader_fifo").eq(begin_blanking_in_axi_domain & self.allow_fifo_reset)
-        pixel_fifo = m.submodules.pixel_fifo = AsyncStreamFifo(
+        pixel_fifo = m.submodules.pixel_fifo = BufferedAsyncStreamFIFO(
             reader.output, depth=1024 * 16, w_domain="buffer_reader_fifo", r_domain="pix"
         )
 
@@ -78,7 +78,7 @@ class AddressGenerator(Elaboratable):
         self.data_width_bytes = data_width // 8
         self.max_line_width = max_line_width
 
-        self.output = Stream(address_width, has_last=True)
+        self.output = PacketizedStream(address_width)
 
     def elaborate(self, platform):
         m = Module()

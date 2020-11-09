@@ -24,7 +24,7 @@ class Ila(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        fifo = m.submodules.fifo = SyncFIFO(width=sum(len(probe) for probe in self.probes), depth=int(self.trace_length * self.fifo_underpower), fwft=False)
+        fifo = m.submodules.fifo_type = SyncFIFO(width=sum(len(probe) for probe in self.probes), depth=int(self.trace_length * self.fifo_underpower), fwft=False)
 
 
         current_sample = Signal.like(self.dropped)

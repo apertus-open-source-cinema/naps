@@ -3,25 +3,26 @@ import unittest
 from nmigen import *
 
 from lib.bus.ring_buffer import RingBufferAddressStorage
-from util.sim import SimPlatform
-from lib.bus.axi.axi_endpoint import AxiEndpoint, Response, AddressChannel, BurstType, DataChannel
+from lib.bus.stream.sim_util import write_to_stream, read_from_stream
+from util.sim import SimPlatform, do_nothing
+from lib.bus.axi.axi_endpoint import AxiEndpoint, Response, AddressStream, BurstType, DataStream
 from lib.bus.axi.buffer_writer import AxiBufferWriter, AddressGenerator
-from util.sim import wait_for, pulse, do_nothing
-from lib.bus.stream.stream import Stream
+from util.sim import wait_for, pulse
+from lib.bus.stream.stream import PacketizedStream
 
 
 def answer_channel(channel, always_ready=True):
     if always_ready:
         yield channel.ready.eq(1)
     yield from wait_for(channel.valid)
-    if isinstance(channel, AddressChannel):
+    if isinstance(channel, AddressStream):
         to_return = (
             (yield channel.payload),
             (yield channel.burst_len) + 1,
             (yield channel.burst_type),
             (yield channel.beat_size_bytes)
         )
-    elif isinstance(channel, DataChannel):
+    elif isinstance(channel, DataStream):
         to_return = ((yield channel.payload), (yield channel.last), (yield channel.byte_strobe))
     if not always_ready:
         yield from pulse(channel.ready)
@@ -45,6 +46,8 @@ def answer_write_burst(axi: AxiEndpoint):
         value, last, byte_strobe = yield from answer_channel(axi.write_data)
         if i == burst_len - 1:
             assert last
+        else:
+            assert not last
         if byte_strobe != 0:
             memory[addr + i * axi.data_bytes] = value
             accepted += 1
@@ -58,7 +61,7 @@ class TestSimAxiWriter(unittest.TestCase):
         axi = AxiEndpoint(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
 
         ringbuffer = RingBufferAddressStorage(0x1000, 2, base_address=0)
-        stream_source = Stream(64, has_last=True)
+        stream_source = PacketizedStream(64)
 
         dut = AxiBufferWriter(ringbuffer, stream_source, axi, fifo_depth=data_len)
 
@@ -98,7 +101,7 @@ class TestSimAxiWriter(unittest.TestCase):
                 yield
 
             self.assertEqual(gold, memory)
-            self.assertFalse((yield dut.error))
+
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
@@ -108,24 +111,25 @@ class TestSimAxiWriter(unittest.TestCase):
         axi = AxiEndpoint(addr_bits=32, data_bits=64, master=False, lite=False, id_bits=12)
 
         ringbuffer = RingBufferAddressStorage(0x1000, 2, base_address=0)
-        stream_source = Stream(64, has_last=True)
+        stream_source = PacketizedStream(64)
 
         dut = AxiBufferWriter(ringbuffer, stream_source, axi, fifo_depth=data_len)
 
         def testbench():
-            # first, fill in some data:
-            for i in range(data_len):
-                yield stream_source.payload.eq(i)
-                yield stream_source.valid.eq(1)
-                yield
-            yield stream_source.valid.eq(0)
+            for round in range(4):
+                for i in range(data_len):
+                    yield from write_to_stream(stream_source, payload=i + round)
 
-            memory = {}
-            while len(memory) < 50:
-                memory.update((yield from answer_write_burst(axi))[0])
+                memory = {}
+                while len(memory) < 50:
+                    written, accepted = (yield from answer_write_burst(axi))
+                    memory.update(written)
+                self.assertEqual({
+                    ringbuffer.buffer_base_list[0] + i * axi.data_bytes + round * 400: i + round
+                    for i in range(50)
+                }, memory)
 
-            self.assertEqual({ringbuffer.buffer_base_list[0] + i * axi.data_bytes: i for i in range(50)}, memory)
-            self.assertFalse((yield dut.error))
+                yield from do_nothing(100)
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
@@ -155,28 +159,3 @@ class TestSimAxiWriter(unittest.TestCase):
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
         platform.sim(m, testbench)
-
-
-class TestAddressGenerator(unittest.TestCase):
-    def test_basic(self, inc=5):
-        ringbuffer = RingBufferAddressStorage(0x1000, 2, base_address=0)
-        dut = AddressGenerator(ringbuffer, addr_bits=32, max_incr=inc)
-
-        def testbench():
-            yield dut.inc.eq(inc)
-            for i in range(10):
-                yield from pulse(dut.request)
-                yield from wait_for(dut.valid, must_clock=False)
-                self.assertEqual(ringbuffer.buffer_base_list[0] + i * inc, (yield dut.addr))
-                yield from pulse(dut.done)
-            yield from pulse(dut.change_buffer)
-            yield from do_nothing()
-            for i in range(10):
-                yield from pulse(dut.request)
-                yield from wait_for(dut.valid)
-                self.assertEqual(ringbuffer.buffer_base_list[1] + i * inc, (yield dut.addr))
-                yield from pulse(dut.done)
-
-        platform = SimPlatform()
-        platform.add_sim_clock("sync", 100e6)
-        platform.sim(dut, testbench, [dut.request, dut.change_buffer, dut.addr, dut.valid, dut.done])

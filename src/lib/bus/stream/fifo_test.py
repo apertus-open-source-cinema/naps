@@ -1,56 +1,47 @@
 import unittest
 
-from nmigen.lib.fifo import AsyncFIFO
-from nmigen.sim import Simulator
-from nmigen import *
+from nmigen.lib.fifo import SyncFIFO
 
-from lib.bus.stream.fifo import AsyncStreamFifo
+from lib.bus.stream.fifo import UnbufferedAsyncStreamFIFO, BufferedAsyncStreamFIFO, UnbufferedSyncStreamFIFO, \
+    BufferedSyncStreamFIFO, StreamFIFO
 from lib.bus.stream.sim_util import write_to_stream, read_from_stream
-from lib.bus.stream.stream import Stream
+from lib.bus.stream.stream import BasicStream
+from util.sim import SimPlatform, do_nothing
 
 
 class TestFifo(unittest.TestCase):
-    def test_sim_async_fifo(self):
-        m = Module()
-        fifo = m.submodules.fifo = AsyncFIFO(width=32, depth=8, r_domain="sync", w_domain="sync")
-
-        def testbench():
-            for i in range(20):
-                yield fifo.w_data.eq(i)
-                yield fifo.w_en.eq(1)
-                yield
-            yield fifo.w_en.eq(0)
-            yield
-            yield
-            yield
-            yield
-
-            assert (yield fifo.r_level) == 8
-
-        simulator = Simulator(m)
-        simulator.add_clock(1 / 100e6, domain="sync")
-        simulator.add_sync_process(testbench, domain="sync")
-        simulator.run()
-
-    def test_sim_asnyc_stream_fifo(self):
-        m = Module()
-        input = Stream(32, has_last=False)
-        fifo = m.submodules.fifo = AsyncStreamFifo(input, 1024, r_domain="sync", w_domain="sync", buffered=False)
+    def check_fifo_basic(self, fifo_generator):
+        input = BasicStream(32)
+        fifo = fifo_generator(input, 1024)
 
         def testbench():
             for i in range(10):
-                yield from write_to_stream(input, i)
+                yield from write_to_stream(input, payload=i)
 
-            # async fifos need some time
-            yield
-            yield
+            # async fifos need some time due to cdc
+            yield from do_nothing()
 
             assert (yield fifo.r_level) == 10
 
             for i in range(10):
-                assert (yield from read_from_stream(fifo.output)) == i
+                assert (yield from read_from_stream(fifo.output)) == i, "read data doesnt match written data"
 
-        simulator = Simulator(m)
-        simulator.add_clock(1 / 100e6, domain="sync")
-        simulator.add_sync_process(testbench, domain="sync")
-        simulator.run()
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.sim(fifo, testbench)
+
+    def test_sim_async_stream_fifo(self):
+        fifo_gen = lambda input, depth: UnbufferedAsyncStreamFIFO(input, depth, r_domain="sync", w_domain="sync")
+        self.check_fifo_basic(fifo_gen)
+
+    def test_async_stream_fifo_buffered(self):
+        fifo_gen = lambda input, depth: BufferedAsyncStreamFIFO(input, depth, r_domain="sync", w_domain="sync")
+        self.check_fifo_basic(fifo_gen)
+
+    def test_sync_stream_fifo(self):
+        fifo_gen = lambda input, depth: UnbufferedSyncStreamFIFO(input, depth)
+        self.check_fifo_basic(fifo_gen)
+
+    def test_sync_stream_fifo_buffered(self):
+        fifo_gen = lambda input, depth: BufferedSyncStreamFIFO(input, depth)
+        self.check_fifo_basic(fifo_gen)

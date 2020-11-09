@@ -10,14 +10,13 @@ def write_to_axi_channel(channel, value):
 
 
 def read_from_axi_channel(channel):
-    yield from wait_for(channel.valid)
     yield channel.ready.eq(1)
+    yield from wait_for(channel.valid)
     if hasattr(channel, "payload"):
         result = (yield channel.payload)
     else:
         result = None
     response = (yield channel.resp)
-    yield
     yield channel.ready.eq(0)
     return result, response
 

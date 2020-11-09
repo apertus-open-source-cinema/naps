@@ -1,12 +1,12 @@
 from nmigen import *
 
 from lib.peripherals.csr_bank import ControlSignal
-from lib.bus.stream.stream import Stream
+from lib.bus.stream.stream import BasicStream
 
 
 class CounterStreamSource(Elaboratable):
     def __init__(self, width, count_if_not_ready=False):
-        self.output = Stream(width, has_last=False)
+        self.output = BasicStream(width, name="counter_stream")
 
         self.count_if_not_ready = ControlSignal(reset=count_if_not_ready)
 

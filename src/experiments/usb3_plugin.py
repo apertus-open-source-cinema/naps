@@ -9,7 +9,7 @@ from lib.bus.stream.counter_source import CounterStreamSource
 from devices import Usb3PluginPlatform
 from soc.cli import cli
 from soc.platforms.jtag.jtag_soc_platform import JTAGSocPlatform
-from lib.bus.stream.stream import Stream
+from lib.bus.stream.stream import Stream, BasicStream
 
 
 class Top(Elaboratable):
@@ -26,7 +26,7 @@ class Top(Elaboratable):
         counter = Signal(24)
         m.d.sync += counter.eq(counter + 1)
 
-        jtag_analyze = Stream(32, has_last=False)
+        jtag_analyze = BasicStream(32)
         m.d.comb += jtag_analyze.payload.eq(platform.jtag_signals)
         m.d.comb += jtag_analyze.valid.eq(1)
 

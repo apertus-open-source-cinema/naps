@@ -4,6 +4,7 @@ from enum import Enum
 from nmigen import *
 from nmigen.hdl.ast import UserValue, MustUse
 
+from lib.bus.stream.stream import BasicStream, Stream
 from lib.data_structure.bundle import Bundle, UPWARDS, DOWNWARDS
 
 
@@ -32,15 +33,10 @@ class ProtectionType(UserValue):
         return Signal(3, reset=int("".join(str(int(x)) for x in [self.privileged, not self.secure, self.is_instruction]), 2))
 
 
-class AddressChannel(Bundle):
-    def __init__(self, addr_bits, lite, id_bits, data_bytes, **kwargs):
+class AddressStream(BasicStream):
+    def __init__(self, addr_bits, lite, id_bits, data_bytes, src_loc_at=1):
         assert addr_bits % 8 == 0
-        super().__init__(**kwargs)
-
-        self.ready = Signal() @ UPWARDS
-        self.valid = Signal()
-        self.payload = Signal(addr_bits)
-
+        super().__init__(addr_bits, src_loc_at=1 + src_loc_at)
         if not lite:
             self.id = Signal(id_bits)
             self.burst_type = Signal(BurstType)
@@ -49,14 +45,10 @@ class AddressChannel(Bundle):
             self.protection_type = Signal(ProtectionType().shape())
 
 
-class DataChannel(Bundle):
-    def __init__(self, data_bits, read, lite, id_bits, **kwargs):
+class DataStream(BasicStream):
+    def __init__(self, data_bits, read, lite, id_bits, src_loc_at=1, **kwargs):
         assert data_bits % 8 == 0
-        super().__init__(**kwargs)
-
-        self.ready = Signal() @ UPWARDS
-        self.valid = Signal()
-        self.payload = Signal(data_bits)
+        super().__init__(data_bits, src_loc_at=1 + src_loc_at, **kwargs)
         if read:
             self.resp = Signal(Response)
         else:
@@ -68,9 +60,9 @@ class DataChannel(Bundle):
             self.id = Signal(id_bits)
 
 
-class WriteResponseChannel(Bundle):
-    def __init__(self, lite, id_bits, **kwargs):
-        super().__init__(**kwargs)
+class WriteResponseChannel(Stream):
+    def __init__(self, lite, id_bits, src_loc_at=1, **kwargs):
+        super().__init__(src_loc_at=1 + src_loc_at, **kwargs)
 
         self.ready = Signal() @ UPWARDS
         self.valid = Signal()
@@ -106,7 +98,7 @@ class AxiEndpoint(Bundle, MustUse):
             **kwargs
         )
 
-    def __init__(self, *, addr_bits, data_bits, master, lite, id_bits=None, **kwargs):
+    def __init__(self, *, addr_bits, data_bits, master, lite, id_bits=None, src_loc_at=1, **kwargs):
         """
         Constructs a Record holding all the signals for axi (lite)
 
@@ -116,7 +108,7 @@ class AxiEndpoint(Bundle, MustUse):
         :param id_bits: the number of bits for the id signal of full axi. do not specify if :param lite is True.
         :param master: whether the record represents a master or a slave
         """
-        super().__init__(**kwargs)
+        super().__init__(**kwargs, src_loc_at=1 + src_loc_at)
 
         if id_bits:
             assert not lite, "there is no id tracking on axi lite buses"
@@ -136,11 +128,11 @@ class AxiEndpoint(Bundle, MustUse):
         self.id_bits = id_bits
 
         lite_args = {"lite": lite, "id_bits": id_bits}
-        self.read_address = AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args) @ DOWNWARDS
-        self.read_data = DataChannel(data_bits, read=True, **lite_args) @ UPWARDS
+        self.read_address = AddressStream(addr_bits, data_bytes=self.data_bytes, **lite_args) @ DOWNWARDS
+        self.read_data = DataStream(data_bits, read=True, **lite_args) @ UPWARDS
 
-        self.write_address = AddressChannel(addr_bits, data_bytes=self.data_bytes, **lite_args) @ DOWNWARDS
-        self.write_data = DataChannel(data_bits, read=False, **lite_args) @ DOWNWARDS
+        self.write_address = AddressStream(addr_bits, data_bytes=self.data_bytes, **lite_args) @ DOWNWARDS
+        self.write_data = DataStream(data_bits, read=False, **lite_args) @ DOWNWARDS
         self.write_response = WriteResponseChannel(**lite_args) @UPWARDS
 
     def connect_slave(self, slave):
@@ -156,10 +148,8 @@ class AxiEndpoint(Bundle, MustUse):
         :returns the list of
         """
         assert self.is_master
-        master = self
         assert not slave.is_master
-        assert master.is_lite == slave.is_lite
-        full = not master.is_lite
+        assert self.is_lite == slave.is_lite
         assert self.num_slaves == 0, "Only one Slave can be added to an AXI master without an interconnect"
 
         return self.connect_downstream(slave)

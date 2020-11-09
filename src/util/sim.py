@@ -6,6 +6,7 @@ from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 from nmigen.sim import Simulator
 
+
 class SimPlatform:
     def __init__(self):
         self.command_templates = []
@@ -53,8 +54,13 @@ class SimPlatform:
             simulator.add_clock(1 / frequency, domain=name)
 
         if not filename:
+            functions = []
             stack = inspect.stack()
-            filename = stack[1].function
+            for frame in stack[1:]:
+                if "unittest" in frame.filename:
+                    filename = "__".join(reversed(functions))
+                    break
+                functions.append(frame.function)
         assert isinstance(filename, str)
 
         if isinstance(testbench, tuple):
@@ -71,6 +77,7 @@ class SimPlatform:
             simulator.add_sync_process(generator, domain=domain)
 
         Path(".sim_results/").mkdir(exist_ok=True)
+        print("\nwriting vcd to '{}'".format(".sim_results/{}.vcd".format(filename)))
         with simulator.write_vcd(".sim_results/{}.vcd".format(filename), ".sim_results/{}.gtkw".format(filename),
                                  traces=traces):
             simulator.run()
@@ -100,10 +107,11 @@ class FakeResource(UserValue):
 
 def wait_for(expr, timeout=100, must_clock=True):
     for i in range(timeout):
-        if i > 0 or must_clock:
-            yield
         if (yield expr):
+            if must_clock and i == 0:
+                yield
             return
+        yield
     raise TimeoutError("{} did not become '1' within {} cycles".format(expr, timeout))
 
 

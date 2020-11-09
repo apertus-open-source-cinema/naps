@@ -1,49 +1,113 @@
 from nmigen import *
 
-from lib.bus.stream.stream import Stream
-from .axi_endpoint import BurstType
+from lib.bus.stream.stream import PacketizedStream
 from lib.peripherals.csr_bank import StatusSignal
-from util.nmigen_misc import nMin, mul_by_pot
+from .axi_endpoint import AddressStream, BurstType
 from .util import get_axi_master_from_maybe_slave
 from lib.bus.ring_buffer import RingBufferAddressStorage
-from lib.bus.stream.fifo import SyncStreamFifo
+from ..stream.fifo import BufferedSyncStreamFIFO
+from ..stream.util import StreamTransformer
+
 
 class AddressGenerator(Elaboratable):
-    def __init__(self, ringbuffer: RingBufferAddressStorage, addr_bits, max_incr):
-        self.base_addrs = ringbuffer.buffer_base_list
-        self.max_buffer_size = ringbuffer.buffer_size
-        self.current_buffer = ringbuffer.current_write_buffer
-
+    def __init__(self, request: PacketizedStream, output: AddressStream, ringbuffer: RingBufferAddressStorage, max_burst, word_width_bytes=8):
+        self.word_width_bytes = word_width_bytes
+        self.ringbuffer = ringbuffer
+        self.current_buffer = StatusSignal(ringbuffer.current_write_buffer.shape())
 
         # this is pessimistic but we rather allocate larger buffers and _really_ not write anywhere else
-        self.max_addrs = Array(addr_base + self.max_buffer_size - (2 * max_incr) for addr_base in self.base_addrs)
+        self.max_addrs = Array(addr_base + ringbuffer.buffer_size - (2 * max_burst * word_width_bytes)
+                               for addr_base in self.ringbuffer.buffer_base_list)
 
-        self.request = Signal()  # in
-        self.inc = Signal(range(max_incr + 1))
-        self.change_buffer = Signal()  # in
-        self.addr = Signal(addr_bits, reset=self.base_addrs[0])  # out
-
-        self.valid = Signal(reset=1)  # out
-        self.done = Signal()  # in
+        # the payload is how much we increment our address, last if we change the buffer
+        self.request = request
+        self.output = output
 
     def elaborate(self, platform):
         m = Module()
 
-        with m.If(~self.valid):
-            with m.If(self.change_buffer):
-                with m.If(self.current_buffer < len(self.base_addrs) - 1):
+        self.output.payload.reset = self.ringbuffer.buffer_base_list[0]
+
+        m.d.comb += self.ringbuffer.current_write_buffer.eq(self.current_buffer)
+        with StreamTransformer(self.request, self.output, m):
+            m.d.comb += self.output.burst_type.eq(BurstType.INCR)
+            m.d.comb += self.output.burst_len.eq(self.request.payload)
+            with m.If(~self.request.last):
+                m.d.sync += self.output.payload.eq(self.output.payload + (self.request.payload + 1) * self.word_width_bytes)
+            with m.Elif((self.output.payload <= self.max_addrs[self.current_buffer])):
+                with m.If(self.current_buffer < len(self.ringbuffer.buffer_base_list) - 1):
                     m.d.sync += self.current_buffer.eq(self.current_buffer + 1)
-                    m.d.sync += self.addr.eq(self.base_addrs[self.current_buffer + 1])
+                    m.d.sync += self.output.payload.eq(self.ringbuffer.buffer_base_list[self.current_buffer + 1])
                 with m.Else():
                     m.d.sync += self.current_buffer.eq(0)
-                    m.d.sync += self.addr.eq(self.base_addrs[0])
-                m.d.sync += self.valid.eq(1)
-            with m.Elif(self.request & (self.addr <= self.max_addrs[self.current_buffer])):
-                m.d.sync += self.addr.eq(self.addr + self.inc)
-                m.d.sync += self.valid.eq(1)
+                    m.d.sync += self.output.payload.eq(self.ringbuffer.buffer_base_list[0])
 
-        with m.If(self.done):
-            m.d.sync += self.valid.eq(0)
+        return m
+
+
+class AddressGeneratorCommander(Elaboratable):
+    def __init__(self, input: PacketizedStream, max_burst_length=16, burst_creation_timeout=31):
+        self.burst_creation_timeout = burst_creation_timeout
+        self.max_burst_length = max_burst_length
+        self.input = input
+        self.output_request_address = PacketizedStream(range(max_burst_length - 1), name="request_address")
+        self.output_data = input.clone(name="output_data")
+
+    def elaborate(self, platform):
+        m = Module()
+
+        has_next_output_data = Signal()
+        next_output_data_put = Signal()
+        next_output_data_taken = Signal()
+        m.d.sync += has_next_output_data.eq(has_next_output_data + next_output_data_put - next_output_data_taken)
+        next_output_data_payload = Signal.like(self.input.payload)
+        next_output_data_last = Signal()
+
+        counter = Signal.like(self.output_request_address.payload)
+        timeout_counter = Signal(range(self.burst_creation_timeout))
+        with m.If(self.output_data.ready):
+            with m.If(has_next_output_data & next_output_data_put):
+                m.d.comb += next_output_data_taken.eq(1)
+                m.d.comb += self.output_data.valid.eq(1)
+                m.d.comb += self.output_data.payload.eq(next_output_data_payload)
+                m.d.comb += self.output_data.last.eq(next_output_data_last)
+
+            with m.If(self.input.valid):
+                m.d.sync += timeout_counter.eq(0)
+                with m.If(self.input.last | (counter == self.max_burst_length - 1)):
+                    with m.If(self.output_request_address.ready):
+                        m.d.comb += self.input.ready.eq(1)
+                        m.d.sync += counter.eq(0)
+
+                        m.d.comb += self.output_request_address.valid.eq(1)
+                        m.d.comb += self.output_request_address.payload.eq(counter)
+                        m.d.comb += self.output_request_address.last.eq(self.input.last)
+
+                        m.d.comb += next_output_data_put.eq(1)
+                        m.d.sync += next_output_data_last.eq(1)
+                        m.d.sync += next_output_data_payload.eq(self.input.payload)
+                with m.Else():
+                    m.d.comb += self.input.ready.eq(1)
+                    m.d.sync += counter.eq(counter + 1)
+
+                    m.d.comb += next_output_data_put.eq(1)
+                    m.d.sync += next_output_data_last.eq(0)
+                    m.d.sync += next_output_data_payload.eq(self.input.payload)
+            with m.Elif(has_next_output_data):
+                with m.If(timeout_counter == self.burst_creation_timeout):
+                    with m.If(self.output_request_address.ready & self.output_data.ready):  # flush on timeout
+                        m.d.comb += self.output_request_address.valid.eq(1)
+                        m.d.comb += self.output_request_address.payload.eq(counter - 1)
+                        m.d.comb += self.output_request_address.last.eq(0)
+
+                        m.d.comb += self.output_data.valid.eq(1)
+                        m.d.comb += self.output_data.last.eq(1)
+                        m.d.comb += self.output_data.payload.eq(next_output_data_payload)
+                        m.d.sync += timeout_counter.eq(0)
+                        m.d.sync += counter.eq(0)
+                        m.d.sync += has_next_output_data.eq(0)
+                with m.Else():
+                    m.d.sync += timeout_counter.eq(timeout_counter + 1)
 
         return m
 
@@ -52,104 +116,41 @@ class AxiBufferWriter(Elaboratable):
     def __init__(
             self,
             ringbuffer: RingBufferAddressStorage,
-            stream_source: Stream,
+            input: PacketizedStream,
             axi_slave=None,
             fifo_depth=32, max_burst_length=16
     ):
         self.ringbuffer = ringbuffer
-        self.current_buffer = ringbuffer.current_write_buffer
 
-        assert hasattr(stream_source, "last")
-        self.stream_source = stream_source
+        assert hasattr(input, "last")
+        self.input = input
 
         self.axi_slave = axi_slave
 
         self.fifo_depth = fifo_depth
         self.max_burst_length = max_burst_length
 
-        self.error = StatusSignal()
-        self.state = StatusSignal(32)
         self.burst_position = StatusSignal(range(self.max_burst_length))
-        self.words_written = StatusSignal(32)
-        self.buffers_written = StatusSignal(32)
 
     def elaborate(self, platform):
         m = Module()
 
         axi = get_axi_master_from_maybe_slave(self.axi_slave, m, platform)
+        assert len(self.input.payload) <= axi.data_bits
 
-        address_generator = m.submodules.address_generator = AddressGenerator(
-            self.ringbuffer, axi.addr_bits, max_incr=self.max_burst_length * axi.data_bytes
+        input_fifo = m.submodules.input_fifo = BufferedSyncStreamFIFO(self.input, self.fifo_depth)
+        commander = m.submodules.commander = AddressGeneratorCommander(input_fifo.output)
+
+        output_fifo = m.submodules.output_fifo = BufferedSyncStreamFIFO(commander.output_data, 32)
+        m.d.comb += axi.write_data.connect_upstream(output_fifo.output, allow_partial=True)
+
+        address_fifo = m.submodules.address_fifo = BufferedSyncStreamFIFO(commander.output_request_address, 100)
+        m.submodules.address_generator = AddressGenerator(
+            address_fifo.output, axi.write_address, self.ringbuffer,
+            max_burst=self.max_burst_length, word_width_bytes=axi.data_bytes
         )
-
-        data_fifo = m.submodules.data_fifo = SyncStreamFifo(self.stream_source, depth=self.fifo_depth, buffered=False)
-        assert len(data_fifo.output.payload) <= axi.data_bits
 
         # we do not currently care about the write responses
         m.d.comb += axi.write_response.ready.eq(1)
-
-        current_burst_length_minus_one = Signal(range(self.max_burst_length))
-        with m.FSM():
-            def idle_state():
-                # having the idle state in a function is a hack to be able to duplicate its logic
-                m.d.comb += self.state.eq(0)
-                m.d.sync += self.burst_position.eq(0)
-                m.d.comb += address_generator.request.eq(1)
-                with m.If(address_generator.valid & data_fifo.output.valid):
-                    # we are doing a full transaction
-                    next_burst_length = Signal(range(self.max_burst_length + 1))
-                    m.d.comb += next_burst_length.eq(nMin(data_fifo.r_level, self.max_burst_length))
-                    m.d.sync += current_burst_length_minus_one.eq(next_burst_length - 1)
-                    m.d.sync += address_generator.inc.eq(mul_by_pot(next_burst_length, axi.data_bytes))
-                    m.next = "ADDRESS"
-
-            with m.State("IDLE"):
-                idle_state()
-
-            with m.State("ADDRESS"):
-                m.d.comb += self.state.eq(1)
-                m.d.comb += axi.write_address.payload.eq(address_generator.addr)
-                m.d.comb += axi.write_address.burst_len.eq(current_burst_length_minus_one)
-                m.d.comb += axi.write_address.burst_type.eq(BurstType.INCR)
-                m.d.comb += axi.write_address.valid.eq(1)
-                with m.If(axi.write_address.ready):
-                    m.next = "TRANSFER_DATA"
-                    m.d.comb += data_fifo.output.ready.eq(1)
-                    m.d.comb += address_generator.done.eq(1)
-
-            def last_logic():
-                # shared between TRANSFER_DATA and FLUSH
-                with m.If(self.burst_position == current_burst_length_minus_one):
-                    m.d.comb += axi.write_data.last.eq(1)
-                    m.next = "IDLE"
-                    idle_state()
-
-            with m.State("TRANSFER_DATA"):
-                m.d.comb += self.state.eq(2)
-
-                with m.If(data_fifo.output.last):
-                    m.d.sync += self.buffers_written.eq(self.buffers_written + 1)
-                    m.d.comb += address_generator.change_buffer.eq(1)
-                    m.next = "FLUSH"
-
-                m.d.comb += axi.write_data.payload.eq(data_fifo.output.payload)
-                m.d.comb += axi.write_data.valid.eq(1)
-
-                with m.If(axi.write_data.ready):
-                    m.d.sync += self.words_written.eq(self.words_written + 1)
-                    m.d.sync += self.burst_position.eq(self.burst_position + 1)
-                    with m.If((self.burst_position < current_burst_length_minus_one) & ~data_fifo.output.last):
-                        m.d.comb += data_fifo.output.ready.eq(1)
-                        with m.If((~data_fifo.output.valid)):
-                            # we have checked this earlier so this should never be a problem
-                            m.d.sync += self.error.eq(1)
-                last_logic()
-            with m.State("FLUSH"):
-                m.d.comb += axi.write_data.byte_strobe.eq(0)
-                m.d.comb += axi.write_data.valid.eq(1)
-                with m.If(axi.write_data.ready):
-                    m.d.sync += self.words_written.eq(self.words_written + 1)
-                    m.d.sync += self.burst_position.eq(self.burst_position + 1)
-                last_logic()
 
         return m

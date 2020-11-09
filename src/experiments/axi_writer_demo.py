@@ -10,7 +10,7 @@ from lib.bus.ring_buffer import RingBufferAddressStorage
 from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
 from soc.platforms.zynq import ZynqSocPlatform
 from soc.cli import cli
-from lib.bus.stream.stream import Stream
+from lib.bus.stream.stream import Stream, BasicStream, PacketizedStream
 
 
 class Top(Elaboratable):
@@ -18,7 +18,6 @@ class Top(Elaboratable):
         self.reset = ControlSignal()
         self.to_write = ControlSignal(reset=32 * 1024 * 1024)
         self.data_counter = StatusSignal(32)
-        self.perf_counter = StatusSignal(32)
         self.data_valid = ControlSignal()
         self.data_ready = StatusSignal()
 
@@ -30,21 +29,18 @@ class Top(Elaboratable):
 
         ring_buffer = RingBufferAddressStorage(buffer_size=0x1200000, n=4)
 
-        stream_source = Stream(64, has_last=True)
-        m.d.comb += self.data_ready.eq(stream_source.ready)
-        m.d.comb += stream_source.valid.eq(self.data_valid)
+        stream = PacketizedStream(64)
+        m.d.comb += self.data_ready.eq(stream.ready)
+        m.d.comb += stream.valid.eq(self.data_valid)
 
         clock_signal = Signal()
         m.d.comb += clock_signal.eq(ClockSignal())
         axi_slave = platform.ps7.get_axi_hp_slave(clock_signal)
-        axi_writer = m.submodules.axi_writer = AxiBufferWriter(ring_buffer, stream_source, axi_slave=axi_slave)
+        axi_writer = m.submodules.axi_writer = AxiBufferWriter(ring_buffer, stream, axi_slave=axi_slave)
 
-        with m.If(axi_writer.stream_source.ready & axi_writer.stream_source.valid):
+        with m.If(axi_writer.input.ready & axi_writer.input.valid):
             m.d.sync += self.data_counter.eq(self.data_counter + 1)
-        m.d.comb += stream_source.payload.eq(Cat(self.data_counter, self.data_counter+1000))
-
-        with m.If((stream_source.valid) & (axi_writer.words_written < (self.to_write >> int(math.log2(axi_slave.data_bytes))))):
-            m.d.sync += self.perf_counter.eq(self.perf_counter+1)
+        m.d.comb += stream.payload.eq(Cat(self.data_counter, self.data_counter+1000))
 
         return m
 

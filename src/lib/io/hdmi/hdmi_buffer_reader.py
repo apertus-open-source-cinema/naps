@@ -3,12 +3,12 @@ from nmigen.lib.cdc import FFSynchronizer
 
 from lib.bus.axi.buffer_reader import AxiBufferReader
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
+from lib.bus.stream.image_stream import ImageStream
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.io.hdmi.hdmi import Hdmi
 from lib.io.hdmi.parse_modeline import VideoTiming
 from lib.bus.ring_buffer import RingBufferAddressStorage
 from soc.devicetree.overlay import devicetree_overlay
-from soc.pydriver.drivermethod import driver_property
 from util.nmigen_misc import iterator_with_if_elif
 from lib.bus.stream.stream import Stream, PacketizedStream
 
@@ -78,7 +78,7 @@ class AddressGenerator(Elaboratable):
         self.data_width_bytes = data_width // 8
         self.max_line_width = max_line_width
 
-        self.output = PacketizedStream(address_width)
+        self.output = ImageStream(address_width)
 
     def elaborate(self, platform):
         m = Module()
@@ -92,7 +92,9 @@ class AddressGenerator(Elaboratable):
                 m.d.sync += self.output.payload.eq(self.output.payload + self.data_width_bytes)
                 m.d.sync += x_ctr.eq(x_ctr + self.pixels_per_word)
                 with m.If((x_ctr == self.to_read_x - 1) & (y_ctr == self.to_read_y - 1)):
-                    m.d.comb += self.output.last.eq(1)
+                    m.d.comb += self.output.frame_last.eq(1)
+                with m.If((x_ctr == self.to_read_x - 1)):
+                    m.d.comb += self.output.line_last.eq(1)
             with m.Else():
                 m.d.sync += x_ctr.eq(0)
                 m.d.sync += y_ctr.eq(y_ctr + 1)
@@ -124,20 +126,13 @@ class AddressGenerator(Elaboratable):
 
         return m
 
-    @driver_property
-    def fps(self):
-        from time import sleep
-        start_frames = self.frame_count
-        sleep(1)
-        return self.frame_count - start_frames
-
 
 class LinuxFramebuffer(Elaboratable):
     """Interprets the data read from memory as rgba 8 bit colors (compatible with the simpleframebuffer linux driver)"""
 
     pixels_per_word = 2
 
-    def __init__(self, data: Stream, hdmi: Hdmi, ring_buffer: RingBufferAddressStorage):
+    def __init__(self, data: ImageStream, hdmi: Hdmi, ring_buffer: RingBufferAddressStorage):
         self.data = data
         self.hdmi = hdmi
         self.ring_buffer = ring_buffer
@@ -168,14 +163,14 @@ class LinuxFramebuffer(Elaboratable):
         last_occurred = Signal()
         with m.If((self.hdmi.timing_generator.x == 0) & (self.hdmi.timing_generator.y == 0)):
             m.d.sync += last_occurred.eq(0)
-        with m.If(self.data.last & (
+        with m.If(self.data.frame_last & (
                 self.hdmi.timing_generator.is_blanking_y |
                 (self.hdmi.timing_generator.x == self.hdmi.timing_generator.width - 1) |
                 (self.hdmi.timing_generator.y == self.hdmi.timing_generator.height - 1)
         )):
             m.d.sync += last_occurred.eq(1)
         with m.If(self.hdmi.timing_generator.is_blanking_y & ~last_occurred):
-            with m.If(self.data.last):
+            with m.If(self.data.frame_last):
                 m.d.sync += last_occurred.eq(1)
             m.d.sync += self.slipped.eq(self.slipped + 1)
             m.d.comb += self.data.ready.eq(1)

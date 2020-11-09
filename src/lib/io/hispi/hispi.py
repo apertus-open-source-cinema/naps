@@ -1,5 +1,7 @@
 from nmigen import *
 
+from lib.bus.stream.debug import StreamInfo, InflexibleSourceDebug
+from lib.bus.stream.tee import StreamCombiner
 from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.io.hispi.s7_phy import HispiPhy
 from soc.pydriver.drivermethod import driver_property
@@ -115,7 +117,10 @@ class LaneManager(Elaboratable):
 
         m.d.comb += self.output.payload.eq(delayed_data)
         m.d.comb += self.output.valid.eq(delayed_valid)
-        m.d.comb += self.output.last.eq(ends_with(self.last_control_word, control_words["END_OF_ACTIVE_FRAME"]))
+        m.d.comb += self.output.frame_last.eq(ends_with(self.last_control_word, control_words["END_OF_ACTIVE_FRAME"]))
+        m.d.comb += self.output.line_last.eq(ends_with(self.last_control_word, control_words["END_OF_ACTIVE_LINE"]))
+
+        m.submodules.debug = InflexibleSourceDebug(self.output)
 
         return m
 
@@ -126,10 +131,6 @@ class Hispi(Elaboratable):
         self.lvds = sensor.lvds
         self.lanes = len(self.lvds)
         self.bits = bits
-
-        self.width = StatusSignal(range(10000))
-        self.height = StatusSignal(range(10000))
-        self.frame_count = StatusSignal(32)
 
         self.output = ImageStream(len(self.lvds) * bits)
         self.phy = HispiPhy(num_lanes=self.lanes, bits=self.bits)
@@ -150,30 +151,8 @@ class Hispi(Elaboratable):
             m.d.comb += self.output.payload[i * self.bits: (i + 1) * self.bits].eq(lane_manager.input_data)
             streams.append(lane_manager.output)
 
-            if i == 0:
-                was_valid = Signal()
-                m.d.hispi += was_valid.eq(lane_manager.output.valid)
-                with_counter = Signal.like(self.width)
-                height_counter = Signal.like(self.height)
-                with m.If(lane_manager.output.valid):
-                    m.d.hispi += with_counter.eq(with_counter + 1)
-                with m.Elif(was_valid):
-                    m.d.hispi += self.width.eq(with_counter * self.lanes)
-                    m.d.hispi += with_counter.eq(0)
-                    m.d.hispi += height_counter.eq(height_counter + 1)
-                with m.If(lane_manager.output.last & (height_counter > 10)):
-                    m.d.hispi += self.frame_count.eq(self.frame_count + 1)
-                    m.d.hispi += self.height.eq(height_counter)
-                    m.d.hispi += height_counter.eq(0)
-
-        stream_combiner = m.submodules.stream_combiner = DomainRenamer("hispi")(StreamCombiner(streams))
+        stream_combiner = m.submodules.stream_combiner = DomainRenamer("hispi")(StreamCombiner(*streams, merge_payload=True))
+        m.submodules.info = StreamInfo(stream_combiner.output)
         m.d.comb += self.output.connect_upstream(stream_combiner.output)
 
         return m
-
-    @driver_property
-    def fps(self):
-        from time import sleep
-        start_frames = self.frame_count
-        sleep(1)
-        return self.frame_count - start_frames

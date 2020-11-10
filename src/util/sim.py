@@ -106,10 +106,10 @@ class FakeResource(UserValue):
 
 
 def wait_for(expr, timeout=100, must_clock=True):
+    if must_clock:
+        yield
     for i in range(timeout):
         if (yield expr):
-            if must_clock and i == 0:
-                yield
             return
         yield
     raise TimeoutError("{} did not become '1' within {} cycles".format(expr, timeout))

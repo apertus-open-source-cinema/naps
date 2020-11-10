@@ -54,5 +54,5 @@ class TestHdmi(unittest.TestCase):
         platform.sim(dut, (testbench, "axi_lite"))
 
     def test_mmcm_calculation(self):
-        clocking = HdmiClocking(Clock(79.75e6))
+        clocking = HdmiClocking(Clock(79.75e6), pix_domain="pix")
         clocking.find_valid_config()

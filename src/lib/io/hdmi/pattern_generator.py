@@ -1,13 +1,13 @@
 from nmigen import *
 
-from lib.io.hdmi.rgb import Rgb
+from lib.video.rgb import RGB
 
 
 class BertlPatternGenerator(Elaboratable):
     def __init__(self, width, height):
         self.x = Signal.like(width)
         self.y = Signal.like(height)
-        self.out = Rgb()
+        self.out = RGB()
 
     def elaborate(self, platform):
         m = Module()
@@ -23,7 +23,7 @@ class DimmingPatternGenerator(Elaboratable):
     def __init__(self, width, height):
         self.x = Signal(range(width))
         self.y = Signal(range(height))
-        self.out = Rgb()
+        self.out = RGB()
 
     def elaborate(self, platform):
         m = Module()

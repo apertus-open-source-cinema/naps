@@ -4,12 +4,10 @@ from lib.bus.stream.debug import StreamInfo, InflexibleSourceDebug
 from lib.bus.stream.tee import StreamCombiner
 from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.io.hispi.s7_phy import HispiPhy
-from soc.pydriver.drivermethod import driver_property
 
 # those are only the starts of the patterns; they are expanded to the length of the word
 from util.nmigen_misc import delay_by, ends_with
-from lib.bus.stream.stream import Stream, PacketizedStream
-from lib.bus.stream.image_stream import ImageStream
+from lib.video.image_stream import ImageStream
 
 control_words = {
     "START_OF_ACTIVE_FRAME_IMAGE_DATA": "00011",
@@ -126,14 +124,15 @@ class LaneManager(Elaboratable):
 
 
 class Hispi(Elaboratable):
-    def __init__(self, sensor, bits=12):
+    def __init__(self, sensor, bits=12, hispi_domain="hispi"):
+        self.hispi_domain = hispi_domain
         self.lvds_clk = sensor.lvds_clk
         self.lvds = sensor.lvds
         self.lanes = len(self.lvds)
         self.bits = bits
 
         self.output = ImageStream(len(self.lvds) * bits)
-        self.phy = HispiPhy(num_lanes=self.lanes, bits=self.bits)
+        self.phy = HispiPhy(num_lanes=self.lanes, bits=self.bits, hispi_domain=hispi_domain)
 
     def elaborate(self, platform):
         m = Module()
@@ -142,17 +141,19 @@ class Hispi(Elaboratable):
         m.d.comb += phy.hispi_clk.eq(self.lvds_clk)
         m.d.comb += phy.hispi_lanes.eq(self.lvds)
 
+        in_hispi_domain = DomainRenamer(self.hispi_domain)
+
         streams = []
         for i, lane in enumerate(phy.out):
-            lane_manager = m.submodules["lane_manager_{}".format(i)] = DomainRenamer("hispi")(LaneManager(lane))
+            lane_manager = m.submodules["lane_manager_{}".format(i)] = in_hispi_domain(LaneManager(lane))
 
             m.d.comb += phy.bitslip[i].eq(lane_manager.do_bitslip)
 
             m.d.comb += self.output.payload[i * self.bits: (i + 1) * self.bits].eq(lane_manager.input_data)
             streams.append(lane_manager.output)
 
-        stream_combiner = m.submodules.stream_combiner = DomainRenamer("hispi")(StreamCombiner(*streams, merge_payload=True))
-        m.submodules.output_stream_info = StreamInfo(stream_combiner.output)
+        stream_combiner = m.submodules.stream_combiner = in_hispi_domain(StreamCombiner(*streams, merge_payload=True))
+        m.submodules.output_stream_info = in_hispi_domain(StreamInfo(stream_combiner.output))
         m.d.comb += self.output.connect_upstream(stream_combiner.output)
 
         return m

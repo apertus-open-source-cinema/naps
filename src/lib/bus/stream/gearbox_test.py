@@ -3,7 +3,8 @@ import unittest
 from lib.bus.stream.gearbox import StreamGearbox
 from lib.bus.stream.sim_util import read_from_stream, write_to_stream
 from lib.bus.stream.stream import BasicStream, PacketizedStream
-from util.sim import SimPlatform
+from util.sim import SimPlatform, do_nothing
+
 
 class TestGearbox(unittest.TestCase):
     def test_gearbox_7_to_3(self):
@@ -87,6 +88,59 @@ class TestGearbox(unittest.TestCase):
             self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0010, 1))
             self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0100, 0))
             self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b1000, 0))
+
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.add_process(writer, "sync")
+        platform.add_process(reader, "sync")
+        platform.sim(dut)
+
+    def test_dont_loose_data(self):
+        input = BasicStream(16)
+        dut = StreamGearbox(input, 8)
+
+        def writer():
+            for i in range(0, 100, 2):
+                print("{:016b}".format(((i + 1) << 8) | i))
+                yield from write_to_stream(input, payload=(((i + 1) << 8) | i))
+                if i % 3 == 0:
+                    yield from do_nothing()
+
+        def reader():
+            for i in range(100):
+                got = (yield from read_from_stream(dut.output, extract="payload"))
+                print(got)
+                self.assertEqual(got, i)
+                if i % 10 == 0:
+                    yield from do_nothing()
+
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.add_process(writer, "sync")
+        platform.add_process(reader, "sync")
+        platform.sim(dut)
+
+    def test_dont_loose_last(self):
+        input = PacketizedStream(8)
+        dut = StreamGearbox(input, 4)
+
+        def writer():
+            last_count_gold = 0
+            for i in range(50):
+                last = (i % 5 == 0)
+                last_count_gold += last
+                yield from write_to_stream(input, payload=0, last=(i % 5 == 0))
+                if i % 3 == 0:
+                    yield from do_nothing()
+            self.assertEqual(last_count_gold, 10)
+
+        def reader():
+            last_count = 0
+            for i in range(100):
+                last_count += (yield from read_from_stream(dut.output, extract="last"))
+                if i % 10 == 0:
+                    yield from do_nothing()
+            self.assertEquals(last_count, 10)
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)

@@ -10,17 +10,18 @@ from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.primitives.xilinx_s7.io import OSerdes10
 from lib.primitives.xilinx_s7.ps7 import PS7
 from lib.primitives.xilinx_s7.clocking import Mmcm
-from .rgb import Rgb
+from lib.video.rgb import RGB
 
 
 class Hdmi(Elaboratable):
-    def __init__(self, plugin, modeline, generate_clocks=True):
+    def __init__(self, plugin, modeline, pix_domain="pix", generate_clocks=True):
         self.plugin = plugin
+        self.pix_domain = pix_domain
         self.generate_clocks = generate_clocks
         self.initial_video_timing = parse_modeline(modeline)
         self.pix_freq = Clock(self.initial_video_timing.pxclk * 1e6)
 
-        self.rgb = Rgb()
+        self.rgb = RGB()
 
         self.hsync_polarity = ControlSignal()
         self.vsync_polarity = ControlSignal()
@@ -32,13 +33,12 @@ class Hdmi(Elaboratable):
     def elaborate(self, platform):
         m = Module()
         if self.generate_clocks:
-            self.clocking = m.submodules.clocking = HdmiClocking(self.pix_freq)
+            self.clocking = m.submodules.clocking = HdmiClocking(self.pix_freq, self.pix_domain)
 
-        in_pix_domain = DomainRenamer("pix")
+        in_pix_domain = DomainRenamer(self.pix_domain)
         timing = m.submodules.timing_generator = in_pix_domain(self.timing_generator)
 
-        domain_args = {"domain": "pix", "domain_5x": "pix_5x"}
-        in_pix_domain = DomainRenamer("pix")
+        domain_args = {"domain": self.pix_domain, "domain_5x": "{}_5x".format(self.pix_domain)}
 
         serializer_clock = m.submodules.serializer_clock = OSerdes10(self.clock_pattern, **domain_args)
         m.d.comb += self.plugin.clock.eq(serializer_clock.output)
@@ -60,14 +60,10 @@ class Hdmi(Elaboratable):
 
         return m
 
-    def driver_set_modeline(self, modeline):
-        video_timing = parse_modeline(modeline)
-        self.timing_generator.driver_set_video_timing(video_timing)
-        self.clocking.driver_set_pix_clk(video_timing.pxclk * 1e6)
-
 
 class HdmiClocking(Elaboratable):
-    def __init__(self, pix_freq):
+    def __init__(self, pix_freq, pix_domain):
+        self.pix_domain = pix_domain
         self.pix_freq = pix_freq
 
     def find_valid_config(self):
@@ -103,9 +99,9 @@ class HdmiClocking(Elaboratable):
 
         self.find_valid_config()
 
-        platform.ps7.fck_domain(self.fclk_freq, "pix_synth_fclk")
+        platform.ps7.fck_domain(self.fclk_freq, "{}_synth_fclk".format(self.pix_domain))
         mmcm = m.submodules.mmcm = Mmcm(
-            input_clock=self.fclk_freq, input_domain="pix_synth_fclk",
+            input_clock=self.fclk_freq, input_domain="{}_synth_fclk".format(self.pix_domain),
             vco_mul=self.mmcm_mul, vco_div=self.mmcm_div
         )
 
@@ -116,10 +112,10 @@ class HdmiClocking(Elaboratable):
             self.output_div
         ))
 
-        actual_pix_freq = mmcm.output_domain("pix", 5 * self.output_div)
+        actual_pix_freq = mmcm.output_domain(self.pix_domain, 5 * self.output_div)
         max_error_freq(actual_pix_freq.frequency, self.pix_freq.frequency)
 
-        mmcm.output_domain("pix_5x", self.output_div)
+        mmcm.output_domain("{}_5x".format(self.pix_domain), self.output_div)
 
         return m
 

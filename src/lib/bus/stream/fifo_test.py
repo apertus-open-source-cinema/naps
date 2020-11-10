@@ -31,11 +31,11 @@ class TestFifo(unittest.TestCase):
         platform.sim(fifo, testbench)
 
     def test_sim_async_stream_fifo(self):
-        fifo_gen = lambda input, depth: UnbufferedAsyncStreamFIFO(input, depth, r_domain="sync", w_domain="sync")
+        fifo_gen = lambda input, depth: UnbufferedAsyncStreamFIFO(input, depth, o_domain="sync", i_domain="sync")
         self.check_fifo_basic(fifo_gen)
 
     def test_async_stream_fifo_buffered(self):
-        fifo_gen = lambda input, depth: BufferedAsyncStreamFIFO(input, depth, r_domain="sync", w_domain="sync")
+        fifo_gen = lambda input, depth: BufferedAsyncStreamFIFO(input, depth, o_domain="sync", i_domain="sync")
         self.check_fifo_basic(fifo_gen)
 
     def test_sync_stream_fifo(self):

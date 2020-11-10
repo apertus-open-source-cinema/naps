@@ -40,11 +40,11 @@ def UnbufferedSyncStreamFIFO(input: Stream, depth):
     return StreamFIFO(input, SyncFIFOBuffered, depth=depth)
 
 
-def BufferedAsyncStreamFIFO(input, depth, r_domain, w_domain, exact_depth=False):
+def BufferedAsyncStreamFIFO(input, depth, i_domain, o_domain, exact_depth=False):
     return StreamFIFO(
-        input, AsyncFIFOBuffered, depth=depth, r_domain=r_domain, w_domain=w_domain, exact_depth=exact_depth)
+        input, AsyncFIFOBuffered, depth=depth, r_domain=o_domain, w_domain=i_domain, exact_depth=exact_depth)
 
 
-def UnbufferedAsyncStreamFIFO(input, depth, r_domain, w_domain, exact_depth=False):
+def UnbufferedAsyncStreamFIFO(input, depth, i_domain, o_domain, exact_depth=False):
     return StreamFIFO(
-        input, AsyncFIFO, depth=depth, r_domain=r_domain, w_domain=w_domain, exact_depth=exact_depth)
+        input, AsyncFIFO, depth=depth, r_domain=o_domain, w_domain=i_domain, exact_depth=exact_depth)

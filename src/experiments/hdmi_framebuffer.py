@@ -4,6 +4,7 @@ from nmigen import *
 
 from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
+from lib.bus.stream.gearbox import StreamGearbox
 from lib.debug.clocking_debug import ClockingDebug
 from lib.io.hdmi.hdmi import Hdmi
 from lib.io.hdmi.hdmi_stream_sink import HdmiStreamAligner, HdmiStreamSink
@@ -32,8 +33,10 @@ class Top(Elaboratable):
             width_pixels=self.width, height_pixels=self.height,
         ))
 
+        gearbox = m.submodules.gearbox = DomainRenamer("axi_hp")(StreamGearbox(buffer_reader.output, target_width=32))
+
         fifo = m.submodules.fifo = BufferedAsyncStreamFIFO(
-            buffer_reader.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"
+            gearbox.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"
         )
 
         hdmi_plugin = platform.request("hdmi", "north")

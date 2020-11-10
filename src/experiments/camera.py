@@ -5,7 +5,7 @@ from nmigen import *
 
 from lib.bus.axi.buffer_writer import AxiBufferWriter
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
-from lib.bus.stream.gearbox import StreamGearbox
+from lib.bus.stream.gearbox import StreamGearbox, StreamResizer
 from lib.debug.clocking_debug import ClockingDebug
 from lib.io.hdmi.cvt_python import generate_modeline
 from lib.io.hdmi.hdmi_stream_sink import HdmiStreamSink
@@ -37,7 +37,7 @@ class Top(Elaboratable):
         ring_buffer = RingBufferAddressStorage(buffer_size=0x1000000, n=4)
 
         # Control Pane
-        m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x", "axi_hp")
+        m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x", "axi_hp", "hispi")
 
         i2c_pads = platform.request("i2c")
         m.submodules.i2c = BitbangI2c(i2c_pads)
@@ -55,16 +55,20 @@ class Top(Elaboratable):
         writer_fifo = m.submodules.writer_fifo = BufferedAsyncStreamFIFO(
             hispi.output, 2048, i_domain="hispi", o_domain="axi_hp"
         )
-        gearbox = m.submodules.gearbox = DomainRenamer("axi_hp")(StreamGearbox(writer_fifo.output, 64))
-        converter = m.submodules.converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(gearbox.output))
+        input_resizer = m.submodules.input_resizer = DomainRenamer("axi_hp")(StreamResizer(writer_fifo.output, 64))
+        converter = m.submodules.converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(input_resizer.output))
         m.submodules.buffer_writer = DomainRenamer("axi_hp")(AxiBufferWriter(ring_buffer, converter.output))
 
         # Output pipeline
         buffer_reader = m.submodules.buffer_reader = DomainRenamer("axi_hp")(VideoBufferReader(
-            ring_buffer, bits_per_pixel=12,
+            ring_buffer, bits_per_pixel=16,
             width_pixels=self.hdmi_width, height_pixels=self.hdmi_height, stride_pixels=2304,
         ))
-        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleFullResDebayerer(buffer_reader.output))
+        output_resizer = m.submodules.output_resizer = DomainRenamer("axi_hp")(StreamResizer(buffer_reader.output, 48))
+        output_gearbox = m.submodules.output_gearbox = DomainRenamer("axi_hp")(
+            StreamGearbox(output_resizer.output, target_width=12)
+        )
+        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleFullResDebayerer(output_gearbox.output))
         reader_fifo = m.submodules.reader_fifo = BufferedAsyncStreamFIFO(
             debayerer.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"
         )

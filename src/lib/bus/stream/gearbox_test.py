@@ -80,8 +80,8 @@ class TestGearbox(unittest.TestCase):
         dut = StreamGearbox(input, 4)
 
         def writer():
-            yield from write_to_stream(input, payload=0b0010_0001, last=1)
-            yield from write_to_stream(input, payload=0b1000_0100, last=0)
+            yield from write_to_stream(input, payload=0b00_10_00_01, last=1)
+            yield from write_to_stream(input, payload=0b10_00_01_00, last=0)
 
         def reader():
             self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0001, 0))
@@ -120,7 +120,7 @@ class TestGearbox(unittest.TestCase):
         platform.add_process(reader, "sync")
         platform.sim(dut)
 
-    def test_dont_loose_last(self):
+    def test_dont_loose_last_8_to_4(self):
         input = PacketizedStream(8)
         dut = StreamGearbox(input, 4)
 
@@ -137,6 +137,34 @@ class TestGearbox(unittest.TestCase):
         def reader():
             last_count = 0
             for i in range(100):
+                last_count += (yield from read_from_stream(dut.output, extract="last"))
+                if i % 10 == 0:
+                    yield from do_nothing()
+            self.assertEquals(last_count, 10)
+
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.add_process(writer, "sync")
+        platform.add_process(reader, "sync")
+        platform.sim(dut)
+
+    def test_dont_loose_last_16_to_4(self):
+        input = PacketizedStream(16)
+        dut = StreamGearbox(input, 4)
+
+        def writer():
+            last_count_gold = 0
+            for i in range(50):
+                last = (i % 5 == 0)
+                last_count_gold += last
+                yield from write_to_stream(input, payload=0, last=(i % 5 == 0))
+                if i % 3 == 0:
+                    yield from do_nothing()
+            self.assertEqual(last_count_gold, 10)
+
+        def reader():
+            last_count = 0
+            for i in range(200):
                 last_count += (yield from read_from_stream(dut.output, extract="last"))
                 if i % 10 == 0:
                     yield from do_nothing()

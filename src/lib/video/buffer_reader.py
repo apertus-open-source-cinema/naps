@@ -34,10 +34,8 @@ class VideoBufferReader(Elaboratable):
         )
         reader = m.submodules.axi_reader = AxiReader(address_generator.output)
         m.submodules.reader_output_stream_info = StreamInfo(reader.output)
-        gearbox = m.submodules.gearbox = StreamGearbox(reader.output, target_width=self.bits_per_pixel)
-        m.submodules.gearbox_output_stream_info = StreamInfo(gearbox.output)
 
-        m.d.comb += self.output.connect_upstream(gearbox.output)
+        m.d.comb += self.output.connect_upstream(reader.output)
 
         return m
 

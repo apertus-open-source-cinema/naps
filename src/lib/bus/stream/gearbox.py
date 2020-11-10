@@ -34,48 +34,38 @@ class StreamGearbox(Elaboratable):
         input_width = len(self.input.payload)
         output_width = len(self.output.payload)
 
-        shift_register = Signal(input_width + output_width - 1)  # TODO: this is wrong!
+        shift_register = Signal(input_width + output_width)
         input_read = (self.input.ready & self.input.valid)
         output_write = (self.output.ready & self.output.valid)
         current_bits_in_shift_register = Signal(range(len(shift_register)))
 
-        last_shift_register = Signal(input_width + output_width - 1)  # this is a evil hack
-        last_payload = (1 << (input_width - 1))
+        for k in self.input.out_of_band_signals.keys():
+            if not (k == "payload" or k.endswith("last")):
+                raise ValueError("payload signal {} of input has unknown role. dont know what do do with it")
+
+        last_shift_registers = {k: Signal.like(shift_register, name="{}_shift_register".format(k))
+                                for k, v in self.input.out_of_band_signals.items() if k.endswith("last")}
+
+        shift_registers = [(shift_register, self.input.payload)]
+        shift_registers += [(reg, (getattr(self.input, k) << (input_width - 1))) for k, reg in last_shift_registers.items()]
 
         with m.If(input_read & ~output_write):
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register + input_width)
-            m.d.sync += shift_register.eq(shift_register | (self.input.payload << current_bits_in_shift_register))
-            m.d.sync += last_shift_register.eq(last_shift_register | (last_payload << current_bits_in_shift_register))
-
+            for reg, payload in shift_registers:
+                m.d.sync += reg.eq((payload << current_bits_in_shift_register) | reg)
         with m.Elif(~input_read & output_write):
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register - output_width)
-            m.d.sync += shift_register.eq(shift_register[output_width:])
-            m.d.sync += last_shift_register.eq(last_shift_register[output_width:])
-
+            for reg, payload in shift_registers:
+                m.d.sync += reg.eq(reg[output_width:])
         with m.Elif(input_read & output_write):
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register + input_width - output_width)
-            m.d.sync += shift_register.eq((shift_register >> output_width) | (self.input.payload << (current_bits_in_shift_register - output_width)))
-            m.d.sync += last_shift_register.eq((last_shift_register >> output_width) | (last_payload << (current_bits_in_shift_register - output_width)))
+            for reg, payload in shift_registers:
+                m.d.sync += reg.eq((payload << (current_bits_in_shift_register - output_width)) | (reg >> output_width))
 
         m.d.comb += self.output.payload.eq(shift_register[:output_width])
         m.d.comb += self.output.valid.eq(current_bits_in_shift_register >= output_width)
         m.d.comb += self.input.ready.eq((len(shift_register) - current_bits_in_shift_register) >= input_width)
-        
-        payload_signals_in_current_word = {k: Signal.like(v, name="{}_in_current_word".format(k))
-                                           for k, v in self.input.out_of_band_signals.items()}
 
-        with m.If(input_read):
-            m.d.sync += [payload_signals_in_current_word[k].eq(getattr(self.input, k))
-                         for k in payload_signals_in_current_word.keys()]
-
-        last = Signal()
-        m.d.comb += last.eq(last_shift_register[:output_width] != 0)
-
-        for k in payload_signals_in_current_word.keys():
-            if k.endswith("last"):
-                with m.If(last):
-                    m.d.comb += getattr(self.output, k).eq(payload_signals_in_current_word[k])
-            else:
-                m.d.comb += getattr(self.output, k).eq(payload_signals_in_current_word[k])
+        m.d.comb += [getattr(self.output, k).eq(reg[:output_width] != 0) for k, reg in last_shift_registers.items()]
 
         return m

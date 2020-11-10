@@ -1,16 +1,14 @@
 # An experiment to that checks the functionality of the axi writer
 
-import math
-
 from nmigen import *
 
-from lib.peripherals.csr_bank import ControlSignal, StatusSignal
+from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
 from lib.bus.axi.buffer_writer import AxiBufferWriter
 from lib.bus.ring_buffer import RingBufferAddressStorage
-from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
-from soc.platforms.zynq import ZynqSocPlatform
+from lib.bus.stream.stream import PacketizedStream
+from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from soc.cli import cli
-from lib.bus.stream.stream import Stream, BasicStream, PacketizedStream
+from soc.platforms.zynq import ZynqSocPlatform
 
 
 class Top(Elaboratable):

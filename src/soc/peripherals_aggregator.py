@@ -1,5 +1,3 @@
-from nmigen import  *
-
 from soc.peripheral import Response
 from util.nmigen_misc import iterator_with_if_elif
 

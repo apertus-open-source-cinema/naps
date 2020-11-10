@@ -1,15 +1,14 @@
 from collections import OrderedDict
 from functools import lru_cache
+from os.path import join, dirname
 
 from nmigen import *
 from nmigen.build import Clock
 
 from lib.bus.axi import AxiEndpoint
-from os.path import join, dirname
-
-from soc.fatbitstream import FatbitstreamContext
 from lib.primitives.instance_helper import InstanceHelper
 from lib.primitives.xilinx_s7.clocking import Bufg
+from soc.fatbitstream import FatbitstreamContext
 from util.nmigen_misc import max_error_freq
 
 

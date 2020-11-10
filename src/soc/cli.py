@@ -1,3 +1,4 @@
+import argparse
 import inspect
 import os
 import pickle
@@ -7,7 +8,6 @@ from glob import glob
 from hashlib import sha256
 from json import dumps
 from os import stat, path
-import argparse
 from os.path import exists, isdir
 from warnings import warn
 

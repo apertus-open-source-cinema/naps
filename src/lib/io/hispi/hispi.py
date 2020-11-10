@@ -2,12 +2,11 @@ from nmigen import *
 
 from lib.bus.stream.debug import StreamInfo, InflexibleSourceDebug
 from lib.bus.stream.tee import StreamCombiner
-from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.io.hispi.s7_phy import HispiPhy
-
+from lib.peripherals.csr_bank import StatusSignal, ControlSignal
+from lib.video.image_stream import ImageStream
 # those are only the starts of the patterns; they are expanded to the length of the word
 from util.nmigen_misc import delay_by, ends_with
-from lib.video.image_stream import ImageStream
 
 control_words = {
     "START_OF_ACTIVE_FRAME_IMAGE_DATA": "00011",

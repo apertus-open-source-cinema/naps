@@ -3,9 +3,9 @@ from functools import reduce
 from nmigen import *
 from nmigen.hdl.ast import Rose
 
+from lib.bus.stream.stream import BasicStream
 from lib.peripherals.csr_bank import StatusSignal
 from lib.primitives.lattice_machxo2.clocking import Pll, EClkSync, ClkDiv
-from lib.bus.stream.stream import BasicStream
 
 
 class PluginModuleStreamerRx(Elaboratable):

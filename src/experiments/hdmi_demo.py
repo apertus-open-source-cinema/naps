@@ -2,11 +2,11 @@
 
 from nmigen import *
 
-from lib.peripherals.csr_bank import ControlSignal
+from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
 from lib.debug.clocking_debug import ClockingDebug
 from lib.io.hdmi.cvt_python import generate_modeline
 from lib.io.hdmi.hdmi import Hdmi
-from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
+from lib.peripherals.csr_bank import ControlSignal
 from soc.cli import cli
 from soc.platforms.zynq import ZynqSocPlatform
 

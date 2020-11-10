@@ -3,13 +3,13 @@ import unittest
 from nmigen import *
 from nmigen.build import Clock
 
-from lib.io.hdmi.hdmi import TimingGenerator, Hdmi, HdmiClocking
-from soc.platforms.zynq import ZynqSocPlatform
 from lib.bus.axi.sim_util import axil_read, axil_write
-from util.sim import SimPlatform
-from lib.io.hdmi.parse_modeline import parse_modeline
 from lib.io.hdmi.cvt_python import generate_modeline
+from lib.io.hdmi.hdmi import TimingGenerator, Hdmi, HdmiClocking
+from lib.io.hdmi.parse_modeline import parse_modeline
+from soc.platforms.zynq import ZynqSocPlatform
 from util.nmigen_misc import get_signals
+from util.sim import SimPlatform
 
 
 class TestHdmi(unittest.TestCase):

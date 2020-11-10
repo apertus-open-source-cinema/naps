@@ -2,15 +2,14 @@
 
 from nmigen import *
 
+from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
 from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
 from lib.bus.stream.gearbox import StreamGearbox
 from lib.debug.clocking_debug import ClockingDebug
-from lib.io.hdmi.hdmi import Hdmi
-from lib.io.hdmi.hdmi_stream_sink import HdmiStreamAligner, HdmiStreamSink
-from lib.video.buffer_reader import VideoBufferReader
 from lib.io.hdmi.cvt_python import generate_modeline
-from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
+from lib.io.hdmi.hdmi_stream_sink import HdmiStreamSink
+from lib.video.buffer_reader import VideoBufferReader
 from soc.cli import cli
 from soc.devicetree.overlay import devicetree_overlay
 from soc.platforms.zynq import ZynqSocPlatform

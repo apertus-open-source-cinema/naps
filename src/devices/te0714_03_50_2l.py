@@ -4,7 +4,6 @@ import subprocess
 from nmigen.build import *
 from nmigen.vendor.xilinx_7series import *
 
-
 __all__ = ["TE0714_03_50_2LPlatform"]
 
 

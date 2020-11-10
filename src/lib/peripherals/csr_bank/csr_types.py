@@ -3,8 +3,8 @@ from nmigen import tracer
 from nmigen._unused import MustUse
 from nmigen.hdl.ast import UserValue
 
-from soc.peripheral import Response
 from soc.memorymap import Address
+from soc.peripheral import Response
 
 
 class UncollectedCsrWarning(Warning):

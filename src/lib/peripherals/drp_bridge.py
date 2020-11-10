@@ -2,9 +2,8 @@
 
 from nmigen import *
 
+from soc.peripheral import Response
 from soc.soc_platform import SocPlatform
-from soc.peripheral import Response, Peripheral
-from soc.memorymap import MemoryMap
 
 
 # TODO: let this be an `Interface`

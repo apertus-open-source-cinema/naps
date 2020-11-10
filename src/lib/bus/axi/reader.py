@@ -1,8 +1,8 @@
 from nmigen import *
 from nmigen.lib.fifo import SyncFIFOBuffered
 
-from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.bus.stream.stream import BasicStream
+from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from util.nmigen_misc import with_reset
 from .axi_endpoint import Response
 from .util import get_axi_master_from_maybe_slave

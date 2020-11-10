@@ -6,9 +6,9 @@ from lib.bus.axi import AxiEndpoint
 from lib.bus.axi.axi_lite_peripheral_connector import AxiLitePeripheralConnector
 from lib.bus.axi.full_to_lite import AxiFullToLiteBridge
 from lib.bus.axi.interconnect import AxiInterconnect
+from lib.primitives.xilinx_s7.ps7 import PS7
 from soc.memorymap import Address
 from soc.soc_platform import SocPlatform
-from lib.primitives.xilinx_s7.ps7 import PS7
 from .program_bitstream_ssh import program_bitstream_ssh
 from ...peripherals_aggregator import PeripheralsAggregator
 

@@ -1,7 +1,7 @@
 from nmigen.build import Resource, Pins, DiffPairs, Connector, Attrs
 
-from .microzed_platform import MicroZedZ020Platform
 from devices.plugins.gen_plugin_connector import gen_plugin_connector
+from .microzed_platform import MicroZedZ020Platform
 
 
 class BetaPlatform(MicroZedZ020Platform):

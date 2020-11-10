@@ -1,9 +1,8 @@
 from abc import ABC
-from types import new_class
 
 from soc.fatbitstream import FatbitstreamContext
-from soc.pydriver.generate import pydriver_hook
 from soc.hooks import csr_and_driver_method_hook, address_assignment_hook, peripherals_collect_hook
+from soc.pydriver.generate import pydriver_hook
 from soc.tracing_elaborate import fragment_get_with_elaboratable_trace
 
 

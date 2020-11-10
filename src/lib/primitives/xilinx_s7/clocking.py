@@ -1,12 +1,11 @@
 from nmigen import *
-
 from nmigen.build import Clock
 
+from lib.peripherals.csr_bank import StatusSignal
+from lib.peripherals.drp_bridge import DrpInterface, DrpBridge
+from lib.primitives.instance_helper import InstanceHelper
 from soc.soc_platform import SocPlatform
 from util.py_util import decimal_range
-from lib.peripherals.drp_bridge import DrpInterface, DrpBridge
-from lib.peripherals.csr_bank import StatusSignal
-from lib.primitives.instance_helper import InstanceHelper
 
 
 class Bufg(Elaboratable):

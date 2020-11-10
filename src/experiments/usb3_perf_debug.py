@@ -2,8 +2,8 @@
 
 from nmigen import *
 
-from lib.io.ft601.ft601_perf_debug import FT601PerfDebug
 from devices import HdmiDigitizerPlatform, Usb3PluginPlatform
+from lib.io.ft601.ft601_perf_debug import FT601PerfDebug
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform
 from soc.platforms.jtag.jtag_soc_platform import JTAGSocPlatform

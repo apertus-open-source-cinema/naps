@@ -3,11 +3,10 @@ from functools import reduce
 from nmigen import *
 from nmigen.hdl.ast import SignalSet
 
-from soc.pydriver.drivermethod import DriverMethod
-from soc.tracing_elaborate import ElaboratableSames
-
 from lib.peripherals.csr_bank import CsrBank, _Csr, ControlSignal, StatusSignal, EventReg
 from soc.memorymap import MemoryMap
+from soc.pydriver.drivermethod import DriverMethod
+from soc.tracing_elaborate import ElaboratableSames
 
 
 def csr_and_driver_method_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):

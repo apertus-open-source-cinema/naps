@@ -1,8 +1,8 @@
 from nmigen import *
-from nmigen.lib.fifo import SyncFIFOBuffered, SyncFIFO, AsyncFIFOBuffered, AsyncFIFO, FIFOInterface
+from nmigen.lib.fifo import SyncFIFOBuffered, SyncFIFO, AsyncFIFOBuffered, AsyncFIFO
 
-from lib.peripherals.csr_bank import StatusSignal
 from lib.bus.stream.stream import Stream
+from lib.peripherals.csr_bank import StatusSignal
 
 
 class StreamFIFO(Elaboratable):

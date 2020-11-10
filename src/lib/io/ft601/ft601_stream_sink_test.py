@@ -1,8 +1,9 @@
-from nmigen import *
 from unittest import TestCase
 
-from lib.io.ft601.ft601_stream_sink import FT601StreamSink
+from nmigen import *
+
 from lib.bus.stream.counter_source import CounterStreamSource
+from lib.io.ft601.ft601_stream_sink import FT601StreamSink
 from util.sim import SimPlatform, TristateIo
 
 

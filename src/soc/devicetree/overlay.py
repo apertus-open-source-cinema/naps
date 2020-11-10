@@ -1,5 +1,4 @@
 # utility functions for generating and loading devicetree overlays
-from collections import defaultdict
 from textwrap import dedent, indent
 
 from nmigen import Fragment

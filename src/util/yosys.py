@@ -1,4 +1,3 @@
-import subprocess
 from functools import lru_cache
 from json import loads
 

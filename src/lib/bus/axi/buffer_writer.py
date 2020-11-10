@@ -1,10 +1,10 @@
 from nmigen import *
 
+from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.bus.stream.stream import PacketizedStream
 from lib.peripherals.csr_bank import StatusSignal
 from .axi_endpoint import AddressStream, BurstType
 from .util import get_axi_master_from_maybe_slave
-from lib.bus.ring_buffer import RingBufferAddressStorage
 from ..stream.fifo import BufferedSyncStreamFIFO
 from ..stream.stream_transformer import StreamTransformer
 

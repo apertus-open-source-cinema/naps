@@ -3,9 +3,9 @@
 from nmigen import *
 from nmigen.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
 
+from devices import Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform
 from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.primitives.lattice_machxo2.clocking import Osc
-from devices import Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform
 from soc.platforms.jtag.jtag_soc_platform import JTAGSocPlatform

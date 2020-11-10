@@ -3,9 +3,9 @@
 
 from nmigen import *
 
+from lib.bus.stream.stream import Stream
 from lib.peripherals.csr_bank import ControlSignal
 from lib.primitives.xilinx_s7.io import DDRSerializer
-from lib.bus.stream.stream import Stream
 
 
 class PluginModuleStreamerTx(Elaboratable):

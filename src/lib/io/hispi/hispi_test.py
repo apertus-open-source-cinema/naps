@@ -1,6 +1,6 @@
+import lzma
 import unittest
 from os.path import dirname, join
-import lzma
 
 from nmigen import Signal
 

@@ -2,8 +2,8 @@ from nmigen import *
 
 from lib.bus.stream.debug import InflexibleSinkDebug, StreamInfo
 from lib.io.hdmi.hdmi import Hdmi
-from lib.video.image_stream import ImageStream
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
+from lib.video.image_stream import ImageStream
 
 
 class HdmiStreamSink(Elaboratable):

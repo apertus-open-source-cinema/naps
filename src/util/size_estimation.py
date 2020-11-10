@@ -1,8 +1,8 @@
+import re
 import subprocess
 from typing import Dict
 
 from nmigen.back import rtlil
-import re
 
 
 def get_module_sizes(module, *args, **kwargs):

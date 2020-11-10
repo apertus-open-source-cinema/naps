@@ -3,11 +3,10 @@
 # TODO: port to new register infrastructure
 
 from nmigen import *
-
-from .glasgow_i2c import I2CInitiator
 from nmigen.lib.fifo import SyncFIFO, Rose
 
 from lib.peripherals.csr_bank import StatusSignal, ControlSignal, EventReg
+from .glasgow_i2c import I2CInitiator
 
 
 class I2cXilinx(Elaboratable):

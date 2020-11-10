@@ -1,14 +1,13 @@
-from textwrap import indent, dedent
-from os.path import dirname, join
-from inspect import getsource
 import re
+from inspect import getsource
+from os.path import dirname, join
+from textwrap import indent, dedent
 
 from nmigen.build import Platform
 
 from soc.fatbitstream import FatbitstreamContext
-from soc.tracing_elaborate import ElaboratableSames
-
 from soc.memorymap import MemoryMap
+from soc.tracing_elaborate import ElaboratableSames
 
 
 def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass="", top=True) -> str:

@@ -1,9 +1,7 @@
 import unittest
 
-from nmigen.lib.fifo import SyncFIFO
-
 from lib.bus.stream.fifo import UnbufferedAsyncStreamFIFO, BufferedAsyncStreamFIFO, UnbufferedSyncStreamFIFO, \
-    BufferedSyncStreamFIFO, StreamFIFO
+    BufferedSyncStreamFIFO
 from lib.bus.stream.sim_util import write_to_stream, read_from_stream
 from lib.bus.stream.stream import BasicStream
 from util.sim import SimPlatform, do_nothing

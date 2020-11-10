@@ -1,10 +1,9 @@
 from nmigen import *
+from nmigen.lib.cdc import FFSynchronizer
 
 from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.primitives.xilinx_s7.clocking import Mmcm
 from lib.primitives.xilinx_s7.io import Iserdes
-from nmigen.lib.cdc import FFSynchronizer
-
 from util.nmigen_misc import iterator_with_if_elif
 
 

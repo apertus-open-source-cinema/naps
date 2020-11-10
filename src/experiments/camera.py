@@ -3,7 +3,9 @@ import os
 
 from nmigen import *
 
+from devices import MicroR2Platform
 from lib.bus.axi.buffer_writer import AxiBufferWriter
+from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
 from lib.bus.stream.gearbox import StreamGearbox, StreamResizer
 from lib.debug.clocking_debug import ClockingDebug
@@ -11,10 +13,8 @@ from lib.io.hdmi.cvt_python import generate_modeline
 from lib.io.hdmi.hdmi_stream_sink import HdmiStreamSink
 from lib.io.hispi.hispi import Hispi
 from lib.peripherals.csr_bank import ControlSignal
-from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.peripherals.i2c.bitbang_i2c import BitbangI2c
 from lib.video.buffer_reader import VideoBufferReader
-from devices import MicroR2Platform
 from lib.video.debayer import SimpleFullResDebayerer
 from lib.video.stream_converter import ImageStream2PacketizedStream
 from soc.cli import cli

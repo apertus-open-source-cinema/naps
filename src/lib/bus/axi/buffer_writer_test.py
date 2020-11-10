@@ -2,13 +2,13 @@ import unittest
 
 from nmigen import *
 
-from lib.bus.ring_buffer import RingBufferAddressStorage
-from lib.bus.stream.sim_util import write_to_stream, read_from_stream
-from util.sim import SimPlatform, do_nothing
 from lib.bus.axi.axi_endpoint import AxiEndpoint, Response, AddressStream, BurstType, DataStream
-from lib.bus.axi.buffer_writer import AxiBufferWriter, AddressGenerator
-from util.sim import wait_for, pulse
+from lib.bus.axi.buffer_writer import AxiBufferWriter
+from lib.bus.ring_buffer import RingBufferAddressStorage
+from lib.bus.stream.sim_util import write_to_stream
 from lib.bus.stream.stream import PacketizedStream
+from util.sim import SimPlatform, do_nothing
+from util.sim import wait_for, pulse
 
 
 def answer_channel(channel, always_ready=True):

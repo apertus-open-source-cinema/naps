@@ -2,8 +2,8 @@ from functools import reduce
 
 from nmigen import *
 
-from . import AxiEndpoint
 from util.nmigen_misc import iterator_with_if_elif
+from . import AxiEndpoint
 
 
 class AxiInterconnect(Elaboratable):

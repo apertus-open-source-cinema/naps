@@ -3,14 +3,14 @@ from itertools import product
 from nmigen import *
 from nmigen.build import Clock
 
-from .tmds import Encoder
-from .parse_modeline import parse_modeline
-from util.nmigen_misc import max_error_freq
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
+from lib.primitives.xilinx_s7.clocking import Mmcm
 from lib.primitives.xilinx_s7.io import OSerdes10
 from lib.primitives.xilinx_s7.ps7 import PS7
-from lib.primitives.xilinx_s7.clocking import Mmcm
 from lib.video.rgb import RGB
+from util.nmigen_misc import max_error_freq
+from .parse_modeline import parse_modeline
+from .tmds import Encoder
 
 
 class Hdmi(Elaboratable):

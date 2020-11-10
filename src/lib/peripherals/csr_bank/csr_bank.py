@@ -6,8 +6,8 @@ from nmigen import *
 from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 
-from soc.peripheral import Response, Peripheral
 from soc.memorymap import MemoryMap
+from soc.peripheral import Response, Peripheral
 from .csr_types import _Csr, StatusSignal, ControlSignal
 
 

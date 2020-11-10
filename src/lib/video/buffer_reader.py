@@ -1,15 +1,10 @@
 from math import ceil
 
-from nmigen import Elaboratable, Module, DomainRenamer, Signal
+from nmigen import Elaboratable, Module, Signal
 
 from lib.bus.axi.reader import AxiReader
 from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.bus.stream.debug import StreamInfo
-from lib.bus.stream.fifo import BufferedAsyncStreamFIFO, BufferedSyncStreamFIFO
-from lib.bus.stream.gearbox import StreamGearbox
-from lib.io.hdmi.hdmi import Hdmi
-from lib.io.hdmi.hdmi_stream_sink import HdmiStreamAligner
-from lib.io.hdmi.parse_modeline import VideoTiming
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.video.image_stream import ImageStream
 

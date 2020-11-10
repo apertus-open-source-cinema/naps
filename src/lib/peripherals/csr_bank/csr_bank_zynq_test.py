@@ -1,11 +1,11 @@
 import unittest
 
 from lib.bus.axi.axi_endpoint import AxiEndpoint
-from util.sim import SimPlatform
+from lib.bus.axi.sim_util import axil_read, axil_write
 from lib.peripherals.csr_bank import CsrBank, ControlSignal
 from soc.platforms.zynq import ZynqSocPlatform
+from util.sim import SimPlatform
 from util.sim import do_nothing
-from lib.bus.axi.sim_util import axil_read, axil_write
 
 
 class TestAxiSlave(unittest.TestCase):

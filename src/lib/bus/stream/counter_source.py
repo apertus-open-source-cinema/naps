@@ -1,7 +1,7 @@
 from nmigen import *
 
-from lib.peripherals.csr_bank import ControlSignal
 from lib.bus.stream.stream import BasicStream
+from lib.peripherals.csr_bank import ControlSignal
 
 
 class CounterStreamSource(Elaboratable):

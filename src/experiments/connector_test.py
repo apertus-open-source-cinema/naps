@@ -3,12 +3,12 @@
 from nmigen import *
 from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
-from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from devices import MicroR2Platform
+from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.primitives.xilinx_s7.clocking import RawPll, Bufg
 from lib.primitives.xilinx_s7.io import Oserdes, IdelayCtrl, Idelay, Iserdes
-from soc.platforms.zynq import ZynqSocPlatform
 from soc.cli import cli
+from soc.platforms.zynq import ZynqSocPlatform
 
 
 class Top(Elaboratable):

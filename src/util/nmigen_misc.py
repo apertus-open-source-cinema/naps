@@ -146,3 +146,14 @@ def get_design_domains(fragment: Fragment):
     for subfragment, name in fragment.subfragments:
         domains.update(get_design_domains(subfragment))
     return domains
+
+
+def with_reset(m, signal, exclusive=False):
+    domain_name = "with_reset_{}".format(signal.name)
+    m.domains += ClockDomain(domain_name)
+    m.d.comb += ClockSignal(domain_name).eq(ClockSignal())
+    if not exclusive:
+        m.d.comb += ResetSignal(domain_name).eq(ResetSignal() | signal)
+    else:
+        m.d.comb += ResetSignal(domain_name).eq(signal)
+    return DomainRenamer(domain_name)

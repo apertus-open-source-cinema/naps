@@ -2,12 +2,13 @@ from nmigen import *
 from nmigen.lib.fifo import SyncFIFOBuffered
 
 from lib.peripherals.csr_bank import StatusSignal, ControlSignal
-from lib.bus.stream.stream import Stream, BasicStream
+from lib.bus.stream.stream import BasicStream
+from util.nmigen_misc import with_reset
 from .axi_endpoint import Response
 from .util import get_axi_master_from_maybe_slave
 
 
-class AxiBufferReader(Elaboratable):
+class AxiReader(Elaboratable):
     def __init__(
             self,
             address_source: BasicStream,
@@ -22,7 +23,7 @@ class AxiBufferReader(Elaboratable):
         self.output = address_source.clone(name="buffer_reader_output_stream")
         self.output.payload = Signal(axi_data_width)
 
-        self.allow_flush = ControlSignal()
+        self.allow_flush = ControlSignal(reset=1)
         self.force_flush = ControlSignal()
         self.limit_outstanding = ControlSignal(reset=bool(address_source.out_of_band_signals))
         self.max_outstanding = ControlSignal(32, reset=last_fifo_depth)
@@ -104,7 +105,9 @@ class AxiBufferReader(Elaboratable):
                 m.d.sync += self.outstanding.eq(self.outstanding - 1)
 
         if self.address_source.out_of_band_signals:
-            last_fifo = m.submodules.last_fifo = SyncFIFOBuffered(width=len(Cat(self.address_source.out_of_band_signals.values())), depth=self.last_fifo_depth)
+            last_fifo = m.submodules.last_fifo = with_reset(m, self.force_flush)(
+                SyncFIFOBuffered(width=len(Cat(self.address_source.out_of_band_signals.values())), depth=self.last_fifo_depth)
+            )
             # we dont have to check r_rdy and w_rdy because we are limiting the outstanding transaction to the fifo
             # size
             m.d.comb += last_fifo.w_en.eq(address_written)

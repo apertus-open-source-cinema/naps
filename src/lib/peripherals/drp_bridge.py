@@ -52,13 +52,14 @@ class DrpBridge(Elaboratable):
                 m.d.sync += self.drp_interface.data_write_enable.eq(0)
                 write_done(Response.OK)
 
-        memorymap = MemoryMap()
-        memorymap.allocate("drp", writable=True, bits=2**len(self.drp_interface.address) * 8)
-
-        m.submodules += Peripheral(
-            handle_read,
-            handle_write,
-            memorymap
-        )
+        # TODO: fix drp bridge
+        # memorymap = MemoryMap()
+        # memorymap.allocate("drp", writable=True, bits=2**len(self.drp_interface.address) * 8)
+        #
+        # m.submodules += Peripheral(
+        #     handle_read,
+        #     handle_write,
+        #     memorymap
+        # )
 
         return m

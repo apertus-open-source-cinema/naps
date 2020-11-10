@@ -1,4 +1,3 @@
-import inspect
 from dataclasses import dataclass
 from enum import Enum
 from typing import TypeVar
@@ -6,6 +5,7 @@ from typing import TypeVar
 from nmigen import *
 from nmigen import tracer
 
+print()
 from util.py_util import camel_to_snake
 
 

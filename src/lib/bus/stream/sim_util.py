@@ -1,3 +1,5 @@
+from collections import Iterable
+
 from lib.bus.stream.stream import Stream
 from util.sim import wait_for
 
@@ -10,9 +12,18 @@ def write_to_stream(stream: Stream, **kwargs):
     yield stream.valid.eq(0)
 
 
-def read_from_stream(stream: Stream):
+def read_from_stream(stream: Stream, extract="payload"):
     yield stream.ready.eq(1)
     yield from wait_for(stream.valid)
-    read = (yield stream.payload)
+    if isinstance(extract, str):
+        read = (yield getattr(stream, extract))
+    elif isinstance(extract, Iterable):
+        read = []
+        for x in extract:
+            read.append((yield getattr(stream, x)))
+        read = tuple(read)
+    else:
+        raise TypeError("extract must be either a string or an iterable of strings")
+
     yield stream.ready.eq(0)
     return read

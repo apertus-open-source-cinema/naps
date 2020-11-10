@@ -6,7 +6,7 @@ from .axi_endpoint import AddressStream, BurstType
 from .util import get_axi_master_from_maybe_slave
 from lib.bus.ring_buffer import RingBufferAddressStorage
 from ..stream.fifo import BufferedSyncStreamFIFO
-from ..stream.util import StreamTransformer
+from ..stream.stream_transformer import StreamTransformer
 
 
 class AddressGenerator(Elaboratable):

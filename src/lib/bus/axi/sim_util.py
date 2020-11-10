@@ -1,35 +1,16 @@
 from lib.bus.axi.axi_endpoint import Response
-from util.sim import wait_for
-
-
-def write_to_axi_channel(channel, value):
-    yield channel.payload.eq(value)
-    yield channel.valid.eq(1)
-    yield from wait_for(channel.ready)
-    yield channel.valid.eq(0)
-
-
-def read_from_axi_channel(channel):
-    yield channel.ready.eq(1)
-    yield from wait_for(channel.valid)
-    if hasattr(channel, "payload"):
-        result = (yield channel.payload)
-    else:
-        result = None
-    response = (yield channel.resp)
-    yield channel.ready.eq(0)
-    return result, response
+from lib.bus.stream.sim_util import write_to_stream, read_from_stream
 
 
 def axil_read(axi, addr):
-    yield from write_to_axi_channel(axi.read_address, addr)
-    value, response = (yield from read_from_axi_channel(axi.read_data))
+    yield from write_to_stream(axi.read_address, payload=addr)
+    value, response = (yield from read_from_stream(axi.read_data, extract=("payload", "resp")))
     assert Response.OKAY.value == response
     return value
 
 
 def axil_write(axi, addr, data):
-    yield from write_to_axi_channel(axi.write_address, addr)
-    yield from write_to_axi_channel(axi.write_data, data)
-    result, response = (yield from read_from_axi_channel(axi.write_response))
+    yield from write_to_stream(axi.write_address, payload=addr)
+    yield from write_to_stream(axi.write_data, payload=data)
+    response = (yield from read_from_stream(axi.write_response, extract="resp"))
     assert Response.OKAY.value == response

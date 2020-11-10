@@ -1,8 +1,9 @@
 from nmigen import *
-from nmigen.lib.cdc import FFSynchronizer
 
-from lib.bus.axi.buffer_reader import AxiBufferReader
+from lib.bus.axi.reader import AxiReader
+from lib.bus.stream.debug import InflexibleSinkDebug, StreamInfo
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
+from lib.bus.stream.gearbox import StreamGearbox
 from lib.bus.stream.image_stream import ImageStream
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.io.hdmi.hdmi import Hdmi
@@ -10,7 +11,7 @@ from lib.io.hdmi.parse_modeline import VideoTiming
 from lib.bus.ring_buffer import RingBufferAddressStorage
 from soc.devicetree.overlay import devicetree_overlay
 from util.nmigen_misc import iterator_with_if_elif
-from lib.bus.stream.stream import Stream, PacketizedStream
+from lib.bus.stream.stream import Stream
 
 
 class HdmiBufferReader(Elaboratable):
@@ -20,37 +21,32 @@ class HdmiBufferReader(Elaboratable):
         self.ring_buffer = ring_buffer
         self.data_interpreter_class = data_interpreter_class
 
-        self.allow_fifo_reset = ControlSignal()
-
     def elaborate(self, platform):
         m = Module()
 
         hdmi = m.submodules.hdmi = Hdmi(self.hdmi_plugin, self.modeline)
-        last_blanking_y = Signal()
-        m.d.pix += last_blanking_y.eq(hdmi.timing_generator.is_blanking_y)
-        begin_blanking_in_axi_domain = Signal()
-        m.submodules += FFSynchronizer(
-            hdmi.timing_generator.is_blanking_y & ~last_blanking_y,
-            begin_blanking_in_axi_domain, o_domain="axi_hp"
-        )
 
         address_generator = m.submodules.address_generator = DomainRenamer("axi_hp")(AddressGenerator(
             self.ring_buffer, hdmi.initial_video_timing,
             pixels_per_word=self.data_interpreter_class.pixels_per_word
         ))
-        m.d.comb += address_generator.next_frame.eq(begin_blanking_in_axi_domain)
-        reader = m.submodules.axi_reader = DomainRenamer("axi_hp")(AxiBufferReader(address_generator.output))
-        m.d.comb += reader.flush.eq(begin_blanking_in_axi_domain)
-
-        m.domains += ClockDomain("buffer_reader_fifo")
-        m.d.comb += ClockSignal("buffer_reader_fifo").eq(ClockSignal("axi_hp"))
-        m.d.comb += ResetSignal("buffer_reader_fifo").eq(begin_blanking_in_axi_domain & self.allow_fifo_reset)
+        reader = m.submodules.axi_reader = DomainRenamer("axi_hp")(AxiReader(address_generator.output))
         pixel_fifo = m.submodules.pixel_fifo = BufferedAsyncStreamFIFO(
-            reader.output, depth=1024 * 16, w_domain="buffer_reader_fifo", r_domain="pix"
+            reader.output, depth=1024 * 16, w_domain="axi_hp", r_domain="pix"
+        )
+        gearbox = m.submodules.gearbox = DomainRenamer("pix")(StreamGearbox(
+            pixel_fifo.output,
+            target_width=len(pixel_fifo.output.payload) // self.data_interpreter_class.pixels_per_word
+        ))
+        pixel_slipper = m.submodules.pixel_slipper = DomainRenamer("pix")(
+            PixelSlipper(gearbox.output, hdmi)
+        )
+        m.submodules.data_interpreter = DomainRenamer("pix")(
+            self.data_interpreter_class(pixel_slipper.output, hdmi, self.ring_buffer)
         )
 
-        m.submodules.data_interpreter = DomainRenamer("pix")(
-            self.data_interpreter_class(pixel_fifo.output, hdmi, self.ring_buffer)
+        m.submodules.pixel_fifo_output_stream_info = DomainRenamer("pix")(
+            StreamInfo(pixel_fifo.output)
         )
 
         return m
@@ -67,7 +63,6 @@ class AddressGenerator(Elaboratable):
         self.total_x = ControlSignal(32, reset=total_x or initial_video_timing.hres)
         self.to_read_x = ControlSignal(32, reset=initial_video_timing.hres)
         self.to_read_y = ControlSignal(32, reset=initial_video_timing.vres)
-        self.disable_framesync = ControlSignal()
 
         self.current_buffer = StatusSignal(ringbuffer.current_write_buffer.shape())
         self.frame_count = StatusSignal(32)
@@ -91,9 +86,9 @@ class AddressGenerator(Elaboratable):
                 m.d.comb += self.output.valid.eq(1)
                 m.d.sync += self.output.payload.eq(self.output.payload + self.data_width_bytes)
                 m.d.sync += x_ctr.eq(x_ctr + self.pixels_per_word)
-                with m.If((x_ctr == self.to_read_x - 1) & (y_ctr == self.to_read_y - 1)):
+                with m.If((x_ctr == self.to_read_x - self.pixels_per_word) & (y_ctr == self.to_read_y - 1)):
                     m.d.comb += self.output.frame_last.eq(1)
-                with m.If((x_ctr == self.to_read_x - 1)):
+                with m.If((x_ctr == self.to_read_x - self.pixels_per_word)):
                     m.d.comb += self.output.line_last.eq(1)
             with m.Else():
                 m.d.sync += x_ctr.eq(0)
@@ -103,7 +98,7 @@ class AddressGenerator(Elaboratable):
                 )
                 m.d.sync += line_base.eq(line_base + self.total_x * self.data_width_bytes // self.pixels_per_word)
 
-        def next_buffer():
+        with m.If((y_ctr == self.to_read_y)):
             m.d.sync += self.frame_count.eq(self.frame_count + 1)
             current_buffer = Signal.like(self.current_buffer)
             with m.If(self.ringbuffer.current_write_buffer == 0):
@@ -116,13 +111,42 @@ class AddressGenerator(Elaboratable):
             m.d.sync += self.output.payload.eq(self.ringbuffer.buffer_base_list[self.current_buffer])
             m.d.sync += line_base.eq(self.ringbuffer.buffer_base_list[self.current_buffer])
 
-        with m.If((y_ctr == self.to_read_y) & self.disable_framesync):
-            next_buffer()
+        m.submodules.output_stream_info = StreamInfo(self.output)
 
-        last_next_frame = Signal()
-        m.d.sync += last_next_frame.eq(self.next_frame)
-        with m.If(self.next_frame & ~last_next_frame & ~self.disable_framesync):
-            next_buffer()
+        return m
+
+
+class PixelSlipper(Elaboratable):
+    def __init__(self, input: ImageStream, hdmi: Hdmi):
+        self.hdmi = hdmi
+        self.input = input
+
+        self.allow_slip_h = ControlSignal(reset=1)
+        self.allow_slip_v = ControlSignal(reset=1)
+        self.slipped_v = StatusSignal(32)
+        self.slipped_h = StatusSignal(32)
+        self.output = input.clone(name="slipped")
+
+    def elaborate(self, platform):
+        m = Module()
+
+        m.d.comb += self.input.connect_downstream(self.output)
+
+        was_line_last = Signal()
+        was_frame_last = Signal()
+        with m.If(self.input.ready):
+            m.d.sync += was_line_last.eq(self.input.line_last)
+            m.d.sync += was_frame_last.eq(self.input.frame_last)
+
+        with m.If(self.hdmi.timing_generator.is_blanking_x & ~was_line_last & self.allow_slip_h):
+            m.d.sync += self.slipped_h.eq(self.slipped_h + 1)
+            m.d.comb += self.input.ready.eq(1)
+            
+        with m.If(self.hdmi.timing_generator.is_blanking_y & ~was_frame_last & self.allow_slip_v):
+            m.d.sync += self.slipped_v.eq(self.slipped_v + 1)
+            m.d.comb += self.input.ready.eq(1)
+
+        m.submodules.input_stream_info = StreamInfo(self.input)
 
         return m
 
@@ -132,48 +156,23 @@ class LinuxFramebuffer(Elaboratable):
 
     pixels_per_word = 2
 
-    def __init__(self, data: ImageStream, hdmi: Hdmi, ring_buffer: RingBufferAddressStorage):
-        self.data = data
+    def __init__(self, hdmi: Hdmi, ring_buffer: RingBufferAddressStorage):
         self.hdmi = hdmi
         self.ring_buffer = ring_buffer
 
-        self.slipped = StatusSignal(32)
-        self.last_count = StatusSignal(32)
+        self.input: ImageStream
 
     def elaborate(self, platform):
         m = Module()
 
-        fetch_new_pixel = Signal()
         with m.If(self.hdmi.timing_generator.active):
-            m.d.sync += fetch_new_pixel.eq(~fetch_new_pixel)
-            with m.If(fetch_new_pixel):
-                m.d.comb += self.data.ready.eq(1)
-                m.d.comb += self.hdmi.rgb.r.eq(self.data.payload[0 + 32:8 + 32])
-                m.d.comb += self.hdmi.rgb.g.eq(self.data.payload[8 + 32:16 + 32])
-                m.d.comb += self.hdmi.rgb.b.eq(self.data.payload[16 + 32:24 + 32])
-            with m.Else():
-                m.d.comb += self.hdmi.rgb.r.eq(self.data.payload[0:8])
-                m.d.comb += self.hdmi.rgb.g.eq(self.data.payload[8:16])
-                m.d.comb += self.hdmi.rgb.b.eq(self.data.payload[16:24])
-        with m.Else():
-            m.d.sync += fetch_new_pixel.eq(0)
-
-        # last should occur on the last active pixel
-        # otherwise the frame is not aligned -> we skip some data during y-blank
-        last_occurred = Signal()
-        with m.If((self.hdmi.timing_generator.x == 0) & (self.hdmi.timing_generator.y == 0)):
-            m.d.sync += last_occurred.eq(0)
-        with m.If(self.data.frame_last & (
-                self.hdmi.timing_generator.is_blanking_y |
-                (self.hdmi.timing_generator.x == self.hdmi.timing_generator.width - 1) |
-                (self.hdmi.timing_generator.y == self.hdmi.timing_generator.height - 1)
-        )):
-            m.d.sync += last_occurred.eq(1)
-        with m.If(self.hdmi.timing_generator.is_blanking_y & ~last_occurred):
-            with m.If(self.data.frame_last):
-                m.d.sync += last_occurred.eq(1)
-            m.d.sync += self.slipped.eq(self.slipped + 1)
             m.d.comb += self.data.ready.eq(1)
+
+        m.d.comb += self.hdmi.rgb.r.eq(self.data.payload[0:8])
+        m.d.comb += self.hdmi.rgb.g.eq(self.data.payload[8:16])
+        m.d.comb += self.hdmi.rgb.b.eq(self.data.payload[16:24])
+
+        debug = m.submodules.debug = InflexibleSinkDebug(self.data)
 
         overlay_content = """
             %overlay_name%: framebuffer@%address% {
@@ -188,7 +187,7 @@ class LinuxFramebuffer(Elaboratable):
         devicetree_overlay(platform, "framebuffer", overlay_content, {
             "width": str(self.hdmi.initial_video_timing.hres),
             "height": str(self.hdmi.initial_video_timing.vres),
-            "address": "{:x}".format(self.ring_buffer.buffer_base_list[len(self.ring_buffer.buffer_base_list)-1]),
+            "address": "{:x}".format(self.ring_buffer.buffer_base_list[len(self.ring_buffer.buffer_base_list) - 1]),
             # we choose the last buffer because there is no writer so the reader always reads from the last buffer
         })
 

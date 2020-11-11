@@ -2,7 +2,7 @@ from functools import reduce
 
 from nmigen import *
 
-from util.nmigen_misc import iterator_with_if_elif
+from util.nmigen_misc import iterator_with_if_elif, nAny
 from . import AxiEndpoint
 
 
@@ -48,11 +48,11 @@ class AxiInterconnect(Elaboratable):
             m.d.comb += downstream_port.write_data.byte_strobe.eq(uplink.write_data.byte_strobe)
 
         # wait until at least one peripherals is ready when writing the addresses
-        m.d.comb += uplink.read_address.ready.eq(reduce(lambda a, b: a | b, (d.read_address.ready for d in self._downstream_ports)))
-        m.d.comb += uplink.write_address.ready.eq(reduce(lambda a, b: a | b, (d.write_address.ready for d in self._downstream_ports)))
+        m.d.comb += uplink.read_address.ready.eq(nAny(d.read_address.ready for d in self._downstream_ports))
+        m.d.comb += uplink.write_address.ready.eq(nAny(d.write_address.ready for d in self._downstream_ports))
 
         # only one peripheral has to accept written data
-        m.d.comb += uplink.write_data.ready.eq(reduce(lambda a, b: a | b, (d.write_data.ready for d in self._downstream_ports)))
+        m.d.comb += uplink.write_data.ready.eq(nAny(d.write_data.ready for d in self._downstream_ports))
 
         # we are creating priority encoders here: When multiple peripherals want to answer, we take the answer of the
         # first added peripheral

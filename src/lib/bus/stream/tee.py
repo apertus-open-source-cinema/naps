@@ -5,6 +5,7 @@ from typing import List
 from nmigen import *
 
 from lib.bus.stream.stream import Stream, DOWNWARDS
+from util.nmigen_misc import nAll
 
 
 class StreamSplitter(Elaboratable):
@@ -22,7 +23,7 @@ class StreamSplitter(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.d.comb += self.input.ready.eq(reduce(lambda a, b: a & b, (output.ready for output in self.outputs)))
+        m.d.comb += self.input.ready.eq(nAll(output.ready for output in self.outputs))
         for output in self.outputs:
             m.d.comb += output.valid.eq(self.input.valid & self.input.ready)
             for k in self.input.payload_signals.keys():
@@ -62,7 +63,7 @@ class StreamCombiner(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.d.comb += self.output.valid.eq(reduce(lambda a, b: a & b, (input.valid for input in self.inputs)))
+        m.d.comb += self.output.valid.eq(nAll(input.valid for input in self.inputs))
         for input in self.inputs:
             m.d.comb += input.ready.eq(self.output.ready)
         for k, expr in self.payload_expressions.items():

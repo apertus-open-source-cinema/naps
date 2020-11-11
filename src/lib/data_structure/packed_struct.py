@@ -2,16 +2,16 @@ from dataclasses import dataclass
 
 from nmigen import *
 from nmigen import tracer
-from nmigen._utils import union
-from nmigen.hdl.ast import UserValue, SignalSet
+from nmigen.hdl.ast import ValueCastable
 
 from util.py_util import camel_to_snake
 
 
 @dataclass
-class PackedStruct(UserValue):
+class PackedStruct(ValueCastable):
     def __init__(self, name=None, src_loc_at=1):
         super().__init__()
+        self._order = []
         self.name = name or tracer.get_var_name(depth=2 + src_loc_at, default=camel_to_snake(self.__class__.__name__))
 
     def __setattr__(self, key, value):
@@ -19,6 +19,8 @@ class PackedStruct(UserValue):
             value.name = format("{}__{}".format(self.name, value.name))
         if hasattr(value, "_update_name") and callable(value._update_name):
             value._update_name()
+        if isinstance(value, (Value, ValueCastable)):
+            self._order.append(value)
         super().__setattr__(key, value)
 
     def _update_name(self):
@@ -30,14 +32,9 @@ class PackedStruct(UserValue):
     def __repr__(self):
         return "{}(name={})".format(self.__class__.__name__, self.name)
 
-    def lower(self):
-        return Cat(self._nmigen_fields().values())
+    def eq(self, other):
+        return self.as_value().eq(other)
 
-    def _nmigen_fields(self):
-        return {f: getattr(self, f) for f in dir(self) if isinstance(getattr(self, f), Value)}
-
-    def _lhs_signals(self):
-        return union((f._lhs_signals() for f in self._nmigen_fields().values()), start=SignalSet())
-
-    def _rhs_signals(self):
-        return union((f._rhs_signals() for f in self._nmigen_fields().values()), start=SignalSet())
+    @ValueCastable.lowermethod
+    def as_value(self):
+        return Cat(self._order)

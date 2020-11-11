@@ -6,6 +6,7 @@ from nmigen.hdl.ast import Rose
 from lib.bus.stream.stream import BasicStream
 from lib.peripherals.csr_bank import StatusSignal
 from lib.primitives.lattice_machxo2.clocking import Pll, EClkSync, ClkDiv
+from util.nmigen_misc import nAll
 
 
 class PluginModuleStreamerRx(Elaboratable):
@@ -44,11 +45,7 @@ class PluginModuleStreamerRx(Elaboratable):
         m.d.sync += self.output.valid.eq(self.plugin.valid)
         m.d.sync += self.output.payload.eq(Cat(*[lane.output for lane in lanes]))
         m.d.comb += self.ready.eq(
-            self.output.ready & (
-                reduce(lambda a, b: a & b, [
-                    lane.word_aligned & lane.bit_aligned for lane in lanes
-                ])
-            )
+            self.output.ready & nAll(lane.word_aligned & lane.bit_aligned for lane in lanes)
         )
 
         return m

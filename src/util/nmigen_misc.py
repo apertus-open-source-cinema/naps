@@ -6,53 +6,6 @@ from typing import Iterator, Iterable
 from nmigen import *
 from nmigen import Signal
 from nmigen.build import ResourceError
-from nmigen.hdl.ast import UserValue
-from nmigen.hdl.xfrm import TransformedElaboratable
-
-
-def flatten_nmigen_type(nmigen_things):
-    """Flattens a list of signals and records to a list of signals
-    :param nmigen_things: A list of signals and records
-    :return: A list of signals
-    """
-    flattened = []
-    for signal in nmigen_things:
-        if isinstance(signal, Signal):
-            flattened += [signal]
-        elif isinstance(signal, UserValue):
-            flattened += flatten_nmigen_type(signal._lhs_signals())
-        elif isinstance(signal, Iterable):
-            flattened += flatten_nmigen_type(signal)
-    return flattened
-
-
-def is_nmigen_type(obj):
-    """Checks, if an object is a nmigen type or a list of these"""
-    if isinstance(obj, (Value, UserValue)):
-        return True
-    elif not isinstance(obj, str) and isinstance(obj, Iterable):
-        return all([is_nmigen_type(elem) for elem in obj])
-    else:
-        return False
-
-
-def get_signals(module):
-    """Create a list of all signals of a module
-
-    :param module: The module to investigate
-    :return A list of property Signals
-    """
-    if isinstance(module, TransformedElaboratable):
-        module = module._elaboratable_
-    signals_records = [
-        prop for prop
-        in [
-            getattr(module, name) for name
-            in dir(module) if name[0] != "_"
-        ]
-        if is_nmigen_type(prop)
-    ]
-    return flatten_nmigen_type(signals_records)
 
 
 def iterator_with_if_elif(iterator: Iterable, module: Module) -> Iterator:
@@ -77,21 +30,22 @@ def log2(x):
     return int(math.log2(x))
 
 
-def div_by_pot(x, constant_divisor_is_pot):
-    return x >> log2(constant_divisor_is_pot)
-
-
-def mul_by_pot(x, constant_multiplier_is_pot):
-    return x << log2(constant_multiplier_is_pot)
-
-
 def nMin(a, b):
     return Mux(a < b, a, b)
+
+
+def nMax(a, b):
+    return Mux(a > b, a, b)
 
 
 def nAny(seq):
     assert isinstance(seq, Iterable)
     return reduce(lambda a, b: a | b, seq)
+
+
+def nAll(seq):
+    assert isinstance(seq, Iterable)
+    return reduce(lambda a, b: a & b, seq)
 
 
 def max_error_freq(real_freq, requested_freq, max_error_percent=1):
@@ -129,23 +83,6 @@ def connect_leds(m, platform, signal, upper_bits=True):
             m.d.comb += platform.request("led", i).eq(signal[i if not upper_bits else -(i + 1)])
         except ResourceError:
             break
-
-
-def get_design_domains(fragment: Fragment):
-    """
-    recursively iterates the given fragment and all its subfragments to find all domains used in the design.
-
-    :rtype: set
-    :returns: A set with the names of all clockdomains
-    """
-
-    domains = set()
-    for domain in fragment.drivers.keys():
-        if domain is not None:
-            domains.add(domain)
-    for subfragment, name in fragment.subfragments:
-        domains.update(get_design_domains(subfragment))
-    return domains
 
 
 def with_reset(m, signal, exclusive=False):

@@ -2,10 +2,11 @@ import math
 from enum import Enum
 
 from nmigen import *
-from nmigen.hdl.ast import UserValue, MustUse
+from nmigen.hdl.ast import MustUse
 
 from lib.bus.stream.stream import BasicStream, Stream
 from lib.data_structure.bundle import Bundle, UPWARDS, DOWNWARDS
+from lib.data_structure.packed_struct import PackedStruct
 
 
 class Response(Enum):
@@ -21,16 +22,13 @@ class BurstType(Enum):
     WRAP = 0b10
 
 
-class ProtectionType(UserValue):
-    def __init__(self, privileged=False, secure=False, is_instruction=False):
-        super().__init__()
+class ProtectionType(PackedStruct):
+    def __init__(self, privileged=False, secure=False, is_instruction=False, src_loc_at=1, name=None):
+        super().__init__(src_loc_at=src_loc_at + 1, name=name)
 
-        self.privileged = privileged
-        self.secure = secure
-        self.is_instruction = is_instruction
-
-    def lower(self):
-        return Signal(3, reset=int("".join(str(int(x)) for x in [self.privileged, not self.secure, self.is_instruction]), 2))
+        self.privileged = Signal(reset=privileged)
+        self.secure = Signal(reset=secure)
+        self.is_instruction = Signal(reset=is_instruction)
 
 
 class AddressStream(BasicStream):
@@ -42,7 +40,7 @@ class AddressStream(BasicStream):
             self.burst_type = Signal(BurstType)
             self.burst_len = Signal(range(16))  # in axi3 a burst can have a length of 16 as a hardcoded maximum
             self.beat_size_bytes = Signal(3, reset=int(math.log2(data_bytes)))  # this is 2**n encoded
-            self.protection_type = Signal(ProtectionType().shape())
+            self.protection_type = Signal(ProtectionType().as_value().shape())
 
 
 class DataStream(BasicStream):

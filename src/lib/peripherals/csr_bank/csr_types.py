@@ -1,7 +1,5 @@
 from nmigen import *
-from nmigen import tracer
 from nmigen._unused import MustUse
-from nmigen.hdl.ast import UserValue
 
 from soc.memorymap import Address
 from soc.peripheral import Response
@@ -15,45 +13,35 @@ class _Csr(MustUse):
     """a marker class to collect the registers easily"""
     _MustUse__warning = UncollectedCsrWarning
     _MustUse__silence = True
-    address = None
+    _address = None
 
 
-class ControlSignal(UserValue, _Csr):
+class ControlSignal(Signal, _Csr):
     """ Just a Signal. Indicator, that it is for controlling some parameter (i.e. can be written from the outside)
     Is mapped as a CSR in case the design is build with a SocPlatform.
     """
 
-    def __init__(self, shape=None, *, address=None, read_strobe=None, write_strobe=None, name=None, src_loc_at=0, **kwargs):
-        super().__init__(src_loc_at=-1)
+    def __init__(self, shape=None, *, address=None, read_strobe=None, write_strobe=None, src_loc_at=0, **kwargs):
+        super().__init__(shape, src_loc_at=src_loc_at + 1, **kwargs)
         self.src_loc_at = src_loc_at
         self._shape = shape
         self._kwargs = kwargs
-        self.name = name or tracer.get_var_name(depth=2 + src_loc_at, default="$signal")
 
-        self.address = Address.parse(address)
-        self.write_strobe = write_strobe
-        self.read_strobe = read_strobe
-
-    def lower(self):
-        return Signal(self._shape, name=self.name, **self._kwargs, src_loc_at=self.src_loc_at + 1)
+        self._address = Address.parse(address)
+        self._write_strobe = write_strobe
+        self._read_strobe = read_strobe
 
 
-class StatusSignal(UserValue, _Csr):
+class StatusSignal(Signal, _Csr):
     """ Just a Signal. Indicator, that it is for communicating the state to the outside world (i.e. can be read but not written from the outside)
         Is mapped as a CSR in case the design is build with a SocPlatform.
     """
 
-    def __init__(self, shape=None, *, address=None, read_strobe=None, name=None, src_loc_at=0, **kwargs):
-        super().__init__()
-        self._shape = shape
-        self._kwargs = kwargs
-        self.name = name or tracer.get_var_name(depth=2 + src_loc_at, default="$signal")
+    def __init__(self, shape=None, *, address=None, read_strobe=None, src_loc_at=0, **kwargs):
+        super().__init__(shape, src_loc_at=src_loc_at + 1, **kwargs)
 
-        self.address = Address.parse(address)
-        self.read_strobe = read_strobe
-
-    def lower(self):
-        return Signal(self._shape, name=self.name, **self._kwargs)
+        self._address = Address.parse(address)
+        self._read_strobe = read_strobe
 
 
 class EventReg(_Csr):  # TODO: bikeshed name
@@ -67,11 +55,11 @@ class EventReg(_Csr):  # TODO: bikeshed name
         self.address = Address.parse(address)
 
         def handle_read(m, data, read_done):
-            read_done(Response.OK)
+            read_done(Response.ERR)
 
         self.handle_read = handle_read
 
         def handle_write(m, data, write_done):
-            write_done(Response.OK)
+            write_done(Response.ERR)
 
         self.handle_write = handle_write

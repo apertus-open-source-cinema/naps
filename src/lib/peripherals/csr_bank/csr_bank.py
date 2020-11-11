@@ -4,11 +4,10 @@
 
 from nmigen import *
 from nmigen import Signal
-from nmigen.hdl.ast import UserValue
 
 from soc.memorymap import MemoryMap
 from soc.peripheral import Response, Peripheral
-from .csr_types import _Csr, StatusSignal, ControlSignal
+from .csr_types import _Csr, StatusSignal, ControlSignal, EventReg
 
 
 class CsrBank(Elaboratable):
@@ -17,9 +16,9 @@ class CsrBank(Elaboratable):
 
     def reg(self, name: str, signal: _Csr):
         assert isinstance(signal, _Csr)
+        assert not isinstance(signal, EventReg)
         writable = not isinstance(signal, StatusSignal)
-        bits = len(signal) if isinstance(signal, UserValue) else None
-        self.memorymap.allocate(name, writable, bits=bits, address=signal.address, obj=signal)
+        self.memorymap.allocate(name, writable, bits=len(signal), address=signal._address, obj=signal)
 
     def elaborate(self, platform):
         handled = Signal()

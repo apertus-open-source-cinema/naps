@@ -8,7 +8,6 @@ from lib.io.hdmi.cvt_python import generate_modeline
 from lib.io.hdmi.hdmi import TimingGenerator, Hdmi, HdmiClocking
 from lib.io.hdmi.parse_modeline import parse_modeline
 from soc.platforms.zynq import ZynqSocPlatform
-from util.nmigen_misc import get_signals
 from util.sim import SimPlatform
 
 
@@ -28,7 +27,7 @@ class TestHdmi(unittest.TestCase):
             assert 1 == (yield dut.y), "y increment failed"
 
         platform.add_sim_clock("sync", 100e6)
-        platform.sim(dut, testbench, traces=get_signals(dut))
+        platform.sim(dut, testbench)
 
     def test_hdmi_registers(self, testdata=0x1):
         platform = ZynqSocPlatform(SimPlatform())

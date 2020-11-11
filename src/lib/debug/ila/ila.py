@@ -3,6 +3,8 @@ from functools import reduce
 from nmigen import *
 from nmigen.lib.fifo import SyncFIFO
 
+from util.nmigen_misc import nAny
+
 
 class Ila(Elaboratable):
     def __init__(self, trace_length=1000, fifo_underpower=0.5):
@@ -26,11 +28,10 @@ class Ila(Elaboratable):
 
         fifo = m.submodules.fifo_type = SyncFIFO(width=sum(len(probe) for probe in self.probes), depth=int(self.trace_length * self.fifo_underpower), fwft=False)
 
-
         current_sample = Signal.like(self.dropped)
         with m.FSM():
             with m.State("IDLE"):
-                with m.If(reduce(lambda a, b: a | b, self.triggers)):
+                with m.If(nAny(self.triggers)):
                     m.d.sync += current_sample.eq(0)
                     m.d.sync += self.dropped.eq(0)
                     m.next = "TRIGGERED"

@@ -95,13 +95,32 @@ class TestGearbox(unittest.TestCase):
         platform.add_process(reader, "sync")
         platform.sim(dut)
 
+    def test_gearbox_48_to_12_last(self):
+        input = PacketizedStream(8)
+        dut = StreamGearbox(input, 4)
+
+        def writer():
+            yield from write_to_stream(input, payload=0b00_10_00_01, last=1)
+            yield from write_to_stream(input, payload=0b10_00_01_00, last=0)
+
+        def reader():
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0001, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0010, 1))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0100, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b1000, 0))
+
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.add_process(writer, "sync")
+        platform.add_process(reader, "sync")
+        platform.sim(dut)
+
     def test_dont_loose_data(self):
         input = BasicStream(16)
         dut = StreamGearbox(input, 8)
 
         def writer():
             for i in range(0, 100, 2):
-                print("{:016b}".format(((i + 1) << 8) | i))
                 yield from write_to_stream(input, payload=(((i + 1) << 8) | i))
                 if i % 3 == 0:
                     yield from do_nothing()
@@ -175,3 +194,54 @@ class TestGearbox(unittest.TestCase):
         platform.add_process(writer, "sync")
         platform.add_process(reader, "sync")
         platform.sim(dut)
+
+    def test_gearbox_automated(self):
+        def string_generator(string, chunk_size):
+            last = 0
+            while True:
+                to_yield = ""
+                for _ in range(chunk_size):
+                    try:
+                        to_yield += string[last]
+                    except IndexError:
+                        return
+                    last += 1
+                yield "".join(reversed(to_yield))
+
+        def gold_gen(input_width, output_width, output_amount=10):
+            bit_sequence = ""
+            for i in range(output_amount):
+                bit_sequence += "{{:0{}b}}".format(input_width).format(i % (2 ** input_width))
+            return (
+                [int(s, 2) for s in string_generator(bit_sequence, input_width)],
+                [int(s, 2) for s in string_generator(bit_sequence, output_width)]
+            )
+
+        def test_gearbox(input_width, output_width):
+            input = PacketizedStream(input_width)
+            dut = StreamGearbox(input, output_width)
+
+            input_data, output_data = gold_gen(input_width, output_width)
+
+            def writer():
+                for v in input_data:
+                    yield from write_to_stream(input, payload=v)
+
+            def reader():
+                for i, v in enumerate(output_data):
+                    read = (yield from read_from_stream(dut.output))
+                    self.assertEqual(read, v)
+
+            platform = SimPlatform()
+            platform.add_sim_clock("sync", 100e6)
+            platform.add_process(writer, "sync")
+            platform.add_process(reader, "sync")
+            platform.sim(dut)
+
+        test_gearbox(8, 4)
+        test_gearbox(7, 3)
+        test_gearbox(48, 12)
+
+        for input_width in range(1, 100, 7):
+            for output_width in range(1, 100, 3):
+                test_gearbox(input_width, output_width)

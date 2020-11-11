@@ -1,6 +1,6 @@
 if __name__ == "__main__":
     import readline
-
+    import rlcompleter
     readline.parse_and_bind("tab: complete")
     import code
     shell = code.InteractiveConsole(locals())

@@ -97,9 +97,9 @@ class LaneManager(Elaboratable):
         valid = Signal()
         m.d.comb += valid.eq(ends_with(
             self.last_control_word,
-            control_words["START_OF_ACTIVE_FRAME_EMBEDDED_DATA"],
-            control_words["START_OF_ACTIVE_FRAME_IMAGE_DATA"],
-            control_words["START_OF_ACTIVE_LINE_EMBEDDED_DATA"],
+            # control_words["START_OF_ACTIVE_FRAME_EMBEDDED_DATA"],
+            # control_words["START_OF_ACTIVE_FRAME_IMAGE_DATA"],
+            # control_words["START_OF_ACTIVE_LINE_EMBEDDED_DATA"],
             control_words["START_OF_ACTIVE_LINE_IMAGE_DATA"]
         ))
 

@@ -2,7 +2,8 @@ from nmigen import *
 
 from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.bus.stream.stream import PacketizedStream
-from lib.peripherals.csr_bank import StatusSignal
+from lib.peripherals.csr_bank import StatusSignal, ControlSignal
+from util.nmigen_misc import with_reset
 from .axi_endpoint import AddressStream, BurstType
 from .util import get_axi_master_from_maybe_slave
 from ..stream.fifo import BufferedSyncStreamFIFO
@@ -10,7 +11,7 @@ from ..stream.stream_transformer import StreamTransformer
 
 
 class AddressGenerator(Elaboratable):
-    def __init__(self, request: PacketizedStream, output: AddressStream, ringbuffer: RingBufferAddressStorage, max_burst, word_width_bytes=8):
+    def __init__(self, request: PacketizedStream, ringbuffer: RingBufferAddressStorage, max_burst, word_width_bytes=8):
         self.word_width_bytes = word_width_bytes
         self.ringbuffer = ringbuffer
         self.current_buffer = StatusSignal(ringbuffer.current_write_buffer.shape())
@@ -21,7 +22,7 @@ class AddressGenerator(Elaboratable):
 
         # the payload is how much we increment our address, last if we change the buffer
         self.request = request
-        self.output = output
+        self.output = AddressStream(addr_bits=32, lite=False, id_bits=12, data_bytes=8)
 
     def elaborate(self, platform):
         m = Module()
@@ -129,6 +130,7 @@ class AxiBufferWriter(Elaboratable):
 
         self.fifo_depth = fifo_depth
         self.max_burst_length = max_burst_length
+        self.force_flush = ControlSignal()
 
         self.burst_position = StatusSignal(range(self.max_burst_length))
 
@@ -138,17 +140,30 @@ class AxiBufferWriter(Elaboratable):
         axi = get_axi_master_from_maybe_slave(self.axi_slave, m, platform)
         assert len(self.input.payload) <= axi.data_bits
 
-        input_fifo = m.submodules.input_fifo = BufferedSyncStreamFIFO(self.input, self.fifo_depth)
-        commander = m.submodules.commander = AddressGeneratorCommander(input_fifo.output)
+        input_clone = self.input.clone()  # we do this to avoid hierarchy flattening
+        m.d.comb += input_clone.connect_upstream(self.input)
 
-        output_fifo = m.submodules.output_fifo = BufferedSyncStreamFIFO(commander.output_data, 32)
+        wr = with_reset(m, self.force_flush)
+
+        input_fifo = m.submodules.input_fifo = wr(BufferedSyncStreamFIFO(input_clone, self.fifo_depth))
+        commander = m.submodules.commander = wr(AddressGeneratorCommander(input_fifo.output))
+
+        output_fifo = m.submodules.output_fifo = wr(BufferedSyncStreamFIFO(commander.output_data, 32))
         m.d.comb += axi.write_data.connect_upstream(output_fifo.output, allow_partial=True)
 
-        address_fifo = m.submodules.address_fifo = BufferedSyncStreamFIFO(commander.output_request_address, 100)
-        m.submodules.address_generator = AddressGenerator(
-            address_fifo.output, axi.write_address, self.ringbuffer,
+        address_fifo = m.submodules.address_fifo = wr(BufferedSyncStreamFIFO(commander.output_request_address, 100))
+        address_generator = m.submodules.address_generator = wr(AddressGenerator(
+            address_fifo.output, self.ringbuffer,
             max_burst=self.max_burst_length, word_width_bytes=axi.data_bytes
-        )
+        ))
+        m.d.comb += address_generator.output.connect_downstream(axi.write_address)
+
+        with m.If(self.force_flush):
+            m.d.comb += self.input.ready.eq(0)
+            m.d.comb += input_clone.valid.eq(0)
+
+            m.d.comb += axi.write_data.valid.eq(1)
+            m.d.comb += axi.write_response.valid.eq(0)
 
         # we do not currently care about the write responses
         m.d.comb += axi.write_response.ready.eq(1)

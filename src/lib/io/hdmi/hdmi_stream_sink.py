@@ -40,8 +40,32 @@ class HdmiStreamAligner(Elaboratable):
         self.slipped_v = StatusSignal(32)
         self.slipped_h = StatusSignal(32)
 
+        self.line_cycles = StatusSignal(32)
+        self.frame_cycles = StatusSignal(32)
+
     def elaborate(self, platform):
         m = Module()
+
+        m.submodules.debug = InflexibleSinkDebug(self.input)
+        input_stream_info = m.submodules.input_stream_info = StreamInfo(stream=self.input)
+
+        line_length_counter = Signal(32)
+        was_blanking_x = Signal()
+        m.d.sync += was_blanking_x.eq(self.hdmi.timing_generator.is_blanking_x)
+        with m.If(~self.hdmi.timing_generator.is_blanking_x):
+            m.d.sync += line_length_counter.eq(line_length_counter + 1)
+        with m.If(self.hdmi.timing_generator.is_blanking_x & ~was_blanking_x):
+            m.d.sync += self.line_cycles.eq(line_length_counter)
+            m.d.sync += line_length_counter.eq(0)
+
+        frame_length_counter = Signal(32)
+        was_blanking_y = Signal()
+        m.d.sync += was_blanking_y.eq(self.hdmi.timing_generator.is_blanking_y)
+        with m.If(self.hdmi.timing_generator.active):
+            m.d.sync += frame_length_counter.eq(frame_length_counter + 1)
+        with m.If(self.hdmi.timing_generator.is_blanking_y & ~was_blanking_y):
+            m.d.sync += self.frame_cycles.eq(frame_length_counter)
+            m.d.sync += frame_length_counter.eq(0)
 
         with m.If(self.hdmi.timing_generator.active):
             m.d.comb += self.input.ready.eq(1)
@@ -59,7 +83,5 @@ class HdmiStreamAligner(Elaboratable):
         with m.If(self.hdmi.timing_generator.is_blanking_y & ~was_frame_last & self.allow_slip_v):
             m.d.sync += self.slipped_v.eq(self.slipped_v + 1)
             m.d.comb += self.input.ready.eq(1)
-
-        m.submodules.debug = InflexibleSinkDebug(self.input)
 
         return m

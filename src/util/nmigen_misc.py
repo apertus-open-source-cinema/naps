@@ -21,12 +21,12 @@ def iterator_with_if_elif(iterator: Iterable, module: Module) -> Iterator:
         )
 
 
-def is_pot(x):
+def assert_is_pot(x):
     assert int(math.log2(x)) == math.log2(x), "{} is not a power of two".format(x)
 
 
 def log2(x):
-    is_pot(x)
+    assert_is_pot(x)
     return int(math.log2(x))
 
 
@@ -94,3 +94,7 @@ def with_reset(m, signal, exclusive=False):
     else:
         m.d.comb += ResetSignal(domain_name).eq(signal)
     return DomainRenamer(domain_name)
+
+
+def nReversed(signal):
+    return Cat(signal[i] for i in reversed(range(len(signal))))

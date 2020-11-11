@@ -16,6 +16,11 @@ class StreamInfo(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
+        for k, s in self.stream.payload_signals.items():
+            current_state = StatusSignal(s.shape())
+            m.d.comb += current_state.eq(s)
+            setattr(self, "current_{}".format(k), current_state)
+
         with m.If(self.stream.valid & ~self.stream.ready):
             m.d.sync += self.valid_not_ready.eq(self.valid_not_ready + 1)
         with m.If(self.stream.ready & ~self.stream.ready):
@@ -27,15 +32,36 @@ class StreamInfo(Elaboratable):
 
             for name, signal in self.stream.payload_signals.items():
                 if len(signal) == 1:
-                    count = StatusSignal(32)
-                    cycle_counter = Signal(32)
-                    m.d.sync += cycle_counter.eq(cycle_counter + 1)
-                    cycle_length = StatusSignal(32)
+                    cycle_0_length = StatusSignal(32)
+                    cycle_0_length_changed = StatusSignal(32)
+                    cycle_0_counter = Signal(32)
+                    cycle_1_length = StatusSignal(32)
+                    cycle_1_length_changed = StatusSignal(32)
+                    cycle_1_counter = Signal(32)
+
                     with m.If(signal):
+                        m.d.sync += cycle_1_counter.eq(0)
+                        m.d.sync += cycle_1_length.eq(cycle_1_counter)
+                        with m.If(cycle_1_length != cycle_1_counter):
+                            m.d.sync += cycle_1_length_changed.eq(cycle_1_length_changed + 1)
+                        m.d.sync += cycle_0_counter.eq(cycle_0_counter + 1)
+                    with m.Else():
+                        m.d.sync += cycle_0_counter.eq(0)
+                        m.d.sync += cycle_0_length.eq(cycle_0_counter)
+                        with m.If(cycle_0_length != cycle_0_counter):
+                            m.d.sync += cycle_0_length_changed.eq(cycle_0_length_changed + 1)
+                        m.d.sync += cycle_1_counter.eq(cycle_1_counter + 1)
+
+                    count = StatusSignal(32)
+                    signal_last = Signal()
+                    m.d.sync += signal_last.eq(signal)
+                    with m.If(signal & ~signal_last):
                         m.d.sync += count.eq(count + 1)
-                        m.d.sync += cycle_counter.eq(0)
-                        m.d.sync += cycle_length.eq(cycle_counter + 1)
-                    setattr(self, "{}_cycle_length".format(name), cycle_length)
+
+                    setattr(self, "{}_cycle_0_length".format(name), cycle_0_length)
+                    setattr(self, "{}_cycle_0_length_changed".format(name), cycle_0_length_changed)
+                    setattr(self, "{}_cycle_1_length".format(name), cycle_1_length)
+                    setattr(self, "{}_cycle_1_length_changed".format(name), cycle_1_length_changed)
                     setattr(self, "{}_count".format(name), count)
 
         return m

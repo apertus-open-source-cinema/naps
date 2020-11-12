@@ -11,13 +11,13 @@ IdelayCtrl = InstanceHelper("+/xilinx/cells_xtra.v", "IDELAYCTRL")
 
 
 class OSerdes10(Elaboratable):
-    def __init__(self, input: Signal, domain: str, domain_5x: str):
+    def __init__(self, input: Signal, domain: str, domain_5x: str, invert=False):
         self.output = Signal()
         self.input = input
 
         self.domain = domain
         self.domain_5x = domain_5x
-        self.invert = ControlSignal()
+        self.invert = ControlSignal(reset=invert)
 
     def elaborate(self, platform):
         m = Module()

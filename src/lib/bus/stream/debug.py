@@ -40,17 +40,19 @@ class StreamInfo(Elaboratable):
                     cycle_1_counter = Signal(32)
 
                     with m.If(signal):
-                        m.d.sync += cycle_1_counter.eq(0)
-                        m.d.sync += cycle_1_length.eq(cycle_1_counter)
-                        with m.If(cycle_1_length != cycle_1_counter):
-                            m.d.sync += cycle_1_length_changed.eq(cycle_1_length_changed + 1)
-                        m.d.sync += cycle_0_counter.eq(cycle_0_counter + 1)
-                    with m.Else():
                         m.d.sync += cycle_0_counter.eq(0)
-                        m.d.sync += cycle_0_length.eq(cycle_0_counter)
-                        with m.If(cycle_0_length != cycle_0_counter):
-                            m.d.sync += cycle_0_length_changed.eq(cycle_0_length_changed + 1)
+                        with m.If(cycle_0_counter != 0):
+                            m.d.sync += cycle_0_length.eq(cycle_0_counter)
+                            with m.If(cycle_0_length != cycle_0_counter):
+                                m.d.sync += cycle_0_length_changed.eq(cycle_0_length_changed + 1)
                         m.d.sync += cycle_1_counter.eq(cycle_1_counter + 1)
+                    with m.Else():
+                        m.d.sync += cycle_1_counter.eq(0)
+                        with m.If(cycle_1_counter != 0):
+                            m.d.sync += cycle_1_length.eq(cycle_1_counter)
+                            with m.If(cycle_1_length != cycle_1_counter):
+                                m.d.sync += cycle_1_length_changed.eq(cycle_1_length_changed + 1)
+                        m.d.sync += cycle_0_counter.eq(cycle_0_counter + 1)
 
                     count = StatusSignal(32)
                     signal_last = Signal()

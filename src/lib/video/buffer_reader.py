@@ -28,9 +28,8 @@ class VideoBufferReader(Elaboratable):
             self.bits_per_pixel, self.width_pixels, self.height_pixels, self.stride_pixels
         )
         reader = m.submodules.axi_reader = AxiReader(address_generator.output)
-        m.submodules.reader_output_stream_info = StreamInfo(reader.output)
-
         m.d.comb += self.output.connect_upstream(reader.output)
+        m.submodules.output_stream_info = StreamInfo(reader.output)
 
         return m
 
@@ -42,8 +41,11 @@ class VideoBufferReaderAddressGenerator(Elaboratable):
             bits_per_pixel, width_pixels, height_pixels, stride_pixels,
             address_width=32, data_width=64,
     ):
-        self.stride_bytes = ControlSignal(16, reset=ceil(stride_pixels * bits_per_pixel / 8))
-        self.to_read_x_bytes = ControlSignal(16, reset=ceil(width_pixels * bits_per_pixel / 8))
+        self.address_width = address_width
+        self.data_width_bytes = data_width // 8
+
+        self.stride_bytes = ControlSignal(16, reset=ceil(stride_pixels * bits_per_pixel / 8 / self.data_width_bytes) * self.data_width_bytes)
+        self.to_read_x_bytes = ControlSignal(16, reset=ceil(width_pixels * bits_per_pixel / 8 / self.data_width_bytes) * self.data_width_bytes)
         self.to_read_y_lines = ControlSignal(16, reset=height_pixels)
 
         self.next_frame = Signal()
@@ -51,8 +53,6 @@ class VideoBufferReaderAddressGenerator(Elaboratable):
         self.frame_count = StatusSignal(32)
 
         self.ringbuffer = ringbuffer
-        self.address_width = address_width
-        self.data_width_bytes = data_width // 8
 
         self.output = ImageStream(address_width)
 

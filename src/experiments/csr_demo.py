@@ -15,7 +15,10 @@ from util.nmigen_misc import connect_leds
 class Top(Elaboratable):
     def __init__(self):
         self.counter = StatusSignal(32)
-        self.test_reg = ControlSignal(32)
+        self.test_reg32 = ControlSignal(32)
+        self.test_reg64 = ControlSignal(64)
+        self.test_reg48 = ControlSignal(48)
+        self.test_reg128 = ControlSignal(128)
 
     def elaborate(self, platform):
         m = Module()
@@ -30,7 +33,7 @@ class Top(Elaboratable):
         else:
             m.d.comb += self.counter.eq(42)  # we dont have a clock source so we cant count
 
-        connect_leds(m, platform, self.test_reg)
+        connect_leds(m, platform, self.test_reg32)
 
         return m
 

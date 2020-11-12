@@ -3,6 +3,7 @@ from itertools import product
 from nmigen import *
 from nmigen.build import Clock
 
+from devices import MicroR2Platform
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.primitives.xilinx_s7.clocking import Mmcm
 from lib.primitives.xilinx_s7.io import OSerdes10
@@ -53,7 +54,8 @@ class Hdmi(Elaboratable):
         m.d.comb += self.plugin.data[1].eq(serializer_g.output)
         encoder_r = m.submodules.encoder_r = in_pix_domain(
             Encoder(self.rgb.r, Cat(timing.hsync, timing.vsync), timing.active))
-        serializer_r = m.submodules.serializer_r = OSerdes10(encoder_r.out, **domain_args)
+        serializer_r = m.submodules.serializer_r = OSerdes10(encoder_r.out, **domain_args,
+                                                             invert=isinstance(platform, MicroR2Platform))  #TODO: handle properly
         m.d.comb += self.plugin.data[2].eq(serializer_r.output)
 
         m.submodules.plugin = PluginLowspeedController(self.plugin)

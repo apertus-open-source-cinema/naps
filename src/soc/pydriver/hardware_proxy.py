@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from textwrap import indent
+from math import ceil, log2
 
 
 class MemoryAccessor(ABC):
@@ -14,7 +15,40 @@ class MemoryAccessor(ABC):
         raise NotImplementedError()
 
 
+class BitwiseAccessibleInteger:
+    def __init__(self, value=0):
+        self.value = value
+
+    def __getitem__(self, item):
+        if isinstance(item, int):
+            assert item >= 0
+            return (self.value >> item) & 1
+        elif isinstance(item, slice):
+            assert 0 <= item.start <= item.stop
+            assert (item.step == 1) or (item.step is None)
+            bit_mask = (2**(item.stop - item.start) - 1)
+            return (self.value >> item.start) & bit_mask
+
+    def __setitem__(self, key, value):
+        if isinstance(key, int):
+            assert key >= 0
+            assert value <= 1, "you can at maximum assign '1' to a 1 bit value"
+            self.value = self.value & (((2**ceil(log2(self.value + 1))) - 1) ^ (1 << key))
+            self.value = self.value | ((value & 1) << key)
+        elif isinstance(key, slice):
+            assert (key.step == 1) or (key.step is None)
+            assert 0 <= key.start <= key.stop
+            bit_mask = (2**(key.stop - key.start) - 1)
+            assert value <= bit_mask, "you can at maximum assign '{}' to a {} bit value".format(bit_mask, (key.stop - key.start))
+            self.value = self.value & (((2 ** ceil(log2(self.value + 1))) - 1) ^ (bit_mask << key.start))
+            self.value = self.value | ((value & bit_mask) << key.start)
+
+    def __int__(self):
+        return self.value
+
+
 class HardwareProxy:
+    # TODO: test bit fiddeling
     def __init__(self, memory_accessor: MemoryAccessor):
         object.__setattr__(self, "_memory_accessor", memory_accessor)
         for k, v in self.__class__.__dict__.items():
@@ -33,10 +67,12 @@ class HardwareProxy:
             else:
                 addr, bit_start, bit_len = obj
 
-                val = self._memory_accessor.read(addr - self._memory_accessor.base)
-                val = val >> bit_start
-
-                return val & (0xffffffff >> (32 - bit_len))
+                to_return = BitwiseAccessibleInteger()
+                read_bytes = ceil((bit_start + bit_len) / 32)
+                for i in range(read_bytes):
+                    val = BitwiseAccessibleInteger(self._memory_accessor.read(addr - self._memory_accessor.base + (i * 4)))
+                    to_return[i*32:(i+1)*32] = val[bit_start:32+bit_start - (0 if i != read_bytes - 1 else bit_len % 32)]
+                return int(to_return)
         raise AttributeError("{} has no attribute {}".format(self.__class__.__name__, name))
 
     def __setattr__(self, name, value):
@@ -50,20 +86,26 @@ class HardwareProxy:
                 return obj
             else:
                 addr, bit_start, bit_len = obj
+                assert value < 2**bit_len,  "you can at maximum assign '{}' to a {} bit value".format((2**bit_len - 1), bit_len)
+                v = BitwiseAccessibleInteger(value)
+                read_bytes = ceil((bit_start + bit_len) / 32)
+                for i in range(read_bytes):
+                    prev_value = BitwiseAccessibleInteger(self._memory_accessor.read(addr - self._memory_accessor.base + (i * 4)))
+                    prev_value[bit_start:32+bit_start - (0 if i != read_bytes - 1 else bit_len % 32)] = v[i * 32:(i + 1) * 32]
+                    self._memory_accessor.write(
+                        addr - self._memory_accessor.base + (i * 4),
+                        int(prev_value)
+                    )
+        else:
+            raise AttributeError("{} has no attribute {}".format(self.__class__.__name__, name))
 
-                value = value & (0xffffffff >> (32 - bit_len))
-                value = value << bit_start
-
-                return self._memory_accessor.write(addr - self._memory_accessor.base, value)
-        raise AttributeError("{} has no attribute {}".format(self.__class__.__name__, name))
-
-    def print_state(self, indentation_level=-1, top_name=None):
-        if top_name:
-            print(indent("{}:".format(top_name), "    " * indentation_level))
-        child_names = [name for name in dir(self) if not name.startswith("_") if name != "print_state"]
+    def __repr__(self):
+        to_return = ""
+        child_names = [name for name in dir(self) if not name.startswith("_")]
         for child_name in child_names:
             child = getattr(self, child_name)
             if isinstance(child, HardwareProxy):
-                child.print_state(indentation_level + 1, top_name=child_name)
+                to_return += "{}: \n{}".format(child_name, indent(repr(child), "    "))
             else:
-                print(indent("{}: {}".format(child_name, child), "    " * (indentation_level + 1)))
+                to_return += "{}: {}\n".format(child_name, child)
+        return to_return

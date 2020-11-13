@@ -1,6 +1,9 @@
 import unittest
 
-from lib.bus.stream.gearbox import StreamGearbox
+from nmigen import *
+
+from lib.bus.stream.fifo import BufferedSyncStreamFIFO
+from lib.bus.stream.gearbox import StreamGearbox, SimpleStreamGearbox
 from lib.bus.stream.sim_util import read_from_stream, write_to_stream
 from lib.bus.stream.stream import BasicStream, PacketizedStream
 from util.sim import SimPlatform, do_nothing
@@ -96,18 +99,22 @@ class TestGearbox(unittest.TestCase):
         platform.sim(dut)
 
     def test_gearbox_48_to_12_last(self):
-        input = PacketizedStream(8)
-        dut = StreamGearbox(input, 4)
+        input = PacketizedStream(48)
+        dut = StreamGearbox(input, 12)
 
         def writer():
-            yield from write_to_stream(input, payload=0b00_10_00_01, last=1)
-            yield from write_to_stream(input, payload=0b10_00_01_00, last=0)
+            yield from write_to_stream(input, payload=0b000000000100_000000000010_000000000001_100000000000, last=1)
+            yield from write_to_stream(input, payload=0b000001000000_000000100000_000000010000_000000001000, last=0)
 
         def reader():
-            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0001, 0))
-            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0010, 1))
-            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0100, 0))
-            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b1000, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b100000000000, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000000001, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000000010, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000000100, 1))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000001000, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000010000, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000100000, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000001000000, 0))
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
@@ -122,7 +129,7 @@ class TestGearbox(unittest.TestCase):
         def writer():
             for i in range(0, 100, 2):
                 yield from write_to_stream(input, payload=(((i + 1) << 8) | i))
-                if i % 3 == 0:
+                if i % 7 == 0:
                     yield from do_nothing()
 
         def reader():
@@ -130,7 +137,7 @@ class TestGearbox(unittest.TestCase):
                 got = (yield from read_from_stream(dut.output, extract="payload"))
                 print(got)
                 self.assertEqual(got, i)
-                if i % 10 == 0:
+                if i % 3 == 0:
                     yield from do_nothing()
 
         platform = SimPlatform()
@@ -148,16 +155,21 @@ class TestGearbox(unittest.TestCase):
             for i in range(50):
                 last = (i % 5 == 0)
                 last_count_gold += last
-                yield from write_to_stream(input, payload=0, last=(i % 5 == 0))
-                if i % 3 == 0:
+                yield from write_to_stream(input, payload=0, last=last)
+                if i % 7 == 0:
                     yield from do_nothing()
             self.assertEqual(last_count_gold, 10)
 
         def reader():
             last_count = 0
             for i in range(100):
-                last_count += (yield from read_from_stream(dut.output, extract="last"))
-                if i % 10 == 0:
+                last = (yield from read_from_stream(dut.output, extract="last"))
+                last_count += last
+                if i % 10 == 1:
+                    assert last
+                else:
+                    assert not last
+                if i % 3 == 0:
                     yield from do_nothing()
             self.assertEquals(last_count, 10)
 
@@ -195,7 +207,7 @@ class TestGearbox(unittest.TestCase):
         platform.add_process(reader, "sync")
         platform.sim(dut)
 
-    def test_gearbox_automated(self):
+    def test_gearbox_automated_fifo(self):
         def string_generator(string, chunk_size):
             last = 0
             while True:
@@ -219,7 +231,10 @@ class TestGearbox(unittest.TestCase):
 
         def test_gearbox(input_width, output_width):
             input = PacketizedStream(input_width)
-            dut = StreamGearbox(input, output_width)
+            m = Module()
+            fifo_in = m.submodules.fifo_in = BufferedSyncStreamFIFO(input, 100)
+            gearbox = m.submodules.gearbox = StreamGearbox(fifo_in.output, output_width)
+            fifo_out = m.submodules.fifo_out = BufferedSyncStreamFIFO(gearbox.output, 100)
 
             input_data, output_data = gold_gen(input_width, output_width)
 
@@ -229,14 +244,14 @@ class TestGearbox(unittest.TestCase):
 
             def reader():
                 for i, v in enumerate(output_data):
-                    read = (yield from read_from_stream(dut.output))
+                    read = (yield from read_from_stream(fifo_out.output))
                     self.assertEqual(read, v)
 
             platform = SimPlatform()
             platform.add_sim_clock("sync", 100e6)
             platform.add_process(writer, "sync")
             platform.add_process(reader, "sync")
-            platform.sim(dut)
+            platform.sim(m)
 
         test_gearbox(8, 4)
         test_gearbox(7, 3)
@@ -245,3 +260,78 @@ class TestGearbox(unittest.TestCase):
         for input_width in range(1, 100, 7):
             for output_width in range(1, 100, 3):
                 test_gearbox(input_width, output_width)
+
+
+class TestSimpleGearbox(unittest.TestCase):
+    def test_simple_gearbox_8_to_4_last(self):
+        input = PacketizedStream(8)
+        dut = SimpleStreamGearbox(input, 4)
+
+        def writer():
+            yield from write_to_stream(input, payload=0b00_10_00_01, last=1)
+            yield from write_to_stream(input, payload=0b10_00_01_00, last=0)
+
+        def reader():
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0001, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0010, 1))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b0100, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b1000, 0))
+
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.add_process(writer, "sync")
+        platform.add_process(reader, "sync")
+        platform.sim(dut)
+
+    def test_simple_gearbox_48_to_12_last(self):
+        input = PacketizedStream(48)
+        dut = SimpleStreamGearbox(input, 12)
+
+        def writer():
+            yield from write_to_stream(input, payload=0b000000000100_000000000010_000000000001_100000000000, last=1)
+            yield from write_to_stream(input, payload=0b000001000000_000000100000_000000010000_000000001000, last=0)
+
+        def reader():
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b100000000000, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000000001, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000000010, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000000100, 1))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000001000, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000010000, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000000100000, 0))
+            self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (0b000001000000, 0))
+
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.add_process(writer, "sync")
+        platform.add_process(reader, "sync")
+        platform.sim(dut)
+
+
+    def test_simple_gearbox_dont_loose_last_16_to_4(self):
+        input = PacketizedStream(16)
+        dut = SimpleStreamGearbox(input, 4)
+
+        def writer():
+            last_count_gold = 0
+            for i in range(50):
+                last = (i % 5 == 0)
+                last_count_gold += last
+                yield from write_to_stream(input, payload=0, last=(i % 5 == 0))
+                if i % 3 == 0:
+                    yield from do_nothing()
+            self.assertEqual(last_count_gold, 10)
+
+        def reader():
+            last_count = 0
+            for i in range(200):
+                last_count += (yield from read_from_stream(dut.output, extract="last"))
+                if i % 10 == 0:
+                    yield from do_nothing()
+            self.assertEquals(last_count, 10)
+
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.add_process(writer, "sync")
+        platform.add_process(reader, "sync")
+        platform.sim(dut)

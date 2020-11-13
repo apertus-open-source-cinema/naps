@@ -5,7 +5,7 @@ from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.video.image_stream import ImageStream
 
 
-class ImageStreamResizer(Elaboratable):
+class VideoResizer(Elaboratable):
     """Resize an ImageStream by cropping it / extending it with blackness to the desired resolution"""
     def __init__(self, input: ImageStream, desired_width, desired_height):
         self.input = input
@@ -41,12 +41,12 @@ class ImageStreamResizer(Elaboratable):
         output_y = Signal(16)
         output_write = (self.output.ready & self.output.valid)
         with m.If(output_write):
-            with m.If(output_x < self.output_width):
+            with m.If(output_x < self.output_width - 1):
                 m.d.sync += output_x.eq(output_x + 1)
             with m.Else():
                 m.d.sync += output_x.eq(0)
                 m.d.comb += self.output.line_last.eq(1)
-                with m.If(output_y < self.output_height):
+                with m.If(output_y < self.output_height - 1):
                     m.d.sync += output_y.eq(output_y + 1)
                 with m.Else():
                     m.d.sync += output_y.eq(0)
@@ -58,6 +58,9 @@ class ImageStreamResizer(Elaboratable):
             m.d.comb += self.output.valid.eq(self.input.valid)
             m.d.comb += self.input.ready.eq(self.output.ready)
             m.d.comb += self.output.payload.eq(self.input.payload)
+        with m.Elif(((eff_x < input_x) | (eff_y < input_x)) & (eff_x >= 0) & (eff_y >= 0)):
+            m.d.comb += self.output.valid.eq(0)
+            m.d.comb += self.input.ready.eq(1)
         with m.Else():
             m.d.comb += self.output.valid.eq(1)
             m.d.comb += self.input.ready.eq(0)

@@ -132,8 +132,6 @@ class AxiBufferWriter(Elaboratable):
         self.max_burst_length = max_burst_length
         self.force_flush = ControlSignal()
 
-        self.burst_position = StatusSignal(range(self.max_burst_length))
-
     def elaborate(self, platform):
         m = Module()
 

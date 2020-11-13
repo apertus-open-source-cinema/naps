@@ -10,22 +10,25 @@ from lib.video.image_stream import ImageStream
 
 
 class VideoBufferReader(Elaboratable):
-    def __init__(self, ring_buffer, bits_per_pixel, width_pixels, height_pixels, stride_pixels=None):
+    def __init__(self, ring_buffer, bits_per_pixel, width_pixels, height_pixels, stride_pixels=None, data_width=64, address_width=32):
         self.ring_buffer = ring_buffer
 
         self.bits_per_pixel = bits_per_pixel
         self.width_pixels = width_pixels
         self.height_pixels = height_pixels
         self.stride_pixels = stride_pixels or width_pixels
+        self.address_width = address_width
+        self.data_width = data_width
 
-        self.output = ImageStream(bits_per_pixel)
+        self.output = ImageStream(data_width)
 
     def elaborate(self, platform):
         m = Module()
 
         address_generator = m.submodules.address_generator = VideoBufferReaderAddressGenerator(
             self.ring_buffer,
-            self.bits_per_pixel, self.width_pixels, self.height_pixels, self.stride_pixels
+            self.bits_per_pixel, self.width_pixels, self.height_pixels, self.stride_pixels,
+            address_width=self.address_width, data_width=self.data_width,
         )
         reader = m.submodules.axi_reader = AxiReader(address_generator.output)
         m.d.comb += self.output.connect_upstream(reader.output)

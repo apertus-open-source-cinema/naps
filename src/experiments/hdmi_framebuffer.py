@@ -5,11 +5,12 @@ from nmigen import *
 from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
 from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
-from lib.bus.stream.gearbox import StreamGearbox
+from lib.bus.stream.gearbox import SimpleStreamGearbox
 from lib.debug.clocking_debug import ClockingDebug
 from lib.io.hdmi.cvt_python import generate_modeline
 from lib.io.hdmi.hdmi_stream_sink import HdmiStreamSink
 from lib.video.buffer_reader import VideoBufferReader
+from lib.video.resizer import VideoResizer
 from soc.cli import cli
 from soc.devicetree.overlay import devicetree_overlay
 from soc.platforms.zynq import ZynqSocPlatform
@@ -17,9 +18,8 @@ from soc.platforms.zynq import ZynqSocPlatform
 
 class Top(Elaboratable):
     def __init__(self):
-        self.width = 1920
-        self.height = 1080
-        self.fps = 30
+        self.width = 1280
+        self.height = 720
 
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
@@ -32,16 +32,17 @@ class Top(Elaboratable):
             width_pixels=self.width, height_pixels=self.height,
         ))
 
-        gearbox = m.submodules.gearbox = DomainRenamer("axi_hp")(StreamGearbox(buffer_reader.output, target_width=32))
+        gearbox = m.submodules.gearbox = DomainRenamer("axi_hp")(SimpleStreamGearbox(buffer_reader.output, target_width=32))
+        resizer = m.submodules.resizer = DomainRenamer("axi_hp")(VideoResizer(gearbox.output, 1920, 1080))
 
         fifo = m.submodules.fifo = BufferedAsyncStreamFIFO(
-            gearbox.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"
+            resizer.output, depth=16 * 1024, i_domain="axi_hp", o_domain="pix"
         )
 
         hdmi_plugin = platform.request("hdmi", "north")
         m.submodules.hdmi_stream_sink = HdmiStreamSink(
             fifo.output, hdmi_plugin,
-            generate_modeline(self.width, self.height, self.fps),
+            generate_modeline(1920, 1080, 30),
             pix_domain="pix"
         )
 

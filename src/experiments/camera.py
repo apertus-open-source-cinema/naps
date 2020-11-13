@@ -16,6 +16,7 @@ from lib.peripherals.csr_bank import ControlSignal
 from lib.peripherals.i2c.bitbang_i2c import BitbangI2c
 from lib.video.buffer_reader import VideoBufferReader
 from lib.video.debayer import SimpleFullResDebayerer
+from lib.video.resizer import VideoResizer
 from lib.video.stream_converter import ImageStream2PacketizedStream
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform
@@ -25,10 +26,6 @@ from soc.pydriver.drivermethod import driver_method
 class Top(Elaboratable):
     def __init__(self):
         self.sensor_reset_n = ControlSignal(name='sensor_reset', reset=1)
-
-        self.hdmi_width = 1920
-        self.hdmi_height = 1080
-        self.hdmi_fps = 30
 
     def elaborate(self, platform):
         m = Module()
@@ -55,28 +52,29 @@ class Top(Elaboratable):
         writer_fifo = m.submodules.writer_fifo = BufferedAsyncStreamFIFO(
             hispi.output, 2048, i_domain="hispi", o_domain="axi_hp"
         )
-        input_resizer = m.submodules.input_resizer = DomainRenamer("axi_hp")(StreamResizer(writer_fifo.output, 64))
-        converter = m.submodules.converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(input_resizer.output))
+        input_stream_resizer = m.submodules.input_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(writer_fifo.output, 64))
+        converter = m.submodules.converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(input_stream_resizer.output))
         m.submodules.buffer_writer = DomainRenamer("axi_hp")(AxiBufferWriter(ring_buffer, converter.output))
 
         # Output pipeline
         buffer_reader = m.submodules.buffer_reader = DomainRenamer("axi_hp")(VideoBufferReader(
             ring_buffer, bits_per_pixel=16,
-            width_pixels=self.hdmi_width, height_pixels=self.hdmi_height, stride_pixels=2304,
+            width_pixels=2304, height_pixels=1296,
         ))
-        output_resizer = m.submodules.output_resizer = DomainRenamer("axi_hp")(StreamResizer(buffer_reader.output, 48))
+        output_stream_resizer = m.submodules.output_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(buffer_reader.output, 48))
         output_gearbox = m.submodules.output_gearbox = DomainRenamer("axi_hp")(
-            StreamGearbox(output_resizer.output, target_width=12)
+            StreamGearbox(output_stream_resizer.output, target_width=12)
         )
         debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleFullResDebayerer(output_gearbox.output))
+        output_video_resizer = m.submodules.output_video_resizer = DomainRenamer("axi_hp")(VideoResizer(debayerer.output, 2560, 1440))
         reader_fifo = m.submodules.reader_fifo = BufferedAsyncStreamFIFO(
-            debayerer.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"
+            output_video_resizer.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"
         )
 
         hdmi_plugin = platform.request("hdmi", "north")
         m.submodules.hdmi_stream_sink = HdmiStreamSink(
             reader_fifo.output, hdmi_plugin,
-            generate_modeline(self.hdmi_width, self.hdmi_height, self.hdmi_fps),
+            generate_modeline(2560, 1440, 30),
             pix_domain="pix"
         )
 
@@ -95,7 +93,7 @@ class Top(Elaboratable):
         self.hispi.phy.enable_bitslip = enable_bitslip
 
     @driver_method
-    def kick_camera(self):
+    def kick_sensor(self):
         from os import system
         system("cat /axiom-api/scripts/kick/value")
 

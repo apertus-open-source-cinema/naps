@@ -11,8 +11,8 @@ class SimpleFullResDebayerer(Elaboratable):
         self.input = input
         self.output = ImageStream(24)
 
-        self.shift_h = ControlSignal()
-        self.shift_v = ControlSignal()
+        self.shift_x = ControlSignal()
+        self.shift_y = ControlSignal()
 
     def elaborate(self, platform):
         m = Module()
@@ -29,9 +29,10 @@ class SimpleFullResDebayerer(Elaboratable):
             with m.If(self.input.frame_last):
                 m.d.comb += self.output.frame_last.eq(1)
                 m.d.sync += y_odd.eq(0)
+                m.d.sync += x_odd.eq(0)
 
-        x = x_odd ^ self.shift_h
-        y = y_odd ^ self.shift_v
+        x = x_odd ^ self.shift_x
+        y = y_odd ^ self.shift_y
 
         val = Signal(8)
         m.d.sync += val.eq(self.input.payload >> 4)

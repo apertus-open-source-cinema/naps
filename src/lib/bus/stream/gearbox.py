@@ -1,12 +1,13 @@
 from nmigen import *
 
 from lib.bus.stream.debug import StreamInfo
-from lib.bus.stream.stream import BasicStream
+from lib.bus.stream.stream import BasicStream, Stream
 from lib.data_structure.bundle import DOWNWARDS
 
 
 class StreamResizer(Elaboratable):
     """Simply resizing a Stream by truncating or zero extending the payload"""
+
     def __init__(self, input: BasicStream, target_width):
         self.input = input
         self.output = input.clone(name="resizer_output")
@@ -20,6 +21,7 @@ class StreamResizer(Elaboratable):
 
 class StreamGearbox(Elaboratable):
     """Resize a Stream by 'Gearing' it up / down (changing the word rate)"""
+
     def __init__(self, input: BasicStream, target_width):
         self.input = input
         self.output = input.clone(name="gearbox_output")
@@ -39,15 +41,16 @@ class StreamGearbox(Elaboratable):
         output_write = (self.output.ready & self.output.valid)
         current_bits_in_shift_register = Signal(range(len(shift_register)))
 
-        for k in self.input.out_of_band_signals.keys():
-            if not (k == "payload" or k.endswith("last")):
+        for k, v in self.input.out_of_band_signals.items():
+            if not (k == "payload" or (k.endswith("last") and len(v) == 1)):
                 raise ValueError("payload signal {} of input has unknown role. dont know what do do with it")
 
         last_shift_registers = {k: Signal.like(shift_register, name="{}_shift_register".format(k))
                                 for k, v in self.input.out_of_band_signals.items() if k.endswith("last")}
 
         shift_registers = [(shift_register, self.input.payload)]
-        shift_registers += [(reg, (getattr(self.input, k) << (input_width - 1))) for k, reg in last_shift_registers.items()]
+        shift_registers += [(reg, (getattr(self.input, k) << (input_width - 1))) for k, reg in
+                            last_shift_registers.items()]
 
         with m.If(input_read & ~output_write):
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register + input_width)
@@ -67,5 +70,63 @@ class StreamGearbox(Elaboratable):
         m.d.comb += self.input.ready.eq((len(shift_register) - current_bits_in_shift_register) >= input_width)
 
         m.d.comb += [getattr(self.output, k).eq(reg[:output_width] != 0) for k, reg in last_shift_registers.items()]
+
+        return m
+
+
+class SimpleStreamGearbox(Elaboratable):
+    def __init__(self, input: BasicStream, target_width):
+        self.input = input
+        self.output = input.clone(name="gearbox_output")
+        self.output.payload = Signal(target_width) @ DOWNWARDS
+
+        self.input_width = len(self.input.payload)
+        self.output_width = target_width
+        self.division_factor = self.input_width / target_width
+
+        assert target_width < self.input_width
+        assert self.division_factor % 1 == 0
+        self.division_factor = int(self.division_factor)
+
+    def elaborate(self, platform):
+        m = Module()
+
+        m.submodules.input_stream_info = StreamInfo(self.input)
+        m.submodules.output_stream_info = StreamInfo(self.output)
+
+        input_read = (self.input.ready & self.input.valid)
+        output_write = (self.output.ready & self.output.valid)
+
+        for k, v in self.input.out_of_band_signals.items():
+            if not (k == "payload" or (k.endswith("last") and len(v) == 1)):
+                raise ValueError("payload signal {} of input has unknown role. dont know what do do with it")
+
+        last_signals = {
+            k: Signal(1, name="{}_store".format(k))
+            for k, v in self.input.out_of_band_signals.items()
+            if k.endswith("last")
+        }
+
+        reg = Signal(self.input_width - self.output_width)
+        state = Signal(range(self.division_factor))
+        with m.If(state == 0):
+            m.d.comb += self.input.ready.eq(self.output.ready)
+            m.d.comb += self.output.valid.eq(self.input.valid)
+            m.d.comb += self.output.payload.eq(self.input.payload[:self.output_width])
+            with m.If(input_read):
+                m.d.sync += reg.eq(self.input.payload[self.output_width:])
+                m.d.sync += state.eq(state + 1)
+                for k, v in last_signals.items():
+                    m.d.sync += v.eq(getattr(self.input, k))
+        with m.Else():
+            m.d.comb += self.output.payload.eq(reg)
+            m.d.comb += self.output.valid.eq(1)
+            m.d.comb += self.input.ready.eq(0)
+            with m.If(output_write):
+                m.d.sync += reg.eq(reg[self.output_width:])
+                m.d.sync += state.eq(state + 1)
+            with m.If(state == self.division_factor - 1):
+                for k, v in last_signals.items():
+                    m.d.comb += getattr(self.output, k).eq(v)
 
         return m

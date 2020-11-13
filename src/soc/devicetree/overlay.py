@@ -40,7 +40,7 @@ def devicetree_overlay(platform, overlay_name, overlay_content, placeholder_subs
                             };
                         };
                     };
-                """ % indent(formatted_overlay_text, "                        "))
+                """ % indent(formatted_overlay_text, "                                "))
                 print(overlay_text)
 
                 fc = FatbitstreamContext.get(platform)

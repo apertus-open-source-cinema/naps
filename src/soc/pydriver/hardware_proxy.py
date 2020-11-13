@@ -101,11 +101,11 @@ class HardwareProxy:
 
     def __repr__(self):
         to_return = ""
-        child_names = [name for name in dir(self) if not name.startswith("_")]
-        for child_name in child_names:
-            child = getattr(self, child_name)
-            if isinstance(child, HardwareProxy):
-                to_return += "{}: \n{}".format(child_name, indent(repr(child), "    "))
-            else:
-                to_return += "{}: {}\n".format(child_name, child)
-        return to_return
+        children = [(name, getattr(self, name)) for name in dir(self) if not name.startswith("_")]
+        real_children = [(name, child) for name, child in children if not isinstance(child, HardwareProxy)]
+        proxy_children = [(name, child) for name, child in children if isinstance(child, HardwareProxy)]
+        for name, child in real_children:
+            to_return += "{}: {}\n".format(name, child)
+        for name, child in proxy_children:
+            to_return += "{}: \n{}\n".format(name, indent(repr(child), "    "))
+        return to_return.strip()

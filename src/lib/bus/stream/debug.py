@@ -12,9 +12,16 @@ class StreamInfo(Elaboratable):
         self.successful_transactions_counter = StatusSignal(32)
         self.ready_not_valid = StatusSignal(32)
         self.valid_not_ready = StatusSignal(32)
+        self.current_ready = StatusSignal()
+        self.current_valid = StatusSignal()
 
     def elaborate(self, platform):
         m = Module()
+        if hasattr(platform, "debug") and not platform.debug:
+            return m
+
+        m.d.comb += self.current_ready.eq(self.stream.ready)
+        m.d.comb += self.current_valid.eq(self.stream.valid)
 
         for k, s in self.stream.payload_signals.items():
             current_state = StatusSignal(s.shape())

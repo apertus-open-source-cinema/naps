@@ -65,33 +65,29 @@ class TestSimAxiWriter(unittest.TestCase):
 
         dut = AxiBufferWriter(ringbuffer, stream_source, axi, fifo_depth=data_len)
 
-        def testbench():
-            gold = {}
+        gold = {}
 
+        def testbench():
             gold_gen = {
                 "current_buffer": 0,
                 "current_address": ringbuffer.buffer_base_list[0]
             }
 
-            def change_buffer():
-                gold_gen["current_buffer"] = (gold_gen["current_buffer"] + 1) % len(ringbuffer.buffer_base_list)
-                gold_gen["current_address"] = ringbuffer.buffer_base_list[gold_gen["current_buffer"]]
-                yield stream_source.last.eq(1)
-
-            def put_data(data):
+            def put_data(data, last):
                 gold[gold_gen["current_address"]] = data
                 gold_gen["current_address"] += axi.data_bytes
-                yield stream_source.valid.eq(1)
-                yield stream_source.payload.eq(data)
+                yield from write_to_stream(stream_source, payload=data, last=last)
+                if last:
+                    gold_gen["current_buffer"] = (gold_gen["current_buffer"] + 1) % len(ringbuffer.buffer_base_list)
+                    gold_gen["current_address"] = ringbuffer.buffer_base_list[gold_gen["current_buffer"]]
 
             # first, fill in some data:
             for i in range(data_len):
-                yield from put_data(i)
-                # yield dut.change_buffer.eq(0)
-                yield from change_buffer()
-                yield
-            yield stream_source.valid.eq(0)
+                yield from put_data(i, last=i % 3 == 0)
+                if i % 7 == 0:
+                    yield from do_nothing()
 
+        def axi_process():
             memory = {}
             accepted = 0
             while accepted < data_len:
@@ -99,12 +95,11 @@ class TestSimAxiWriter(unittest.TestCase):
                 memory.update(memory_fragment)
                 accepted += accepted_frag
                 yield
-
             self.assertEqual(gold, memory)
-
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
+        platform.add_process(axi_process, "sync")
         platform.sim(dut, testbench)
 
     def test_basic(self, data_len=50):

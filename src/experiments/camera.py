@@ -31,7 +31,7 @@ class Top(Elaboratable):
         m = Module()
 
         platform.ps7.fck_domain(200e6, "axi_hp")
-        ring_buffer = RingBufferAddressStorage(buffer_size=0x1000000, n=4)
+        ring_buffer = RingBufferAddressStorage(buffer_size=0x800000, n=4)
 
         # Control Pane
         m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x", "axi_hp", "hispi")

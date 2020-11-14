@@ -115,7 +115,7 @@ class LaneManager(Elaboratable):
         m.d.comb += self.output.payload.eq(delayed_data)
         m.d.comb += self.output.valid.eq(delayed_valid)
         m.d.comb += self.output.frame_last.eq(ends_with(self.last_control_word, control_words["END_OF_ACTIVE_FRAME"]))
-        m.d.comb += self.output.line_last.eq(ends_with(self.last_control_word, control_words["END_OF_ACTIVE_LINE"]))
+        m.d.comb += self.output.line_last.eq(ends_with(self.last_control_word, control_words["END_OF_ACTIVE_LINE"], control_words["END_OF_ACTIVE_FRAME"]))
 
         m.submodules.debug = InflexibleSourceDebug(self.output)
 

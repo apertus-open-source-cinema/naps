@@ -35,7 +35,7 @@ class SimpleFullResDebayerer(Elaboratable):
         y = y_odd ^ self.shift_y
 
         val = Signal(8)
-        m.d.sync += val.eq(self.input.payload >> 4)
+        m.d.comb += val.eq(self.input.payload >> 4)
 
         rgb = RGB()
         with m.If(x & ~y):

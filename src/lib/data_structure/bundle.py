@@ -77,6 +77,8 @@ class Bundle:
                 elif isinstance(u, Bundle):
                     statements += Bundle._connect(d, u, allow_partial)
 
+        print(upstream._directions)
+        print(downstream._directions)
         return statements
 
 

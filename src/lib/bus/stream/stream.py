@@ -27,7 +27,10 @@ class Stream(Bundle):
         self.valid = Signal() @ DOWNWARDS
 
     def clone(self, name=None):
-        return self.__class__(name=name)
+        new_stream = Stream(name=name)
+        for k, direction in self._directions.items():
+            setattr(new_stream, k, Signal(getattr(self, k).shape()) @ direction)
+        return new_stream
 
     @property
     def payload_signals(self):
@@ -40,9 +43,6 @@ class BasicStream(Stream):
     def __init__(self, payload_shape, name=None, src_loc_at=1):
         super().__init__(name=name, src_loc_at=1 + src_loc_at)
         self.payload = Signal(payload_shape) @ DOWNWARDS
-
-    def clone(self, name=None):
-        return self.__class__(self.payload.shape(), name=name)
 
     @property
     def out_of_band_signals(self):

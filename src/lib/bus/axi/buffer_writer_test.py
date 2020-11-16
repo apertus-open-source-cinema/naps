@@ -2,56 +2,31 @@ import unittest
 
 from nmigen import *
 
-from lib.bus.axi.axi_endpoint import AxiEndpoint, Response, AddressStream, BurstType, DataStream
+from lib.bus.axi.axi_endpoint import AxiEndpoint, Response, BurstType
 from lib.bus.axi.buffer_writer import AxiBufferWriter
 from lib.bus.ring_buffer import RingBufferAddressStorage
-from lib.bus.stream.sim_util import write_to_stream
+from lib.bus.stream.sim_util import write_to_stream, read_from_stream
 from lib.bus.stream.stream import PacketizedStream
 from util.sim import SimPlatform, do_nothing
-from util.sim import wait_for, pulse
-
-
-def answer_channel(channel, always_ready=True):
-    if always_ready:
-        yield channel.ready.eq(1)
-    yield from wait_for(channel.valid)
-    if isinstance(channel, AddressStream):
-        to_return = (
-            (yield channel.payload),
-            (yield channel.burst_len) + 1,
-            (yield channel.burst_type),
-            (yield channel.beat_size_bytes)
-        )
-    elif isinstance(channel, DataStream):
-        to_return = ((yield channel.payload), (yield channel.last), (yield channel.byte_strobe))
-    if not always_ready:
-        yield from pulse(channel.ready)
-    else:
-        yield channel.ready.eq(0)
-    return to_return
-
-
-def respond_channel(channel, resp=Response.OKAY):
-    yield channel.resp.eq(resp)
-    pulse(channel.valid)
 
 
 def answer_write_burst(axi: AxiEndpoint):
     memory = {}
-    addr, burst_len, burst_type, beat_size_bytes = yield from answer_channel(axi.write_address)
+    addr, burst_len, burst_type, beat_size_bytes = yield from read_from_stream(axi.write_address, ("payload", "burst_len", "burst_type", "beat_size_bytes"))
     assert 2 ** beat_size_bytes == axi.data_bytes
     assert burst_type == BurstType.INCR.value
     accepted = 0
-    for i in range(burst_len):
-        value, last, byte_strobe = yield from answer_channel(axi.write_data)
-        if i == burst_len - 1:
+    for i in range(burst_len + 1):
+        value, last, byte_strobe = yield from read_from_stream(axi.write_data, ("payload", "last", "byte_strobe"))
+        if i == burst_len:
             assert last
         else:
             assert not last
         if byte_strobe != 0:
+            print(value, byte_strobe, last)
             memory[addr + i * axi.data_bytes] = value
             accepted += 1
-    respond_channel(axi.write_response)
+    write_to_stream(axi.write_response, resp=Response.OKAY)
 
     return memory, accepted
 
@@ -75,6 +50,7 @@ class TestSimAxiWriter(unittest.TestCase):
 
             def put_data(data, last):
                 gold[gold_gen["current_address"]] = data
+                # print("w", gold_gen["current_address"], data)
                 gold_gen["current_address"] += axi.data_bytes
                 yield from write_to_stream(stream_source, payload=data, last=last)
                 if last:
@@ -83,9 +59,9 @@ class TestSimAxiWriter(unittest.TestCase):
 
             # first, fill in some data:
             for i in range(data_len):
-                yield from put_data(i, last=i % 3 == 0)
-                if i % 7 == 0:
-                    yield from do_nothing()
+                yield from put_data(i, last=i % 5 == 0)
+                # if i % 7 == 0:
+                #     yield from do_nothing()
 
         def axi_process():
             memory = {}
@@ -110,47 +86,38 @@ class TestSimAxiWriter(unittest.TestCase):
 
         dut = AxiBufferWriter(ringbuffer, stream_source, axi, fifo_depth=data_len)
 
-        def testbench():
+        def write_process():
             for round in range(4):
                 for i in range(data_len):
                     yield from write_to_stream(stream_source, payload=i + round)
 
-                memory = {}
-                while len(memory) < 50:
-                    written, accepted = (yield from answer_write_burst(axi))
-                    memory.update(written)
-                self.assertEqual({
-                    ringbuffer.buffer_base_list[0] + i * axi.data_bytes + round * 400: i + round
-                    for i in range(50)
-                }, memory)
-
-                yield from do_nothing(100)
-
-        platform = SimPlatform()
-        platform.add_sim_clock("sync", 100e6)
-        platform.sim(dut, testbench)
-
-    def test_memory(self):
-        m = Module()
-        memory = Memory(width=8, depth=8)
-        read_port = m.submodules.read_port = memory.read_port(transparent=False)
-        write_port = m.submodules.write_port = memory.write_port()
-        lol = Signal()
-        m.d.sync += lol.eq(Cat(read_port.en, read_port.data, read_port.addr, write_port.en, write_port.data, write_port.addr))
-
         def testbench():
-            for i in range(8):
-                yield write_port.addr.eq(i)
-                yield write_port.data.eq(i)
-                yield write_port.en.eq(1)
-                yield
-            yield write_port.en.eq(0)
-            for i in range(8):
-                yield read_port.addr.eq(i)
-                yield read_port.en.eq(1)
-                yield
-            yield read_port.en.eq(0)
+            remaining = {}
+            for round in range(4):
+                print("r", round, remaining)
+                memory = remaining
+                while len(memory) < data_len:
+                    print("m", len(memory), memory)
+                    written, accepted = (yield from answer_write_burst(axi))
+                    print("w", len(written), written)
+                    taken = []
+                    for k, v in written.items():
+                        if len(memory) < data_len:
+                            print("p", len(memory), k, v)
+                            memory[k] = v
+                            taken.append(k)
+                    remaining = {}
+                    for k, v in written.items():
+                        if k not in taken:
+                            remaining[k] = v
+                    print("m", len(memory), memory)
+                self.assertEqual({
+                    (ringbuffer.buffer_base_list[0] + i * axi.data_bytes + round * 400): (i + round)
+                    for i in range(data_len)
+                }, memory)
+                yield from do_nothing(10)
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
-        platform.sim(m, testbench)
+        platform.add_process(write_process, "sync")
+        platform.sim(dut, testbench)

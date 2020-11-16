@@ -3,6 +3,7 @@ from nmigen import *
 from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.bus.stream.stream import PacketizedStream, Stream
 from lib.peripherals.csr_bank import StatusSignal, ControlSignal
+from util.nmigen_misc import with_reset
 from .axi_endpoint import AddressStream, BurstType
 from .util import get_axi_master_from_maybe_slave
 from ..stream.fifo import BufferedSyncStreamFIFO
@@ -28,6 +29,9 @@ class AxiBufferWriter(Elaboratable):
         self.fifo_depth = fifo_depth
         self.max_burst_length = max_burst_length
         self.enable = ControlSignal(reset=1)
+        self.flush = ControlSignal()
+        self.axi_address_ready = StatusSignal()
+        self.axi_data_ready = StatusSignal()
 
     def elaborate(self, platform):
         m = Module()
@@ -35,18 +39,24 @@ class AxiBufferWriter(Elaboratable):
         axi = get_axi_master_from_maybe_slave(self.axi_slave, m, platform)
         assert len(self.input.payload) <= axi.data_bits
 
-        commander = m.submodules.commander = AddressGeneratorCommander(self.input)
-        output_fifo = m.submodules.output_fifo = BufferedSyncStreamFIFO(commander.output_data, self.max_burst_length)
-        address_generator = m.submodules.address_generator = AddressGenerator(
+        wr = with_reset(m, self.flush)
+
+        input_fifo = m.submodules.input_fifo = BufferedSyncStreamFIFO(self.input, 1)  # This is needed to not form a combinatorial loop: TODO: why?
+        commander = m.submodules.commander = wr(AddressGeneratorCommander(input_fifo.output))
+        output_fifo = m.submodules.output_fifo = wr(BufferedSyncStreamFIFO(commander.output_data, self.max_burst_length))
+        address_generator = m.submodules.address_generator = wr(AddressGenerator(
             commander.output_request_address, self.ringbuffer,
             max_burst=self.max_burst_length, word_width_bytes=axi.data_bytes
-        )
+        ))
         with m.If(self.enable):
             m.d.comb += axi.write_data.connect_upstream(output_fifo.output, allow_partial=True)
-            m.d.comb += address_generator.output.connect_downstream(axi.write_address)
+            m.d.comb += axi.write_address.connect_upstream(address_generator.output)
 
             # we do not currently care about the write responses
             m.d.comb += axi.write_response.ready.eq(1)
+
+        m.d.comb += self.axi_data_ready.eq(axi.write_data.ready)
+        m.d.comb += self.axi_address_ready.eq(axi.write_address.ready)
 
         return m
 
@@ -121,15 +131,18 @@ class AddressGenerator(Elaboratable):
         self.output.payload.reset = self.ringbuffer.buffer_base_list[0]
 
         m.d.comb += self.ringbuffer.current_write_buffer.eq(self.current_buffer)
+        was_overflow = Signal()
         with StreamTransformer(self.request, self.output, m):
             m.d.comb += self.output.burst_type.eq(BurstType.INCR)
             m.d.comb += self.output.burst_len.eq(self.request.payload)
             with m.If(~self.request.last):
                 with m.If((self.output.payload <= self.max_addrs[self.current_buffer])):
                     m.d.sync += self.output.payload.eq(self.output.payload + (self.request.payload + 1) * self.word_width_bytes)
-                with m.Else():
+                with m.Elif(~was_overflow):
+                    m.d.sync += was_overflow.eq(1)
                     m.d.sync += self.overflowed_buffers.eq(self.overflowed_buffers + 1)
             with m.Else():
+                m.d.sync += was_overflow.eq(0)
                 with m.If(self.current_buffer < len(self.ringbuffer.buffer_base_list) - 1):
                     m.d.sync += self.current_buffer.eq(self.current_buffer + 1)
                     m.d.sync += self.output.payload.eq(self.ringbuffer.buffer_base_list[self.current_buffer + 1])

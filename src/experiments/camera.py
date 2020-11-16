@@ -6,6 +6,7 @@ from nmigen import *
 from devices import MicroR2Platform
 from lib.bus.axi.buffer_writer import AxiBufferWriter
 from lib.bus.ring_buffer import RingBufferAddressStorage
+from lib.bus.stream.debug import StreamInfo
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
 from lib.bus.stream.gearbox import StreamGearbox, StreamResizer
 from lib.debug.clocking_debug import ClockingDebug
@@ -15,9 +16,10 @@ from lib.io.hispi.hispi import Hispi
 from lib.peripherals.csr_bank import ControlSignal
 from lib.peripherals.i2c.bitbang_i2c import BitbangI2c
 from lib.video.buffer_reader import VideoBufferReader
-from lib.video.debayer import SimpleFullResDebayerer
+from lib.video.debayer import RecoloringDebayerer, SimpleInterpolatingDebayerer
 from lib.video.resizer import VideoResizer
 from lib.video.stream_converter import ImageStream2PacketizedStream
+from lib.video.demo_source import BlinkDemoVideoSource
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform
 from soc.pydriver.drivermethod import driver_method
@@ -34,7 +36,7 @@ class Top(Elaboratable):
         ring_buffer = RingBufferAddressStorage(buffer_size=0x800000, n=4)
 
         # Control Pane
-        m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x", "axi_hp", "hispi")
+        m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x", "axi_hp")
 
         i2c_pads = platform.request("i2c")
         m.submodules.i2c = BitbangI2c(i2c_pads)
@@ -65,7 +67,7 @@ class Top(Elaboratable):
         output_gearbox = m.submodules.output_gearbox = DomainRenamer("axi_hp")(
             StreamGearbox(output_stream_resizer.output, target_width=12)
         )
-        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleFullResDebayerer(output_gearbox.output))
+        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleInterpolatingDebayerer(output_gearbox.output))
         output_video_resizer = m.submodules.output_video_resizer = DomainRenamer("axi_hp")(VideoResizer(debayerer.output, 2560, 1440))
         reader_fifo = m.submodules.reader_fifo = BufferedAsyncStreamFIFO(
             output_video_resizer.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"

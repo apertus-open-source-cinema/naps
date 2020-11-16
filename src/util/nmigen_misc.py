@@ -98,3 +98,7 @@ def with_reset(m, signal, exclusive=False):
 
 def nReversed(signal):
     return Cat(signal[i] for i in reversed(range(len(signal))))
+
+
+def nAvrg(*values):
+    return sum(values) // len(values)

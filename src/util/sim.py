@@ -82,7 +82,7 @@ class SimPlatform:
         target_dir = join(dirname(caller_path), ".sim_results")
         Path(target_dir).mkdir(exist_ok=True)
         filename_base = join(target_dir, filename)
-        print("\nwriting vcd to '{}'".format(filename_base))
+        print("\nwriting vcd to '{}.vcd'".format(filename_base))
         with simulator.write_vcd("{}.vcd".format(filename_base), "{}.gtkw".format(filename_base),
                                  traces=traces):
             simulator.run()

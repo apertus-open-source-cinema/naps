@@ -51,7 +51,7 @@ class DataStream(BasicStream):
             self.resp = Signal(Response)
         else:
             byte_strobe_len = int(data_bits // 8)
-            self.byte_strobe = Signal(byte_strobe_len, reset=-1)
+            self.byte_strobe = Signal(byte_strobe_len)
 
         if not lite:
             self.last = Signal()

@@ -1,3 +1,5 @@
+from collections import OrderedDict
+
 from nmigen import *
 
 from lib.data_structure.bundle import Bundle, UPWARDS, DOWNWARDS
@@ -27,26 +29,27 @@ class Stream(Bundle):
         self.valid = Signal() @ DOWNWARDS
 
     def clone(self, name=None):
-        new_stream = Stream(name=name)
-        for k, direction in self._directions.items():
-            setattr(new_stream, k, Signal(getattr(self, k).shape()) @ direction)
+        new_stream = self.__class__(name=name)
+        for k, signal in self.payload_signals.items():
+            setattr(new_stream, k, Signal.like(signal) @ DOWNWARDS)
+        new_stream._directions = self._directions.copy()
         return new_stream
 
     @property
     def payload_signals(self):
-        return {k: getattr(self, k) for k in self._downwards_ports if k != "valid"}
+        return OrderedDict((k, getattr(self, k)) for k in self._downwards_ports if k != "valid")
 
 
 class BasicStream(Stream):
     """A basic stream that carries a payload"""
 
-    def __init__(self, payload_shape, name=None, src_loc_at=1):
+    def __init__(self, payload_shape=0, name=None, src_loc_at=1):
         super().__init__(name=name, src_loc_at=1 + src_loc_at)
         self.payload = Signal(payload_shape) @ DOWNWARDS
 
     @property
     def out_of_band_signals(self):
-        return {k: v for k, v in self.payload_signals.items() if k != "payload"}
+        return OrderedDict((k, v) for k, v in self.payload_signals.items() if k != "payload")
 
 
 class PacketizedStream(BasicStream):
@@ -55,6 +58,6 @@ class PacketizedStream(BasicStream):
     last word of a packet
     """
 
-    def __init__(self, payload_shape, name=None, src_loc_at=1):
+    def __init__(self, payload_shape=0, name=None, src_loc_at=1):
         super().__init__(payload_shape, name, src_loc_at=1 + src_loc_at)
         self.last = Signal() @ DOWNWARDS

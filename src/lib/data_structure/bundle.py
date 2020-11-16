@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from dataclasses import dataclass
 from enum import Enum
 from typing import TypeVar
@@ -5,14 +6,13 @@ from typing import TypeVar
 from nmigen import *
 from nmigen import tracer
 
-print()
 from util.py_util import camel_to_snake
 
 
 class Bundle:
     def __init__(self, name=None, src_loc_at=1):
         self.name = name or tracer.get_var_name(depth=1 + src_loc_at, default="$" + camel_to_snake(self.__class__.__name__))
-        self._directions = {}
+        self._directions = OrderedDict()
 
     def __setattr__(self, key, value):
         if isinstance(value, Port):
@@ -76,9 +76,6 @@ class Bundle:
                     statements += [u.eq(d)]
                 elif isinstance(u, Bundle):
                     statements += Bundle._connect(d, u, allow_partial)
-
-        print(upstream._directions)
-        print(downstream._directions)
         return statements
 
 

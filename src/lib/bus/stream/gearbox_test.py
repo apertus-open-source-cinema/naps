@@ -307,7 +307,6 @@ class TestSimpleGearbox(unittest.TestCase):
         platform.add_process(reader, "sync")
         platform.sim(dut)
 
-
     def test_simple_gearbox_dont_loose_last_16_to_4(self):
         input = PacketizedStream(16)
         dut = SimpleStreamGearbox(input, 4)

@@ -1,4 +1,5 @@
 import inspect
+from os.path import join, dirname
 from pathlib import Path
 
 from nmigen import *
@@ -53,14 +54,16 @@ class SimPlatform:
         for name, frequency in self.clocks.items():
             simulator.add_clock(1 / frequency, domain=name)
 
-        if not filename:
-            functions = []
-            stack = inspect.stack()
-            for frame in stack[1:]:
-                if "unittest" in frame.filename:
+        functions = []
+        caller_path = ""
+        stack = inspect.stack()
+        for frame in stack[1:]:
+            if "unittest" in frame.filename:
+                if not filename:
                     filename = "__".join(reversed(functions))
-                    break
-                functions.append(frame.function)
+                break
+            functions.append(frame.function)
+            caller_path = frame.filename
         assert isinstance(filename, str)
 
         if isinstance(testbench, tuple):
@@ -76,9 +79,11 @@ class SimPlatform:
         for generator, domain in self.processes:
             simulator.add_sync_process(generator, domain=domain)
 
-        Path(".sim_results/").mkdir(exist_ok=True)
-        print("\nwriting vcd to '{}'".format(".sim_results/{}.vcd".format(filename)))
-        with simulator.write_vcd(".sim_results/{}.vcd".format(filename), ".sim_results/{}.gtkw".format(filename),
+        target_dir = join(dirname(caller_path), ".sim_results")
+        Path(target_dir).mkdir(exist_ok=True)
+        filename_base = join(target_dir, filename)
+        print("\nwriting vcd to '{}'".format(filename_base))
+        with simulator.write_vcd("{}.vcd".format(filename_base), "{}.gtkw".format(filename_base),
                                  traces=traces):
             simulator.run()
 

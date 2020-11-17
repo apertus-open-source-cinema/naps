@@ -38,7 +38,7 @@ class FocusPeeking(Elaboratable):
             for dx in range(-1, 2):
                 for dy in range(-1, 2):
                     other_rgb = RGB()
-                    m.d.comb += other_rgb.eq(RGB.brightness(image_proxy[x + dx, y + dy]))
+                    m.d.comb += other_rgb.eq(image_proxy[x + dx, y + dy])
                     other_rgbs.append(other_rgb)
 
             deviations = [[nAbsDifference(self_rgb.r, o.r), nAbsDifference(self_rgb.g, o.g), nAbsDifference(self_rgb.b, o.b)] for o in other_rgbs]

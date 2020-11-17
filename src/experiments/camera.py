@@ -7,7 +7,7 @@ from devices import MicroR2Platform
 from lib.bus.axi.buffer_writer import AxiBufferWriter
 from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.bus.stream.debug import StreamInfo
-from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
+from lib.bus.stream.fifo import BufferedAsyncStreamFIFO, BufferedSyncStreamFIFO
 from lib.bus.stream.gearbox import StreamGearbox, StreamResizer
 from lib.debug.clocking_debug import ClockingDebug
 from lib.io.hdmi.cvt_python import generate_modeline
@@ -68,8 +68,10 @@ class Top(Elaboratable):
         )
         output_resizer_12_to_8 = m.submodules.output_resizer_12_to_8 = StreamResizer(output_gearbox.output, 8, upper_bits=True)
         debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleInterpolatingDebayerer(output_resizer_12_to_8.output, 2304, 1296))
-        focus = m.submodules.focus = DomainRenamer("axi_hp")(FocusPeeking(debayerer.output, 2304, 1296))
-        output_video_resizer = m.submodules.output_video_resizer = DomainRenamer("axi_hp")(VideoResizer(focus.output, 2560, 1440))
+        output_after_debayer_fifo = m.submodules.output_after_debayer_fifo = DomainRenamer("axi_hp")(BufferedSyncStreamFIFO(debayerer.output, 32))
+        output_focus = m.submodules.output_focus = DomainRenamer("axi_hp")(FocusPeeking(output_after_debayer_fifo.output, 2304, 1296))
+        output_after_focus_fifo = m.submodules.output_after_focus = DomainRenamer("axi_hp")(BufferedSyncStreamFIFO(output_focus.output, 32))
+        output_video_resizer = m.submodules.output_video_resizer = DomainRenamer("axi_hp")(VideoResizer(output_after_focus_fifo.output, 2560, 1440))
         output_fifo = m.submodules.output_fifo = BufferedAsyncStreamFIFO(
             output_video_resizer.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"
         )

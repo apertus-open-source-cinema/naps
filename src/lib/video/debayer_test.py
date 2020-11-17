@@ -7,7 +7,7 @@ from nmigen.sim import Passive
 from lib.bus.stream.sim_util import write_to_stream
 from lib.video.debayer import RecoloringDebayerer, SimpleInterpolatingDebayerer
 from lib.video.image_stream import ImageStream
-from lib.video.test_util import write_frame_to_stream, read_frame_from_stream, to_8bit_rgb
+from lib.video.test_util import write_frame_to_stream, read_frame_from_stream, to_8bit_rgb, crop
 from util.sim import SimPlatform
 import imageio
 
@@ -31,8 +31,8 @@ class DebayerTest(unittest.TestCase):
 
         def read_process():
             (yield from read_frame_from_stream(transformer.output, timeout=1000, pause=False))
-            first = to_8bit_rgb((yield from read_frame_from_stream(transformer.output, timeout=1000, pause=False)))
-            second = to_8bit_rgb((yield from read_frame_from_stream(transformer.output, timeout=1000, pause=False)))
+            first = crop(to_8bit_rgb((yield from read_frame_from_stream(transformer.output, timeout=1000, pause=False))), 1, 1, 1, 1)
+            second = crop(to_8bit_rgb((yield from read_frame_from_stream(transformer.output, timeout=1000, pause=False))), 1, 1, 1, 1)
             imageio.imsave(platform.output_filename_base + "_first.png", first)
             imageio.imsave(platform.output_filename_base + "_second.png", second)
             self.assertEqual(first, second)

@@ -5,7 +5,7 @@ from nmigen.sim import Passive
 
 from lib.bus.stream.sim_util import write_to_stream
 from lib.video.image_stream import ImageStream
-from lib.video.test_util import write_frame_to_stream, read_frame_from_stream
+from lib.video.test_util import write_frame_to_stream, read_frame_from_stream, crop
 from lib.video.video_transformer import ImageProxy, VideoTransformer
 from util.sim import SimPlatform
 
@@ -56,7 +56,7 @@ class ImageProxyTest(unittest.TestCase):
 
 
 class VideoTransformerTest(unittest.TestCase):
-    def check_move_transformer(self, transform_xy, testdata, testdata_transformed):
+    def check_move_transformer(self, transform_xy, testdata, testdata_transformed, crop_top=0, crop_left=0, crop_bottom=0, crop_right=0):
         m = Module()
         tx, ty = transform_xy
 
@@ -73,7 +73,8 @@ class VideoTransformerTest(unittest.TestCase):
                 yield from write_to_stream(input, line_last=0, frame_last=0, payload=0)
 
         def read_process():
-            self.assertEqual((yield from read_frame_from_stream(transformer.output, pause=True)), testdata_transformed)
+            self.assertEqual(crop((yield from read_frame_from_stream(transformer.output, pause=True)), left=crop_left, right=crop_right, bottom=crop_bottom, top=crop_top),
+                             testdata_transformed)
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
@@ -89,7 +90,8 @@ class VideoTransformerTest(unittest.TestCase):
         self.check_move_transformer(
             (-1, 0),
             testdata,
-            [[0] + [px for px in line[:-1]] for line in testdata]
+            [[px for px in line[:-1]] for line in testdata],
+            crop_left=1
         )
 
     def test_shift_1y_negative_transformer(self):
@@ -116,7 +118,7 @@ class VideoTransformerTest(unittest.TestCase):
             [[px for px in line] for line in testdata[1:] + [[0] * 10]]
         )
 
-    def check_non_moving_xy(self, transformer_function):
+    def check_non_moving_xy(self, transformer_function, crop_top=0, crop_left=0, crop_bottom=0, crop_right=0):
         m = Module()
 
         width, height = 9, 9
@@ -134,8 +136,8 @@ class VideoTransformerTest(unittest.TestCase):
 
         def read_process():
             (yield from read_frame_from_stream(transformer.output, pause=True))
-            first = (yield from read_frame_from_stream(transformer.output, pause=True))
-            second = (yield from read_frame_from_stream(transformer.output, pause=True))
+            first = crop((yield from read_frame_from_stream(transformer.output, pause=True)), left=crop_left, right=crop_right, bottom=crop_bottom, top=crop_top)
+            second = crop((yield from read_frame_from_stream(transformer.output, pause=True)), left=crop_left, right=crop_right, bottom=crop_bottom, top=crop_top)
             self.assertEqual(first, second)
 
         platform = SimPlatform()
@@ -156,7 +158,7 @@ class VideoTransformerTest(unittest.TestCase):
     def test_non_moving_xy_shift_positive(self):
         def transformer_function(x, y, image):
             return image[x+1, y+2]
-        self.check_non_moving_xy(transformer_function)
+        self.check_non_moving_xy(transformer_function, crop_right=1, crop_bottom=2)
 
     def test_non_moving_xy_shift_negative(self):
         def transformer_function(x, y, image):

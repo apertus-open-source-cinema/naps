@@ -39,3 +39,7 @@ def to_8bit_rgb(image_24bit):
         [[px & 0xff, (px >> 8) & 0xff, (px >> 16) & 0xff] for px in line]
         for line in image_24bit
     ]
+
+
+def crop(frame, left=0, right=0, top=0, bottom=0):
+    return [line[left:len(line)-right] for line in frame[top:len(frame)-bottom]]

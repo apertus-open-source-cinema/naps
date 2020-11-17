@@ -88,9 +88,7 @@ class VideoTransformer(Elaboratable):
                     m.d.sync += self.output_y.eq(0)
                     m.d.comb += self.output.frame_last.eq(1)
         for (x, y), signal in self.image_proxy.offset_mapping.items():
-            with m.If((self.output_x - x >= 0) & (self.output_x - x < self.width) &
-                      (self.output_y - y >= 0) & (self.output_y - y < self.height)):
-                m.d.comb += signal.eq(available_pixels[x + self.shift_x, y + self.shift_y])
+            m.d.comb += signal.eq(available_pixels[x + self.shift_x, y + self.shift_y])
         m.d.comb += self.output.payload.eq(self.output_payload)
         
         with m.If(read_input & ~write_output):

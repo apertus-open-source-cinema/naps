@@ -1,9 +1,10 @@
 import unittest
+from itertools import product
 
 from nmigen import *
 from nmigen.sim import Simulator
 
-from util.nmigen_misc import nReversed, nMin, nAny, nAll, nMax, assert_is_pot, log2, ends_with, nDifference
+from util.nmigen_misc import nReversed, nMin, nAny, nAll, nMax, assert_is_pot, log2, ends_with, nAbsDifference
 
 
 class TestNMigenMisc(unittest.TestCase):
@@ -68,8 +69,8 @@ class TestNMigenMisc(unittest.TestCase):
         self.assertTrue(self._resolve(ends_with(Const(0b10001011, 4), "011")))
         self.assertFalse(self._resolve(ends_with(Const(0b10001011, 4), "0110")))
 
-    def test_nDifference(self):
-        self.assertEqual(7, self._resolve(nDifference(10, 3)))
-        self.assertEqual(7, self._resolve(nDifference(3, 10)))
-        self.assertEqual(3, self._resolve(nDifference(12, 9)))
-        self.assertEqual(3, self._resolve(nDifference(9, 12)))
+    def test_nAbsDifference(self):
+        self.assertEqual(7, self._resolve(nAbsDifference(10, 3)))
+        self.assertEqual(7, self._resolve(nAbsDifference(3, 10)))
+        self.assertEqual(3, self._resolve(nAbsDifference(12, 9)))
+        self.assertEqual(3, self._resolve(nAbsDifference(9, 12)))

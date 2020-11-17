@@ -66,8 +66,10 @@ class SimpleInterpolatingDebayerer(Elaboratable):
         m = Module()
 
         def transformer_function(x, y, image_proxy):
-            x_even = (x + self.shift_x) % 2 == 0
-            y_even = (y + self.shift_y) % 2 == 0
+            x_even = Signal()
+            m.d.comb += x_even.eq((x + self.shift_x) % 2 == 0)
+            y_even = Signal()
+            m.d.comb += y_even.eq((y + self.shift_y) % 2 == 0)
 
             rgb = RGB()
             with m.If(x_even & ~y_even):  # we are a red pixel

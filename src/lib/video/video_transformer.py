@@ -119,8 +119,8 @@ class ImageProxy:
     @classmethod
     def _offset_from_expression(cls, expr, allowed_variable):
         e = ValueError(
-            "the value {!r} is not allowed here. only terms that are {!r} +/- a constant are allowed".format(expr,
-                                                                                                             allowed_variable))
+            "the value {!r} is not allowed here. only terms that are {!r} +/- a constant are allowed"
+                .format(expr, allowed_variable))
         if isinstance(expr, Signal):
             if not expr is allowed_variable:
                 raise e
@@ -128,8 +128,8 @@ class ImageProxy:
         elif isinstance(expr, Operator):
             if not expr.operator in ("+", "-"):
                 raise e
-            if (not len(expr.operands) == 2) and (expr.operands[0] is allowed_variable) and (
-            isinstance(expr.operands[1], Const)):
+            if (not len(expr.operands) == 2) and (expr.operands[0] is allowed_variable) \
+                    and (isinstance(expr.operands[1], Const)):
                 raise e
             return expr.operands[1].value * (-1 if expr.operator == "-" else 1)
         else:

@@ -17,6 +17,7 @@ from lib.peripherals.csr_bank import ControlSignal
 from lib.peripherals.i2c.bitbang_i2c import BitbangI2c
 from lib.video.buffer_reader import VideoBufferReader
 from lib.video.debayer import RecoloringDebayerer, SimpleInterpolatingDebayerer
+from lib.video.focus_peeking import FocusPeeking
 from lib.video.resizer import VideoResizer
 from lib.video.stream_converter import ImageStream2PacketizedStream
 from lib.video.demo_source import BlinkDemoVideoSource
@@ -32,12 +33,10 @@ class Top(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        platform.ps7.fck_domain(200e6, "axi_hp")
+        platform.ps7.fck_domain(143e6, "axi_hp")
         ring_buffer = RingBufferAddressStorage(buffer_size=0x800000, n=4)
 
         # Control Pane
-        m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x", "axi_hp")
-
         i2c_pads = platform.request("i2c")
         m.submodules.i2c = BitbangI2c(i2c_pads)
 
@@ -68,8 +67,9 @@ class Top(Elaboratable):
             StreamGearbox(output_stream_resizer.output, target_width=12)
         )
         output_resizer_12_to_8 = m.submodules.output_resizer_12_to_8 = StreamResizer(output_gearbox.output, 8, upper_bits=True)
-        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(RecoloringDebayerer(output_resizer_12_to_8.output))
-        output_video_resizer = m.submodules.output_video_resizer = DomainRenamer("axi_hp")(VideoResizer(debayerer.output, 2560, 1440))
+        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleInterpolatingDebayerer(output_resizer_12_to_8.output, 2304, 1296))
+        focus = m.submodules.focus = DomainRenamer("axi_hp")(FocusPeeking(debayerer.output, 2304, 1296))
+        output_video_resizer = m.submodules.output_video_resizer = DomainRenamer("axi_hp")(VideoResizer(focus.output, 2560, 1440))
         output_fifo = m.submodules.output_fifo = BufferedAsyncStreamFIFO(
             output_video_resizer.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"
         )

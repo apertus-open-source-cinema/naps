@@ -9,3 +9,7 @@ class RGB(PackedStruct):
         self.r = Signal(bits)
         self.g = Signal(bits)
         self.b = Signal(bits)
+
+    @staticmethod
+    def brightness(value):
+        return value[0:8] + value[8:16] + value[16:24]

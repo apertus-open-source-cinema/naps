@@ -18,9 +18,12 @@ class StreamResizer(Elaboratable):
     def elaborate(self, platform):
         m = Module()
         with StreamTransformer(self.input, self.output, m):
-            m.d.comb += self.output.payload.eq(
-                self.input.payload >> (len(self.input.payload) - len(self.output.payload) if self.upper_bits else 0)
-            )
+            if not self.upper_bits:
+                m.d.comb += self.output.payload.eq(self.input.payload)
+            else:
+                m.d.comb += self.output.payload.eq(self.input.payload[-len(self.output.payload):])
+            for k in self.input.out_of_band_signals.keys():
+                m.d.comb += getattr(self.output, k).eq(getattr(self.input, k))
         return m
 
 

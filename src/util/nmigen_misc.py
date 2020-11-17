@@ -102,3 +102,7 @@ def nReversed(signal):
 
 def nAvrg(*values):
     return sum(values) // len(values)
+
+
+def nDifference(a, b):
+    return Mux(a > b, a-b, b-a)

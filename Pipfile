@@ -20,6 +20,7 @@ nmigen = {git = "https://github.com/nmigen/nmigen.git"}
 yowasp-yosys = "*"
 nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
 numpy = "*"
+imageio = "*"
 
 [scripts]
 test = "pytest --forked -n 8 src/"

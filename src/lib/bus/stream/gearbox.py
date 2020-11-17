@@ -1,21 +1,26 @@
 from nmigen import *
 
 from lib.bus.stream.debug import StreamInfo
-from lib.bus.stream.stream import BasicStream, Stream
+from lib.bus.stream.stream import BasicStream
+from lib.bus.stream.stream_transformer import StreamTransformer
 from lib.data_structure.bundle import DOWNWARDS
 
 
 class StreamResizer(Elaboratable):
     """Simply resizing a Stream by truncating or zero extending the payload"""
 
-    def __init__(self, input: BasicStream, target_width):
+    def __init__(self, input: BasicStream, target_width, upper_bits=False):
         self.input = input
         self.output = input.clone(name="resizer_output")
         self.output.payload = Signal(target_width) @ DOWNWARDS
+        self.upper_bits = upper_bits
 
     def elaborate(self, platform):
         m = Module()
-        m.d.comb += self.input.connect_downstream(self.output)
+        with StreamTransformer(self.input, self.output, m):
+            m.d.comb += self.output.payload.eq(
+                self.input.payload >> (len(self.input.payload) - len(self.output.payload) if self.upper_bits else 0)
+            )
         return m
 
 

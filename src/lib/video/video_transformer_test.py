@@ -67,14 +67,13 @@ class VideoTransformerTest(unittest.TestCase):
         transformer = m.submodules.transformer = VideoTransformer(input, transformer_function, 10, 10)
 
         def write_process():
-            yield from write_frame_to_stream(input, testdata)
+            yield from write_frame_to_stream(input, testdata, pause=True)
             yield Passive()
             while True:
                 yield from write_to_stream(input, line_last=0, frame_last=0, payload=0)
 
         def read_process():
-            frame = (yield from read_frame_from_stream(transformer.output))
-            self.assertEqual(frame, testdata_transformed)
+            self.assertEqual((yield from read_frame_from_stream(transformer.output, pause=True)), testdata_transformed)
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
@@ -84,7 +83,6 @@ class VideoTransformerTest(unittest.TestCase):
     def test_passthrough_transformer(self):
         testdata = [[x * y for x in range(10)] for y in range(10)]
         self.check_move_transformer((0, 0), testdata, testdata)
-
 
     def test_shift_1x_negative_transformer(self):
         testdata = [[x * y for x in range(10)] for y in range(10)]
@@ -117,3 +115,50 @@ class VideoTransformerTest(unittest.TestCase):
             testdata,
             [[px for px in line] for line in testdata[1:] + [[0] * 10]]
         )
+
+    def check_non_moving_xy(self, transformer_function):
+        m = Module()
+
+        width, height = 9, 9
+        input = ImageStream(32)
+        transformer = m.submodules.transformer = VideoTransformer(input, transformer_function, 10, 10)
+
+        def write_process():
+            testdata = [[x * y for x in range(width)] for y in range(height)]
+            yield from write_frame_to_stream(input, testdata, pause=True)
+            yield from write_frame_to_stream(input, testdata, pause=True)
+            yield from write_frame_to_stream(input, testdata, pause=True)
+            yield Passive()
+            while True:
+                yield from write_to_stream(input, line_last=0, frame_last=0, payload=0)
+
+        def read_process():
+            (yield from read_frame_from_stream(transformer.output, pause=True))
+            first = (yield from read_frame_from_stream(transformer.output, pause=True))
+            second = (yield from read_frame_from_stream(transformer.output, pause=True))
+            self.assertEqual(first, second)
+
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.add_process(write_process, "sync")
+        platform.sim(m, read_process)
+
+    def test_non_moving_xy_pattern(self):
+        def transformer_function(x, y, image):
+            return (x % 2 == 0) & (y % 2 == 0)
+        self.check_non_moving_xy(transformer_function)
+
+    def test_non_moving_xy_passthrough(self):
+        def transformer_function(x, y, image):
+            return image[x, y]
+        self.check_non_moving_xy(transformer_function)
+
+    def test_non_moving_xy_shift_positive(self):
+        def transformer_function(x, y, image):
+            return image[x+1, y+2]
+        self.check_non_moving_xy(transformer_function)
+
+    def test_non_moving_xy_shift_negative(self):
+        def transformer_function(x, y, image):
+            return image[x-2, y-1]
+        self.check_non_moving_xy(transformer_function)

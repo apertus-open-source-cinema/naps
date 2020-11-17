@@ -9,13 +9,29 @@ from nmigen.sim import Simulator
 
 
 class SimPlatform:
-    def __init__(self):
+    def __init__(self, filename=None):
         self.command_templates = []
 
         self.clocks = {}
         self.is_sim = True
         self.processes = []
         self.handed_out_resources = {}
+
+        functions = []
+        caller_path = ""
+        stack = inspect.stack()
+        for frame in stack[1:]:
+            if "unittest" in frame.filename:
+                if not filename:
+                    filename = "__".join(reversed(functions))
+                break
+            functions.append(frame.function)
+            caller_path = frame.filename
+        assert isinstance(filename, str)
+
+        target_dir = join(dirname(caller_path), ".sim_results")
+        Path(target_dir).mkdir(exist_ok=True)
+        self.output_filename_base = join(target_dir, filename)
 
     def add_file(self, name, contents):
         pass
@@ -47,24 +63,12 @@ class SimPlatform:
     def add_sim_clock(self, domain_name, frequency):
         self.clocks[domain_name] = frequency
 
-    def sim(self, dut, testbench=None, traces=(), filename=None):
+    def sim(self, dut, testbench=None, traces=()):
         dut = self.prepare(dut)
         self.fragment = dut
         simulator = Simulator(dut)
         for name, frequency in self.clocks.items():
             simulator.add_clock(1 / frequency, domain=name)
-
-        functions = []
-        caller_path = ""
-        stack = inspect.stack()
-        for frame in stack[1:]:
-            if "unittest" in frame.filename:
-                if not filename:
-                    filename = "__".join(reversed(functions))
-                break
-            functions.append(frame.function)
-            caller_path = frame.filename
-        assert isinstance(filename, str)
 
         if isinstance(testbench, tuple):
             generator, domain = testbench
@@ -79,11 +83,8 @@ class SimPlatform:
         for generator, domain in self.processes:
             simulator.add_sync_process(generator, domain=domain)
 
-        target_dir = join(dirname(caller_path), ".sim_results")
-        Path(target_dir).mkdir(exist_ok=True)
-        filename_base = join(target_dir, filename)
-        print("\nwriting vcd to '{}.vcd'".format(filename_base))
-        with simulator.write_vcd("{}.vcd".format(filename_base), "{}.gtkw".format(filename_base),
+        print("\nwriting vcd to '{}.vcd'".format(self.output_filename_base))
+        with simulator.write_vcd("{}.vcd".format(self.output_filename_base), "{}.gtkw".format(self.output_filename_base),
                                  traces=traces):
             simulator.run()
 

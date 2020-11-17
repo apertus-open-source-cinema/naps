@@ -37,16 +37,13 @@ class RecoloringDebayerer(Elaboratable):
         x = x_odd ^ self.shift_x
         y = y_odd ^ self.shift_y
 
-        val = Signal(8)
-        m.d.comb += val.eq(self.input.payload >> 4)
-
         rgb = RGB()
         with m.If(x & ~y):
-            m.d.comb += rgb.r.eq(val)
-        with m.ElIf(~x & y):
-            m.d.comb += rgb.b.eq(val)
+            m.d.comb += rgb.r.eq(self.input.payload)
+        with m.Elif(~x & y):
+            m.d.comb += rgb.b.eq(self.input.payload)
         with m.Else():
-            m.d.comb += rgb.g.eq(val // 2)
+            m.d.comb += rgb.g.eq(self.input.payload // 2)
 
         m.d.comb += self.output.payload.eq(rgb)
 
@@ -55,9 +52,12 @@ class RecoloringDebayerer(Elaboratable):
 
 class SimpleInterpolatingDebayerer(Elaboratable):
     """Debayer an image by interpolating the colour with the neighbouring pixels"""
-    def __init__(self, input: ImageStream):
+    def __init__(self, input: ImageStream, max_width=3000, max_height=3000):
         self.input = input
         self.output = ImageStream(24)
+
+        self.max_width = max_width
+        self.max_height = max_height
 
         self.shift_x = ControlSignal()
         self.shift_y = ControlSignal()
@@ -71,57 +71,58 @@ class SimpleInterpolatingDebayerer(Elaboratable):
 
             rgb = RGB()
             with m.If(x_even & ~y_even):  # we are a red pixel
-                m.d.comb += rgb.r.eq(image_proxy[x, y] >> 4)
+                m.d.comb += rgb.r.eq(image_proxy[x, y])
                 m.d.comb += rgb.g.eq(nAvrg(
-                    (image_proxy[x-1, y] >> 4),
-                    (image_proxy[x+1, y] >> 4),
-                    (image_proxy[x, y-1] >> 4),
-                    (image_proxy[x, y+1] >> 4),
+                    (image_proxy[x-1, y]),
+                    (image_proxy[x+1, y]),
+                    (image_proxy[x, y-1]),
+                    (image_proxy[x, y+1]),
                 ))
                 m.d.comb += rgb.b.eq(nAvrg(
-                    (image_proxy[x - 1, y - 1] >> 4),
-                    (image_proxy[x + 1, y + 1] >> 4),
-                    (image_proxy[x + 1, y - 1] >> 4),
-                    (image_proxy[x - 1, y + 1] >> 4),
+                    (image_proxy[x - 1, y - 1]),
+                    (image_proxy[x + 1, y + 1]),
+                    (image_proxy[x + 1, y - 1]),
+                    (image_proxy[x - 1, y + 1]),
                 ))
             with m.Elif(~x_even & y_even):  # we are a blue pixel
-                m.d.comb += rgb.b.eq(image_proxy[x, y] >> 4)
+                m.d.comb += rgb.b.eq(image_proxy[x, y])
                 m.d.comb += rgb.g.eq(nAvrg(
-                    (image_proxy[x - 1, y] >> 4),
-                    (image_proxy[x + 1, y] >> 4),
-                    (image_proxy[x, y - 1] >> 4),
-                    (image_proxy[x, y + 1] >> 4),
+                    (image_proxy[x - 1, y]),
+                    (image_proxy[x + 1, y]),
+                    (image_proxy[x, y - 1]),
+                    (image_proxy[x, y + 1]),
                 ))
                 m.d.comb += rgb.r.eq(nAvrg(
-                    (image_proxy[x - 1, y - 1] >> 4),
-                    (image_proxy[x + 1, y + 1] >> 4),
-                    (image_proxy[x + 1, y - 1] >> 4),
-                    (image_proxy[x - 1, y + 1] >> 4),
+                    (image_proxy[x - 1, y - 1]),
+                    (image_proxy[x + 1, y + 1]),
+                    (image_proxy[x + 1, y - 1]),
+                    (image_proxy[x - 1, y + 1]),
                 ))
             with m.Elif(~x_even & ~y_even):  # we are a green pixel in a red row
-                m.d.comb += rgb.g.eq(image_proxy[x, y] >> 4)
+                m.d.comb += rgb.g.eq(image_proxy[x, y])
                 m.d.comb += rgb.r.eq(nAvrg(
-                    (image_proxy[x - 1, y] >> 4),
-                    (image_proxy[x + 1, y] >> 4),
+                    (image_proxy[x - 1, y]),
+                    (image_proxy[x + 1, y]),
                 ))
                 m.d.comb += rgb.b.eq(nAvrg(
-                    (image_proxy[x, y - 1] >> 4),
-                    (image_proxy[x, y + 1] >> 4),
+                    (image_proxy[x, y - 1]),
+                    (image_proxy[x, y + 1]),
                 ))
             with m.Elif(x_even & y_even):  # we are a green pixel in a blue row
-                m.d.comb += rgb.g.eq(image_proxy[x, y] >> 4)
+                m.d.comb += rgb.g.eq(image_proxy[x, y])
                 m.d.comb += rgb.b.eq(nAvrg(
-                    (image_proxy[x - 1, y] >> 4),
-                    (image_proxy[x + 1, y] >> 4),
+                    (image_proxy[x - 1, y]),
+                    (image_proxy[x + 1, y]),
                 ))
                 m.d.comb += rgb.r.eq(nAvrg(
-                    (image_proxy[x, y - 1] >> 4),
-                    (image_proxy[x, y + 1] >> 4),
+                    (image_proxy[x, y - 1]),
+                    (image_proxy[x, y + 1]),
                 ))
 
             return rgb
 
-        video_transformer = m.submodules.video_transformer = VideoTransformer(self.input, transformer_function)
+        video_transformer = m.submodules.video_transformer = VideoTransformer(self.input, transformer_function,
+                                                                              self.max_width, self.max_height)
         m.d.comb += self.output.connect_upstream(video_transformer.output)
 
         return m

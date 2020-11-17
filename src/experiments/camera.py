@@ -51,48 +51,37 @@ class Top(Elaboratable):
             "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/hispi_sensor_0__lvds_clk__i]"
 
         hispi = m.submodules.hispi = Hispi(sensor, hispi_domain="hispi")
-        writer_fifo = m.submodules.writer_fifo = BufferedAsyncStreamFIFO(
+        input_fifo = m.submodules.input_fifo = BufferedAsyncStreamFIFO(
             hispi.output, 2048, i_domain="hispi", o_domain="axi_hp"
         )
-        input_stream_resizer = m.submodules.input_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(writer_fifo.output, 64))
-        converter = m.submodules.converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(input_stream_resizer.output))
-        m.submodules.buffer_writer = DomainRenamer("axi_hp")(AxiBufferWriter(ring_buffer, converter.output))
+        input_stream_resizer = m.submodules.input_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(input_fifo.output, 64))
+        input_converter = m.submodules.input_converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(input_stream_resizer.output))
+        m.submodules.input_writer = DomainRenamer("axi_hp")(AxiBufferWriter(ring_buffer, input_converter.output))
 
         # Output pipeline
-        buffer_reader = m.submodules.buffer_reader = DomainRenamer("axi_hp")(VideoBufferReader(
+        output_reader = m.submodules.output_reader = DomainRenamer("axi_hp")(VideoBufferReader(
             ring_buffer, bits_per_pixel=16,
             width_pixels=2304, height_pixels=1296,
         ))
-        output_stream_resizer = m.submodules.output_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(buffer_reader.output, 48))
+        output_stream_resizer = m.submodules.output_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(output_reader.output, 48))
         output_gearbox = m.submodules.output_gearbox = DomainRenamer("axi_hp")(
             StreamGearbox(output_stream_resizer.output, target_width=12)
         )
-        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleInterpolatingDebayerer(output_gearbox.output))
+        output_resizer_12_to_8 = m.submodules.output_resizer_12_to_8 = StreamResizer(output_gearbox.output, 8, upper_bits=True)
+        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleInterpolatingDebayerer(output_resizer_12_to_8.output, max_width=2304, max_height=1296))
         output_video_resizer = m.submodules.output_video_resizer = DomainRenamer("axi_hp")(VideoResizer(debayerer.output, 2560, 1440))
-        reader_fifo = m.submodules.reader_fifo = BufferedAsyncStreamFIFO(
+        output_fifo = m.submodules.output_fifo = BufferedAsyncStreamFIFO(
             output_video_resizer.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"
         )
 
         hdmi_plugin = platform.request("hdmi", "north")
         m.submodules.hdmi_stream_sink = HdmiStreamSink(
-            reader_fifo.output, hdmi_plugin,
+            output_fifo.output, hdmi_plugin,
             generate_modeline(2560, 1440, 30),
             pix_domain="pix"
         )
 
         return m
-
-    @driver_method
-    def dump_buffer(self):
-        self.writer_reset = 1
-        self.writer_reset = 0
-        enable_bitslip = self.hispi.phy.enable_bitslip
-        self.hispi.phy.enable_bitslip = 0
-        from time import sleep
-        sleep(0.1)
-        from os import system
-        system("sudo dd if=/dev/mem bs=4096 skip=260046848 count=16777216 iflag=skip_bytes,count_bytes of=buffer.out")
-        self.hispi.phy.enable_bitslip = enable_bitslip
 
     @driver_method
     def kick_sensor(self):

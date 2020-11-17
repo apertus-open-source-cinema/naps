@@ -52,12 +52,12 @@ class RecoloringDebayerer(Elaboratable):
 
 class SimpleInterpolatingDebayerer(Elaboratable):
     """Debayer an image by interpolating the colour with the neighbouring pixels"""
-    def __init__(self, input: ImageStream, max_width=3000, max_height=3000):
+    def __init__(self, input: ImageStream, width=3000, height=3000):
         self.input = input
         self.output = ImageStream(24)
 
-        self.max_width = max_width
-        self.max_height = max_height
+        self.width = width
+        self.height = height
 
         self.shift_x = ControlSignal()
         self.shift_y = ControlSignal()
@@ -122,7 +122,7 @@ class SimpleInterpolatingDebayerer(Elaboratable):
             return rgb
 
         video_transformer = m.submodules.video_transformer = VideoTransformer(self.input, transformer_function,
-                                                                              self.max_width, self.max_height)
+                                                                              self.width, self.height)
         m.d.comb += self.output.connect_upstream(video_transformer.output)
 
         return m

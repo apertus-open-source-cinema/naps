@@ -68,7 +68,7 @@ class Top(Elaboratable):
             StreamGearbox(output_stream_resizer.output, target_width=12)
         )
         output_resizer_12_to_8 = m.submodules.output_resizer_12_to_8 = StreamResizer(output_gearbox.output, 8, upper_bits=True)
-        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleInterpolatingDebayerer(output_resizer_12_to_8.output, max_width=2304, max_height=1296))
+        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(RecoloringDebayerer(output_resizer_12_to_8.output))
         output_video_resizer = m.submodules.output_video_resizer = DomainRenamer("axi_hp")(VideoResizer(debayerer.output, 2560, 1440))
         output_fifo = m.submodules.output_fifo = BufferedAsyncStreamFIFO(
             output_video_resizer.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"

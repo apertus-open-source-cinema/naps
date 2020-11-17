@@ -124,6 +124,7 @@ class AddressGenerator(Elaboratable):
         self.request = request
         self.output = AddressStream(addr_bits=32, lite=False, id_bits=12, data_bytes=8)
         self.overflowed_buffers = StatusSignal(32)
+        self.buffers_written = StatusSignal(32)
 
     def elaborate(self, platform):
         m = Module()
@@ -142,6 +143,7 @@ class AddressGenerator(Elaboratable):
                     m.d.sync += was_overflow.eq(1)
                     m.d.sync += self.overflowed_buffers.eq(self.overflowed_buffers + 1)
             with m.Else():
+                m.d.sync += self.buffers_written.eq(self.buffers_written + 1)
                 m.d.sync += was_overflow.eq(0)
                 with m.If(self.current_buffer < len(self.ringbuffer.buffer_base_list) - 1):
                     m.d.sync += self.current_buffer.eq(self.current_buffer + 1)

@@ -17,7 +17,7 @@ class ImageProxyTest(unittest.TestCase):
         image = ImageProxy(12, x, y)
         px = image[x + 1, y + 1]
         self.assertIsInstance(px, Signal)
-        self.assertEqual(image.offset_mapping, {(1, 1): px})
+        self.assertEqual(image.offset_mapping, {(-1, -1): px})
 
     def test_request_zero(self):
         x = Signal(16)
@@ -33,7 +33,7 @@ class ImageProxyTest(unittest.TestCase):
         image = ImageProxy(12, x, y)
         px = image[x - 1, y - 1]
         self.assertIsInstance(px, Signal)
-        self.assertEqual(image.offset_mapping, {(-1, -1): px})
+        self.assertEqual(image.offset_mapping, {(1, 1): px})
 
     def test_request_equal(self):
         x = Signal(16)
@@ -121,7 +121,7 @@ class VideoTransformerTest(unittest.TestCase):
 
         width, height = 9, 9
         input = ImageStream(32)
-        transformer = m.submodules.transformer = VideoTransformer(input, transformer_function, 10, 10)
+        transformer = m.submodules.transformer = VideoTransformer(input, transformer_function, width, height)
 
         def write_process():
             testdata = [[x * y for x in range(width)] for y in range(height)]

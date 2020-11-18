@@ -35,7 +35,7 @@ class BlinkDebug(Elaboratable):
                     else:
                         next_div(m, "IDLE_0")
 
-            idle_states = 8
+            idle_states = 4
             for i in range(idle_states):
                 with m.State("IDLE_{}".format(i)):
                     m.d.comb += self.led.eq(0)

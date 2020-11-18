@@ -10,35 +10,42 @@ from util.nmigen_misc import nAll
 
 
 class PluginModuleStreamerRx(Elaboratable):
-    def __init__(self, plugin):
+    def __init__(self, plugin, domain_name="wclk"):
         """
         This module needs to run in the word clock domain of the bus.
         """
         self.plugin = plugin
         self.output = BasicStream(32)
+        self.domain_name = domain_name
 
         self.ready = StatusSignal()
 
     def elaborate(self, platform):
         m = Module()
 
-        m.domains += ClockDomain("wclk_in")
-        m.d.comb += ClockSignal("wclk_in").eq(self.plugin.clk_word)
+        domain = self.domain_name
+        domain_x2 = self.domain_name + "_x2"
+        domain_in = domain + "_in"
+        domain_ddr = domain + "_ddr"
+        domain_ddr_eclk = domain + "_ddr_eclk"
 
-        pll = m.submodules.pll = Pll(50e6, 4, 1, "wclk_in")
-        pll.output_domain("ddr_domain", 1)
+        m.domains += ClockDomain(domain_in)
+        m.d.comb += ClockSignal(domain_in).eq(self.plugin.clk_word)
 
-        m.submodules.eclk_ddr = EClkSync("ddr_domain", "ddr_domain_eclk")
-        m.submodules.clk_div_half = ClkDiv("ddr_domain_eclk", "ddr_domain_x1_1", "word_x2", div=2)
-        m.submodules.clk_div_quater = ClkDiv("ddr_domain_eclk", "ddr_domain_x1_2", "sync", div=4)
+        pll = m.submodules.pll = Pll(50e6, 4, 1, self.domain_name)
+        pll.output_domain(domain_ddr, 1)
+
+        m.submodules.eclk_ddr = EClkSync(domain_ddr, domain_ddr_eclk)
+        m.submodules.clk_div_half = ClkDiv(domain_ddr_eclk, domain_x2, div=2)
+        m.submodules.clk_div_quater = ClkDiv(domain_ddr_eclk, domain, div=4)
 
         lanes = []
         for i in range(4):
             lane = m.submodules["lane{}".format(i)] = LaneAligner(
                 i=self.plugin["lvds{}".format(i)],
                 in_testpattern_mode=~self.output.valid,
-                ddr_domain="ddr_domain_eclk",
-                word_x2_domain="word_x2",
+                ddr_domain=domain_ddr,
+                word_x2_domain=domain_x2,
             )
             lanes.append(lane)
 
@@ -48,7 +55,7 @@ class PluginModuleStreamerRx(Elaboratable):
             self.output.ready & nAll(lane.word_aligned & lane.bit_aligned for lane in lanes)
         )
 
-        return m
+        return DomainRenamer(domain)(m)
 
 
 class LaneAligner(Elaboratable):

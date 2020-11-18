@@ -21,7 +21,7 @@ class Top(Elaboratable):
         pll.output_domain("bitclk", 4)
         pll.output_domain("sync", 16)
 
-        usb3_plugin = platform.request("usb3_plugin", "north")
+        usb3_plugin = platform.request("usb3_plugin", "south")
 
         m.submodules.mmio_gpio = MmioGpio([
             usb3_plugin.jtag.tms,
@@ -44,4 +44,4 @@ class Top(Elaboratable):
 if __name__ == "__main__":
     with cli(Top, runs_on=(MicroR2Platform,), possible_socs=(ZynqSocPlatform,)) as platform:
         from devices.plugins.usb3_plugin_resource import usb3_plugin_connect
-        usb3_plugin_connect(platform, "north")
+        usb3_plugin_connect(platform, "south")

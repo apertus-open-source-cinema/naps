@@ -63,7 +63,7 @@ class TestJTAGPeripheralConnectorFSM(unittest.TestCase):
         dut = m.submodules.jtag = JTAGPeripheralConnectorFSM(jtag_device, test_peripheral)
 
         jtag_testbench = JTAG()
-        jtag_device.shift = jtag_testbench.shift
+        jtag_device.shift_tdi = jtag_testbench.shift_tdi
         if tdi_delay == 0:
             jtag_device.tdi = jtag_testbench.tdi
         else:
@@ -80,7 +80,7 @@ class TestJTAGPeripheralConnectorFSM(unittest.TestCase):
         result = 0
 
         def shift_word(value, width=32):
-            yield jtag_testbench.shift.eq(1)
+            yield jtag_testbench.shift_tdi.eq(1)
             result_str = ""
             output_string = list(reversed("{{:0{}b}}".format(width).format(value)))
             for bit in output_string:
@@ -92,7 +92,7 @@ class TestJTAGPeripheralConnectorFSM(unittest.TestCase):
                 yield
             global result
             result = int("".join(reversed(result_str)), 2)
-            yield jtag_testbench.shift.eq(0)
+            yield jtag_testbench.shift_tdi.eq(0)
 
         def shift_bit(value):
             yield from shift_word(value, width=1)

@@ -44,28 +44,30 @@ class FT601StreamSinkNoCDC(Elaboratable):
 
 
 class FT601StreamSink(Elaboratable):
-    def __init__(self, ft601_resource, input_stream, async_fifo_depth=128, begin_transactions_at_level=2040):
+    def __init__(self, ft601_resource, input_stream, begin_transactions_at_level=2040, domain_name="ft601"):
+        self.domain_name = domain_name
         self.ft601_resource = ft601_resource
         self.input_stream = input_stream
-        self.async_fifo_depth = async_fifo_depth
         self.begin_transactions_at_level = begin_transactions_at_level
 
     def elaborate(self, platform):
         m = Module()
 
-        m.domains += ClockDomain("ft601")
-        m.d.comb += ClockSignal("ft601").eq(self.ft601_resource.clk)
+        m.domains += ClockDomain(self.domain_name)
+        m.d.comb += ClockSignal(self.domain_name).eq(self.ft601_resource.clk)
 
         # we use two fifos here as a performance optimization because (i guess) large async fifos are bad for fmax
         # TODO: verify hypothesis
-        cdc_fifo = m.submodules.cdc_fifo = BufferedAsyncStreamFIFO(self.input_stream, self.async_fifo_depth, i_domain="sync", o_domain="ft601")
-        buffer_fifo_depth = (self.begin_transactions_at_level + 2 - self.async_fifo_depth)
-        buffer_fifo = m.submodules.buffer_fifo = DomainRenamer("ft601")(BufferedSyncStreamFIFO(cdc_fifo.output, buffer_fifo_depth))
+        cdc_fifo = m.submodules.cdc_fifo = BufferedAsyncStreamFIFO(
+            self.input_stream, self.begin_transactions_at_level + 1, i_domain="sync", o_domain=self.domain_name
+        )
+
         save_to_begin_new_transaction = Signal()
-        m.d.comb += save_to_begin_new_transaction.eq((buffer_fifo.r_level + cdc_fifo.r_level) >= self.begin_transactions_at_level)
-        m.submodules.ft601 = DomainRenamer("ft601")(FT601StreamSinkNoCDC(
+        m.d.comb += save_to_begin_new_transaction.eq(cdc_fifo.r_level >= self.begin_transactions_at_level)
+
+        m.submodules.ft601 = DomainRenamer(self.domain_name)(FT601StreamSinkNoCDC(
             self.ft601_resource,
-            buffer_fifo.output,
+            cdc_fifo.output,
             save_to_begin_new_transaction,
         ))
 

@@ -5,13 +5,14 @@ class JTAGAccessor:
         import socket
         import os
         import time
+        from os.path import dirname, abspath
 
         self.tap_name = tap_name
 
         if spawn_server:
             addr = "127.0.0.1"
             port = 4444
-            os.system('openocd -f openocd.cfg > /dev/null 2>&1 &')
+            os.system('cd {}; openocd -f openocd.cfg > /dev/null 2>&1 &'.format(dirname(abspath(__file__))))
             time.sleep(0.1)
 
         self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -22,15 +23,16 @@ class JTAGAccessor:
 
         # skip some strange random shit
         self._readline(decode=False)
+        self._irscan(0x32)
+        for i in range(3):
+            self._shift_word(0)
 
     def __del__(self):
-        if self.spawn_server:
+        if hasattr(self, "spawn_server") and self.spawn_server:
             self._writeline("shutdown")
 
     def read(self, addr):
-        # USER1
-        self._irscan(0x32)
-
+        self._shift_bit(0)  # wakeup
         self._shift_bit(1)  # wakeup
         self._shift_word(addr)  # address
         self._shift_bit(0)  # read
@@ -38,7 +40,6 @@ class JTAGAccessor:
         # read wait
         timeout = self.timeout
         for t in range(timeout):
-
             if self._shift_bit(1) == 1:
                 break
             if t == timeout - 1:
@@ -51,9 +52,7 @@ class JTAGAccessor:
         return data
 
     def write(self, addr, value):
-        # USER1
-        self._irscan(0x32)
-
+        self._shift_bit(0)  # wakeup
         self._shift_bit(1)  # wakeup
         self._shift_word(addr)  # address
         self._shift_bit(1)  # write
@@ -90,18 +89,17 @@ class JTAGAccessor:
         return buf
 
     def _writecmd(self, cmd):
-        # print(cmd)
         self._writeline(cmd)
         ret = self._readline()
-        # print(ret)
+        if self.debug:
+            print(cmd, "->", ret)
         return ret
 
     def _shift_word(self, write):
-        return self._drscan(32, write)
+        return int(self._drscan(32, write), 16)
 
     def _shift_bit(self, write):
-        return self._drscan(1, write)
-
+        return int(self._drscan(1, write), 16)
 
     def _irscan(self, instruction):
         return self._writecmd('irscan {} {}'.format(self.tap_name, instruction))

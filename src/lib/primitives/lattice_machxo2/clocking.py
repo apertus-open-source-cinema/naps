@@ -119,7 +119,7 @@ class EClkSync(Elaboratable):
 
 
 class ClkDiv(Elaboratable):
-    def __init__(self, input_domain, output_x1_domain, output_div_domain, div):
+    def __init__(self, input_domain, output_div_domain, div, output_x1_domain=None):
         self.div = div
         self.output_div_domain = output_div_domain
         self.output_x1_domain = output_x1_domain
@@ -128,20 +128,25 @@ class ClkDiv(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.domains += ClockDomain(self.output_x1_domain)
         m.domains += ClockDomain(self.output_div_domain)
+        m.d.comb += ResetSignal(self.output_div_domain).eq(ResetSignal(self.input_domain))
+
+        if self.output_x1_domain is not None:
+            m.domains += ClockDomain(self.output_x1_domain)
+            m.d.comb += ResetSignal(self.output_x1_domain).eq(ResetSignal(self.input_domain))
+            additional = {"o_CDIV1": ClockSignal(self.output_x1_domain)}
+        else:
+            additional = {}
 
         m.submodules.inst = Instance(
             "CLKDIVC",
             p_DIV=self.div,
 
             i_CLKI=ClockSignal(self.input_domain),
-            o_CDIV1=ClockSignal(self.output_x1_domain),
             o_CDIVX=ClockSignal(self.output_div_domain),
+            **additional
         )
 
-        m.d.comb += ResetSignal(self.output_x1_domain).eq(ResetSignal(self.input_domain))
-        m.d.comb += ResetSignal(self.output_div_domain).eq(ResetSignal(self.input_domain))
 
         return m
 

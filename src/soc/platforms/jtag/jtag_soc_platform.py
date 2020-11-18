@@ -14,7 +14,6 @@ class JTAGSocPlatform(SocPlatform):
 
     def __init__(self, platform):
         super().__init__(platform)
-        self.jtag_signals = Signal(11)
 
         def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
             if platform.peripherals:

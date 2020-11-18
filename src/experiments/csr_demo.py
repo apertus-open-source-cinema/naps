@@ -4,6 +4,7 @@ from nmigen import *
 from nmigen.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
 
 from devices import Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform
+from lib.debug.blink_debug import BlinkDebug
 from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.primitives.lattice_machxo2.clocking import Osc
 from soc.cli import cli
@@ -16,9 +17,6 @@ class Top(Elaboratable):
     def __init__(self):
         self.counter = StatusSignal(32)
         self.test_reg32 = ControlSignal(32)
-        self.test_reg64 = ControlSignal(64)
-        self.test_reg48 = ControlSignal(48)
-        self.test_reg128 = ControlSignal(128)
 
     def elaborate(self, platform):
         m = Module()
@@ -28,12 +26,10 @@ class Top(Elaboratable):
             m.d.sync += self.counter.eq(self.counter + 1)
         elif isinstance(platform, LatticeMachXO2Platform):
             print("using lattice osc")
-            osc = m.submodules.osc = Osc()
+            m.submodules.osc = Osc()
             m.d.sync += self.counter.eq(self.counter + 1)
         else:
             m.d.comb += self.counter.eq(42)  # we dont have a clock source so we cant count
-
-        connect_leds(m, platform, self.test_reg32)
 
         return m
 

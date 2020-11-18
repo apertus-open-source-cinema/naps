@@ -1,6 +1,6 @@
 from nmigen import *
 
-from lib.bus.jtag.jtag import JTAG
+from lib.primitives.generic.jtag import JTAG
 
 
 class JTAGPeripheralConnector(Elaboratable):
@@ -47,20 +47,29 @@ class JTAGPeripheralConnectorFSM(Elaboratable):
             m.d.sync += status.eq(error)
             m.d.sync += read_write_done.eq(1)
 
-        with m.FSM(reset="IDLE1"):
-            m.d.comb += dbg_value.eq(0)
+        # This FSM should has two important properties:
+        # 1) It can be controlled with an unknown latency on both tdi and tdo
+        # 2) When it is in an unknown state we can return to a defined state (IDLE1) by shifting in "0" for n cycles
+        # READ:
+        # <0>*<1>(ADDRESS[32])<0><1 keep high>
+        #                                             <1>(DATA[32])(STATUS_BIT[1])
+        # WRITE:
+        # <0>*<1>(ADDRESS[32])<1>(DATA[32])
+        #                                             <1>(STATUS_BIT[1])
+        with m.FSM():
             def next_on_jtag_shift(next_state):
                 with m.If(jtag.shift):
                     m.next = next_state
 
             with m.State("IDLE0"):
-                m.d.comb += dbg_value.eq(1)
+                m.d.comb += dbg_value.eq(0)
                 m.d.sync += read_write_done.eq(0)
-                with m.If(jtag.shift & ~jtag.tdi):
-                    m.next = "IDLE1"
+                with m.If(~jtag.tdi):  # in IDLE0 IDLE1 we wait for a 0->1 transition to have property 2) (see above)
+                    next_on_jtag_shift("IDLE1")
             with m.State("IDLE1"):
-                with m.If(jtag.shift & jtag.tdi):
-                    m.next = "ADDR0"
+                m.d.comb += dbg_value.eq(1)
+                with m.If(jtag.tdi):
+                    next_on_jtag_shift("ADDR0")
 
             # address states
             for i in range(32):
@@ -74,18 +83,17 @@ class JTAGPeripheralConnectorFSM(Elaboratable):
 
             with m.State("RW_CMD"):  # we recive one bit that indicates if we want to read (0) or write (1)
                 m.d.comb += dbg_value.eq(3)
-                with m.If(jtag.shift):
-                    with m.If(jtag.tdi):
-                        m.next = "WRITE0"
-                    with m.Else():
-                        m.next = "READ_WAIT"
+                with m.If(jtag.tdi):
+                    next_on_jtag_shift("WRITE0")
+                with m.Else():
+                    next_on_jtag_shift("READ_WAIT")
 
             # read states
             with m.State("READ_WAIT"):
                 m.d.comb += dbg_value.eq(4)
                 self.peripheral.handle_read(m, addr - address_range.start, data, read_write_done_callback)
-                with m.If((~jtag.tdi) & jtag.shift):  # we are requested to abort the waiting
-                    m.next = "IDLE0"
+                with m.If(~jtag.tdi):  # we are requested to abort the waiting
+                    next_on_jtag_shift("IDLE0")
                 with m.Elif(read_write_done & jtag.shift):
                     m.d.comb += jtag.tdo.eq(1)
                     m.next = "READ0"
@@ -113,8 +121,8 @@ class JTAGPeripheralConnectorFSM(Elaboratable):
             with m.State("WRITE_WAIT"):
                 m.d.comb += dbg_value.eq(7)
                 self.peripheral.handle_write(m, addr - address_range.start, data, read_write_done_callback)
-                with m.If((~jtag.tdi) & jtag.shift):  # we are requested to abort the waiting
-                    m.next = "IDLE0"
+                with m.If(~jtag.tdi):  # we are requested to abort the waiting
+                    next_on_jtag_shift("IDLE0")
                 with m.If(read_write_done & jtag.shift):
                     m.d.comb += jtag.tdo.eq(1)
                     m.next = "WRITE_STATUS"

@@ -3,15 +3,9 @@ import unittest
 from nmigen import *
 
 from lib.bus.jtag.jtag_peripheral_connector import JTAGPeripheralConnectorFSM
+from lib.primitives.generic.jtag import JTAG
 from soc.peripheral import Response
 from util.sim import SimPlatform
-
-
-class JTAG:
-    def __init__(self):
-        self.tdi = Signal()
-        self.tdo = Signal()
-        self.shift = Signal()
 
 
 class TestPeripheral(Elaboratable):

@@ -8,8 +8,12 @@ class JTAG(GenericJTAG.implementation):
         m = Module()
         tck = Signal(attrs={"KEEP": "TRUE"})
         platform.add_clock_constraint(tck, 1e6)
-        m.domains += ClockDomain("jtag")
-        m.d.comb += ClockSignal("jtag").eq(tck)
+        m.domains += ClockDomain(self.jtag_domain)
+        m.d.comb += ClockSignal(self.jtag_domain).eq(tck)
+
+        shift = Signal()
+        m.d.comb += self.shift_tdi.eq(shift)
+        m.d.comb += self.shift_tdo.eq(shift)
 
         m.submodules.jtag_primitive = Instance(
             "BSCANE2",
@@ -17,7 +21,7 @@ class JTAG(GenericJTAG.implementation):
 
             o_TCK=tck,
             o_TDI=self.tdi,
-            o_SHIFT=self.shift,
+            o_SHIFT=shift,
 
             i_TDO=self.tdo,
         )

@@ -13,8 +13,8 @@ class JTAG(GenericJTAG.implementation):
 
         jtck = Signal(attrs={"KEEP": "TRUE"})
         platform.add_clock_constraint(jtck, 1e6)
-        m.domains += ClockDomain("jtag", clk_edge="neg")  # we must sample tdo at the falling edge for some reason
-        m.d.comb += ClockSignal("jtag").eq(jtck)
+        m.domains += ClockDomain(self.jtag_domain, clk_edge="neg")  # we must sample tdo at the falling edge for some reason
+        m.d.comb += ClockSignal(self.jtag_domain).eq(jtck)
 
         shift = Signal()  # for some reason we also have to delay shift
         m.d.comb += self.shift_tdo.eq(shift)

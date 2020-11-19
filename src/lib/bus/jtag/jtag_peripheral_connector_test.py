@@ -2,7 +2,7 @@ import unittest
 
 from nmigen import *
 
-from lib.bus.jtag.jtag_peripheral_connector import JTAGPeripheralConnectorFSM
+from lib.bus.jtag.jtag_peripheral_connector import JTAGPeripheralConnector
 from lib.primitives.generic.jtag import JTAG
 from soc.peripheral import Response
 from util.sim import SimPlatform
@@ -60,10 +60,11 @@ class TestJTAGPeripheralConnectorFSM(unittest.TestCase):
         jtag_device = JTAG()
         m = Module()
         test_peripheral = m.submodules.test_peripheral = TestPeripheral()
-        dut = m.submodules.jtag = JTAGPeripheralConnectorFSM(jtag_device, test_peripheral)
+        m.submodules.jtag = JTAGPeripheralConnector(test_peripheral, jtag_device, jtag_domain="sync")
 
         jtag_testbench = JTAG()
         jtag_device.shift_tdi = jtag_testbench.shift_tdi
+        jtag_device.shift_tdo = jtag_testbench.shift_tdi
         if tdi_delay == 0:
             jtag_device.tdi = jtag_testbench.tdi
         else:
@@ -108,6 +109,7 @@ class TestJTAGPeripheralConnectorFSM(unittest.TestCase):
             def write(addr, value):
                 for _ in range(10):
                     yield
+                yield from shift_bit(0)  # wakeup
                 yield from shift_bit(1)  # wakeup
                 yield from assert_state("IDLE1")
                 yield from shift_word(addr)  # address
@@ -136,6 +138,7 @@ class TestJTAGPeripheralConnectorFSM(unittest.TestCase):
             def read(addr, expected_value):
                 for _ in range(10):
                     yield
+                yield from shift_bit(0)  # wakeup
                 yield from shift_bit(1)  # wakeup
                 yield from assert_state("IDLE1")
                 yield from shift_word(addr)  # address

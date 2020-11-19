@@ -37,9 +37,9 @@ class ClockDebug(Elaboratable):
 
     @driver_property
     def mhz(self):
-        from time import sleep
-        measuring_time = 0.1
+        from time import sleep, time
         initial_counter = self.counter
-        sleep(measuring_time)
+        start = time()
+        sleep(0.1)
         counter_difference = (self.counter - initial_counter)
-        return counter_difference * (1 / measuring_time) / 1e6
+        return counter_difference * (1 / (time() - start)) / 1e6

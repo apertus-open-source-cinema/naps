@@ -11,10 +11,9 @@ class JTAG(GenericJTAG.implementation):
 
         print("warning: lattice JTAGF primitive is buggy as fuck")
 
-        jtck = Signal(attrs={"KEEP": "TRUE"})
-        platform.add_clock_constraint(jtck, 1e6)
-        m.domains += ClockDomain(self.jtag_domain, clk_edge="neg")  # we must sample tdo at the falling edge for some reason
-        m.d.comb += ClockSignal(self.jtag_domain).eq(jtck)
+        cd = ClockDomain(self.jtag_domain, clk_edge="neg")  # we must sample tdo at the falling edge for some reason
+        m.domains += cd
+        platform.add_clock_constraint(cd.clk, 1e6)
 
         shift = Signal()  # for some reason we also have to delay shift
         m.d.comb += self.shift_tdo.eq(shift)
@@ -24,7 +23,7 @@ class JTAG(GenericJTAG.implementation):
             "JTAGF",
             i_JTDO1=self.tdo,
             o_JTDI=self.tdi,
-            o_JTCK=jtck,
+            o_JTCK=cd.clk,
             o_JSHIFT=shift,
         )
 

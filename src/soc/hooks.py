@@ -36,11 +36,9 @@ def csr_and_driver_method_hook(platform, top_fragment: Fragment, sames: Elaborat
                 m = Module()
                 csr_bank = m.submodules.csr_bank = CsrBank()
                 for name, signal in new_csr_signals:
-                    if isinstance(signal, (ControlSignal, StatusSignal)):
+                    if isinstance(signal, (ControlSignal, StatusSignal, EventReg)):
                         csr_bank.reg(name, signal)
                         signal._MustUse__used = True
-                    elif isinstance(signal, EventReg):
-                        raise NotImplementedError()
 
                 mmap.allocate_subrange(csr_bank.memorymap, name=None)  # name=None means that the Memorymap will be inlined
                 platform.to_inject_subfragments.append((m, "ignore"))

@@ -1,6 +1,7 @@
 from abc import ABC, abstractmethod
 from textwrap import indent
 from math import ceil, log2
+from inspect import stack
 
 
 class MemoryAccessor(ABC):
@@ -56,7 +57,7 @@ class HardwareProxy:
                 object.__setattr__(self, k[1:].lower(), v(memory_accessor))
 
     def __getattribute__(self, name):
-        if name.startswith("__") or name == "print_state":
+        if name.startswith("__"):
             return object.__getattribute__(self, name)
 
         if name in {**self.__dict__, **self.__class__.__dict__}:
@@ -99,13 +100,19 @@ class HardwareProxy:
         else:
             raise AttributeError("{} has no attribute {}".format(self.__class__.__name__, name))
 
-    def __repr__(self):
-        to_return = ""
-        children = [(name, getattr(self, name)) for name in dir(self) if not name.startswith("_")]
-        real_children = [(name, child) for name, child in children if not isinstance(child, HardwareProxy)]
-        proxy_children = [(name, child) for name, child in children if isinstance(child, HardwareProxy)]
-        for name, child in real_children:
-            to_return += "{}: {}\n".format(name, child)
-        for name, child in proxy_children:
-            to_return += "{}: \n{}\n".format(name, indent(repr(child), "    "))
-        return to_return.strip()
+    def __repr__(self, allow_recursive=False):
+        if stack()[1].filename == "<console>" or allow_recursive:
+            to_return = ""
+            children = [(name, getattr(self, name)) for name in dir(self) if not name.startswith("_")]
+            real_children = [(name, child) for name, child in children if not isinstance(child, HardwareProxy)]
+            proxy_children = [(name, child) for name, child in children if isinstance(child, HardwareProxy)]
+            for name, child in real_children:
+                if callable(child):
+                    to_return += "{}: method()\n".format(name)
+                else:
+                    to_return += "{}: {}\n".format(name, child)
+            for name, child in proxy_children:
+                to_return += "{}: \n{}\n".format(name, indent(child.__repr__(allow_recursive=True), "    "))
+            return to_return.strip()
+        else:
+            return "<HardwareProxy at 0x{:x}>".format(id(self))

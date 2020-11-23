@@ -2,6 +2,7 @@ from nmigen import *
 
 from lib.bus.stream.stream import Stream
 from lib.peripherals.csr_bank import StatusSignal
+from soc.pydriver.drivermethod import driver_property
 
 
 class StreamInfo(Elaboratable):
@@ -17,16 +18,6 @@ class StreamInfo(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        if hasattr(platform, "debug") and not platform.debug:
-            return m
-
-        m.d.comb += self.current_ready.eq(self.stream.ready)
-        m.d.comb += self.current_valid.eq(self.stream.valid)
-
-        for k, s in self.stream.payload_signals.items():
-            current_state = StatusSignal(s.shape())
-            m.d.comb += current_state.eq(s)
-            setattr(self, "current_{}".format(k), current_state)
 
         with m.If(self.stream.valid & ~self.stream.ready):
             m.d.sync += self.valid_not_ready.eq(self.valid_not_ready + 1)
@@ -37,43 +28,81 @@ class StreamInfo(Elaboratable):
         with m.If(self.stream.valid & self.stream.ready):
             m.d.sync += self.successful_transactions_counter.eq(self.successful_transactions_counter + 1)
 
-            for name, signal in self.stream.payload_signals.items():
-                if len(signal) == 1:
-                    cycle_0_length = StatusSignal(32)
-                    cycle_0_length_changed = StatusSignal(32)
-                    cycle_0_counter = Signal(32)
-                    cycle_1_length = StatusSignal(32)
-                    cycle_1_length_changed = StatusSignal(32)
-                    cycle_1_counter = Signal(32)
+        m.d.comb += self.current_ready.eq(self.stream.ready)
+        m.d.comb += self.current_valid.eq(self.stream.valid)
 
-                    with m.If(signal):
-                        m.d.sync += cycle_0_counter.eq(0)
-                        with m.If(cycle_0_counter != 0):
-                            m.d.sync += cycle_0_length.eq(cycle_0_counter)
-                            with m.If(cycle_0_length != cycle_0_counter):
-                                m.d.sync += cycle_0_length_changed.eq(cycle_0_length_changed + 1)
-                        m.d.sync += cycle_1_counter.eq(cycle_1_counter + 1)
-                    with m.Else():
-                        m.d.sync += cycle_1_counter.eq(0)
-                        with m.If(cycle_1_counter != 0):
-                            m.d.sync += cycle_1_length.eq(cycle_1_counter)
-                            with m.If(cycle_1_length != cycle_1_counter):
-                                m.d.sync += cycle_1_length_changed.eq(cycle_1_length_changed + 1)
-                        m.d.sync += cycle_0_counter.eq(cycle_0_counter + 1)
-
-                    count = StatusSignal(32)
-                    signal_last = Signal()
-                    m.d.sync += signal_last.eq(signal)
-                    with m.If(signal & ~signal_last):
-                        m.d.sync += count.eq(count + 1)
-
-                    setattr(self, "{}_cycle_0_length".format(name), cycle_0_length)
-                    setattr(self, "{}_cycle_0_length_changed".format(name), cycle_0_length_changed)
-                    setattr(self, "{}_cycle_1_length".format(name), cycle_1_length)
-                    setattr(self, "{}_cycle_1_length_changed".format(name), cycle_1_length_changed)
-                    setattr(self, "{}_count".format(name), count)
+        for name, signal in self.stream.payload_signals.items():
+            if len(signal) == 1:
+                m.submodules[name] = MetadataSignalDebug(signal)
+            else:
+                current_state = StatusSignal(signal.shape())
+                m.d.comb += current_state.eq(signal)
+                setattr(self, "current_{}".format(name), current_state)
 
         return m
+
+    @driver_property
+    def efficiency_percent(self):
+        return self.successful_transactions_counter / self.reference_counter * 100
+
+    @driver_property
+    def stall_source_percent(self):
+        return self.ready_not_valid / self.reference_counter * 100
+
+    @driver_property
+    def stall_sink_percent(self):
+        return self.valid_not_ready / self.reference_counter * 100
+
+    @driver_property
+    def stall_both_percent(self):
+        return (self.valid_not_ready + self.valid_not_ready + self.successful_transactions_counter) / self.reference_counter * 100
+
+
+class MetadataSignalDebug(Elaboratable):
+    def __init__(self, signal):
+        assert len(signal) == 1
+        self.signal = signal
+
+        self.cycle_1_length = StatusSignal(32)
+        self.cycle_1_length_changed = StatusSignal(32)
+        self.cycle_0_length = StatusSignal(32)
+        self.cycle_0_length_changed = StatusSignal(32)
+        self.cycles = StatusSignal(32)
+        self.current = StatusSignal()
+
+    def elaborate(self, platform):
+        m = Module()
+
+        m.d.comb += self.current.eq(self.signal)
+
+        cycle_0_counter = Signal(32)
+        cycle_1_counter = Signal(32)
+
+        with m.If(self.signal):
+            m.d.sync += cycle_0_counter.eq(0)
+            with m.If(cycle_0_counter != 0):
+                m.d.sync += self.cycle_0_length.eq(cycle_0_counter)
+                with m.If(self.cycle_0_length != cycle_0_counter):
+                    m.d.sync += self.cycle_0_length_changed.eq(self.cycle_0_length_changed + 1)
+            m.d.sync += cycle_1_counter.eq(cycle_1_counter + 1)
+        with m.Else():
+            m.d.sync += cycle_1_counter.eq(0)
+            with m.If(cycle_1_counter != 0):
+                m.d.sync += self.cycle_1_length.eq(cycle_1_counter)
+                with m.If(self.cycle_1_length != cycle_1_counter):
+                    m.d.sync += self.cycle_1_length_changed.eq(self.cycle_1_length_changed + 1)
+            m.d.sync += cycle_0_counter.eq(cycle_0_counter + 1)
+
+        signal_last = Signal()
+        m.d.sync += signal_last.eq(self.signal)
+        with m.If(self.signal & ~signal_last):
+            m.d.sync += self.cycles.eq(self.cycles + 1)
+
+        return m
+
+    @driver_property
+    def cycle_length(self):
+        return self.cycle_0_length + self.cycle_1_length
 
 
 class InflexibleSourceDebug(Elaboratable):
@@ -83,7 +112,7 @@ class InflexibleSourceDebug(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        
+
         with m.If(self.stream.valid & ~self.stream.ready):
             m.d.sync += self.dropped.eq(self.dropped + 1)
 
@@ -102,4 +131,3 @@ class InflexibleSinkDebug(Elaboratable):
             m.d.sync += self.invalid.eq(self.invalid + 1)
 
         return m
-

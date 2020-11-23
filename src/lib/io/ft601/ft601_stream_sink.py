@@ -18,11 +18,9 @@ class FT601StreamSinkNoCDC(Elaboratable):
 
         ft = self.ft_601_resource
 
-        m.d.comb += ft.be.oe.eq(1)
         m.d.comb += ft.be.o.eq(0b1111)  # everything we write is valid
 
         m.d.comb += ft.oe.eq(0)  # we are driving the data bits all the time
-        m.d.comb += ft.data.oe.eq(1)
 
         if self.safe_to_begin_new_transaction is None:
             m.d.comb += ft.data.o.eq(self.input.payload)
@@ -56,8 +54,6 @@ class FT601StreamSink(Elaboratable):
         m.domains += ClockDomain(self.domain_name)
         m.d.comb += ClockSignal(self.domain_name).eq(self.ft601_resource.clk)
 
-        # we use two fifos here as a performance optimization because (i guess) large async fifos are bad for fmax
-        # TODO: verify hypothesis
         cdc_fifo = m.submodules.cdc_fifo = BufferedAsyncStreamFIFO(
             self.input_stream, self.begin_transactions_at_level + 1, i_domain="sync", o_domain=self.domain_name
         )

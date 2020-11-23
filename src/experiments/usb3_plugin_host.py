@@ -5,6 +5,7 @@ from nmigen import *
 
 from devices import MicroR2Platform
 from lib.bus.stream.counter_source import CounterStreamSource
+from lib.debug.clocking_debug import ClockingDebug
 from lib.io.plugin_module_streamer.tx import PluginModuleStreamerTx
 from lib.peripherals.mmio_gpio import MmioGpio
 from lib.primitives.xilinx_s7.clocking import Pll
@@ -16,12 +17,14 @@ class Top(Elaboratable):
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
 
-        platform.ps7.fck_domain(50e6, "fclk_in")
-        pll = m.submodules.pll = Pll(50e6, 16, 1, input_domain="fclk_in")
+        platform.ps7.fck_domain(100e6, "fclk_in")
+        pll = m.submodules.pll = Pll(100e6, 16, 1, input_domain="fclk_in")
         pll.output_domain("bitclk", 4)
         pll.output_domain("sync", 16)
 
-        usb3_plugin = platform.request("usb3_plugin", "south")
+        clocking = m.submodules.clocking = ClockingDebug("fclk_in", "bitclk", "sync")
+
+        usb3_plugin = platform.request("usb3_plugin", "north")
 
         m.submodules.mmio_gpio = MmioGpio([
             usb3_plugin.jtag.tms,
@@ -44,4 +47,4 @@ class Top(Elaboratable):
 if __name__ == "__main__":
     with cli(Top, runs_on=(MicroR2Platform,), possible_socs=(ZynqSocPlatform,)) as platform:
         from devices.plugins.usb3_plugin_resource import usb3_plugin_connect
-        usb3_plugin_connect(platform, "south")
+        usb3_plugin_connect(platform, "north")

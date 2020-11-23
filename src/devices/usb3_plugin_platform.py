@@ -18,8 +18,8 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
         Resource("ft601", 0,
             Subsignal("reset", PinsN("4", dir="o"), Attrs(IO_TYPE="LVCMOS33")),
 
-            Subsignal("data", Pins("75 74 70 69 68 67 66 65 64 61 60 59 58 57 54 53 83 84 85 86 87 88 96 97 98 99 7 8 21 24 20 25", dir="io"), Attrs(IO_TYPE="LVCMOS33")),
-            Subsignal("be", Pins("019 18 17 16", dir="io"), Attrs(IO_TYPE="LVCMOS33")),
+            Subsignal("data", Pins("75 74 70 69 68 67 66 65 64 61 60 59 58 57 54 53 83 84 85 86 87 88 96 97 98 99 7 8 21 24 20 25", dir="o"), Attrs(IO_TYPE="LVCMOS33")),
+            Subsignal("be", Pins("19 18 17 16", dir="o"), Attrs(IO_TYPE="LVCMOS33")),
             Subsignal("oe", PinsN("9", dir="o"), Attrs(IO_TYPE="LVCMOS33")),
 
             Subsignal("read", PinsN("10", dir="o"), Attrs(IO_TYPE="LVCMOS33")),
@@ -39,12 +39,12 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
         Resource("led", 0, Pins("71", dir="o"), Attrs(IO_TYPE="LVCMOS33")),
 
         Resource("plugin_stream_input", 0,
-            Subsignal("valid", DiffPairs("45", "47", dir="i"), Attrs(IO_TYPE="LVDS25")),  # lvds0
-            Subsignal("lvds0", DiffPairs("42", "43", dir="i"), Attrs(IO_TYPE="LVDS25")),  # lvds1
-            Subsignal("lvds1", DiffPairs("40", "41", dir="i"), Attrs(IO_TYPE="LVDS25")),  # lvds2
-            Subsignal("lvds2", DiffPairs("36", "37", dir="i"), Attrs(IO_TYPE="LVDS25")),  # lvds3 TODO: move to 37 / 38 in the next rev
-            Subsignal("lvds3", DiffPairs("29", "30", dir="i"), Attrs(IO_TYPE="LVDS25")),  # lvds4
-            Subsignal("clk_word", DiffPairs("34", "35", dir="i"), Attrs(IO_TYPE="LVDS25"), Clock(50e6)),  # lvds5
+            Subsignal("valid", DiffPairs("45", "47", dir="i"), Attrs(IO_TYPE="LVDS25", DIFFRESISTOR="100")),  # lvds0
+            Subsignal("lvds0", DiffPairs("42", "43", dir="i"), Attrs(IO_TYPE="LVDS25", DIFFRESISTOR="100")),  # lvds1
+            Subsignal("lvds1", DiffPairs("40", "41", dir="i"), Attrs(IO_TYPE="LVDS25", DIFFRESISTOR="100")),  # lvds2
+            Subsignal("lvds2", DiffPairs("36", "37", dir="i"), Attrs(IO_TYPE="LVDS25", DIFFRESISTOR="100")),  # lvds3 TODO: move to 37 / 38 in the next rev
+            Subsignal("lvds3", DiffPairs("29", "30", dir="i"), Attrs(IO_TYPE="LVDS25", DIFFRESISTOR="100")),  # lvds4
+            Subsignal("clk_word", DiffPairs("34", "35", dir="i"), Attrs(IO_TYPE="LVDS25", DIFFRESISTOR="100"), Clock(50e6)),  # lvds5
         )
     ]
     connectors = []

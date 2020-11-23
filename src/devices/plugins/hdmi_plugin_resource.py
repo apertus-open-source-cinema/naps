@@ -8,8 +8,8 @@ def hdmi_plugin_connect(platform, plugin_number):
     if "plugin_{}:gpio0".format(plugin_number) in platform._conn_pins:
         lowspeed_signals = [
             # i2c to read edid data from the monitor
-            Subsignal("sda", Pins("lvds5_n", dir='io', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS18")),
-            Subsignal("scl", Pins("lvds5_p", dir='io', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS18")),
+            Subsignal("sda", Pins("lvds5_n", dir='io', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
+            Subsignal("scl", Pins("lvds5_p", dir='io', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
 
             # hdmi plugin-module specific signals
             Subsignal("output_enable", PinsN("gpio6", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS33")),
@@ -24,8 +24,8 @@ def hdmi_plugin_connect(platform, plugin_number):
 
     platform.add_resources([
         Resource("hdmi", plugin_number,
-             Subsignal("clock", DiffPairs("lvds3_p", "lvds3_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="DIFF_SSTL18_I")),
-             Subsignal("data", DiffPairs("lvds2_p lvds1_p lvds0_p", "lvds2_n lvds1_n lvds0_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="DIFF_SSTL18_I")),
+             Subsignal("clock", DiffPairs("lvds3_p", "lvds3_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS25")),
+             Subsignal("data", DiffPairs("lvds2_p lvds1_p lvds0_p", "lvds2_n lvds1_n lvds0_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS25")),
              *lowspeed_signals
         )
     ])

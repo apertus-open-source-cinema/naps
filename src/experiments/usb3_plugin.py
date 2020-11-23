@@ -10,6 +10,7 @@ from lib.debug.clocking_debug import ClockingDebug
 from lib.io.ft601.ft601_stream_sink import FT601StreamSink
 from lib.io.plugin_module_streamer.rx import PluginModuleStreamerRx
 from lib.peripherals.csr_bank import ControlSignal
+from lib.primitives.lattice_machxo2.clocking import Pll
 from soc.cli import cli
 from soc.platforms.jtag.jtag_soc_platform import JTAGSocPlatform
 
@@ -18,15 +19,13 @@ class Top(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        clocking = m.submodules.clocking = ClockingDebug("plugin", "plugin_in", "plugin_ddr", "sync")
+        clocking = m.submodules.clocking = ClockingDebug("sync", "sync_in", "ft601")
 
         plugin = platform.request("plugin_stream_input")
-        rx = m.submodules.rx = PluginModuleStreamerRx(plugin, domain_name="plugin")
-
-        counter = m.submodules.counter = CounterStreamSource(32)
+        rx = m.submodules.rx = PluginModuleStreamerRx(plugin, domain_name="sync")
 
         ft601 = platform.request("ft601")
-        m.submodules.ft601 = FT601StreamSink(ft601, counter.output, domain_name="sync")
+        m.submodules.ft601 = FT601StreamSink(ft601, rx.output, domain_name="ft601")
 
         return m
 

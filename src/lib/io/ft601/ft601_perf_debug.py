@@ -34,11 +34,9 @@ class FT601PerfDebug(Elaboratable):
             with m.If(pause_counter < pause_cycles):
                 m.d.ft += pause_counter.eq(pause_counter + 1)
 
-        m.d.comb += ft.be.oe.eq(1)
         m.d.comb += ft.be.o.eq(0b1111)  # everything we write is valid
 
         m.d.comb += ft.oe.eq(0)  # we are driving the data bits all the time
-        m.d.comb += ft.data.oe.eq(1)
         m.d.comb += ft.data.o.eq(Cat(self.burst_counter, self.idle_counter))
 
         return m

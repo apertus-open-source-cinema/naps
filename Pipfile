@@ -16,7 +16,7 @@ pytest-github-actions-annotate-failures = "*"
 pytest-forked = "*"
 
 [packages]
-nmigen = {git = "https://github.com/nmigen/nmigen.git"}
+nmigen = {editable = true,path = "/home/anuejn/code/nmigen"}
 yowasp-yosys = "*"
 nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
 numpy = "*"

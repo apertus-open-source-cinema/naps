@@ -47,8 +47,8 @@ class I2CBus(Module):
             sda_r.eq(self.sda_i),
         ]
         self.specials += [
-            MultiReg(self.scl_t.i, self.scl_i, reset=1),
-            MultiReg(self.sda_t.i, self.sda_i, reset=1),
+            MultiReg(self.scl_t.input, self.scl_i, reset=1),
+            MultiReg(self.sda_t.input, self.sda_i, reset=1),
         ]
 
 

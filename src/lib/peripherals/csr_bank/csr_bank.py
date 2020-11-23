@@ -1,6 +1,4 @@
 # TODO: implement atomic access (and before think about it)
-# TODO: implemt event regs (depends on #1)
-# TODO: add some kind of arebeiter to prevent pydriver conflicts (is this the right place?; how should it work?)
 
 from nmigen import *
 from nmigen import Signal
@@ -16,7 +14,6 @@ class CsrBank(Elaboratable):
 
     def reg(self, name: str, signal: _Csr):
         assert isinstance(signal, _Csr)
-        assert not isinstance(signal, EventReg)
         writable = not isinstance(signal, StatusSignal)
         self.memorymap.allocate(name, writable, bits=len(signal), address=signal._address, obj=signal)
 
@@ -34,10 +31,13 @@ class CsrBank(Elaboratable):
                                 m.d.sync += data[word_range.start:word_range.stop].eq(
                                     row.obj[signal_range.start:signal_range.stop]
                                 )
+                                read_done(Response.OK)
+                                m.d.comb += handled.eq(1)
+                            elif isinstance(row.obj, EventReg):
+                                row.obj.handle_read(m, data[word_range.start:word_range.stop], read_done)
+                                m.d.comb += handled.eq(1)
                             else:
                                 raise NotImplementedError()
-                    read_done(Response.OK)
-                    m.d.comb += handled.eq(1)
             with m.If(~handled):
                 read_done(Response.ERR)
 
@@ -53,12 +53,16 @@ class CsrBank(Elaboratable):
                                 m.d.sync += row.obj[signal_range.start:signal_range.stop].eq(
                                     data[word_range.start:word_range.stop]
                                 )
+                                write_done(Response.OK)
+                                m.d.comb += handled.eq(1)
                             elif isinstance(row.obj, StatusSignal):
-                                pass
+                                write_done(Response.OK)
+                                m.d.comb += handled.eq(1)
+                            elif isinstance(row.obj, EventReg):
+                                row.obj.handle_write(m, data[word_range.start:word_range.stop], write_done)
+                                m.d.comb += handled.eq(1)
                             else:
                                 raise NotImplementedError()
-                    write_done(Response.OK)
-                    m.d.comb += handled.eq(1)
             with m.If(~handled):
                 write_done(Response.ERR)
 

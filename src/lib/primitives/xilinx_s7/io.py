@@ -1,6 +1,7 @@
 from nmigen import *
 from nmigen import Elaboratable, Module, ClockSignal, ResetSignal, Cat
 
+from devices.plugins.plugin_connector import is_signal_inverted
 from lib.peripherals.csr_bank import ControlSignal
 from lib.primitives.instance_helper import InstanceHelper
 
@@ -11,16 +12,17 @@ IdelayCtrl = InstanceHelper("+/xilinx/cells_xtra.v", "IDELAYCTRL")
 
 
 class OSerdes10(Elaboratable):
-    def __init__(self, input: Signal, domain: str, domain_5x: str, invert=False):
-        self.output = Signal()
+    def __init__(self, input: Signal, pad: Signal, domain: str, domain_5x: str):
+        self.pad = pad
         self.input = input
 
         self.domain = domain
         self.domain_5x = domain_5x
-        self.invert = ControlSignal(reset=invert)
 
     def elaborate(self, platform):
         m = Module()
+
+        self.invert = ControlSignal(reset=is_signal_inverted(platform, self.pad))
 
         data = Signal.like(self.input)
         m.d[self.domain] += data.eq(self.input ^ Repl(self.invert, len(self.input)))
@@ -35,7 +37,7 @@ class OSerdes10(Elaboratable):
                                  p_DATA_RATE_OQ="DDR", p_DATA_RATE_TQ="SDR",
                                  p_SERDES_MODE="MASTER",
 
-                                 o_OQ=self.output,
+                                 o_OQ=self.pad,
                                  i_OCE=ce,
                                  i_TCE=0,
                                  i_RST=ResetSignal(self.domain),
@@ -70,7 +72,7 @@ class OSerdes10(Elaboratable):
 
 
 class DDRSerializer(Elaboratable):
-    def __init__(self, pad, value, ddr_clockdomain, bit_width=8):
+    def __init__(self, value, pad, ddr_clockdomain, bit_width=8):
         self.bit_width = bit_width
         self.x4_clockdomain = ddr_clockdomain
         self.value = value
@@ -78,6 +80,8 @@ class DDRSerializer(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
+
+        self.invert = ControlSignal(reset=is_signal_inverted(platform, self.pad))
 
         oserdes = m.submodules.oserdes = Oserdes(
             data_width=self.bit_width,
@@ -90,7 +94,7 @@ class DDRSerializer(Elaboratable):
         m.d.comb += oserdes.clk.eq(ClockSignal(self.x4_clockdomain))
         m.d.comb += oserdes.clkdiv.eq(ClockSignal())
         m.d.comb += oserdes.rst.eq(ResetSignal())
-        m.d.comb += Cat(oserdes.d[i] for i in reversed(range(1, 9))).eq(self.value)  # reversed is needed!!1
+        m.d.comb += Cat(oserdes.d[i] for i in reversed(range(1, 9))).eq(self.value ^ self.invert)  # reversed is needed!!1
         m.d.comb += self.pad.eq(oserdes.oq)
 
         return m

@@ -47,7 +47,7 @@ class PluginModuleStreamerRx(Elaboratable):
         word_aligner = m.submodules.word_aligner = WordAligner(domain_ddr_eclk, lanes[0].output)
         m.d.comb += bitslip_signal.eq(word_aligner.bitslip)
 
-        valid_iserdes = m.submodules.valid_iserdes = ISerdes8(self.plugin.valid, domain_ddr_eclk, word_domain="sync")
+        valid_iserdes = m.submodules.valid_iserdes = ISerdes8(self.plugin.valid, domain_ddr_eclk, word_domain="sync", invert=True)
         m.d.comb += valid_iserdes.bitslip.eq(bitslip_signal)
         m.d.comb += self.valid.eq(valid_iserdes.output[4])
 
@@ -139,7 +139,7 @@ class LaneBitAligner(Elaboratable):
 
             o_Z=delayed,
         )
-        iserdes = m.submodules.iserdes = ISerdes8(delayed, self.ddr_domain, word_domain="sync")
+        iserdes = m.submodules.iserdes = ISerdes8(delayed, self.ddr_domain, word_domain="sync", invert=True)
         m.d.comb += self.output.eq(iserdes.output)
         m.d.comb += iserdes.bitslip.eq(self.bitslip_signal)
 

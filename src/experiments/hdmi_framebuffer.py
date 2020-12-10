@@ -39,9 +39,9 @@ class Top(Elaboratable):
             resizer.output, depth=16 * 1024, i_domain="axi_hp", o_domain="pix"
         )
 
-        hdmi_plugin = platform.request("hdmi", "north")
+        hdmi = platform.request("hdmi", "north")
         m.submodules.hdmi_stream_sink = HdmiStreamSink(
-            fifo.output, hdmi_plugin,
+            fifo.output, hdmi,
             generate_modeline(1920, 1080, 30),
             pix_domain="pix"
         )

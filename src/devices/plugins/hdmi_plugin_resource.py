@@ -1,7 +1,9 @@
 # the 1x hdmi plugin module
 # see: https://wiki.apertus.org/index.php/Beta_HDMI_Plugin_Module
 
-from nmigen.build import Resource, Subsignal, Pins, PinsN, DiffPairs, Attrs
+from nmigen.build import Resource, Subsignal, Pins, PinsN, Attrs
+
+from devices.plugins.plugin_connector import PluginDiffPair
 
 
 def hdmi_plugin_connect(platform, plugin_number):
@@ -24,8 +26,10 @@ def hdmi_plugin_connect(platform, plugin_number):
 
     platform.add_resources([
         Resource("hdmi", plugin_number,
-             Subsignal("clock", DiffPairs("lvds3_p", "lvds3_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS25")),
-             Subsignal("data", DiffPairs("lvds2_p lvds1_p lvds0_p", "lvds2_n lvds1_n lvds0_n", dir='o', conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVDS25")),
+             Subsignal("clock", PluginDiffPair(platform, plugin_number, pin=3, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+             Subsignal("b", PluginDiffPair(platform, plugin_number, pin=2, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+             Subsignal("g", PluginDiffPair(platform, plugin_number, pin=1, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+             Subsignal("r", PluginDiffPair(platform, plugin_number, pin=0, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
              *lowspeed_signals
         )
     ])

@@ -12,25 +12,25 @@ from lib.primitives.xilinx_s7.io import DDRSerializer
 class PluginModuleStreamerTx(Elaboratable):
     def __init__(self, plugin_resource, input: BasicStream, bitclk_domain, training_pattern=0b00000110):
         self.bitclk_domain = bitclk_domain
-        self.plugin_lvds = plugin_resource
+        self.plugin_resource = plugin_resource
         self.input = input
 
         self.training_pattern = ControlSignal(8, reset=training_pattern)
-        self.do_training = ControlSignal()
+        self.do_training = ControlSignal(reset=1)
 
     def elaborate(self, platform):
         m = Module()
         
         m.d.comb += self.input.ready.eq(1)
-        m.d.comb += self.plugin_lvds.clk_word.eq(ClockSignal())
         m.submodules.inflexible_sink_debug = InflexibleSinkDebug(self.input)
 
         valid = Signal()
         m.d.comb += valid.eq(self.input.valid & ~self.do_training)
-        m.submodules.lane_valid = DDRSerializer(self.plugin_lvds.valid, Repl(valid, 8), ddr_clockdomain=self.bitclk_domain)
+        m.submodules.lane_clock = DDRSerializer(0b00001111, self.plugin_resource.clk_word, ddr_clockdomain=self.bitclk_domain)
+        m.submodules.lane_valid = DDRSerializer(Repl(valid, 8), self.plugin_resource.valid, ddr_clockdomain=self.bitclk_domain)
         for i in range(4):
             value = Signal(8)
-            m.submodules["lane{}".format(i)] = DDRSerializer(self.plugin_lvds["lvds{}".format(i)], value, ddr_clockdomain=self.bitclk_domain)
+            m.submodules["lane{}".format(i)] = DDRSerializer(value, self.plugin_resource["lane{}".format(i)], ddr_clockdomain=self.bitclk_domain)
             with m.If(valid):
                 m.d.comb += value.eq(self.input.payload[0+(i*8):8+(i*8)])
             with m.Else():

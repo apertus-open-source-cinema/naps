@@ -3,7 +3,7 @@ from shlex import quote
 
 from nmigen.build.run import BuildProducts
 
-default_host = "10.42.0.157"
+default_host = "10.42.0.156"
 default_user = "operator"
 default_password = "axiom"
 

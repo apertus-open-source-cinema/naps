@@ -4,28 +4,13 @@
 
 from nmigen.build import *
 
+from devices import MicroR2Platform
+from devices.plugins.plugin_connector import PluginDiffPair
+
 
 def usb3_plugin_connect(platform, plugin_number):
-    platform.add_resources([
-        Resource(
-            "usb3_plugin", plugin_number,
-
-            Subsignal(
-                "lvds",
-                Subsignal("valid", DiffPairs("lvds0_p", "lvds0_n", dir='o', conn=("plugin", plugin_number)),
-                          Attrs(IOSTANDARD="LVDS_25")),
-                Subsignal("lvds0", DiffPairs("lvds1_p", "lvds1_n", dir='o', conn=("plugin", plugin_number)),
-                          Attrs(IOSTANDARD="LVDS_25")),
-                Subsignal("lvds1", DiffPairs("lvds2_p", "lvds2_n", dir='o', conn=("plugin", plugin_number)),
-                          Attrs(IOSTANDARD="LVDS_25")),
-                Subsignal("lvds2", DiffPairs("lvds3_p", "lvds3_n", dir='o', conn=("plugin", plugin_number)),
-                          Attrs(IOSTANDARD="LVDS_25")),
-                Subsignal("lvds3", DiffPairs("lvds4_p", "lvds4_n", dir='o', conn=("plugin", plugin_number)),
-                          Attrs(IOSTANDARD="LVDS_25")),
-                Subsignal("clk_word", DiffPairs("lvds5_p", "lvds5_n", dir='o', conn=("plugin", plugin_number)),
-                          Attrs(IOSTANDARD="LVDS_25")),
-            ),
-
+    if isinstance(platform, MicroR2Platform):
+        lowspeed_signals = [
             Subsignal(
                 "jtag",
                 Subsignal("tms", Pins("gpio0", dir="io", conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
@@ -33,9 +18,28 @@ def usb3_plugin_connect(platform, plugin_number):
                 Subsignal("tdi", Pins("gpio2", dir="io", conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
                 Subsignal("tdo", Pins("gpio3", dir="io", conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
             ),
-            Subsignal("jtag_enb", Pins("gpio4", dir="io", conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
-            Subsignal("program", PinsN("gpio5", dir="io", conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
+            Subsignal("jtag_enb", Pins("gpio4", dir="io", conn=("plugin", plugin_number)),
+                      Attrs(IOSTANDARD="LVCMOS25")),
+            Subsignal("program", PinsN("gpio5", dir="io", conn=("plugin", plugin_number)),
+                      Attrs(IOSTANDARD="LVCMOS25")),
             Subsignal("init", PinsN("gpio6", dir="io", conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
             Subsignal("done", PinsN("gpio7", dir="io", conn=("plugin", plugin_number)), Attrs(IOSTANDARD="LVCMOS25")),
+        ]
+    else:
+        lowspeed_signals = []
+
+    platform.add_resources([
+        Resource(
+            "usb3_plugin", plugin_number,
+            Subsignal(
+                "lvds",
+                Subsignal("valid", PluginDiffPair(platform, plugin_number, 0, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("lane0", PluginDiffPair(platform, plugin_number, 1, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("lane1", PluginDiffPair(platform, plugin_number, 2, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("lane2", PluginDiffPair(platform, plugin_number, 3, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("lane3", PluginDiffPair(platform, plugin_number, 4, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("clk_word", PluginDiffPair(platform, plugin_number, 5, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+            ),
+            *lowspeed_signals
         )
     ])

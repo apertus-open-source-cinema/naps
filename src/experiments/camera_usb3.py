@@ -13,11 +13,15 @@ from lib.debug.clocking_debug import ClockingDebug
 from lib.io.hdmi.cvt_python import generate_modeline
 from lib.io.hdmi.hdmi_stream_sink import HdmiStreamSink
 from lib.io.hispi.hispi import Hispi
+from lib.io.plugin_module_streamer.tx import PluginModuleStreamerTx
 from lib.peripherals.csr_bank import ControlSignal
 from lib.peripherals.i2c.bitbang_i2c import BitbangI2c
+from lib.peripherals.mmio_gpio import MmioGpio
+from lib.primitives.xilinx_s7.clocking import Pll
 from lib.video.buffer_reader import VideoBufferReader
 from lib.video.debayer import RecoloringDebayerer, SimpleInterpolatingDebayerer
 from lib.video.focus_peeking import FocusPeeking
+from lib.video.ft60x_legalizer import Ft60xLegalizer
 from lib.video.resizer import VideoResizer
 from lib.video.stream_converter import ImageStream2PacketizedStream
 from lib.video.demo_source import BlinkDemoVideoSource
@@ -37,8 +41,24 @@ class Top(Elaboratable):
         ring_buffer = RingBufferAddressStorage(buffer_size=0x800000, n=4)
 
         # Control Pane
+        m.submodules.clocking = ClockingDebug("usb3_fclk", "usb3_bitclk", "axi_hp")
+
         i2c_pads = platform.request("i2c")
         m.submodules.i2c = BitbangI2c(i2c_pads)
+
+        usb3_plugin = platform.request("usb3_plugin", "south")
+        if isinstance(platform, MicroR2Platform):
+            m.submodules.mmio_gpio = MmioGpio([
+                usb3_plugin.jtag.tms,
+                usb3_plugin.jtag.tck,
+                usb3_plugin.jtag.tdi,
+                usb3_plugin.jtag.tdo,
+
+                usb3_plugin.jtag_enb,
+                usb3_plugin.program,
+                usb3_plugin.init,
+                usb3_plugin.done,
+            ])
 
         # Input Pipeline
         sensor = platform.request("sensor")
@@ -63,25 +83,22 @@ class Top(Elaboratable):
             width_pixels=2304, height_pixels=1296,
         ))
         output_stream_resizer = m.submodules.output_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(output_reader.output, 48))
-        output_gearbox = m.submodules.output_gearbox = DomainRenamer("axi_hp")(
+        output_gearbox_down = m.submodules.output_gearbox_down = DomainRenamer("axi_hp")(
             StreamGearbox(output_stream_resizer.output, target_width=12)
         )
-        output_resizer_12_to_8 = m.submodules.output_resizer_12_to_8 = StreamResizer(output_gearbox.output, 8, upper_bits=True)
-        debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleInterpolatingDebayerer(output_resizer_12_to_8.output, 2304, 1296))
-        output_after_debayer_fifo = m.submodules.output_after_debayer_fifo = DomainRenamer("axi_hp")(BufferedSyncStreamFIFO(debayerer.output, 32))
-        output_focus = m.submodules.output_focus = DomainRenamer("axi_hp")(FocusPeeking(output_after_debayer_fifo.output, 2304, 1296))
-        output_after_focus_fifo = m.submodules.output_after_focus = DomainRenamer("axi_hp")(BufferedSyncStreamFIFO(output_focus.output, 32))
-        output_video_resizer = m.submodules.output_video_resizer = DomainRenamer("axi_hp")(VideoResizer(output_after_focus_fifo.output, 2560, 1440))
-        output_fifo = m.submodules.output_fifo = BufferedAsyncStreamFIFO(
-            output_video_resizer.output, depth=32 * 1024, i_domain="axi_hp", o_domain="pix"
+        output_resizer_12_to_8 = m.submodules.output_resizer_12_to_8 = StreamResizer(output_gearbox_down.output, 8, upper_bits=True)
+        output_gearbox_up = m.submodules.output_gearbox2 = DomainRenamer("axi_hp")(
+            StreamGearbox(output_resizer_12_to_8.output, target_width=32)
         )
 
-        hdmi = platform.request("hdmi", "north")
-        m.submodules.hdmi_stream_sink = HdmiStreamSink(
-            output_fifo.output, hdmi,
-            generate_modeline(2560, 1440, 30),
-            pix_domain="pix"
-        )
+        platform.ps7.fck_domain(20e6, "usb3_fclk")
+        pll = m.submodules.pll = Pll(20e6, 40, 1, input_domain="usb3_fclk")
+        pll.output_domain("usb3_bitclk", 2)
+        pll.output_domain("usb3_sync", 8)
+
+        output_cdc_fifo = m.submodules.output_cdc_fifo = BufferedAsyncStreamFIFO(output_gearbox_up.output, 1024, i_domain="axi_hp", o_domain="usb3_sync")
+        ft60x_legalizer = m.submodules.ft60x_legalizer = DomainRenamer("usb3_sync")(Ft60xLegalizer(output_cdc_fifo.output, 2304, 1296, 8))
+        m.submodules.tx = DomainRenamer("usb3_sync")(PluginModuleStreamerTx(usb3_plugin.lvds, ft60x_legalizer.output, bitclk_domain="usb3_bitclk"))
 
         return m
 
@@ -93,6 +110,5 @@ class Top(Elaboratable):
 
 if __name__ == "__main__":
     with cli(Top, runs_on=(MicroR2Platform,), possible_socs=(ZynqSocPlatform,)) as platform:
-        from devices.plugins.hdmi_plugin_resource import hdmi_plugin_connect
-
-        hdmi_plugin_connect(platform, "north")
+        from devices.plugins.usb3_plugin_resource import usb3_plugin_connect
+        usb3_plugin_connect(platform, "south")

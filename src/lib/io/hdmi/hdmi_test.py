@@ -34,7 +34,9 @@ class TestHdmi(unittest.TestCase):
 
         class Pins:
             def __init__(self):
-                self.data = Signal(3)
+                self.r = Signal()
+                self.g = Signal()
+                self.b = Signal()
                 self.clock = Signal()
 
         dut = Hdmi(Pins(), generate_clocks=False, modeline=generate_modeline(640, 480, 60))

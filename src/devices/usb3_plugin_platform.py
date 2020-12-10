@@ -39,6 +39,7 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
         Resource("led", 0, Pins("71", dir="o"), Attrs(IO_TYPE="LVCMOS33")),
 
         Resource("plugin_stream_input", 0,
+            # BEWARE: all of these inputs are inverted but cant be inverted here (they have to be inverted after the iserdes)
             Subsignal("valid", DiffPairs("45", "47", dir="i"), Attrs(IO_TYPE="LVDS25", DIFFRESISTOR="100")),  # lvds0
             Subsignal("lvds0", DiffPairs("42", "43", dir="i"), Attrs(IO_TYPE="LVDS25", DIFFRESISTOR="100")),  # lvds1
             Subsignal("lvds1", DiffPairs("40", "41", dir="i"), Attrs(IO_TYPE="LVDS25", DIFFRESISTOR="100")),  # lvds2

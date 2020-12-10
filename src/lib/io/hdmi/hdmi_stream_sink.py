@@ -7,17 +7,17 @@ from lib.video.image_stream import ImageStream
 
 
 class HdmiStreamSink(Elaboratable):
-    def __init__(self, input: ImageStream, plugin, modeline, pix_domain="pix", generate_clocks=True):
+    def __init__(self, input: ImageStream, resource, modeline, pix_domain="pix", generate_clocks=True):
         self.input = input
         self.generate_clocks = generate_clocks
         self.pix_domain = pix_domain
         self.modeline = modeline
-        self.plugin = plugin
+        self.resource = resource
 
     def elaborate(self, platform):
         m = Module()
 
-        hdmi = m.submodules.hdmi = Hdmi(self.plugin, self.modeline, self.pix_domain, self.generate_clocks)
+        hdmi = m.submodules.hdmi = Hdmi(self.resource, self.modeline, self.pix_domain, self.generate_clocks)
         m.submodules.aligner = DomainRenamer(self.pix_domain)(HdmiStreamAligner(self.input, hdmi))
         m.d.comb += hdmi.rgb.eq(self.input.payload)
 

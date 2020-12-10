@@ -3,7 +3,6 @@ from itertools import product
 from nmigen import *
 from nmigen.build import Clock
 
-from devices import MicroR2Platform
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.primitives.xilinx_s7.clocking import Mmcm
 from lib.primitives.xilinx_s7.io import OSerdes10
@@ -15,8 +14,8 @@ from .tmds import Encoder
 
 
 class Hdmi(Elaboratable):
-    def __init__(self, plugin, modeline, pix_domain="pix", generate_clocks=True):
-        self.plugin = plugin
+    def __init__(self, resource, modeline, pix_domain="pix", generate_clocks=True):
+        self.resource = resource
         self.pix_domain = pix_domain
         self.generate_clocks = generate_clocks
         self.initial_video_timing = parse_modeline(modeline)
@@ -41,24 +40,16 @@ class Hdmi(Elaboratable):
 
         domain_args = {"domain": self.pix_domain, "domain_5x": "{}_5x".format(self.pix_domain)}
 
-        serializer_clock = m.submodules.serializer_clock = OSerdes10(self.clock_pattern, **domain_args)
-        m.d.comb += self.plugin.clock.eq(serializer_clock.output)
+        encoder_r = m.submodules.encoder_r = in_pix_domain(Encoder(self.rgb.r, Cat(timing.hsync, timing.vsync), timing.active))
+        encoder_g = m.submodules.encoder_g = in_pix_domain(Encoder(self.rgb.g, Cat(timing.hsync, timing.vsync), timing.active))
+        encoder_b = m.submodules.encoder_b = in_pix_domain(Encoder(self.rgb.b, Cat(timing.hsync, timing.vsync), timing.active))
 
-        encoder_b = m.submodules.encoder_b = in_pix_domain(
-            Encoder(self.rgb.b, Cat(timing.hsync, timing.vsync), timing.active))
-        serializer_b = m.submodules.serializer_b = OSerdes10(encoder_b.out, **domain_args)
-        m.d.comb += self.plugin.data[0].eq(serializer_b.output)
-        encoder_g = m.submodules.encoder_g = in_pix_domain(
-            Encoder(self.rgb.g, Cat(timing.hsync, timing.vsync), timing.active))
-        serializer_g = m.submodules.serializer_g = OSerdes10(encoder_g.out, **domain_args)
-        m.d.comb += self.plugin.data[1].eq(serializer_g.output)
-        encoder_r = m.submodules.encoder_r = in_pix_domain(
-            Encoder(self.rgb.r, Cat(timing.hsync, timing.vsync), timing.active))
-        serializer_r = m.submodules.serializer_r = OSerdes10(encoder_r.out, **domain_args,
-                                                             invert=isinstance(platform, MicroR2Platform))  #TODO: handle properly
-        m.d.comb += self.plugin.data[2].eq(serializer_r.output)
+        serializer_clock = m.submodules.serializer_clock = OSerdes10(self.clock_pattern, self.resource.clock, **domain_args)
+        serializer_b = m.submodules.serializer_b = OSerdes10(encoder_b.out, self.resource.b, **domain_args)
+        serializer_g = m.submodules.serializer_g = OSerdes10(encoder_g.out, self.resource.g, **domain_args)
+        serializer_r = m.submodules.serializer_r = OSerdes10(encoder_r.out, self.resource.r, **domain_args)
 
-        m.submodules.plugin = PluginLowspeedController(self.plugin)
+        m.submodules.lowspeed = PluginLowspeedController(self.resource)
 
         return m
 

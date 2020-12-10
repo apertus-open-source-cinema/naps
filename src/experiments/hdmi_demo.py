@@ -20,8 +20,8 @@ class Top(Elaboratable):
     def elaborate(self, platform: ZynqSocPlatform):
         m = Module()
 
-        hdmi_plugin = platform.request("hdmi", "north")
-        hdmi = m.submodules.hdmi = Hdmi(hdmi_plugin, generate_modeline(1920, 1080, 60))
+        hdmi_resource = platform.request("hdmi", "north")
+        hdmi = m.submodules.hdmi = Hdmi(hdmi_resource, generate_modeline(1920, 1080, 60))
 
         clocking_debug = m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x")
         

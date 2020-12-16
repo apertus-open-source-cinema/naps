@@ -25,7 +25,10 @@ class StreamInfo(Elaboratable):
             m.d.sync += self.ready_not_valid.eq(self.ready_not_valid + 1)
 
         m.d.sync += self.reference_counter.eq(self.reference_counter + 1)
-        with m.If(self.stream.valid & self.stream.ready):
+
+        transaction = Signal()
+        m.d.comb += transaction.eq(self.stream.valid & self.stream.ready)
+        with m.If(transaction):
             m.d.sync += self.successful_transactions_counter.eq(self.successful_transactions_counter + 1)
 
         m.d.comb += self.current_ready.eq(self.stream.ready)
@@ -33,7 +36,7 @@ class StreamInfo(Elaboratable):
 
         for name, signal in self.stream.payload_signals.items():
             if len(signal) == 1:
-                m.submodules[name] = MetadataSignalDebug(signal)
+                m.submodules[name] = MetadataSignalDebug(signal, transaction)
             else:
                 current_state = StatusSignal(signal.shape())
                 m.d.comb += current_state.eq(signal)
@@ -59,9 +62,10 @@ class StreamInfo(Elaboratable):
 
 
 class MetadataSignalDebug(Elaboratable):
-    def __init__(self, signal):
+    def __init__(self, signal, transaction):
         assert len(signal) == 1
         self.signal = signal
+        self.transaction = transaction
 
         self.cycle_1_length = StatusSignal(32)
         self.cycle_1_length_changed = StatusSignal(32)
@@ -78,25 +82,26 @@ class MetadataSignalDebug(Elaboratable):
         cycle_0_counter = Signal(32)
         cycle_1_counter = Signal(32)
 
-        with m.If(self.signal):
-            m.d.sync += cycle_0_counter.eq(0)
-            with m.If(cycle_0_counter != 0):
-                m.d.sync += self.cycle_0_length.eq(cycle_0_counter)
-                with m.If(self.cycle_0_length != cycle_0_counter):
-                    m.d.sync += self.cycle_0_length_changed.eq(self.cycle_0_length_changed + 1)
-            m.d.sync += cycle_1_counter.eq(cycle_1_counter + 1)
-        with m.Else():
-            m.d.sync += cycle_1_counter.eq(0)
-            with m.If(cycle_1_counter != 0):
-                m.d.sync += self.cycle_1_length.eq(cycle_1_counter)
-                with m.If(self.cycle_1_length != cycle_1_counter):
-                    m.d.sync += self.cycle_1_length_changed.eq(self.cycle_1_length_changed + 1)
-            m.d.sync += cycle_0_counter.eq(cycle_0_counter + 1)
+        with m.If(self.transaction):
+            with m.If(self.signal):
+                m.d.sync += cycle_0_counter.eq(0)
+                with m.If(cycle_0_counter != 0):
+                    m.d.sync += self.cycle_0_length.eq(cycle_0_counter)
+                    with m.If(self.cycle_0_length != cycle_0_counter):
+                        m.d.sync += self.cycle_0_length_changed.eq(self.cycle_0_length_changed + 1)
+                m.d.sync += cycle_1_counter.eq(cycle_1_counter + 1)
+            with m.Else():
+                m.d.sync += cycle_1_counter.eq(0)
+                with m.If(cycle_1_counter != 0):
+                    m.d.sync += self.cycle_1_length.eq(cycle_1_counter)
+                    with m.If(self.cycle_1_length != cycle_1_counter):
+                        m.d.sync += self.cycle_1_length_changed.eq(self.cycle_1_length_changed + 1)
+                m.d.sync += cycle_0_counter.eq(cycle_0_counter + 1)
 
-        signal_last = Signal()
-        m.d.sync += signal_last.eq(self.signal)
-        with m.If(self.signal & ~signal_last):
-            m.d.sync += self.cycles.eq(self.cycles + 1)
+            signal_last = Signal()
+            m.d.sync += signal_last.eq(self.signal)
+            with m.If(self.signal & ~signal_last):
+                m.d.sync += self.cycles.eq(self.cycles + 1)
 
         return m
 

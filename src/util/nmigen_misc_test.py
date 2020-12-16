@@ -4,7 +4,7 @@ from itertools import product
 from nmigen import *
 from nmigen.sim import Simulator
 
-from util.nmigen_misc import nReversed, nMin, nAny, nAll, nMax, assert_is_pot, log2, ends_with, nAbsDifference
+from util.nmigen_misc import nMin, nAny, nAll, nMax, assert_is_pot, log2, ends_with, nAbsDifference
 
 
 class TestNMigenMisc(unittest.TestCase):
@@ -19,11 +19,6 @@ class TestNMigenMisc(unittest.TestCase):
         sim.add_process(testbench)
         sim.run()
         return a[0]
-
-
-    def test_nReversed(self):
-        self.assertEqual(0b0001, self._resolve(nReversed(Const(0b1000, 4))))
-        self.assertEqual(0b11001100, self._resolve(nReversed(Const(0b00110011, 8))))
 
     def test_nMin(self):
         self.assertEqual(3, self._resolve(nMin(3, 7)))

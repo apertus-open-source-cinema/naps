@@ -19,12 +19,8 @@ from lib.peripherals.i2c.bitbang_i2c import BitbangI2c
 from lib.peripherals.mmio_gpio import MmioGpio
 from lib.primitives.xilinx_s7.clocking import Pll
 from lib.video.buffer_reader import VideoBufferReader
-from lib.video.debayer import RecoloringDebayerer, SimpleInterpolatingDebayerer
-from lib.video.focus_peeking import FocusPeeking
 from lib.video.ft60x_legalizer import Ft60xLegalizer
-from lib.video.resizer import VideoResizer
 from lib.video.stream_converter import ImageStream2PacketizedStream
-from lib.video.demo_source import BlinkDemoVideoSource
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform
 from soc.pydriver.drivermethod import driver_method
@@ -87,14 +83,14 @@ class Top(Elaboratable):
             StreamGearbox(output_stream_resizer.output, target_width=12)
         )
         output_resizer_12_to_8 = m.submodules.output_resizer_12_to_8 = StreamResizer(output_gearbox_down.output, 8, upper_bits=True)
-        output_gearbox_up = m.submodules.output_gearbox2 = DomainRenamer("axi_hp")(
+        output_gearbox_up = m.submodules.output_gearbox_up = DomainRenamer("axi_hp")(
             StreamGearbox(output_resizer_12_to_8.output, target_width=32)
         )
 
         platform.ps7.fck_domain(20e6, "usb3_fclk")
-        pll = m.submodules.pll = Pll(20e6, 40, 1, input_domain="usb3_fclk")
-        pll.output_domain("usb3_bitclk", 2)
-        pll.output_domain("usb3_sync", 8)
+        pll = m.submodules.pll = Pll(20e6, 60, 1, input_domain="usb3_fclk")
+        pll.output_domain("usb3_bitclk", 6)
+        pll.output_domain("usb3_sync", 24)
 
         output_cdc_fifo = m.submodules.output_cdc_fifo = BufferedAsyncStreamFIFO(output_gearbox_up.output, 1024, i_domain="axi_hp", o_domain="usb3_sync")
         ft60x_legalizer = m.submodules.ft60x_legalizer = DomainRenamer("usb3_sync")(Ft60xLegalizer(output_cdc_fifo.output, 2304, 1296, 8))

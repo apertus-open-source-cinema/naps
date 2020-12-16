@@ -14,6 +14,9 @@ pytest-xdist = "*"
 psutil = "*"
 pytest-github-actions-annotate-failures = "*"
 pytest-forked = "*"
+huffman = "*"
+matplotlib = "*"
+bitarray = "*"
 
 [packages]
 nmigen = {editable = true,path = "/home/anuejn/code/nmigen"}

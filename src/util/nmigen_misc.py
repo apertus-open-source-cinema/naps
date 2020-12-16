@@ -95,11 +95,6 @@ def with_reset(m, signal, exclusive=False):
         m.d.comb += ResetSignal(domain_name).eq(signal)
     return DomainRenamer(domain_name)
 
-
-def nReversed(signal):
-    return Cat(signal[i] for i in reversed(range(len(signal))))
-
-
 def nAvrg(*values):
     return sum(values) // len(values)
 

@@ -6,7 +6,6 @@ from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.primitives.lattice_machxo2.io import ISerdes8
 from lib.primitives.lattice_machxo2.clocking import Pll, EClkSync, ClkDiv
 from soc.pydriver.drivermethod import driver_method
-from util.nmigen_misc import nReversed
 
 
 class PluginModuleStreamerRx(Elaboratable):
@@ -29,7 +28,7 @@ class PluginModuleStreamerRx(Elaboratable):
         m.domains += ClockDomain(domain_in)
         m.d.comb += ClockSignal(domain_in).eq(self.plugin.clk_word)
 
-        pll = m.submodules.pll = Pll(input_freq=100e6, vco_mul=4, vco_div=1, input_domain=domain_in)
+        pll = m.submodules.pll = Pll(input_freq=50e6, vco_mul=4, vco_div=1, input_domain=domain_in)
         pll.output_domain(domain_ddr, 1)
 
         m.submodules.eclk_ddr = EClkSync(domain_ddr, domain_ddr_eclk, input_frequency=400e6)
@@ -51,7 +50,7 @@ class PluginModuleStreamerRx(Elaboratable):
         m.d.comb += valid_iserdes.bitslip.eq(bitslip_signal)
         m.d.comb += self.valid.eq(valid_iserdes.output[4])
 
-        m.d.sync += self.output.payload.eq(Cat(*[nReversed(lane.output) for lane in lanes]))
+        m.d.sync += self.output.payload.eq(Cat(*[lane.output for lane in lanes]))
         m.d.comb += self.output.valid.eq(
             self.valid & self.trained
         )
@@ -63,12 +62,17 @@ class PluginModuleStreamerRx(Elaboratable):
     @driver_method
     def train(self, timeout=32):
         self.lane0.delay = 15
+        print("doing word alignment...")
         for i in range(timeout):
-            if self.lane0.output == 0b00000110:
-                print(i, "slips")
+            if self.lane0.output == 0b00010110:
+                print("-> {} slips".format(i))
+                print("training lane 0...")
                 self.lane0.train()
+                print("training lane 1...")
                 self.lane1.train()
+                print("training lane 2...")
                 self.lane2.train()
+                print("training lane 3...")
                 self.lane3.train()
                 self.trained = True
                 return
@@ -79,9 +83,6 @@ class PluginModuleStreamerRx(Elaboratable):
 
 class WordAligner(Elaboratable):
     def __init__(self, ddr_domain, lane_output):
-        """
-        Does word alignment usig a given testpattern if in_testpattern_mode is high
-        """
         self.ddr_domain = ddr_domain
 
         self.lane_output = lane_output
@@ -107,7 +108,7 @@ class WordAligner(Elaboratable):
 
 
 class LaneBitAligner(Elaboratable):
-    def __init__(self, input, in_testpattern_mode, ddr_domain, bitslip_signal, testpattern=0b00000110):
+    def __init__(self, input, in_testpattern_mode, ddr_domain, bitslip_signal, testpattern=0b00010110):
         """
         Does bit alignment of one lane usig a given testpattern if in_testpattern_mode is high
         """
@@ -170,4 +171,4 @@ class LaneBitAligner(Elaboratable):
             print(i, difference)
             was_good = difference == 0
         self.delay = int(start_longest + (len_longest / 2))
-        print("delay tap", self.delay)
+        print("-> delay tap", self.delay)

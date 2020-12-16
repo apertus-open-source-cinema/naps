@@ -10,7 +10,7 @@ from lib.primitives.xilinx_s7.io import DDRSerializer
 
 
 class PluginModuleStreamerTx(Elaboratable):
-    def __init__(self, plugin_resource, input: BasicStream, bitclk_domain, training_pattern=0b00000110):
+    def __init__(self, plugin_resource, input: BasicStream, bitclk_domain, training_pattern=0b00010110):
         self.bitclk_domain = bitclk_domain
         self.plugin_resource = plugin_resource
         self.input = input
@@ -21,7 +21,7 @@ class PluginModuleStreamerTx(Elaboratable):
     def elaborate(self, platform):
         m = Module()
         
-        m.d.comb += self.input.ready.eq(1)
+        m.d.comb += self.input.ready.eq(~self.do_training)
         m.submodules.inflexible_sink_debug = InflexibleSinkDebug(self.input)
 
         valid = Signal()

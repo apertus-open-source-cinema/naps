@@ -55,4 +55,3 @@ class Wavelet2D(Elaboratable):
         m.d.comb += self.output.connect_upstream(wavelet_y.output)
 
         return m
-

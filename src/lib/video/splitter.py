@@ -1,10 +1,12 @@
+from typing import List
+
 from nmigen import *
 
 from lib.video.image_stream import ImageStream
 from util.nmigen_misc import nAny, iterator_with_if_elif
 
 
-class ImageStreamSplitter(Elaboratable):
+class ImageSplitter(Elaboratable):
     """Splits each image in four sub images. From each 4x4 pixel cluster each image receives one pixel. This can eg. be handy to decompose bayer data."""
 
     def __init__(self, input: ImageStream, width, height):
@@ -48,5 +50,36 @@ class ImageStreamSplitter(Elaboratable):
                 # the last signals are used as first signals here and are later converted
                 m.d.comb += output.line_last.eq((x // 2) == (self.width - 1) // 2)
                 m.d.comb += output.frame_last.eq(((y // 2) == (self.height - 1) // 2) & output.line_last)
+
+        return m
+
+
+class ImageCombiner(Elaboratable):
+    """Combines image streams to a larger image stream by either putting them side by side or interleaving them.
+     May deadlock if the input streams are not enough buffered."""
+    def __init__(self, *inputs: ImageStream, interleave=True):
+        self.inputs = inputs
+        assert all(input.payload.shape() == inputs[0].payload.shape() for input in inputs)
+        self.output = inputs[0].clone()
+        self.interleave = interleave
+
+    def elaborate(self, platform):
+        m = Module()
+
+        output_transaction = Signal()
+        m.d.comb += output_transaction.eq(self.output.ready & self.output.valid)
+
+        with m.FSM():
+            for i, input in enumerate(self.inputs):
+                with m.State(str(i)):
+                    m.d.comb += input.ready.eq(self.output.ready)
+                    m.d.comb += self.output.valid.eq(input.valid)
+                    m.d.comb += self.output.payload.eq(input.payload)
+                    m.d.comb += self.output.line_last.eq(input.line_last & (i == len(self.inputs) - 1))
+                    m.d.comb += self.output.frame_last.eq(input.frame_last & (i == len(self.inputs) - 1))
+                    with m.If(self.interleave & output_transaction):
+                        m.next = str((i + 1) % len(self.inputs))
+                    with m.If(~self.interleave & output_transaction & input.line_last):
+                        m.next = str((i + 1) % len(self.inputs))
 
         return m

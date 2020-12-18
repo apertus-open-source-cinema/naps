@@ -42,7 +42,7 @@ class Wavelet1D(Elaboratable):
 class Wavelet2D(Elaboratable):
     def __init__(self, input: ImageStream, width, height):
         self.input = input
-        self.output = input.clone()
+        self.output = input.clone(name="wavelet_output")
 
         self.height = height
         self.width = width

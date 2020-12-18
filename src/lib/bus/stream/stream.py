@@ -28,8 +28,8 @@ class Stream(Bundle):
         self.ready = Signal() @ UPWARDS
         self.valid = Signal() @ DOWNWARDS
 
-    def clone(self, name=None):
-        new_stream = self.__class__(name=name)
+    def clone(self, name=None, src_loc_at=1):
+        new_stream = self.__class__(name=name, src_loc_at=1 + src_loc_at)
         for k, signal in self.payload_signals.items():
             setattr(new_stream, k, Signal.like(signal) @ DOWNWARDS)
         new_stream._directions = self._directions.copy()

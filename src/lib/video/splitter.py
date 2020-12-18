@@ -1,32 +1,34 @@
 from nmigen import *
 
 from lib.video.image_stream import ImageStream
+from util.nmigen_misc import nAny, iterator_with_if_elif
 
 
 class ImageStreamSplitter(Elaboratable):
     """Splits each image in four sub images. From each 4x4 pixel cluster each image receives one pixel. This can eg. be handy to decompose bayer data."""
-    def __init__(self, input: ImageStream):
+
+    def __init__(self, input: ImageStream, width, height):
         self.input = input
 
         self.output_top_left = input.clone()
         self.output_top_right = input.clone()
         self.output_bottom_left = input.clone()
         self.output_bottom_right = input.clone()
+        self.outputs = [self.output_top_left, self.output_top_right, self.output_bottom_left, self.output_bottom_right]
+        self.output_shifts = [(0, 0), (1, 0), (0, 1), (1, 1)]
+
+        self.width = width
+        self.height = height
 
     def elaborate(self, platform):
         m = Module()
 
+        input_transaction = Signal()
+        m.d.comb += input_transaction.eq(self.input.ready & self.input.valid)
+
         x = Signal(16)
         y = Signal(16)
-
-        # we need to delay the data one cycle to be able to generate correct last signals
-        last_top_left = Signal.like(self.input.payload)
-        last_top_right = Signal.like(self.input.payload)
-        last_bottom_left = Signal.like(self.input.payload)
-        last_bottom_right = Signal.like(self.input.payload)
-
-        input_read = (self.input.ready & self.input.valid)
-        with m.If(input_read):
+        with m.If(input_transaction):
             with m.If(~self.input.line_last):
                 m.d.sync += x.eq(x + 1)
             with m.Else():
@@ -35,31 +37,16 @@ class ImageStreamSplitter(Elaboratable):
             with m.If(self.input.frame_last):
                 m.d.sync += y.eq(0)
 
-            with m.If((x % 2 == 0) & (y % 2 == 0)):
-                m.d.sync += last_top_left.eq(self.input.payload)
-                m.d.comb += self.output_top_left.payload.eq(last_top_left)
-            with m.Elif((x % 2 == 1) & (y % 2 == 0)):
-                m.d.sync += last_top_right.eq(self.input.payload)
-                m.d.comb += self.output_top_right.payload.eq(last_top_right)
-            with m.Elif((x % 2 == 0) & (y % 2 == 1)):
-                m.d.sync += last_bottom_left.eq(self.input.payload)
-                m.d.comb += self.output_bottom_left.payload.eq(last_bottom_left)
-            with m.Elif((x % 2 == 1) & (y % 2 == 1)):
-                m.d.sync += last_bottom_right.eq(self.input.payload)
-                m.d.comb += self.output_bottom_right.payload.eq(last_bottom_right)
+        output_transaction = Signal()
+        m.d.comb += output_transaction.eq(nAny(s.ready & s.valid for s in self.outputs))
 
-        with m.If(self.input.valid):
-            with m.If((x % 2 == 0) & (y % 2 == 0)):
-                m.d.comb += self.input.ready.eq(self.output_top_left.ready)
-                m.d.comb += self.output_top_left.valid.eq(1)
-            with m.Elif((x % 2 == 1) & (y % 2 == 0)):
-                m.d.comb += self.input.ready.eq(self.output_top_right.ready)
-                m.d.comb += self.output_top_right.valid.eq(1)
-            with m.Elif((x % 2 == 0) & (y % 2 == 1)):
-                m.d.comb += self.input.ready.eq(self.output_bottom_left.ready)
-                m.d.comb += self.output_bottom_left.valid.eq(1)
-            with m.Elif((x % 2 == 1) & (y % 2 == 1)):
-                m.d.comb += self.input.ready.eq(self.output_bottom_right.ready)
-                m.d.comb += self.output_bottom_left.valid.eq(1)
+        for cond, (output, shift) in iterator_with_if_elif(zip(self.outputs, self.output_shifts), m):
+            with cond((x % 2 == shift[0]) & (y % 2 == shift[1])):
+                m.d.comb += self.input.ready.eq(output.ready)
+                m.d.comb += output.valid.eq(self.input.valid)
+                m.d.comb += output.payload.eq(self.input.payload)
+                # the last signals are used as first signals here and are later converted
+                m.d.comb += output.line_last.eq((x // 2) == (self.width - 1) // 2)
+                m.d.comb += output.frame_last.eq(((y // 2) == (self.height - 1) // 2) & output.line_last)
 
         return m

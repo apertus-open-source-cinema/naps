@@ -2,7 +2,7 @@ from nmigen import *
 
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
 from lib.video.image_stream import ImageStream
-from lib.video.splitter import ImageSplitter, ImageCombiner
+from lib.video.rearrange import ImageSplitter, ImageCombiner, BlackLineGenerator
 from lib.video.video_transformer import VideoTransformer
 
 
@@ -63,7 +63,7 @@ class MultiStageWavelet2D(Elaboratable):
     """Does a multi level wavelet transform while producing a wide image that has the lf part on the left and the hf parts on the right"""
     def __init__(self, input: ImageStream, width, height, stages):
         self.input = input
-        self.output = input.clone()
+        self.output = input.clone(name="stages_{}_output".format(stages))
 
         self.width = width
         self.height = height
@@ -76,35 +76,40 @@ class MultiStageWavelet2D(Elaboratable):
             if stage == 1:
                 return 0
             else:
-                return 6 * (self.width // 2**(stage - 1)) * calculate_needed_bottom_buffer(stage - 1)
+                return 6 * (self.width // 2**(stage - 1)) + calculate_needed_bottom_buffer(stage - 1)
 
         transformer = m.submodules.transformer = Wavelet2D(self.input, self.width, self.height)
         splitter = m.submodules.splitter = ImageSplitter(transformer.output, self.width, self.height)
-        fifo_depths = [
-            self.width // 2 + calculate_needed_bottom_buffer(self.stages),
-            self.width // 2 + calculate_needed_bottom_buffer(self.stages),
-            calculate_needed_bottom_buffer(self.stages),
-            calculate_needed_bottom_buffer(self.stages)
-        ]
-        print(fifo_depths)
-        fifos = [BufferedSyncStreamFIFO(s, depth) for s, depth in zip(splitter.outputs, fifo_depths)]
-        fifo_outputs = [fifo.output for fifo in fifos]
-        for fifo in fifos:
-            m.submodules += fifo
+        fifo_depths = [1000, 1000, 1000, 1000]
+        self.fifos = [BufferedSyncStreamFIFO(s, depth) for s, depth in zip(splitter.outputs, fifo_depths)]
+        fifo_outputs = [fifo.output for fifo in self.fifos]
+        for i, fifo in enumerate(self.fifos):
+            m.submodules["fifo_{}".format(i)] = fifo
 
-        lf_output = fifo_outputs[0]
         hf_outputs = fifo_outputs[1:]
+        hf_combiner = m.submodules.hf_combiner = ImageCombiner(*hf_outputs, interleave=True, output_name="hf_combiner_output")
 
-        hf_combiner1 = m.submodules.hf_combiner1 = ImageCombiner(hf_outputs[1], hf_outputs[2], interleave=True)
-        hf_combiner2 = m.submodules.hf_combiner2 = ImageCombiner(hf_outputs[0], hf_combiner1.output, interleave=False)
+        stretch_factor = (2 ** (self.stages - 1))
+
+        lf_output = fifo_outputs[0].clone()
         if self.stages == 1:
-            lf_out = lf_output
+            m.d.comb += lf_output.connect_upstream(fifo_outputs[0])
         else:
-            next_stage = m.submodules.next_stage = MultiStageWavelet2D(lf_output, self.width // 2, self.height // 2, self.stages - 1)
-            lf_out = next_stage.output
+            self.next_stage = next_stage = m.submodules.next_stage = MultiStageWavelet2D(fifo_outputs[0], self.width // 2, self.height // 2, self.stages - 1)
+            padding_generator = m.submodules.padding_generator = BlackLineGenerator(lf_output.payload.shape(), self.width // 2 * stretch_factor)
+
+            n_preroll_lines = 6
+            preroll_lines = Signal(range(n_preroll_lines + 1))
+            with m.If(preroll_lines < n_preroll_lines):
+                with m.If(lf_output.line_last & lf_output.ready & lf_output.valid):
+                    m.d.sync += preroll_lines.eq(preroll_lines + 1)
+                m.d.comb += lf_output.connect_upstream(padding_generator.output)
+            with m.Else():
+                m.d.comb += lf_output.connect_upstream(next_stage.output)
+
         # we stretch the hf part that would occupy multiple lines of the now downscaled image (from a subsequent level) into one long line
-        hf_stretcher = m.submodules.hf_stretcher = ImageCombiner(*([hf_combiner2.output] * (2 ** (self.stages - 1))), interleave=False)
-        output_combiner = m.submodules.output_combiner = ImageCombiner(lf_out, hf_stretcher.output, interleave=False)
+        hf_stretcher = m.submodules.hf_stretcher = ImageCombiner(*([hf_combiner.output] * stretch_factor), interleave=False, output_name="hf_stretcher_output")
+        output_combiner = m.submodules.output_combiner = ImageCombiner(lf_output, hf_stretcher.output, interleave=False, output_name="output_combiner_output")
 
         m.d.comb += self.output.connect_upstream(output_combiner.output)
 

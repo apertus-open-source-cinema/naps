@@ -57,10 +57,10 @@ class ImageSplitter(Elaboratable):
 class ImageCombiner(Elaboratable):
     """Combines image streams to a larger image stream by either putting them side by side or interleaving them.
      May deadlock if the input streams are not enough buffered."""
-    def __init__(self, *inputs: ImageStream, interleave=True):
+    def __init__(self, *inputs: ImageStream, interleave=True, output_name=None):
         self.inputs = inputs
         assert all(input.payload.shape() == inputs[0].payload.shape() for input in inputs)
-        self.output = inputs[0].clone()
+        self.output = inputs[0].clone(name=output_name)
         self.interleave = interleave
 
     def elaborate(self, platform):
@@ -81,5 +81,26 @@ class ImageCombiner(Elaboratable):
                         m.next = str((i + 1) % len(self.inputs))
                     with m.If(~self.interleave & output_transaction & input.line_last):
                         m.next = str((i + 1) % len(self.inputs))
+
+        return m
+
+
+class BlackLineGenerator(Elaboratable):
+    """generates a frame of infinite height and defined length. the generated frame is all black"""
+    def __init__(self, payload_shape, width):
+        self.output = ImageStream(payload_shape, name="black_lines_output")
+        self.width = width
+
+    def elaborate(self, platform):
+        m = Module()
+
+        line_counter = Signal(range(self.width))
+        m.d.comb += self.output.valid.eq(1)
+        with m.If(self.output.ready):
+            with m.If(line_counter < self.width - 1):
+                m.d.sync += line_counter.eq(line_counter + 1)
+            with m.Else():
+                m.d.sync += line_counter.eq(0)
+                m.d.comb += self.output.line_last.eq(1)
 
         return m

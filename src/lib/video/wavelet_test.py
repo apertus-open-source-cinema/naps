@@ -1,13 +1,13 @@
 import unittest
+from collections import defaultdict
 from os.path import join, dirname
 
 from nmigen import *
 from nmigen.sim import Passive
 
-from lib.bus.stream.fifo import BufferedSyncStreamFIFO
 from lib.bus.stream.sim_util import write_to_stream
 from lib.video.image_stream import ImageStream
-from lib.video.splitter import ImageSplitter, ImageCombiner
+from lib.video.rearrange import ImageSplitter, ImageCombiner
 from lib.video.test_util import write_frame_to_stream, read_frame_from_stream
 from lib.video.wavelet import Wavelet2D, MultiStageWavelet2D
 from util.sim import SimPlatform
@@ -79,11 +79,9 @@ class WaveletTest(unittest.TestCase):
         m = Module()
 
         image = imageio.imread(join(dirname(__file__), "che.png"))
-        width = 100
-        height = 128
 
         input = ImageStream(8)
-        wavelet = m.submodules.wavelet = MultiStageWavelet2D(input, width, height, stages=n)
+        wavelet = m.submodules.wavelet = MultiStageWavelet2D(input, *image.T.shape, stages=n)
 
         def write_process():
             yield from write_frame_to_stream(input, image, pause=False, timeout=10000)
@@ -92,16 +90,35 @@ class WaveletTest(unittest.TestCase):
                 yield from write_frame_to_stream(input, image, pause=False, timeout=10000)
         platform.add_process(write_process, "sync")
 
+        fifo_levels = defaultdict(lambda: [0 for _ in range(4)])
+        def find_maximum_fifo_level():
+            def find_max_levels(wavelet, level=1):
+                for i, fifo in enumerate(wavelet.fifos):
+                    current_level = yield fifo.r_level
+                    fifo_levels[level][i] = max(current_level, fifo_levels[level][i])
+                if hasattr(wavelet, 'next_stage'):
+                    yield from find_max_levels(wavelet.next_stage, level + 1)
+            yield Passive()
+            while True:
+                yield from find_max_levels(wavelet)
+                yield
+        platform.add_process(find_maximum_fifo_level, "sync")
+
         def read_process():
-            image = (yield from read_frame_from_stream(wavelet.output, timeout=1000, pause=False))
-            imageio.imsave(platform.output_filename_base + ".png", image)
+            for i in range(2):
+                image = (yield from read_frame_from_stream(wavelet.output, timeout=1000, pause=False))
+                imageio.imsave(platform.output_filename_base + str(i) + ".png", image)
         platform.add_process(read_process, "sync")
 
         platform.add_sim_clock("sync", 100e6)
         platform.sim(m)
+        print("fifo levels:", list(fifo_levels.items()))
 
     def test_multistage_1(self):
         self.check_multistage(1)
 
     def test_multistage_2(self):
         self.check_multistage(2)
+
+    def test_multistage_3(self):
+        self.check_multistage(3)

@@ -96,10 +96,10 @@ class MultiStageWavelet2D(Elaboratable):
             self.next_stage = next_stage = m.submodules.next_stage = MultiStageWavelet2D(next_stage_input, self.width // 2, self.height // 2, self.stages - 1, self.level + 1)
             padding_generator = m.submodules.padding_generator = BlackLineGenerator(lf_output.payload.shape(), self.width // 2 * stretch_factor)
 
-            n_preroll_lines = 6
+            n_preroll_lines = 6 # TODO: this is bs. why does it work
             preroll_lines = Signal(range(n_preroll_lines + 1))
             with m.If(preroll_lines < n_preroll_lines):
-                with m.If(lf_output.line_last & lf_output.valid & lf_output.ready):
+                with m.If(lf_output.line_last & lf_output.valid & lf_output.ready):  # TODO: see above; should be lf_processed.*
                     m.d.sync += preroll_lines.eq(preroll_lines + 1)
                 m.d.comb += lf_processed.connect_upstream(padding_generator.output)
             with m.Else():

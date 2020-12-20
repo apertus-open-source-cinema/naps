@@ -7,7 +7,7 @@ from nmigen.sim import Passive
 
 from lib.bus.stream.sim_util import write_to_stream
 from lib.video.image_stream import ImageStream
-from lib.video.rearrange import ImageSplitter, ImageCombiner
+from lib.video.rearrange import ImageSplitter
 from lib.video.test_util import write_frame_to_stream, read_frame_from_stream
 from lib.video.wavelet import Wavelet2D, MultiStageWavelet2D
 from util.sim import SimPlatform
@@ -78,7 +78,7 @@ class WaveletTest(unittest.TestCase):
         platform = SimPlatform()
         m = Module()
 
-        image = imageio.imread(join(dirname(__file__), "che.png"))
+        image = imageio.imread(join(dirname(__file__), "che_32.png"))
 
         input = ImageStream(8)
         wavelet = m.submodules.wavelet = MultiStageWavelet2D(input, *image.T.shape, stages=n)

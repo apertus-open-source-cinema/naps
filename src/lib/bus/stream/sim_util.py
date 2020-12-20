@@ -1,4 +1,4 @@
-from collections import Iterable
+from typing import Iterable
 
 from lib.bus.stream.stream import Stream
 from util.sim import wait_for

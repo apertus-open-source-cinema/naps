@@ -1,3 +1,4 @@
+import copy
 from collections import OrderedDict
 
 from nmigen import *
@@ -32,7 +33,7 @@ class Stream(Bundle):
         new_stream = self.__class__(name=name, src_loc_at=1 + src_loc_at)
         for k, signal in self.payload_signals.items():
             setattr(new_stream, k, Signal.like(signal) @ DOWNWARDS)
-        new_stream._directions = self._directions.copy()
+        new_stream._directions = copy.deepcopy(self._directions)
         return new_stream
 
     @property

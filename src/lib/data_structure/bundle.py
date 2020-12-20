@@ -11,10 +11,14 @@ from util.py_util import camel_to_snake
 
 class Bundle:
     def __init__(self, name=None, src_loc_at=1):
-        self.name = name or tracer.get_var_name(depth=1 + src_loc_at, default="$" + camel_to_snake(self.__class__.__name__))
+        super().__setattr__("name", name or tracer.get_var_name(depth=1 + src_loc_at, default="$" + camel_to_snake(self.__class__.__name__)))
         self._directions = OrderedDict()
 
     def __setattr__(self, key, value):
+        if key == "name":
+            super().__setattr__(key, value)
+            self._update_name()
+
         if isinstance(value, Port):
             self._directions[key] = value.direction
             value = value.to_wrap
@@ -25,8 +29,6 @@ class Bundle:
             if value.name.startswith("$"):  # with @UPWARDS and @DOWNWARDS we are breaking nmigens tracer
                 value.name = key
             value.name = format("{}__{}".format(self.name, value.name))
-        if hasattr(value, "_update_name") and callable(value._update_name):
-            value._update_name()
 
         super().__setattr__(key, value)
 

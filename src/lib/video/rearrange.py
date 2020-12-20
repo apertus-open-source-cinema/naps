@@ -79,7 +79,7 @@ class ImageCombiner(Elaboratable):
                     m.d.comb += self.output.frame_last.eq(input.frame_last & (i == len(self.inputs) - 1))
                     with m.If(self.interleave & output_transaction):
                         m.next = str((i + 1) % len(self.inputs))
-                    with m.If(~self.interleave & output_transaction & input.line_last):
+                    with m.If((not self.interleave) & output_transaction & input.line_last):
                         m.next = str((i + 1) % len(self.inputs))
 
         return m

@@ -1,5 +1,4 @@
 import unittest
-from itertools import product
 
 from nmigen import *
 from nmigen.sim import Simulator

@@ -17,11 +17,11 @@ class StreamFIFO(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
+        fifo = m.submodules.fifo = self.fifo
+
         if self.depth == 0:
             m.d.comb += self.output.connect_upstream(self.input)
         else:
-            fifo = m.submodules.fifo = self.fifo
-
             m.d.comb += self.r_level.eq(fifo.r_level)
             m.d.comb += self.w_level.eq(fifo.w_level)
 

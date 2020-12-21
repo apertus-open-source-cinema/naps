@@ -32,7 +32,8 @@ class BitStufferTest(unittest.TestCase):
         platform = SimPlatform()
         m = Module()
 
-        input_data = ['1110010', '1101001', '1111101', '1111101', '000110', '11010111000101', '0100111110010011', '011100', '000110', '001110', '1111101', '1100101', '0100111110010011', '111111101101', '111111101111111']
+        input_data = ['1110010', '1101001', '1111101', '1111101', '000110', '11010111000101', '0100111110010011', '011100', '000110', '001110', '1111101', '1100101', '0100111110010011',
+                      '111111101101', '111111101111111']
 
         input = VariableWidthStream(32)
         bit_stuffer = m.submodules.bit_stuffer = BitStuffer(input, 32)
@@ -51,7 +52,42 @@ class BitStufferTest(unittest.TestCase):
             read_bitstring = "".join("".join(reversed(x)) for x in read)
             print(read_bitstring)
             input_bitstring = "".join("".join(reversed(x)) for x in input_data)
+            print(input_bitstring)
+            print(read_bitstring)
             self.assertTrue(input_bitstring.startswith(read_bitstring))
+
+        platform.add_sim_clock("sync", 100e6)
+        platform.add_process(write_process, "sync")
+        platform.sim(m, read_process)
+
+    def test_advanced_last(self):
+        platform = SimPlatform()
+        m = Module()
+
+        input_data = ['1110010', '1101001', '1111101', '1111101', '000110', '11010111000101', '0100111110010011', '011100', '000110', '001110', '1111101', '1100101', '0100111110010011',
+                      '111111101101', '111111101111111']
+
+        input = VariableWidthStream(32)
+        bit_stuffer = m.submodules.bit_stuffer = BitStuffer(input, 32)
+
+        def write_process():
+            for i, word in enumerate(input_data):
+                yield from write_to_stream(input, payload=int(word, 2), current_width=len(word), last=(i == len(input_data) - 1))
+
+        def read_process():
+            read = []
+            for i in range(100):
+                v, last = (yield from read_from_stream(bit_stuffer.output, extract=("payload", "last")))
+                read.append("{:032b}".format(v))
+                if last:
+                    break
+            assert i != 99, "timeout"
+            read_bitstring = "".join("".join(reversed(x)) for x in read)
+            print(read_bitstring)
+            input_bitstring = "".join("".join(reversed(x)) for x in input_data)
+            print(input_bitstring)
+            print(read_bitstring)
+            self.assertTrue(read_bitstring.startswith(input_bitstring))
 
         platform.add_sim_clock("sync", 100e6)
         platform.add_process(write_process, "sync")

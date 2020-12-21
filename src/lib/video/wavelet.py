@@ -1,6 +1,7 @@
 from nmigen import *
 
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
+from lib.data_structure.bundle import DOWNWARDS
 from lib.video.image_stream import ImageStream
 from lib.video.rearrange import ImageSplitter, ImageCombiner, BlackLineGenerator
 from lib.video.video_transformer import VideoTransformer
@@ -64,6 +65,7 @@ class MultiStageWavelet2D(Elaboratable):
     def __init__(self, input: ImageStream, width, height, stages, level=1):
         self.input = input
         self.output = input.clone(name="wavelet_level{}_output".format(level))
+        self.output.is_hf = Signal() @ DOWNWARDS
 
         self.width = width
         self.level = level
@@ -82,6 +84,8 @@ class MultiStageWavelet2D(Elaboratable):
 
         transformer = m.submodules.transformer = Wavelet2D(self.input, self.width, self.height)
         splitter = m.submodules.splitter = ImageSplitter(transformer.output, self.width, self.height)
+        for i, output in enumerate(splitter.outputs):
+            output.is_hf = Signal(reset=(i != 0)) @ DOWNWARDS
 
         stretch_factor = (2 ** (self.stages - 1))
 
@@ -90,6 +94,7 @@ class MultiStageWavelet2D(Elaboratable):
         if self.stages == 1:
             lf_final_fifo = m.submodules.lf_final_fifo = BufferedSyncStreamFIFO(lf_output, self.width // 2)
             m.d.comb += lf_processed.connect_upstream(lf_final_fifo.output)
+            m.d.comb += lf_processed.is_hf.eq(0)
         else:
             next_stage_input = lf_output.clone()
             m.d.comb += next_stage_input.connect_upstream(lf_output)

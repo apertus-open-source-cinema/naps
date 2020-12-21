@@ -82,49 +82,55 @@ class MultiStageWavelet2D(Elaboratable):
                 return 6 * (self.width // 2**(stage - 1)) + calculate_needed_bottom_buffer(stage - 1)
 
 
+        def x_preroll(width, stages):
+            if stages == 1:
+                return 0
+            elif stages == 2:
+                return width
+            else:
+                return width * 3 // 4 + x_preroll(width // 2, stages - 1)
+
         transformer = m.submodules.transformer = Wavelet2D(self.input, self.width, self.height)
         splitter = m.submodules.splitter = ImageSplitter(transformer.output, self.width, self.height)
         for i, output in enumerate(splitter.outputs):
             output.is_hf = Signal(reset=(i != 0)) @ DOWNWARDS
 
-        stretch_factor = (2 ** (self.stages - 1))
-
         lf_output = splitter.outputs[0]
         lf_processed = splitter.outputs[0].clone()
         if self.stages == 1:
-            lf_final_fifo = m.submodules.lf_final_fifo = BufferedSyncStreamFIFO(lf_output, 0)
-            self.fifos.append(lf_final_fifo)
-            m.d.comb += lf_processed.connect_upstream(lf_final_fifo.output)
+            m.d.comb += lf_processed.connect_upstream(lf_output)
             m.d.comb += lf_processed.is_hf.eq(0)
         else:
             next_stage_input = lf_output.clone()
             m.d.comb += next_stage_input.connect_upstream(lf_output)
             self.next_stage = next_stage = m.submodules.next_stage = MultiStageWavelet2D(next_stage_input, self.width // 2, self.height // 2, self.stages - 1, self.level + 1)
-            padding_generator = m.submodules.padding_generator = BlackLineGenerator(lf_output.payload.shape(), self.width // 2 * stretch_factor, black_value=(2**len(self.input.payload) // 2))
+            padding_generator = m.submodules.padding_generator = BlackLineGenerator(lf_output.payload.shape(), x_preroll(self.width, self.stages), black_value=0) # (2**len(self.input.payload) // 2))
 
-            n_preroll_lines = 6 # TODO: this is bs. why does it work
+            n_preroll_lines = 5 # TODO(robin): why is it exactly this value
             preroll_lines = Signal(range(n_preroll_lines + 1))
+            even_odd = Signal(reset = 1)
+            output_counting_stream = lf_processed
+            new_line = output_counting_stream.line_last & output_counting_stream.valid & output_counting_stream.ready
             with m.If(preroll_lines < n_preroll_lines):
-                with m.If(next_stage_input.line_last & next_stage_input.valid & next_stage_input.ready):  # TODO: see above; should be lf_processed.*
+                with m.If(new_line):
                     m.d.sync += preroll_lines.eq(preroll_lines + 1)
                 m.d.comb += lf_processed.connect_upstream(padding_generator.output, allow_partial=True)
             with m.Else():
-                m.d.comb += lf_processed.connect_upstream(next_stage.output)
+                with m.If(new_line):
+                    m.d.sync += even_odd.eq(~even_odd)
+                with m.If(even_odd):
+                    m.d.comb += lf_processed.connect_upstream(next_stage.output)
+                with m.Else():
+                    m.d.comb += lf_processed.connect_upstream(padding_generator.output, allow_partial=True)
 
-        hf_fifo_depths = [self.width // 2 - 1, 0, 0]
-        hf_fifos = [BufferedSyncStreamFIFO(s, depth) for s, depth in zip(splitter.outputs[1:], hf_fifo_depths)]
-        m.submodules += hf_fifos
-        hf_outputs = [fifo.output for fifo in hf_fifos]
-        hf_combiner = m.submodules.hf_combiner = ImageCombiner(*hf_outputs, interleave=True, output_name="hf_combiner_output")
-        # we stretch the hf part that would occupy multiple lines of the now downscaled image (from a subsequent level) into one long line
-        hf_stretcher = m.submodules.hf_stretcher = ImageCombiner(*([hf_combiner.output] * stretch_factor), interleave=False, output_name="hf_stretcher_output")
-        output_combiner = m.submodules.output_combiner = ImageCombiner(lf_processed, hf_stretcher.output, interleave=False, output_name="output_combiner_output")
+        hf_top_right_fifo = m.submodules.hf_topright_fifo = BufferedSyncStreamFIFO(splitter.outputs[1], self.width // 2 - 1)
+        hf_combiner = m.submodules.hf_combiner = ImageCombiner(hf_top_right_fifo.output, *splitter.outputs[2:], interleave=True, output_name="hf_combiner_output")
+        output_combiner = m.submodules.output_combiner = ImageCombiner(lf_processed, hf_combiner.output, interleave=False, output_name="output_combiner_output")
 
         if self.level == 1:
             output_buffer_size = 0
         else:
-            output_buffer_size = { 2: self.width * 4, 1: self.width * 4 - 6 }[self.stages] # self.width * (2 ** self.level)
-            # print(f"level: {self.level}, buffersize: {output_buffer_size}")
+            output_buffer_size = { 2: 5 * self.width // 2 - 4, 1: self.width * 2 - 4 }[self.stages]
         output_fifo = m.submodules.output_fifo = BufferedSyncStreamFIFO(output_combiner.output, output_buffer_size)
         m.d.comb += self.output.connect_upstream(output_fifo.output)
 

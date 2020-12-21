@@ -81,6 +81,7 @@ class MultiStageWavelet2D(Elaboratable):
             else:
                 return 6 * (self.width // 2**(stage - 1)) + calculate_needed_bottom_buffer(stage - 1)
 
+
         transformer = m.submodules.transformer = Wavelet2D(self.input, self.width, self.height)
         splitter = m.submodules.splitter = ImageSplitter(transformer.output, self.width, self.height)
         for i, output in enumerate(splitter.outputs):
@@ -91,7 +92,8 @@ class MultiStageWavelet2D(Elaboratable):
         lf_output = splitter.outputs[0]
         lf_processed = splitter.outputs[0].clone()
         if self.stages == 1:
-            lf_final_fifo = m.submodules.lf_final_fifo = BufferedSyncStreamFIFO(lf_output, self.width // 2)
+            lf_final_fifo = m.submodules.lf_final_fifo = BufferedSyncStreamFIFO(lf_output, 0)
+            self.fifos.append(lf_final_fifo)
             m.d.comb += lf_processed.connect_upstream(lf_final_fifo.output)
             m.d.comb += lf_processed.is_hf.eq(0)
         else:
@@ -103,13 +105,13 @@ class MultiStageWavelet2D(Elaboratable):
             n_preroll_lines = 6 # TODO: this is bs. why does it work
             preroll_lines = Signal(range(n_preroll_lines + 1))
             with m.If(preroll_lines < n_preroll_lines):
-                with m.If(lf_output.line_last & lf_output.valid & lf_output.ready):  # TODO: see above; should be lf_processed.*
+                with m.If(next_stage_input.line_last & next_stage_input.valid & next_stage_input.ready):  # TODO: see above; should be lf_processed.*
                     m.d.sync += preroll_lines.eq(preroll_lines + 1)
                 m.d.comb += lf_processed.connect_upstream(padding_generator.output, allow_partial=True)
             with m.Else():
                 m.d.comb += lf_processed.connect_upstream(next_stage.output)
 
-        hf_fifo_depths = [self.width, 0, 0]
+        hf_fifo_depths = [self.width // 2 - 1, 0, 0]
         hf_fifos = [BufferedSyncStreamFIFO(s, depth) for s, depth in zip(splitter.outputs[1:], hf_fifo_depths)]
         m.submodules += hf_fifos
         hf_outputs = [fifo.output for fifo in hf_fifos]
@@ -121,8 +123,11 @@ class MultiStageWavelet2D(Elaboratable):
         if self.level == 1:
             output_buffer_size = 0
         else:
-            output_buffer_size = self.width * (2 ** self.level)
+            output_buffer_size = { 2: self.width * 4, 1: self.width * 4 - 6 }[self.stages] # self.width * (2 ** self.level)
+            # print(f"level: {self.level}, buffersize: {output_buffer_size}")
         output_fifo = m.submodules.output_fifo = BufferedSyncStreamFIFO(output_combiner.output, output_buffer_size)
         m.d.comb += self.output.connect_upstream(output_fifo.output)
+
+        self.fifos.append(output_fifo)
 
         return m

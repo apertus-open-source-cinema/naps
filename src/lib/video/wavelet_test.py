@@ -40,7 +40,7 @@ class WaveletTest(unittest.TestCase):
             imageio.imsave(platform.output_filename_base + ".png", target_image)
         platform.add_process(read_process, "sync")
 
-        platform.add_sim_clock("sync", 100e6)
+        platform.add_sim_clock("sync", 1000e6)
         platform.sim(m)
 
     def test_stream_splitter(self):
@@ -78,7 +78,7 @@ class WaveletTest(unittest.TestCase):
         platform = SimPlatform()
         m = Module()
 
-        image = imageio.imread(join(dirname(__file__), "che_32.png"))
+        image = imageio.imread(join(dirname(__file__), "che_64.png"))
 
         input = ImageStream(8)
         wavelet = m.submodules.wavelet = MultiStageWavelet2D(input, *image.T.shape, stages=n)
@@ -90,7 +90,7 @@ class WaveletTest(unittest.TestCase):
                 yield from write_frame_to_stream(input, image, pause=False, timeout=10000)
         platform.add_process(write_process, "sync")
 
-        fifo_levels = defaultdict(lambda: [0 for _ in range(4)])
+        fifo_levels = defaultdict(lambda: defaultdict(int))
         def find_maximum_fifo_level():
             def find_max_levels(wavelet, level=1):
                 for i, fifo in enumerate(wavelet.fifos):

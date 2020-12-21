@@ -63,10 +63,10 @@ class SimPlatform:
     def add_sim_clock(self, domain_name, frequency):
         self.clocks[domain_name] = frequency
 
-    def sim(self, dut, testbench=None, traces=()):
+    def sim(self, dut, testbench=None, traces=(), engine="pysim"):
         dut = self.prepare(dut)
         self.fragment = dut
-        simulator = Simulator(dut)
+        simulator = Simulator(dut, engine = engine)
         for name, frequency in self.clocks.items():
             simulator.add_clock(1 / frequency, domain=name)
 

@@ -10,7 +10,7 @@ from lib.video.video_transformer import VideoTransformer
 class Wavelet1D(Elaboratable):
     def __init__(self, input: ImageStream, width, height, direction_y):
         self.input = input
-        self.output = input.clone(name="wavelet_1D_output")
+        self.output = ImageStream(input.payload.shape(), name="wavelet_1D_output")
 
         self.height = height
         self.width = width
@@ -32,11 +32,10 @@ class Wavelet1D(Elaboratable):
             with m.If((y if self.direction_y else x) % 2 == 0):
                 m.d.comb += output.eq((px(0) + px(1)) // 2)
             with m.Else():
-                m.d.comb += output.eq(((px(0) - px(1) + (-px(-2) - px(-1) + px(2) + px(3)) // 8) // 2) + 127)
+                m.d.comb += output.eq(((px(0) - px(1) + (-px(-2) - px(-1) + px(2) + px(3)) // 8) // 2) + (2**len(self.input.payload) // 2))
             return output
 
-        video_transformer = m.submodules.video_transformer = VideoTransformer(self.input, transformer_function,
-                                                                              self.width, self.height)
+        video_transformer = m.submodules.video_transformer = VideoTransformer(self.input, transformer_function, self.width, self.height)
         m.d.comb += self.output.connect_upstream(video_transformer.output)
 
         return m
@@ -45,7 +44,7 @@ class Wavelet1D(Elaboratable):
 class Wavelet2D(Elaboratable):
     def __init__(self, input: ImageStream, width, height):
         self.input = input
-        self.output = input.clone(name="wavelet_2D_output")
+        self.output = ImageStream(input.payload.shape(), name="wavelet_2D_output")
 
         self.height = height
         self.width = width
@@ -99,14 +98,14 @@ class MultiStageWavelet2D(Elaboratable):
             next_stage_input = lf_output.clone()
             m.d.comb += next_stage_input.connect_upstream(lf_output)
             self.next_stage = next_stage = m.submodules.next_stage = MultiStageWavelet2D(next_stage_input, self.width // 2, self.height // 2, self.stages - 1, self.level + 1)
-            padding_generator = m.submodules.padding_generator = BlackLineGenerator(lf_output.payload.shape(), self.width // 2 * stretch_factor)
+            padding_generator = m.submodules.padding_generator = BlackLineGenerator(lf_output.payload.shape(), self.width // 2 * stretch_factor, black_value=(2**len(self.input.payload) // 2))
 
             n_preroll_lines = 6 # TODO: this is bs. why does it work
             preroll_lines = Signal(range(n_preroll_lines + 1))
             with m.If(preroll_lines < n_preroll_lines):
                 with m.If(lf_output.line_last & lf_output.valid & lf_output.ready):  # TODO: see above; should be lf_processed.*
                     m.d.sync += preroll_lines.eq(preroll_lines + 1)
-                m.d.comb += lf_processed.connect_upstream(padding_generator.output)
+                m.d.comb += lf_processed.connect_upstream(padding_generator.output, allow_partial=True)
             with m.Else():
                 m.d.comb += lf_processed.connect_upstream(next_stage.output)
 

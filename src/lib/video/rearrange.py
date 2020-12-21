@@ -87,15 +87,17 @@ class ImageCombiner(Elaboratable):
 
 class BlackLineGenerator(Elaboratable):
     """generates a frame of infinite height and defined length. the generated frame is all black"""
-    def __init__(self, payload_shape, width):
+    def __init__(self, payload_shape, width, black_value=0):
         self.output = ImageStream(payload_shape, name="black_lines_output")
         self.width = width
+        self.black_value = black_value
 
     def elaborate(self, platform):
         m = Module()
 
         line_counter = Signal(range(self.width))
         m.d.comb += self.output.valid.eq(1)
+        m.d.comb += self.output.payload.eq(self.black_value)
         with m.If(self.output.ready):
             with m.If(line_counter < self.width - 1):
                 m.d.sync += line_counter.eq(line_counter + 1)

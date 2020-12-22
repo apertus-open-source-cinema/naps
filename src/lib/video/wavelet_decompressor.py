@@ -24,15 +24,23 @@ hf_stage3 = image[:height // 8, -width * 3 // 8:]
 lf_stage3 = image[:height // 8, :width // 8]
 
 # always along first axis
-def inverse_wavelet(lf_part, hf_part, pad_width = 0):
+def inverse_wavelet(lf_part, hf_part, pad_width = 0, roll=False):
     lf_part = np.pad(lf_part, pad_width, "edge")
     hf_part = np.pad(hf_part, pad_width, constant_values=0.5)
 
     x, y = lf_part.shape
     res = np.zeros((x * 2, y))
-    res[::2] = lf_part
+    res[0::2] = lf_part
     res[1::2] = lf_part
-    correction = hf_part - 0.5 + (np.roll(lf_part, -1, 0) - np.roll(lf_part, +1, 0)) / 4
+
+    plt.figure()
+    plt.imshow((np.roll(lf_part, -1, 0) - np.roll(lf_part, +1, 0)) / 16)
+    plt.figure()
+    plt.imshow(hf_part - 0.5)
+    plt.show()
+
+    correction = hf_part - 0.5 + (np.roll(lf_part, -1, 0) - np.roll(lf_part, +1, 0)) / 16
+    # correction = np.roll(correction, +1, 0)
 
     # correction /= 2
     # plt.figure()
@@ -40,8 +48,12 @@ def inverse_wavelet(lf_part, hf_part, pad_width = 0):
     # plt.imshow(correction, cmap="gray")
     # plt.colorbar()
 
-    res[0::2] -= correction
-    res[1::2] += correction
+    # if roll:
+    #     res[0::2] += correction
+    #     res[1::2] -= correction
+    # else:
+    res[0::2] += correction
+    res[1::2] -= correction
 
     if pad_width > 0:
         return res[2*pad_width:-2*pad_width,pad_width:-pad_width]
@@ -57,18 +69,22 @@ def inverse_wavelet(lf_part, hf_part, pad_width = 0):
     # px(2*i + 1) = lf_i - g_i
 
 lf_stage3_y = inverse_wavelet(np.hstack([lf_stage3, hf_stage3[:,::3]]), np.hstack([hf_stage3[:,1::3], hf_stage3[:,2::3]]))
-lf_stage2 = inverse_wavelet(lf_stage3_y.T[:width//8], lf_stage3_y.T[width//8:]).T
+lf_stage2 = inverse_wavelet(lf_stage3_y.T[:width//8], lf_stage3_y.T[width//8:], 0, True).T
 
 lf_stage2_y = inverse_wavelet(np.hstack([lf_stage2, hf_stage2[:,::3]]), np.hstack([hf_stage2[:,1::3], hf_stage2[:,2::3]]))
-lf_stage1 = inverse_wavelet(lf_stage2_y.T[:width//4], lf_stage2_y.T[width//4:]).T
+lf_stage1 = inverse_wavelet(lf_stage2_y.T[:width//4], lf_stage2_y.T[width//4:], 0, True).T
 
 lf_stage1_y = inverse_wavelet(np.hstack([lf_stage1, hf_stage1[:,::3]]), np.hstack([hf_stage1[:,1::3], hf_stage1[:,2::3]]))
-lf_stage0 = inverse_wavelet(lf_stage1_y.T[:width//2], lf_stage1_y.T[width//2:]).T
+lf_stage0 = inverse_wavelet(lf_stage1_y.T[:width//2], lf_stage1_y.T[width//2:], 0, True).T
 
 plt.figure()
-plt.imshow(np.vstack([np.hstack([lf_stage1, hf_stage1[:,::3]]), np.hstack([hf_stage1[:,1::3], hf_stage1[:,2::3]])]), cmap = "gray")
+plt.imshow(np.vstack([np.hstack([lf_stage3, hf_stage3[:,::3]]), np.hstack([hf_stage3[:,1::3], hf_stage3[:,2::3]])]), cmap = "gray")
 
 # plt.figure()
 # plt.imshow(lf_stage0, cmap="gray", vmin=0.0, vmax=1.0)
-# plt.show()
+# plt.figure()
+# ref = im.imread(sys.argv[1] + "ref.png")
+# plt.imshow(ref, cmap="gray", vmin=0.0, vmax=1.0)
+# plt.figure()
+# plt.imshow(lf_stage0 - ref, cmap="gray")
 plt.show()

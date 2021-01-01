@@ -3,14 +3,16 @@ import matplotlib.pyplot as plt
 import numpy as np
 import sys
 
-
+bit_modifier = 65535
+ty = np.int16
+save_ty = np.uint16
 
 def wavelet1d(image):
     def lf(i):
-        k = np.roll(image, i, 0)
+        k = np.roll(image, 2*i, 0)
         return (k[0::2] + k[1::2])
-    lf_part = lf(0) / 2
-    hf_part = (image[0::2] - image[1::2] + (-lf(-1) + lf(1)) / 8) / 2 + 0.5
+    lf_part = lf(0)
+    hf_part = (-lf(-1) + lf(1) + 4) // 8 + image[0::2] - image[1::2]
     return lf_part, hf_part
 
 def wavelet2d(image):
@@ -18,7 +20,7 @@ def wavelet2d(image):
     lf_part, hf_part = wavelet1d(image)
 
     lf_part, hf_part = wavelet1d(np.hstack([lf_part, hf_part]).T)
-    print(lf_part[4,4])
+    # print(lf_part[4,4])
     lf_part = lf_part.T
     hf_part = hf_part.T
     # plt.imshow(np.vstack([np.hstack([lf_part[:, :width // 2], hf_part[:, :width // 2]]), np.hstack([lf_part[:, width // 2:], hf_part[:, width // 2:]])]))
@@ -28,7 +30,7 @@ def wavelet2d(image):
 def interleave(*args):
     n = len(args)
     w, h = args[0].shape
-    a = np.zeros((w * n, h))
+    a = np.zeros((w * n, h), dtype=ty)
     for i, arg in enumerate(args):
         a[i::n] = arg
     return a
@@ -51,14 +53,14 @@ def multi_stage_wavelet2d(image, stages):
             multi_stage_wavelet2d_impl(result[5::2, :-w*3 // 2], lf_part, stages - 1)
         return result
 
-    result = np.zeros((h, full_width(w, stages)))
+    result = np.zeros((h, full_width(w, stages)), dtype=ty)
     return multi_stage_wavelet2d_impl(result, image, stages)
 
-image = im.imread(sys.argv[1]).astype(np.float64)
+image = np.round((im.imread(sys.argv[1]) * 255)).astype(ty)
 
 w = h = 32
 cw = ch = h // 32
-template = np.zeros((2 * ch, 2 * cw), dtype=np.float64)
+template = np.zeros((2 * ch, 2 * cw), dtype=ty)
 template[:ch, :cw] = 1.
 template[ch:, cw:] = 1.
 # image = np.tile(template, (h // ch, w // ch))
@@ -67,9 +69,9 @@ res = multi_stage_wavelet2d(image, 3)
 h, w = res.shape
 
 import imageio
-imageio.imsave("testref.png", np.clip(image, 0.0, 1.0))
-imageio.imsave("test0.png", np.clip(res[:h//2], 0.0, 1.0))
-imageio.imsave("test1.png", np.clip(res[h//2:], 0.0, 1.0))
+imageio.imsave("testref.png", image)
+imageio.imsave("test0.png", (res[:h//2] + bit_modifier//2).astype(save_ty))
+imageio.imsave("test1.png", (res[h//2:] + bit_modifier//2).astype(save_ty))
 
 # plt.figure()
 # plt.imshow(res, cmap="gray")

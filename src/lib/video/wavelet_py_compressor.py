@@ -14,8 +14,8 @@ def wavelet1d(image):
         k = np.roll(image, 2 * i, 0)
         return (k[0::2] + k[1::2])
 
-    lf_part = lf(0) / 2
-    hf_part = (image[0::2] - image[1::2] + (-lf(-1) + lf(1)) / 8) / 2 + 0.5
+    lf_part = lf(0)
+    hf_part = np.round(image[0::2] - image[1::2] + (-lf(-1) + lf(1)) / 8)
     return lf_part, hf_part
 
 

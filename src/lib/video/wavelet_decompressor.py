@@ -16,8 +16,8 @@ def inverse_wavelet(lf_part, hf_part, pad_width=0):
 
     x, y = lf_part.shape
     res = np.zeros((x * 2, y), dtype=ty)
-    res[0::2] = ((np.roll(lf_part, -1, 0) - np.roll(lf_part, +1, 0) + 4) // 8 + hf_part + lf_part)
-    res[1::2] = ((-np.roll(lf_part, -1, 0) + np.roll(lf_part, +1, 0) + 4) // 8 - hf_part + lf_part)
+    res[0::2] = np.round(((np.roll(lf_part, -1, 0) - np.roll(lf_part, +1, 0) + 4) // 8 + hf_part + lf_part) / 2)
+    res[1::2] = np.round(((-np.roll(lf_part, -1, 0) + np.roll(lf_part, +1, 0) + 4) // 8 - hf_part + lf_part) / 2)
 
     if pad_width > 0:
         return res[2 * pad_width:-2 * pad_width, pad_width:-pad_width]
@@ -68,6 +68,6 @@ if __name__ == '__main__':
     plt.figure()
     plt.title("diff")
     crop = 16
-    plt.imshow((lf_stage0 - ref)[crop:-crop, crop:-crop], cmap="bwr")
+    plt.imshow((lf_stage0 - ref)[crop:-crop, crop:-crop], cmap="bwr", vmin=-2, vmax=+2)
     plt.colorbar()
     plt.show()

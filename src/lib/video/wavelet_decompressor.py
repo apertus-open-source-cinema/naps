@@ -12,7 +12,7 @@ save_ty = np.uint16
 # always along first axis
 def inverse_wavelet(lf_part, hf_part, pad_width=0):
     lf_part = np.pad(lf_part, pad_width, "edge")
-    hf_part = np.pad(hf_part, pad_width, constant_values=0.5)
+    hf_part = np.pad(hf_part, pad_width, constant_values=bit_modifier // 2)
 
     x, y = lf_part.shape
     res = np.zeros((x * 2, y), dtype=ty)

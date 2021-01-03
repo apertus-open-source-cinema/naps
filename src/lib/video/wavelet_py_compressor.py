@@ -15,7 +15,7 @@ def wavelet1d(image):
         return (k[0::2] + k[1::2])
 
     lf_part = lf(0)
-    hf_part = np.round(image[0::2] - image[1::2] + (-lf(-1) + lf(1)) / 8)
+    hf_part = (image[0::2] - image[1::2] + (-lf(-1) + lf(1) + 4) // 8)
     return lf_part, hf_part
 
 

@@ -10,4 +10,4 @@ usage_statistics_webtalk.xml
 *.vcd
 spec_*/
 *.pyi
-*.sim_results/*
+*.sim_results/

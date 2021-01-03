@@ -22,7 +22,7 @@ class WaveletTest(unittest.TestCase):
 
         input = ImageStream(8)
         transformer = m.submodules.transformer = Wavelet2D(input, 100, 128)
-        image = imageio.imread(join(dirname(__file__), "che.png"))
+        image = imageio.imread(join(dirname(__file__), "che_128.png"))
 
         def write_process():
             yield from write_frame_to_stream(input, image, pause=False)
@@ -51,7 +51,7 @@ class WaveletTest(unittest.TestCase):
         transformer = m.submodules.transformer = Wavelet2D(input, 100, 128)
         splitter = m.submodules.splitter = ImageSplitter(transformer.output, 100, 128)
 
-        image = imageio.imread(join(dirname(__file__), "che.png"))
+        image = imageio.imread(join(dirname(__file__), "che_128.png"))
 
         def write_process():
             yield from write_frame_to_stream(input, image, pause=False)

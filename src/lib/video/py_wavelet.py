@@ -9,10 +9,13 @@ ty = np.int16
 
 def wavelet1d(image, direction_x=False):
     img = image.T if direction_x else image
+    cache_dict = {}
 
     def px(i):
-        k = np.roll(img, -i, 0)
-        return k[::2]
+        i2 = i // 2
+        if i2 not in cache_dict:
+            cache_dict[i2] = np.roll(img, -i2 * 2, 0) if i != 0 else img
+        return cache_dict[i2][i % 2::2]
 
     lf_part = px(0) + px(1)
     hf_part = (px(0) - px(1)) + (-px(-2) - px(-1) + px(2) + px(3) + 4) // 8
@@ -79,6 +82,7 @@ if __name__ == '__main__':
     stages_encode = multi_stage_wavelet2d(image, 3, return_all_stages=True)
     stages_decode = inverse_multi_stage_wavelet2d(stages_encode[-1], 3, return_all_stages=True)
 
+    plot = False
     for i, (a, b) in enumerate(zip(stages_encode, reversed(stages_decode))):
         crop = 16
         a_crop = a[crop:-crop, crop:-crop]
@@ -87,13 +91,14 @@ if __name__ == '__main__':
 
         print(f"psnr level {i}: {10 * np.log10(256 ** 2 / np.sum(diff ** 2) * diff.size)}")
 
-        plt_image(f"lf diff {i}", diff, cmap="bwr", vmin=-2, vmax=+2)
-        plt_image(f"lf enc {i}", a_crop, cmap="gray")
-        plt_image(f"lf dec {i}", b_crop, cmap="gray")
+        if plot:
+            plt_image(f"lf diff {i}", diff, cmap="bwr", vmin=-2, vmax=+2)
+            plt_image(f"lf enc {i}", a_crop, cmap="gray")
+            plt_image(f"lf dec {i}", b_crop, cmap="gray")
 
-        if i == 0:
-            diff_values = a_crop[np.where(diff != 0)]
-            plt_hist(f"diff hist {i}", diff)
-            plt_hist(f"lf hist enc {i}", a_crop)
-            plt_hist(f"lf hist dec {i}", b_crop)
+            if i == 0:
+                diff_values = a_crop[np.where(diff != 0)]
+                plt_hist(f"diff hist {i}", diff)
+                plt_hist(f"lf hist enc {i}", a_crop)
+                plt_hist(f"lf hist dec {i}", b_crop)
     plt_show()

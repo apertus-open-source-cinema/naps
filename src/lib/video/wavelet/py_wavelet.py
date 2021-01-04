@@ -2,7 +2,7 @@ import numpy as np
 import sys
 from PIL import Image
 
-from util.plot_util import plt_hist, plt_image, plt_show
+from util.plot_util import plt_discrete_hist, plt_image, plt_show
 
 ty = np.int32
 
@@ -49,6 +49,7 @@ def quantize(image, values):
     h, w = image.shape
     parts = [image[:h // 2, :w // 2], image[:h // 2, w // 2:], image[h // 2:, :w // 2], image[h // 2:, w // 2:]]
     for part, value in zip(parts, values):
+        orig = np.copy(part)
         part[:] = np.round(part / value) * value
 
 
@@ -64,9 +65,11 @@ def inverse_wavelet_2d(image, pad_width=0):
 
 
 def multi_stage_wavelet2d(image, stages, return_all_stages=False, quantization=None):
+    h, w = image.shape
     stages_outputs = [image.astype(ty)]
     for i in range(stages):
-        transformed = wavelet2d(stages_outputs[-1])
+        transformed = np.copy(stages_outputs[-1])
+        transformed[:h // 2 ** i, :w // 2 ** i] = wavelet2d(transformed[:h // 2 ** i, :w // 2 ** i])
         if quantization is not None:
             quantize(transformed, quantization[i])
         stages_outputs.append(transformed)
@@ -74,16 +77,18 @@ def multi_stage_wavelet2d(image, stages, return_all_stages=False, quantization=N
 
 
 def inverse_multi_stage_wavelet2d(image, stages, return_all_stages=False):
+    h, w = image.shape
     stages_outputs = [image]
-    for _ in range(stages):
-        stages_outputs.append(inverse_wavelet_2d(stages_outputs[-1]))
+    for i in reversed(range(stages)):
+        transformed = np.copy(stages_outputs[-1])
+        transformed[:h // 2 ** i, :w // 2 ** i] = inverse_wavelet_2d(transformed[:h // 2 ** i, :w // 2 ** i])
+        stages_outputs.append(transformed)
     return stages_outputs if return_all_stages else stages_outputs[-1]
 
 
-def psnr(image, stages, quantization=None):
-    roundtripped = inverse_multi_stage_wavelet2d(multi_stage_wavelet2d(image, stages, quantization=quantization), stages)
-    diff = (image - roundtripped)[16:-16, 16:-16]
-    return 10 * np.log10(256 ** 2 / np.sum(diff ** 2) * diff.size)
+def psnr(a, b, bit_depth=8):
+    diff = a - b
+    return 10 * np.log10((2 ** bit_depth) ** 2 / np.sum(diff ** 2) * diff.size)
 
 
 if __name__ == '__main__':
@@ -106,14 +111,14 @@ if __name__ == '__main__':
     stages_encode = multi_stage_wavelet2d(image, 3, return_all_stages=True)
     stages_decode = inverse_multi_stage_wavelet2d(stages_encode[-1], 3, return_all_stages=True)
 
-    plot = False
+    plot = True
     for i, (a, b) in enumerate(zip(stages_encode, reversed(stages_decode))):
         crop = 16
         a_crop = a[crop:-crop, crop:-crop]
         b_crop = b[crop:-crop, crop:-crop]
         diff = a_crop - b_crop
 
-        print(f"psnr level {i}: {10 * np.log10(256 ** 2 / np.sum(diff ** 2) * diff.size)}")
+        print(f"psnr level {i}: {psnr(a_crop, b_crop)}")
 
         if plot:
             plt_image(f"lf diff {i}", diff, cmap="bwr", vmin=-2, vmax=+2)
@@ -122,7 +127,7 @@ if __name__ == '__main__':
 
             if i == 0:
                 diff_values = a_crop[np.where(diff != 0)]
-                plt_hist(f"diff hist {i}", diff)
-                plt_hist(f"lf hist enc {i}", a_crop)
-                plt_hist(f"lf hist dec {i}", b_crop)
+                plt_discrete_hist(f"diff hist {i}", diff)
+                plt_discrete_hist(f"lf hist enc {i}", a_crop)
+                plt_discrete_hist(f"lf hist dec {i}", b_crop)
     plt_show()

@@ -19,7 +19,15 @@ def wavelet1d(image, direction_x=False):
 
     lf_part = px(0) + px(1)
     hf_part = (px(0) - px(1)) + (-px(-2) - px(-1) + px(2) + px(3) + 4) // 8
-    return np.hstack([lf_part.T, hf_part.T]) if direction_x else np.vstack([lf_part, hf_part])
+    out = np.empty_like(image)
+    h, w = out.shape
+    if direction_x:
+        out[:, :w // 2] = lf_part.T
+        out[:, w // 2:] = hf_part.T
+    else:
+        out[:h // 2] = lf_part
+        out[h // 2:] = hf_part
+    return out
 
 
 def inverse_wavelet_1d(image, pad_width=0, direction_x=False):

@@ -6,12 +6,9 @@ from nmigen import *
 from devices import MicroR2Platform
 from lib.bus.axi.buffer_writer import AxiBufferWriter
 from lib.bus.ring_buffer import RingBufferAddressStorage
-from lib.bus.stream.debug import StreamInfo
-from lib.bus.stream.fifo import BufferedAsyncStreamFIFO, BufferedSyncStreamFIFO
+from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
 from lib.bus.stream.gearbox import StreamGearbox, StreamResizer
 from lib.debug.clocking_debug import ClockingDebug
-from lib.io.hdmi.cvt_python import generate_modeline
-from lib.io.hdmi.hdmi_stream_sink import HdmiStreamSink
 from lib.io.hispi.hispi import Hispi
 from lib.io.plugin_module_streamer.tx import PluginModuleStreamerTx
 from lib.peripherals.csr_bank import ControlSignal
@@ -19,7 +16,7 @@ from lib.peripherals.i2c.bitbang_i2c import BitbangI2c
 from lib.peripherals.mmio_gpio import MmioGpio
 from lib.primitives.xilinx_s7.clocking import Pll
 from lib.video.buffer_reader import VideoBufferReader
-from lib.video.ft60x_legalizer import Ft60xLegalizer
+from lib.io.ft601.ft60x_legalizer import Ft60xLegalizer
 from lib.video.stream_converter import ImageStream2PacketizedStream
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform

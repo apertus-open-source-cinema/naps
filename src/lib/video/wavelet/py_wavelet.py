@@ -2,6 +2,7 @@ import numpy as np
 import sys
 from PIL import Image
 
+from lib.video.wavelet.py_compressor import compress
 from util.plot_util import plt_discrete_hist, plt_image, plt_show
 
 ty = np.int32
@@ -49,7 +50,6 @@ def quantize(image, values):
     h, w = image.shape
     parts = [image[:h // 2, :w // 2], image[:h // 2, w // 2:], image[h // 2:, :w // 2], image[h // 2:, w // 2:]]
     for part, value in zip(parts, values):
-        orig = np.copy(part)
         part[:] = np.round(part / value) * value
 
 
@@ -110,6 +110,8 @@ if __name__ == '__main__':
 
     stages_encode = multi_stage_wavelet2d(image, 3, return_all_stages=True)
     stages_decode = inverse_multi_stage_wavelet2d(stages_encode[-1], 3, return_all_stages=True)
+
+    compressed = list(compress(stages_encode[-1], 3, bit_depth=8))
 
     plot = True
     for i, (a, b) in enumerate(zip(stages_encode, reversed(stages_decode))):

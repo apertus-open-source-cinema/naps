@@ -28,16 +28,17 @@ def real_width(encoded_width, stages):
 
 def pack(image, levels):
     h, w = image.shape
-    result = np.zeros((h, full_width(w, levels)))
+    result = np.zeros((h, full_width(w, levels)), dtype=image.dtype)
     orig_result = result
 
     for level in reversed(range(levels)):
         hf1 = image[:h // 2, w // 2:]
         hf2 = image[h // 2:, :w // 2]
         hf3 = image[h // 2:, w // 2:]
-        hf = interleave(hf1.T, hf2.T, hf3.T).T
+        hf12 = interleave(hf1.T, hf2.T).T
 
-        result[:h // 2, -w * 3 // 2:] = hf
+        result[:h // 2, -w * 3 // 2:-w * 1 // 2] = hf12
+        result[:h // 2, -w * 1 // 2:] = hf3
 
         if level == 0:
             result[:h // 2, :w // 2] = image[:h // 2, :w // 2]
@@ -53,14 +54,14 @@ def pack(image, levels):
 def unpack(image, levels):
     h, w = image.shape
     w = real_width(w, levels)
-    result = np.zeros((h, w))
+    result = np.zeros((h, w), dtype=image.dtype)
     orig_result = result
 
     for level in reversed(range(levels)):
-        hf = image[:h // 2, -w * 3 // 2:]
-        hf1 = hf[:, 0::3]
-        hf2 = hf[:, 1::3]
-        hf3 = hf[:, 2::3]
+        hf12 = image[:h // 2, -w * 3 // 2: -w * 1 // 2]
+        hf1 = hf12[:, 0::2]
+        hf2 = hf12[:, 1::2]
+        hf3 = image[:h // 2, -w * 1 // 2:]
         result[:h // 2, w // 2:] = hf1
         result[h // 2:, :w // 2] = hf2
         result[h // 2:, w // 2:] = hf3

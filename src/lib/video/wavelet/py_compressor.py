@@ -130,6 +130,7 @@ def compress(image, levels, bit_depth):
     reference_result = []
     non_compressed_result = []
     rle_result = []
+    region_codes = []
     for ref_line, real_line in list(zip(packed_reference, packed_image)):
         regions = np.unique(ref_line)
         for region_code in regions:
@@ -138,9 +139,21 @@ def compress(image, levels, bit_depth):
             non_compressed_result.append(real_line[np.where(ref_line == region_code)])
             rle_result.append(rle_region(real_line[np.where(ref_line == region_code)], region_code, levels, bit_depth))
             reference_result.append(ref_line[np.where(ref_line == region_code)])
+            region_codes.append(region_code)
     reference = np.concatenate(reference_result).ravel()
     non_compressed = np.concatenate(non_compressed_result).ravel()
     rle_compressed = np.concatenate(rle_result).ravel()
+
+    # statistics to be used for huffman table conversion
+    regions, inverse_regions = np.unique(region_codes, return_inverse=True)
+    min_max = [min_max_from_region_code(rc, levels, bit_depth) for rc in regions]
+    min_max_with_rle = [(min_val, max_val + len(gen_rle_dict(rc, levels, bit_depth))) for (min_val, max_val), rc in zip(min_max, regions)]
+    symbol_frequencies = {rc: np.zeros(max_val - min_val + 1) for (min_val, max_val), rc in zip(min_max_with_rle, regions)}
+    for rle_chunk, rc, inverse_region in zip(rle_result, region_codes, inverse_regions):
+        min_val, max_val = min_max_with_rle[inverse_region]
+        symbol_frequencies[rc] += np.bincount(rle_chunk - min_val, minlength=(max_val - min_val + 1))
+
+    assert sum(np.sum(v) for v in symbol_frequencies.values()) == rle_compressed.size
 
     print(len(non_compressed) / len(rle_compressed))
 

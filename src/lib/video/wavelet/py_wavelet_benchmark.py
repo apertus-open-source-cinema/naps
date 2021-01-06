@@ -6,6 +6,7 @@ import numpy as np
 import rawpy
 from PIL import Image
 
+from lib.video.wavelet.py_compressor import compress
 from lib.video.wavelet.py_wavelet import psnr, inverse_multi_stage_wavelet2d, multi_stage_wavelet2d, ty
 from lib.video.wavelet.py_wavelet_repack import pack, unpack
 from util.plot_util import plt_image, plt_show, plt_hist
@@ -39,6 +40,9 @@ if __name__ == '__main__':
         ]
 
         transformed = [multi_stage_wavelet2d(image, 3, quantization=quantization) for image in color_images]
+
+        compressed = compress(transformed[0], 3, bit_depth=bit_depth)
+
         roundtripped = [inverse_multi_stage_wavelet2d(t, 3) for t in transformed]
 
         if False:
@@ -67,8 +71,8 @@ if __name__ == '__main__':
         resulting_psnr = np.mean([psnr(image[16:-16, 16:-16], r[16:-16, 16:-16], bit_depth=bit_depth) for image, r in zip(color_images, roundtripped)])
         print(f'{a}\t{b}\t{c}\t{d}\t{e}\t{f}\t{g}\t{resulting_psnr}')
 
-
-    pool = Pool(1)
-    todo = np.array(list(product(*([[1, 2, 4, 8, 12, 16, 20, 24, 32, 40, 48]] * 6), [1, 2, 4])))
-    np.random.shuffle(todo)
-    pool.map(each, todo)
+    each((64, 64, 64, 64, 64, 64, 1))
+    # pool = Pool(1)
+    # todo = np.array(list(product(*([[1, 2, 4, 8, 12, 16, 20, 24, 32, 40, 48]] * 6), [1, 2, 4])))
+    # np.random.shuffle(todo)
+    # pool.map(each, todo)

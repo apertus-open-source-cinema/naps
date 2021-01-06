@@ -35,9 +35,9 @@ def pack(image, levels):
         hf1 = image[:h // 2, w // 2:]
         hf2 = image[h // 2:, :w // 2]
         hf3 = image[h // 2:, w // 2:]
-        hf12 = interleave(hf1.T, hf2.T).T
 
-        result[:h // 2, -w * 3 // 2:-w * 1 // 2] = hf12
+        result[:h // 2, -w * 3 // 2:-w * 2 // 2] = hf1
+        result[:h // 2, -w * 2 // 2:-w * 1 // 2] = hf2
         result[:h // 2, -w * 1 // 2:] = hf3
 
         if level == 0:
@@ -58,9 +58,8 @@ def unpack(image, levels):
     orig_result = result
 
     for level in reversed(range(levels)):
-        hf12 = image[:h // 2, -w * 3 // 2: -w * 1 // 2]
-        hf1 = hf12[:, 0::2]
-        hf2 = hf12[:, 1::2]
+        hf1 = image[:h // 2, -w * 3 // 2: -w * 2 // 2]
+        hf2 = image[:h // 2, -w * 2 // 2: -w * 1 // 2]
         hf3 = image[:h // 2, -w * 1 // 2:]
         result[:h // 2, w // 2:] = hf1
         result[h // 2:, :w // 2] = hf2

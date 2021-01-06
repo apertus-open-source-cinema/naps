@@ -111,8 +111,6 @@ if __name__ == '__main__':
     stages_encode = multi_stage_wavelet2d(image, 3, return_all_stages=True)
     stages_decode = inverse_multi_stage_wavelet2d(stages_encode[-1], 3, return_all_stages=True)
 
-    compressed = list(compress(stages_encode[-1], 3, bit_depth=8))
-
     plot = True
     for i, (a, b) in enumerate(zip(stages_encode, reversed(stages_decode))):
         crop = 16

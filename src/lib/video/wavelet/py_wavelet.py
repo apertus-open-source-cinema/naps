@@ -86,7 +86,7 @@ def inverse_multi_stage_wavelet2d(image, stages, return_all_stages=False):
     return stages_outputs if return_all_stages else stages_outputs[-1]
 
 
-def psnr(a, b, bit_depth=8):
+def compute_psnr(a, b, bit_depth=8):
     diff = a - b
     return 10 * np.log10((2 ** bit_depth) ** 2 / np.sum(diff ** 2) * diff.size)
 
@@ -118,7 +118,7 @@ if __name__ == '__main__':
         b_crop = b[crop:-crop, crop:-crop]
         diff = a_crop - b_crop
 
-        print(f"psnr level {i}: {psnr(a_crop, b_crop)}")
+        print(f"psnr level {i}: {compute_psnr(a_crop, b_crop)}")
 
         if plot:
             plt_image(f"lf diff {i}", diff, cmap="bwr", vmin=-2, vmax=+2)

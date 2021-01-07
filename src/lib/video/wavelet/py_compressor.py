@@ -1,3 +1,5 @@
+from itertools import chain
+
 import numpy as np
 from numba import jit
 
@@ -67,6 +69,13 @@ def zero_rle_decode_inner(input_array, output_array, codebook, codebook_start):
     return -write_index
 
 
+def possible_region_codes(levels=3):
+    return list(chain(*[
+        [1],
+        *[[l * 10 + 1, l * 10 + 3] for l in range(1, levels + 1)],
+    ]))
+
+
 def fill_reference_frame(h, w, levels=3):
     ref = np.full((h, w), -1)
     ref[:h // 2, :w // 2] = 1 if levels == 1 else fill_reference_frame(h // 2, w // 2, levels - 1)
@@ -77,16 +86,30 @@ def fill_reference_frame(h, w, levels=3):
 
 
 def min_max_from_region_code(region_code, levels, bit_depth):
-    def lf_max(level):
-        return (2 ** bit_depth - 1) * (4 ** level) * 2
+    def lf_h(level):
+        return 2 ** bit_depth - 1 if level == 0 else lf_v(level - 1) * 2
+    def lf_v(level):
+        return lf_h(level) * 2
+    def abs_hf_top_right(level):
+        return lf_h(level) * 1.25
+    def abs_hf_bottom_left(level):
+        return lf_v(level) * 1.25
+    def abs_hf_bottom_right(level):
+        return abs_hf_top_right(level) * 2.5
 
-    level = levels - region_code // 10
     if region_code == 1:
-        return 0, lf_max(levels)
-    elif region_code % 10 == 1:
-        return int(np.floor(-lf_max(level) / 2 * 1.25)), int(np.ceil(lf_max(level) / 2 * 1.25))
+        return 0, lf_v(levels)
+
+    level = (levels - region_code // 10) + 1
+    if region_code % 10 == 1:
+        return -int(abs_hf_bottom_left(level)), int(np.ceil(abs_hf_bottom_left(level)))
     elif region_code % 10 == 3:
-        return int(np.floor(-lf_max(level) * 1.25 * 1.25)), int(np.ceil(lf_max(level) * 1.25 * 1.25))
+        return -int(abs_hf_top_right(level)), int(np.ceil(abs_hf_bottom_right(level)))
+
+
+def min_max_from_region_code_with_rle(region_code, levels, bit_depth):
+    min_val, max_val = min_max_from_region_code(region_code, levels, bit_depth)
+    return min_val, max_val + len(gen_rle_dict(region_code, levels, bit_depth))
 
 
 def gen_rle_dict(region_code, levels, bit_depth):
@@ -104,13 +127,11 @@ def rle_region(data, region_code, levels, bit_depth):
         return data  # dont to rle for lf data
     else:
         result = np.array(list(zero_rle(data, gen_rle_dict(region_code, levels, bit_depth))), dtype=np.int32)
-        outliers = np.where((result < min_val) | (result > max_val))
         return result
 
 
 def rle_region_decode(data, region_code, levels, bit_depth, length):
-    min_val, max_val = min_max_from_region_code(region_code, levels, bit_depth)
-    max_val += len(gen_rle_dict(region_code, levels, bit_depth))
+    min_val, max_val = min_max_from_region_code_with_rle(region_code, levels, bit_depth)
     outliers, = np.where((data < min_val) | (data > max_val))
     read_length = length
     if len(outliers) > 0:
@@ -122,47 +143,60 @@ def rle_region_decode(data, region_code, levels, bit_depth, length):
         return zero_rle_decode(data[:read_length], gen_rle_dict(region_code, levels, bit_depth), length)
 
 
-def compress(image, levels, bit_depth):
+def to_chunks(image, levels):
     reference = fill_reference_frame(*image.shape, levels)
     packed_reference = pack(reference, levels)
     packed_image = pack(image, levels)
 
-    reference_result = []
-    non_compressed_result = []
-    rle_result = []
-    region_codes = []
     for ref_line, real_line in list(zip(packed_reference, packed_image)):
         regions = np.unique(ref_line)
         for region_code in regions:
             if region_code == 0:
                 continue
-            non_compressed_result.append(real_line[np.where(ref_line == region_code)])
-            rle_result.append(rle_region(real_line[np.where(ref_line == region_code)], region_code, levels, bit_depth))
-            reference_result.append(ref_line[np.where(ref_line == region_code)])
-            region_codes.append(region_code)
-    reference = np.concatenate(reference_result).ravel()
-    non_compressed = np.concatenate(non_compressed_result).ravel()
-    rle_compressed = np.concatenate(rle_result).ravel()
+            yield region_code, real_line[np.where(ref_line == region_code)]
 
-    # statistics to be used for huffman table conversion
-    regions, inverse_regions = np.unique(region_codes, return_inverse=True)
-    min_max = [min_max_from_region_code(rc, levels, bit_depth) for rc in regions]
-    min_max_with_rle = [(min_val, max_val + len(gen_rle_dict(rc, levels, bit_depth))) for (min_val, max_val), rc in zip(min_max, regions)]
-    symbol_frequencies = {rc: np.zeros(max_val - min_val + 1) for (min_val, max_val), rc in zip(min_max_with_rle, regions)}
-    for rle_chunk, rc, inverse_region in zip(rle_result, region_codes, inverse_regions):
-        min_val, max_val = min_max_with_rle[inverse_region]
-        symbol_frequencies[rc] += np.bincount(rle_chunk - min_val, minlength=(max_val - min_val + 1))
 
-    assert sum(np.sum(v) for v in symbol_frequencies.values()) == rle_compressed.size
+def compress_chunks(chunks, levels, bit_depth):
+    for rc, data in chunks:
+        yield rle_region(data, rc, levels, bit_depth)
 
-    print(len(non_compressed) / len(rle_compressed))
 
-    decompressed_frame = pack(fill_reference_frame(*image.shape, levels), levels)
-    rle_decompressed_frame = pack(fill_reference_frame(*image.shape, levels), levels)
-    non_compressed_ptr = 0
+def empty_symbol_frequencies_dict(levels, bit_depth):
+    regions = possible_region_codes(levels)
+    min_max = [min_max_from_region_code_with_rle(rc, levels, bit_depth) for rc in regions]
+    return {rc: np.zeros(max_val - min_val + 1) for (min_val, max_val), rc in zip(min_max, regions)}
+
+
+def compute_symbol_frequencies(region_codes, compressed_chunks, levels, bit_depth):
+    symbol_frequencies = empty_symbol_frequencies_dict(levels, bit_depth)
+    for compressed_chunk, rc in zip(compressed_chunks, region_codes):
+        min_val, max_val = min_max_from_region_code_with_rle(rc, levels, bit_depth)
+        symbol_frequencies[rc] += np.bincount(compressed_chunk - min_val, minlength=(max_val - min_val + 1))
+
+    assert np.sum(np.concatenate(list(symbol_frequencies.values()))) == np.concatenate(compressed_chunks).size
+    return symbol_frequencies
+
+
+def compress(image, levels, bit_depth):
+    chunks = list(to_chunks(image, levels))
+    region_codes, uncompressed_chunks = zip(*chunks)
+    compressed_chunks = list(compress_chunks(chunks, levels, bit_depth))
+
+    non_compressed = np.concatenate(list(uncompressed_chunks))
+    rle_compressed = np.concatenate(list(compressed_chunks))
+    rle_ratio = len(non_compressed) / len(rle_compressed)
+
+    symbol_frequencies = compute_symbol_frequencies(region_codes, compressed_chunks, levels, bit_depth)
+
+    return rle_compressed, symbol_frequencies, rle_ratio
+
+
+def uncompress(original_shape, compressed, levels, bit_depth):
+    reference = fill_reference_frame(*original_shape, levels)
+    packed_reference = pack(reference, levels)
+    rle_decompressed_frame = pack(fill_reference_frame(*original_shape, levels), levels)
     rle_compressed_ptr = 0
-    chunk_ptr = 0
-    for ref_line, real_line, real_line_rle in list(zip(packed_reference, decompressed_frame, rle_decompressed_frame)):
+    for ref_line, line in list(zip(packed_reference, rle_decompressed_frame)):
         regions = np.unique(ref_line)
         for region_code in regions:
             if region_code == 0:
@@ -171,23 +205,9 @@ def compress(image, levels, bit_depth):
             start, end = np.min(region_range), np.max(region_range) + 1
             region_len = end - start
 
-            non_compressed_slice = non_compressed[non_compressed_ptr:non_compressed_ptr + region_len]
-            min_val, max_val = min_max_from_region_code(region_code, levels, bit_depth)
-            outliers, = np.where((non_compressed_slice < min_val) | (non_compressed_slice > max_val))
-            assert len(outliers) == 0
-            real_line[start:end] = non_compressed_slice
-            non_compressed_ptr += region_len
-
-            rle_chunk = rle_result[chunk_ptr]
-            rle_slice = rle_compressed[rle_compressed_ptr:rle_compressed_ptr + region_len]
+            rle_slice = compressed[rle_compressed_ptr:rle_compressed_ptr + region_len]
             rle_decoded, consumed = rle_region_decode(rle_slice, region_code, levels, bit_depth, region_len)
-            assert np.all(rle_slice[0:consumed] == rle_chunk)
-            real_line_rle[start:end] = rle_decoded
+            line[start:end] = rle_decoded
             rle_compressed_ptr += consumed
-            chunk_ptr += 1
 
-    assert np.all(decompressed_frame == rle_decompressed_frame)
-    unpacked = unpack(rle_decompressed_frame, levels)
-    assert np.all(image == unpacked)
-
-    return non_compressed
+    return unpack(rle_decompressed_frame, levels)

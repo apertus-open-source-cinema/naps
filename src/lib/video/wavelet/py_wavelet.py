@@ -71,7 +71,7 @@ def multi_stage_wavelet2d(image, stages, return_all_stages=False, quantization=N
         transformed = np.copy(stages_outputs[-1])
         transformed[:h // 2 ** i, :w // 2 ** i] = wavelet2d(transformed[:h // 2 ** i, :w // 2 ** i])
         if quantization is not None:
-            quantize(transformed, quantization[i])
+            quantize(transformed[:h // 2 ** i, :w // 2 ** i], quantization[i])
         stages_outputs.append(transformed)
     return stages_outputs if return_all_stages else stages_outputs[-1]
 

@@ -1,5 +1,6 @@
 import sys
 from bz2 import BZ2File
+from collections import defaultdict
 from itertools import product, chain
 from multiprocessing import Pool
 from pathlib import Path
@@ -34,12 +35,10 @@ if __name__ == '__main__':
                 image.raw_image[1::2, 0::2],
                 image.raw_image[1::2, 1::2],
             ]
-            filenames += [
-                f'{filename}--top-left',
-                f'{filename}--top-right',
-                f'{filename}--bottom-left',
-                f'{filename}--bottom-right'
-            ]
+            color_numbers = defaultdict(int)
+            for channel in image.color_desc.decode("utf-8"):
+                color_numbers[channel] += 1
+                filenames.append(f'{filename}--{channel}{color_numbers[channel]}')
             assert bit_depth is None or bit_depth == 12
             bit_depth = 12
         else:
@@ -51,11 +50,21 @@ if __name__ == '__main__':
     output_dir = Path("analyze")
     output_dir.mkdir(exist_ok=True, parents=True)
 
-    def each_image(filename, image, quantization):
+    def each(params):
+        (filename, image), coefficients = params
+        a, b, c, d, e, f, g = [1 if c == 0 else c for c in coefficients]
+        quantization = [
+            [1, a, a, b],
+            [1, c, c, d],
+            [g, e, e, f],
+        ]
+
         transformed = multi_stage_wavelet2d(image, levels, quantization=quantization)
-        compressed, symbol_frequencies, rle_ratio = compress(transformed, levels, bit_depth=bit_depth)
+        compressed, symbol_frequencies, rle_ratio, huffman_ratio, total_ratio = compress(transformed, levels, bit_depth=bit_depth)
         roundtripped = inverse_multi_stage_wavelet2d(transformed, levels)
         psnr = compute_psnr(image[16:-16, 16:-16], roundtripped[16:-16, 16:-16], bit_depth=bit_depth)
+
+        print(f'{filename}\t{psnr=:.03f}\t{rle_ratio=:.03f}\t{huffman_ratio=:.03f}\t{total_ratio=:.03f}')
 
         with BZ2File(output_dir / f'{"-".join("{:02d}".format(i) for i in chain(*quantization))}-{filename}.pckl.bz2', 'wb') as f:
             dump({
@@ -68,31 +77,20 @@ if __name__ == '__main__':
 
         return psnr, rle_ratio, symbol_frequencies
 
-
-    def each_coefficient_set(coefficients):
-        a, b, c, d, e, f, g = [1 if c == 0 else c for c in coefficients]
-        quantization = [
-            [1, a, a, b],
-            [1, c, c, d],
-            [g, e, e, f],
-        ]
-
-        psnrs = []
-        rle_ratios = []
-        symbol_frequencies = []
-        for image, filename in zip(images, filenames):
-            psnr, rle_ratio, freqs = each_image(filename, image, quantization)
-            symbol_frequencies.append(freqs)
-            rle_ratios.append(rle_ratio)
-            psnrs.append(psnr)
+    todo = list(product(zip(filenames, images), [[128, 128, 128, 128, 128, 128, 4]]))
 
     pool = Pool(8)
-    todo = np.array(list(product(*([[1, 8, 16, 32, 48]] * 6), [1, 4])))
-    np.random.RandomState(0).shuffle(todo)
-    progress_file = (output_dir / "progress.txt")
-    try:
-        progress = int(progress_file.read_text())
-    except FileNotFoundError:
+
+    use_progress = False
+    if use_progress:
+        progress_file = (output_dir / "progress.txt")
+        try:
+            progress = int(progress_file.read_text())
+        except FileNotFoundError:
+            progress = 0
+    else:
         progress = 0
-    for i, _ in enumerate(tqdm(pool.imap(each_coefficient_set, todo[progress:]), total=len(todo), initial=progress)):
-        progress_file.write_text(str(i))
+
+    for i, _ in enumerate(pool.imap(each, todo[progress:])):
+        if use_progress:
+            progress_file.write_text(str(i))

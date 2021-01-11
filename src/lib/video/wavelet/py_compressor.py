@@ -1,10 +1,14 @@
+from collections import defaultdict
 from itertools import chain
 
 import numpy as np
+from bitarray import bitarray
 from numba import jit
 
 from lib.video.wavelet.py_wavelet_repack import pack, unpack
-from util.plot_util import plt_show, plt_image
+from huffman import codebook
+
+from util.plot_util import plt_hist, plt_show, plt_discrete_hist
 
 
 def zero_rle(array, codebook):
@@ -72,15 +76,15 @@ def zero_rle_decode_inner(input_array, output_array, codebook, codebook_start):
 def possible_region_codes(levels=3):
     return list(chain(*[
         [1],
-        *[[l * 10 + 1, l * 10 + 3] for l in range(1, levels + 1)],
+        *[[l * 10 + 3] for l in range(1, levels + 1)],
     ]))
 
 
 def fill_reference_frame(h, w, levels=3):
     ref = np.full((h, w), -1)
     ref[:h // 2, :w // 2] = 1 if levels == 1 else fill_reference_frame(h // 2, w // 2, levels - 1)
-    ref[:h // 2, w // 2:] = levels * 10 + 1
-    ref[h // 2:, :w // 2] = levels * 10 + 1
+    ref[:h // 2, w // 2:] = levels * 10 + 3
+    ref[h // 2:, :w // 2] = levels * 10 + 3
     ref[h // 2:, w // 2:] = levels * 10 + 3
     return ref
 
@@ -88,12 +92,16 @@ def fill_reference_frame(h, w, levels=3):
 def min_max_from_region_code(region_code, levels, bit_depth):
     def lf_h(level):
         return 2 ** bit_depth - 1 if level == 0 else lf_v(level - 1) * 2
+
     def lf_v(level):
         return lf_h(level) * 2
+
     def abs_hf_top_right(level):
         return lf_h(level) * 1.25
+
     def abs_hf_bottom_left(level):
         return lf_v(level) * 1.25
+
     def abs_hf_bottom_right(level):
         return abs_hf_top_right(level) * 2.5
 
@@ -102,6 +110,8 @@ def min_max_from_region_code(region_code, levels, bit_depth):
 
     level = (levels - region_code // 10) + 1
     if region_code % 10 == 1:
+        return -int(abs_hf_top_right(level)), int(np.ceil(abs_hf_top_right(level)))
+    elif region_code % 10 == 2:
         return -int(abs_hf_bottom_left(level)), int(np.ceil(abs_hf_bottom_left(level)))
     elif region_code % 10 == 3:
         return -int(abs_hf_top_right(level)), int(np.ceil(abs_hf_bottom_right(level)))
@@ -177,6 +187,22 @@ def compute_symbol_frequencies(region_codes, compressed_chunks, levels, bit_dept
     return symbol_frequencies
 
 
+def generate_huffman_tables(symbol_frequencies, levels, bit_depth):
+    to_return = {}
+    for rc, frequencies in symbol_frequencies.items():
+        min_val, max_val = min_max_from_region_code_with_rle(rc, levels, bit_depth)
+        symbols = np.arange(min_val, max_val)
+
+        nonzero_indecies = np.where(frequencies != 0)
+        real_frequencies = np.append(frequencies[nonzero_indecies], [1])
+        real_symbols = np.append(symbols[nonzero_indecies], [symbols[-1] + 1])
+
+        cb = codebook(zip(real_symbols, real_frequencies))
+        to_return[rc] = {k: bitarray(v) for k, v in cb.items()}
+
+    return to_return
+
+
 def compress(image, levels, bit_depth):
     chunks = list(to_chunks(image, levels))
     region_codes, uncompressed_chunks = zip(*chunks)
@@ -187,8 +213,30 @@ def compress(image, levels, bit_depth):
     rle_ratio = len(non_compressed) / len(rle_compressed)
 
     symbol_frequencies = compute_symbol_frequencies(region_codes, compressed_chunks, levels, bit_depth)
+    huffman_tables = generate_huffman_tables(symbol_frequencies, levels, bit_depth)
 
-    return rle_compressed, symbol_frequencies, rle_ratio
+    huffman_encoded = bitarray()
+    rc_data = defaultdict(lambda: np.array([], dtype=np.int32))
+    rle_data = defaultdict(lambda: np.array([], dtype=np.int32))
+    for rc, data in zip(region_codes, compressed_chunks):
+        _, max_val = min_max_from_region_code(rc, levels, bit_depth)
+        rle_data[rc] = np.append(rle_data[rc], data[np.where(data > max_val)] - max_val)
+        rc_data[rc] = np.append(rc_data[rc], data)
+        huffman_encoded.encode(huffman_tables[rc], data)
+
+    if False:
+        for rc, values in rc_data.items():
+            plt_hist(f'distribution rc={rc}', values, bins=250)
+        plt_show()
+
+        for rc, rle_values in rle_data.items():
+            plt_discrete_hist(f'rle distribution rc={rc}', rle_values)
+        plt_show()
+
+    huffman_ratio = len(rle_compressed) / len(huffman_encoded.tobytes())
+    total_ratio = image.size * (bit_depth / 8) / len(huffman_encoded.tobytes())
+
+    return rle_compressed, symbol_frequencies, rle_ratio, huffman_ratio, total_ratio
 
 
 def uncompress(original_shape, compressed, levels, bit_depth):

@@ -127,8 +127,8 @@ if __name__ == '__main__':
 
         if plot:
             plt_image(f"lf diff {i}", diff, cmap="bwr", vmin=-2, vmax=+2)
-            plt_image(f"lf enc {i}", a_crop, cmap="gray")
-            plt_image(f"lf dec {i}", b_crop, cmap="gray")
+            plt_image(f"lf enc {i}", np.log(a_crop))
+            plt_image(f"lf dec {i}", b_crop, cmap="bwr", vmin=-5, vmax=5)
 
             if i == 0:
                 diff_values = a_crop[np.where(diff != 0)]

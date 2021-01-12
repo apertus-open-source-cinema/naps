@@ -13,12 +13,43 @@ from huffman import codebook
 from util.plot_util import plt_hist, plt_show, plt_discrete_hist
 
 
+@jit(nopython=True)
+def bad_entropy_coding(input_array):
+    fetchback = 4
+    fetchback_div = 2
+    value_div = 2
+    sub_div = 2
+    delay = 1
+
+    output = np.empty_like(input_array)
+    integrator_history = np.empty_like(input_array)
+    integrator = np.zeros(delay + 1, dtype=ty)
+    integrator_ptr = 0
+    for i, v in enumerate(input_array):
+        delayed_integrator_val = integrator[integrator_ptr + 1 if integrator_ptr < delay else 0]
+        output[i] = v - (delayed_integrator_val // sub_div)
+        integrator_history[i] = delayed_integrator_val
+
+        integrator[integrator_ptr] = integrator[integrator_ptr - 1 if integrator_ptr > 0 else delay - 1]
+        integrator[integrator_ptr] -= v // value_div
+        integrator[integrator_ptr] -= np.sign(integrator[integrator_ptr]) * min(np.abs(integrator[integrator_ptr]), fetchback)
+        integrator[integrator_ptr] /= fetchback_div
+
+        if integrator_ptr < delay:
+            integrator_ptr += 1
+        else:
+            integrator_ptr = 0
+
+    return output, integrator_history
+
+
 def zero_rle(array, codebook):
     codebook = {**codebook, 1: 0}
     keys = np.array(sorted(codebook.keys(), reverse=True), dtype=ty)
     values = np.array([codebook[x] for x in keys], dtype=ty)
     output_array = np.zeros_like(array)
-    return zero_rle_inner(array, output_array, keys, values)
+    rle_input, integrator_hist = bad_entropy_coding(array)
+    return zero_rle_inner(rle_input, output_array, keys, values)
 
 
 @jit(nopython=True)

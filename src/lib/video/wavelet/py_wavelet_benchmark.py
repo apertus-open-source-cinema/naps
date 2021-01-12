@@ -11,7 +11,7 @@ import rawpy
 from PIL import Image
 from tqdm import tqdm
 
-from lib.video.wavelet.py_compressor import compress, uncompress, empty_symbol_frequencies_dict
+from lib.video.wavelet.py_compressor import compress, uncompress, empty_symbol_frequencies_dict, NumericRange
 from lib.video.wavelet.py_wavelet import compute_psnr, inverse_multi_stage_wavelet2d, multi_stage_wavelet2d, ty
 
 levels = 3
@@ -29,16 +29,17 @@ if __name__ == '__main__':
         filename = Path(f).stem
         if f.endswith(".dng"):
             image = rawpy.imread(f)
+            raw_image = np.array(image.raw_image, dtype=ty)
             images += [
-                image.raw_image[0::2, 0::2],
-                image.raw_image[0::2, 1::2],
-                image.raw_image[1::2, 0::2],
-                image.raw_image[1::2, 1::2],
+                raw_image[0::2, 0::2] - raw_image[0::2, 1::2],
+                raw_image[0::2, 1::2],
+                raw_image[1::2, 0::2] - raw_image[0::2, 1::2],
+                raw_image[1::2, 1::2] - raw_image[0::2, 1::2],
             ]
             color_numbers = defaultdict(int)
-            for channel in image.color_desc.decode("utf-8"):
+            for i, channel in enumerate(image.color_desc.decode("utf-8")):
                 color_numbers[channel] += 1
-                filenames.append(f'{filename}--{channel}{color_numbers[channel]}')
+                filenames.append(f'{filename}--{i}-{channel}{color_numbers[channel]}')
             assert bit_depth is None or bit_depth == 12
             bit_depth = 12
         else:
@@ -60,7 +61,8 @@ if __name__ == '__main__':
         ]
 
         transformed = multi_stage_wavelet2d(image, levels, quantization=quantization)
-        compressed, symbol_frequencies, rle_ratio, huffman_ratio, total_ratio = compress(transformed, levels, bit_depth=bit_depth)
+        nr = NumericRange(0, 2**bit_depth - 1)
+        compressed, symbol_frequencies, rle_ratio, huffman_ratio, total_ratio = compress(transformed, levels, input_range=(nr - nr))
         roundtripped = inverse_multi_stage_wavelet2d(transformed, levels)
         psnr = compute_psnr(image[16:-16, 16:-16], roundtripped[16:-16, 16:-16], bit_depth=bit_depth)
 
@@ -77,7 +79,7 @@ if __name__ == '__main__':
 
         return psnr, rle_ratio, symbol_frequencies
 
-    todo = list(product(zip(filenames, images), [[128, 128, 128, 128, 128, 128, 4]]))
+    todo = list(product(zip(filenames, images), [[1, 1, 1, 1, 1, 1, 1]]))
 
     pool = Pool(8)
 

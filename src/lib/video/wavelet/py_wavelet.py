@@ -2,7 +2,6 @@ import numpy as np
 import sys
 from PIL import Image
 
-from lib.video.wavelet.py_compressor import compress
 from util.plot_util import plt_discrete_hist, plt_image, plt_show
 
 ty = np.int32
@@ -88,7 +87,7 @@ def inverse_multi_stage_wavelet2d(image, stages, return_all_stages=False):
 
 def compute_psnr(a, b, bit_depth=8):
     diff = a - b
-    return 10 * np.log10((2 ** bit_depth) ** 2 / np.sum(diff ** 2) * diff.size)
+    return 10 * np.log10(((2 ** bit_depth) - 1) ** 2 / np.sum(diff ** 2) * diff.size)
 
 
 if __name__ == '__main__':
@@ -108,7 +107,13 @@ if __name__ == '__main__':
         image = np.array(Image.open(sys.argv[1])).astype(ty)
     image = image
 
-    stages_encode = multi_stage_wavelet2d(image, 3, return_all_stages=True)
+    quantization = [
+        [1, 64, 64, 64],
+        [1, 64, 64, 64],
+        [1, 64, 64, 64],
+    ]
+
+    stages_encode = multi_stage_wavelet2d(image, 3, return_all_stages=True, quantization=quantization)
     stages_decode = inverse_multi_stage_wavelet2d(stages_encode[-1], 3, return_all_stages=True)
 
     plot = True

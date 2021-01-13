@@ -45,10 +45,10 @@ def inverse_wavelet_1d(image, pad_width=0, direction_x=False):
     return pad_crop.T if direction_x else pad_crop
 
 
-def quantize(image, values):
+def quantize(image, values, level):
     h, w = image.shape
     parts = [image[:h // 2, :w // 2], image[:h // 2, w // 2:], image[h // 2:, :w // 2], image[h // 2:, w // 2:]]
-    for part, value in zip(parts, values):
+    for i, (part, value) in enumerate(zip(parts, values)):
         part[:] = np.round(part / value) * value
 
 
@@ -70,7 +70,7 @@ def multi_stage_wavelet2d(image, stages, return_all_stages=False, quantization=N
         transformed = np.copy(stages_outputs[-1])
         transformed[:h // 2 ** i, :w // 2 ** i] = wavelet2d(transformed[:h // 2 ** i, :w // 2 ** i])
         if quantization is not None:
-            quantize(transformed[:h // 2 ** i, :w // 2 ** i], quantization[i])
+            quantize(transformed[:h // 2 ** i, :w // 2 ** i], quantization[i], i)
         stages_outputs.append(transformed)
     return stages_outputs if return_all_stages else stages_outputs[-1]
 
@@ -87,7 +87,10 @@ def inverse_multi_stage_wavelet2d(image, stages, return_all_stages=False):
 
 def compute_psnr(a, b, bit_depth=8):
     diff = a - b
-    return 10 * np.log10(((2 ** bit_depth) - 1) ** 2 / np.sum(diff ** 2) * diff.size)
+    old_err_state = np.seterr(divide='ignore')
+    psnr = 10 * np.log10(((2 ** bit_depth) - 1) ** 2 / np.sum(diff ** 2) * diff.size)
+    np.seterr(**old_err_state)
+    return psnr
 
 
 if __name__ == '__main__':

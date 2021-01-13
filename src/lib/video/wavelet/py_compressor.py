@@ -1,3 +1,4 @@
+import copy
 from collections import defaultdict
 from itertools import chain, product
 from math import log2
@@ -48,8 +49,7 @@ def zero_rle(array, codebook):
     keys = np.array(sorted(codebook.keys(), reverse=True), dtype=ty)
     values = np.array([codebook[x] for x in keys], dtype=ty)
     output_array = np.zeros_like(array)
-    rle_input, integrator_hist = bad_entropy_coding(array)
-    return zero_rle_inner(rle_input, output_array, keys, values)
+    return zero_rle_inner(array, output_array, keys, values)
 
 
 @jit(nopython=True)
@@ -235,7 +235,7 @@ def to_chunks(image, levels):
             yield region_code, real_line[np.where(ref_line == region_code)]
 
 
-def compress_chunks(chunks, levels, bit_depth):
+def rle_compress_chunks(chunks, levels, bit_depth):
     for rc, data in chunks:
         yield rle_region(data, rc, levels, bit_depth)
 
@@ -256,6 +256,15 @@ def compute_symbol_frequencies(region_codes, compressed_chunks, levels, input_ra
     return symbol_frequencies
 
 
+def merge_symbol_frequencies(symbol_frequencies_list):
+    head, *rest = symbol_frequencies_list
+    result = copy.deepcopy(head)
+    for other in rest:
+        for k in result.keys():
+            result[k] += other[k]
+    return result
+
+
 def generate_huffman_tables(symbol_frequencies, levels, bit_depth):
     to_return = {}
     for rc, frequencies in symbol_frequencies.items():
@@ -272,35 +281,25 @@ def generate_huffman_tables(symbol_frequencies, levels, bit_depth):
     return to_return
 
 
+def huffman_encode(huffman_tables, region_codes, rle_chunks):
+    huffman_encoded = bitarray()
+    for rc, data in zip(region_codes, rle_chunks):
+        huffman_encoded.encode(huffman_tables[rc], data)
+    return huffman_encoded
+
+
 def compress(image, levels, input_range):
     chunks = list(to_chunks(image, levels))
     region_codes, uncompressed_chunks = zip(*chunks)
-    compressed_chunks = list(compress_chunks(chunks, levels, input_range))
+    rle_chunks = list(rle_compress_chunks(chunks, levels, input_range))
 
     non_compressed = np.concatenate(list(uncompressed_chunks))
-    rle_compressed = np.concatenate(list(compressed_chunks))
+    rle_compressed = np.concatenate(list(rle_chunks))
     rle_ratio = len(non_compressed) / len(rle_compressed)
 
-    symbol_frequencies = compute_symbol_frequencies(region_codes, compressed_chunks, levels, input_range)
+    symbol_frequencies = compute_symbol_frequencies(region_codes, rle_chunks, levels, input_range)
     huffman_tables = generate_huffman_tables(symbol_frequencies, levels, input_range)
-
-    huffman_encoded = bitarray()
-    rc_data = defaultdict(lambda: np.array([], dtype=ty))
-    rle_data = defaultdict(lambda: np.array([], dtype=ty))
-    for rc, data in zip(region_codes, compressed_chunks):
-        nr = numeric_range_from_region_code(rc, levels, input_range)
-        rle_data[rc] = np.append(rle_data[rc], data[np.where(data > nr.max)] - nr.max)
-        rc_data[rc] = np.append(rc_data[rc], data)
-        huffman_encoded.encode(huffman_tables[rc], data)
-
-    if False:
-        for rc, values in rc_data.items():
-            plt_hist(f'distribution rc={rc}', values, bins=250)
-        plt_show()
-
-        for rc, rle_values in rle_data.items():
-            plt_discrete_hist(f'rle distribution rc={rc}', rle_values)
-        plt_show()
+    huffman_encoded = huffman_encode(huffman_tables, region_codes, rle_chunks)
 
     huffman_ratio = len(rle_compressed) / len(huffman_encoded.tobytes())
     total_ratio = image.size * (log2(input_range.max + 1) / 8) / len(huffman_encoded.tobytes())

@@ -20,13 +20,14 @@ bitarray = "*"
 rawpy = "*"
 numba = "*"
 pydng = {subdirectory = "src", git = "https://github.com/schoolpost/PyDNG.git"}
+numpy = "*"
+imageio = "*"
+scipy = "*"
 
 [packages]
 nmigen = {editable = true,path = "/home/anuejn/code/nmigen"}
 yowasp-yosys = "*"
 nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
-numpy = "*"
-imageio = "*"
 
 [scripts]
 test = "pytest --forked -n 8 src/"

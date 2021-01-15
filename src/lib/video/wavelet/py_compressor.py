@@ -1,5 +1,4 @@
 import copy
-from collections import defaultdict
 from itertools import chain, product
 from math import log2
 
@@ -11,37 +10,7 @@ from lib.video.wavelet.py_wavelet_repack import pack, unpack
 from lib.video.wavelet.py_wavelet import ty
 from huffman import codebook
 
-from util.plot_util import plt_hist, plt_show, plt_discrete_hist
-
-
-@jit(nopython=True)
-def bad_entropy_coding(input_array):
-    fetchback = 4
-    fetchback_div = 2
-    value_div = 2
-    sub_div = 2
-    delay = 1
-
-    output = np.empty_like(input_array)
-    integrator_history = np.empty_like(input_array)
-    integrator = np.zeros(delay + 1, dtype=ty)
-    integrator_ptr = 0
-    for i, v in enumerate(input_array):
-        delayed_integrator_val = integrator[integrator_ptr + 1 if integrator_ptr < delay else 0]
-        output[i] = v - (delayed_integrator_val // sub_div)
-        integrator_history[i] = delayed_integrator_val
-
-        integrator[integrator_ptr] = integrator[integrator_ptr - 1 if integrator_ptr > 0 else delay - 1]
-        integrator[integrator_ptr] -= v // value_div
-        integrator[integrator_ptr] -= np.sign(integrator[integrator_ptr]) * min(np.abs(integrator[integrator_ptr]), fetchback)
-        integrator[integrator_ptr] /= fetchback_div
-
-        if integrator_ptr < delay:
-            integrator_ptr += 1
-        else:
-            integrator_ptr = 0
-
-    return output, integrator_history
+from util.plot_util import plt_show, plt_image
 
 
 def zero_rle(array, codebook):
@@ -132,8 +101,8 @@ def fill_reference_frame(h, w, levels=3):
 
 class NumericRange:
     def __init__(self, min, max):
-        self.min = min
-        self.max = max
+        self.min = int(np.sign(min) * np.ceil(np.abs(min)))
+        self.max = int(np.sign(max) * np.ceil(np.abs(max)))
 
     def __repr__(self):
         return f'NumericRange({self.min}, {self.max})'
@@ -143,7 +112,7 @@ class NumericRange:
             other_list = [other.min, other.max]
         else:
             other_list = [other]
-        values = [getattr(a, operation)(b) for a, b in product([self.min, self.max], other_list)]
+        values = [getattr(float(a), operation)(float(b)) for a, b in product([self.min, self.max], other_list)]
         return NumericRange(min(values), max(values))
 
     def __neg__(self):
@@ -165,12 +134,12 @@ class NumericRange:
         return self._compute("__floordiv__", other)
 
 
-def numeric_range_from_region_code(region_code, levels, input_range):
+def numeric_range_from_region_code(region_code, levels, input_range, quantization):
     lf = lambda nr: nr + nr
     hf = lambda nr: (nr - nr) + (-nr - nr + nr + nr + 4) // 8
 
-    lf_h = lambda level: input_range if level == 0 else lf(lf_v(level - 1))
-    lf_v = lambda level: lf(lf_h(level))
+    lf_h = lambda level: lf(input_range) if level == 1 else lf(lf_v(level - 1))
+    lf_v = lambda level: lf(lf_h(level)) / quantization[levels - level - 1][0]
     hf_top_right = lambda level: hf(lf_h(level))
     hf_bottom_left = lambda level: hf(lf_v(level))
     hf_bottom_right = lambda level: hf(hf_top_right(level))
@@ -180,37 +149,37 @@ def numeric_range_from_region_code(region_code, levels, input_range):
 
     level = (levels - region_code // 10) + 1
     if region_code % 10 == 2:
-        return hf_top_right(level)
+        return hf_top_right(level) / quantization[level - 1][1]
     elif region_code % 10 == 3:
-        return hf_bottom_left(level)
+        return hf_bottom_left(level) / quantization[level - 1][2]
     elif region_code % 10 == 4:
-        return hf_bottom_right(level)
+        return hf_bottom_right(level) / quantization[levels - level - 1][3]
 
 
-def numeric_range_from_region_code_with_rle(region_code, levels, input_range):
-    nr = numeric_range_from_region_code(region_code, levels, input_range)
-    return NumericRange(nr.min, nr.max + len(gen_rle_dict(region_code, levels, input_range)))
+def numeric_range_from_region_code_with_rle(region_code, levels, input_range, quantization):
+    nr = numeric_range_from_region_code(region_code, levels, input_range, quantization)
+    return NumericRange(nr.min, nr.max + len(gen_rle_dict(region_code, levels, input_range, quantization)))
 
 
-def gen_rle_dict(region_code, levels, input_range):
+def gen_rle_dict(region_code, levels, input_range, quantization):
     rle_codes = list(range(2, 300))
-    nr = numeric_range_from_region_code(region_code, levels, input_range)
+    nr = numeric_range_from_region_code(region_code, levels, input_range, quantization)
     return {v: i + nr.max for i, v in enumerate(rle_codes)}
 
 
-def rle_region(data, region_code, levels, input_range):
-    nr = numeric_range_from_region_code(region_code, levels, input_range)
+def rle_region(data, region_code, levels, input_range, quantization):
+    nr = numeric_range_from_region_code(region_code, levels, input_range, quantization)
     outliers = data[np.where((data < nr.min) | (data > nr.max))]
     if len(outliers) > 0:
         raise ValueError
     if region_code == 1:
-        return data  # dont to rle for lf data
+        return data  # don't do rle for lf data
     else:
-        return zero_rle(data, gen_rle_dict(region_code, levels, input_range))
+        return zero_rle(data, gen_rle_dict(region_code, levels, input_range, quantization))
 
 
-def rle_region_decode(data, region_code, levels, input_range, length):
-    numeric_range = numeric_range_from_region_code_with_rle(region_code, levels, input_range)
+def rle_region_decode(data, region_code, levels, length, input_range, quantization):
+    numeric_range = numeric_range_from_region_code_with_rle(region_code, levels, input_range, quantization)
     outliers, = np.where((data < numeric_range.min) | (data > numeric_range.max))
     read_length = length
     if len(outliers) > 0:
@@ -219,7 +188,7 @@ def rle_region_decode(data, region_code, levels, input_range, length):
     if region_code == 1:
         return data, length
     else:
-        return zero_rle_decode(data[:read_length], gen_rle_dict(region_code, levels, input_range), length)
+        return zero_rle_decode(data[:read_length], gen_rle_dict(region_code, levels, input_range, quantization), length)
 
 
 def to_chunks(image, levels):
@@ -235,21 +204,21 @@ def to_chunks(image, levels):
             yield region_code, real_line[np.where(ref_line == region_code)]
 
 
-def rle_compress_chunks(chunks, levels, bit_depth):
+def rle_compress_chunks(chunks, levels, input_range, quantization):
     for rc, data in chunks:
-        yield rle_region(data, rc, levels, bit_depth)
+        yield rle_region(data, rc, levels, input_range, quantization)
 
 
-def empty_symbol_frequencies_dict(levels, input_range):
+def empty_symbol_frequencies_dict(levels, input_range, quantization):
     regions = possible_region_codes(levels)
-    numeric_range = [numeric_range_from_region_code_with_rle(rc, levels, input_range) for rc in regions]
+    numeric_range = [numeric_range_from_region_code_with_rle(rc, levels, input_range, quantization) for rc in regions]
     return {rc: np.zeros(nr.max - nr.min + 1) for nr, rc in zip(numeric_range, regions)}
 
 
-def compute_symbol_frequencies(region_codes, compressed_chunks, levels, input_range):
-    symbol_frequencies = empty_symbol_frequencies_dict(levels, input_range)
+def compute_symbol_frequencies(region_codes, compressed_chunks, levels, input_range, quantization):
+    symbol_frequencies = empty_symbol_frequencies_dict(levels, input_range, quantization)
     for compressed_chunk, rc in zip(compressed_chunks, region_codes):
-        nr = numeric_range_from_region_code_with_rle(rc, levels, input_range)
+        nr = numeric_range_from_region_code_with_rle(rc, levels, input_range, quantization)
         symbol_frequencies[rc] += np.bincount(compressed_chunk - nr.min, minlength=(nr.max - nr.min + 1))
 
     assert np.sum(np.concatenate(list(symbol_frequencies.values()))) == np.concatenate(compressed_chunks).size
@@ -265,20 +234,50 @@ def merge_symbol_frequencies(symbol_frequencies_list):
     return result
 
 
-def generate_huffman_tables(symbol_frequencies, levels, bit_depth):
+def generate_huffman_tables(symbol_frequencies, levels, input_range, quantization, max_table_size=2560):
     to_return = {}
     for rc, frequencies in symbol_frequencies.items():
-        nr = numeric_range_from_region_code_with_rle(rc, levels, bit_depth)
-        symbols = np.arange(nr.min, nr.max)
+        nr = numeric_range_from_region_code_with_rle(rc, levels, input_range, quantization)
+        symbols = np.arange(nr.min, nr.max + 1, dtype=ty)
+        if rc == 1:
+            cb = {}
+        else:
+            sorting_indecies = np.argsort(frequencies)
 
-        nonzero_indecies = np.where(frequencies != 0)
-        real_frequencies = np.append(frequencies[nonzero_indecies], [1])
-        real_symbols = np.append(symbols[nonzero_indecies], [symbols[-1] + 1])
+            escape_symbol = nr.max + 1
+            real_symbols = np.append(symbols[sorting_indecies[:max_table_size]], [escape_symbol])
 
-        cb = codebook(zip(real_symbols, real_frequencies))
+            escape_frequency = np.sum(frequencies[max_table_size:])
+            real_frequencies = np.append(frequencies[sorting_indecies[:max_table_size]], [escape_frequency])
+
+            cb = codebook(zip(real_symbols, real_frequencies))
+
         to_return[rc] = {k: bitarray(v) for k, v in cb.items()}
 
     return to_return
+
+
+def get_huffman_size(huffman_tables, region_codes, rle_chunks, levels, input_range, quantization):
+    huffman_length_arrays = {}
+    for rc, huffman_table in huffman_tables.items():
+        nr = numeric_range_from_region_code_with_rle(rc, levels, input_range, quantization)
+        bits_needed = int(np.ceil(log2(nr.max - nr.min + 1)))
+        if rc == 1:
+            lengths = np.full(nr.max - nr.min + 1, bits_needed, dtype=np.uint64)
+        else:
+            escape_symbol = nr.max + 1
+            escape_symbol_length = len(huffman_table[escape_symbol])
+            lengths = np.full(nr.max - nr.min + 1, bits_needed + escape_symbol_length, dtype=np.uint64)
+            for symbol, code in huffman_table.items():
+                if symbol != escape_symbol:
+                    lengths[symbol - nr.min] = len(code)
+        huffman_length_arrays[rc] = lengths
+
+    size = 0
+    for rc, data in zip(region_codes, rle_chunks):
+        nr = numeric_range_from_region_code_with_rle(rc, levels, input_range, quantization)
+        size += np.sum(huffman_length_arrays[rc][data - nr.min])
+    return size
 
 
 def huffman_encode(huffman_tables, region_codes, rle_chunks):
@@ -288,17 +287,17 @@ def huffman_encode(huffman_tables, region_codes, rle_chunks):
     return huffman_encoded
 
 
-def compress(image, levels, input_range):
+def compress(image, levels, input_range, quantization):
     chunks = list(to_chunks(image, levels))
     region_codes, uncompressed_chunks = zip(*chunks)
-    rle_chunks = list(rle_compress_chunks(chunks, levels, input_range))
+    rle_chunks = list(rle_compress_chunks(chunks, levels, input_range, quantization))
 
     non_compressed = np.concatenate(list(uncompressed_chunks))
     rle_compressed = np.concatenate(list(rle_chunks))
     rle_ratio = len(non_compressed) / len(rle_compressed)
 
-    symbol_frequencies = compute_symbol_frequencies(region_codes, rle_chunks, levels, input_range)
-    huffman_tables = generate_huffman_tables(symbol_frequencies, levels, input_range)
+    symbol_frequencies = compute_symbol_frequencies(region_codes, rle_chunks, levels, input_range, quantization)
+    huffman_tables = generate_huffman_tables(symbol_frequencies, levels, input_range, quantization)
     huffman_encoded = huffman_encode(huffman_tables, region_codes, rle_chunks)
 
     huffman_ratio = len(rle_compressed) / len(huffman_encoded.tobytes())
@@ -307,7 +306,7 @@ def compress(image, levels, input_range):
     return rle_compressed, symbol_frequencies, rle_ratio, huffman_ratio, total_ratio
 
 
-def uncompress(original_shape, compressed, levels, bit_depth):
+def uncompress(original_shape, compressed, levels, bit_depth, quantization):
     reference = fill_reference_frame(*original_shape, levels)
     packed_reference = pack(reference, levels)
     rle_decompressed_frame = pack(fill_reference_frame(*original_shape, levels), levels)
@@ -322,7 +321,7 @@ def uncompress(original_shape, compressed, levels, bit_depth):
             region_len = end - start
 
             rle_slice = compressed[rle_compressed_ptr:rle_compressed_ptr + region_len]
-            rle_decoded, consumed = rle_region_decode(rle_slice, region_code, levels, bit_depth, region_len)
+            rle_decoded, consumed = rle_region_decode(rle_slice, region_code, levels, bit_depth, region_len, quantization)
             line[start:end] = rle_decoded
             rle_compressed_ptr += consumed
 

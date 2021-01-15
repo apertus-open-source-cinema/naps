@@ -13,3 +13,4 @@ spec_*/
 *.sim_results/
 analyze/
 **/analyze/
+*.dng

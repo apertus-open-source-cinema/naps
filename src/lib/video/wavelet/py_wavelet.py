@@ -49,7 +49,14 @@ def quantize(image, values, level):
     h, w = image.shape
     parts = [image[:h // 2, :w // 2], image[:h // 2, w // 2:], image[h // 2:, :w // 2], image[h // 2:, w // 2:]]
     for i, (part, value) in enumerate(zip(parts, values)):
-        part[:] = np.round(part / value) * value
+        part[:] = np.round(part / value)
+
+
+def dequantize(image, values, level):
+    h, w = image.shape
+    parts = [image[:h // 2, :w // 2], image[:h // 2, w // 2:], image[h // 2:, :w // 2], image[h // 2:, w // 2:]]
+    for i, (part, value) in enumerate(zip(parts, values)):
+        part[:] = part * value
 
 
 def wavelet2d(image):
@@ -75,11 +82,13 @@ def multi_stage_wavelet2d(image, stages, return_all_stages=False, quantization=N
     return stages_outputs if return_all_stages else stages_outputs[-1]
 
 
-def inverse_multi_stage_wavelet2d(image, stages, return_all_stages=False):
+def inverse_multi_stage_wavelet2d(image, stages, return_all_stages=False, quantization=None):
     h, w = image.shape
     stages_outputs = [image]
     for i in reversed(range(stages)):
         transformed = np.copy(stages_outputs[-1])
+        if quantization is not None:
+            dequantize(transformed[:h // 2 ** i, :w // 2 ** i], quantization[i], i)
         transformed[:h // 2 ** i, :w // 2 ** i] = inverse_wavelet_2d(transformed[:h // 2 ** i, :w // 2 ** i])
         stages_outputs.append(transformed)
     return stages_outputs if return_all_stages else stages_outputs[-1]
@@ -117,7 +126,7 @@ if __name__ == '__main__':
     ]
 
     stages_encode = multi_stage_wavelet2d(image, 3, return_all_stages=True, quantization=quantization)
-    stages_decode = inverse_multi_stage_wavelet2d(stages_encode[-1], 3, return_all_stages=True)
+    stages_decode = inverse_multi_stage_wavelet2d(stages_encode[-1], 3, return_all_stages=True, quantization=quantization)
 
     plot = True
     for i, (a, b) in enumerate(zip(stages_encode, reversed(stages_decode))):

@@ -23,6 +23,7 @@ pydng = {subdirectory = "src", git = "https://github.com/schoolpost/PyDNG.git"}
 numpy = "*"
 imageio = "*"
 scipy = "*"
+pathos = "*"
 
 [packages]
 nmigen = {editable = true,path = "/home/anuejn/code/nmigen"}

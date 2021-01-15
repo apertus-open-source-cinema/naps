@@ -1,22 +1,13 @@
 import sys
-from bz2 import BZ2File
-from collections import defaultdict
-from itertools import product, chain
-from multiprocessing import Pool
 from pathlib import Path
-from pickle import dump
 
 import numpy as np
-import rawpy
-from PIL import Image
-from tqdm import tqdm
+from pathos.pools import ProcessPool as Pool
 
 from lib.video.wavelet.dng import read_dng, write_dng, debayer
-from lib.video.wavelet.py_compressor import compress, uncompress, empty_symbol_frequencies_dict, NumericRange, to_chunks, rle_compress_chunks, compute_symbol_frequencies, huffman_encode, \
-    generate_huffman_tables, merge_symbol_frequencies, get_huffman_size
-from lib.video.wavelet.py_wavelet import compute_psnr, inverse_multi_stage_wavelet2d, multi_stage_wavelet2d, ty
+from lib.video.wavelet.py_compressor import NumericRange, to_chunks, rle_compress_chunks, compute_symbol_frequencies, generate_huffman_tables, merge_symbol_frequencies, get_huffman_size
+from lib.video.wavelet.py_wavelet import inverse_multi_stage_wavelet2d, multi_stage_wavelet2d, ty
 from lib.video.wavelet.vifp import vifp_mscale
-from util.plot_util import plt_image, plt_show
 
 levels = 3
 bit_depth = None
@@ -49,21 +40,6 @@ def load_image(path):
     bit_depth = estimated_bit_depth
 
     return images, {(f'{filename}--R', f'{filename}--G1', f'{filename}--G2', f'{filename}--B'): order}
-
-
-def each_transform_rle(params):
-    (filename, image), quantization, input_range = params
-    transformed = multi_stage_wavelet2d(image, levels, quantization=quantization)
-
-    chunks = list(to_chunks(transformed, levels))
-    region_codes, uncompressed_chunks = zip(*chunks)
-    rle_chunks = list(rle_compress_chunks(chunks, levels, input_range, quantization))
-
-    symbol_frequencies = compute_symbol_frequencies(region_codes, rle_chunks, levels, input_range, quantization)
-
-    roundtripped = inverse_multi_stage_wavelet2d(transformed, levels, quantization=quantization)
-
-    return filename, region_codes, rle_chunks, symbol_frequencies, image, roundtripped
 
 
 def get_image(images, filenames, rggb_filenames):
@@ -101,10 +77,26 @@ if __name__ == '__main__':
         [d, c, c, c * 1.5],
     ], dtype=ty)
 
-    todo = zip(images.items(), [quantization] * len(images), [input_range] * len(images))
-    filenames, region_codes_array, rle_chunks_array, symbol_frequencies_array, original, roundtripped = zip(*pool.imap(each_transform_rle, todo))
+    def each_transform_rle(img, quantization, input_range):
+        filename, image = img
+        transformed = multi_stage_wavelet2d(image, levels, quantization=quantization)
 
-    for rggb_filenames, order in metadata.items():
+        chunks = list(to_chunks(transformed, levels))
+        region_codes, uncompressed_chunks = zip(*chunks)
+        rle_chunks = list(rle_compress_chunks(chunks, levels, input_range, quantization))
+
+        symbol_frequencies = compute_symbol_frequencies(region_codes, rle_chunks, levels, input_range, quantization)
+
+        roundtripped = inverse_multi_stage_wavelet2d(transformed, levels, quantization=quantization)
+
+        return filename, region_codes, rle_chunks, symbol_frequencies, image, roundtripped
+    filenames, region_codes_array, rle_chunks_array, symbol_frequencies_array, original, roundtripped = \
+        zip(*pool.imap(each_transform_rle, images.items(), [quantization] * len(images), [input_range] * len(images)))
+
+    huffman_tables = generate_huffman_tables(merge_symbol_frequencies(symbol_frequencies_array), levels, input_range, quantization)
+
+    def each_compute_vifp_ratio(metadata):
+        rggb_filenames, order = metadata
         common_args = dict(
             bit_depth=bit_depth,
             order=order,
@@ -115,10 +107,15 @@ if __name__ == '__main__':
         write_dng(filename=f'{filename}-roundtripped', **common_args, **roundtripped_args)
         debayered_original = debayer(**common_args, **original_args, debayer_args=dict(output_bps=16))
         debayered_roundtripped = debayer(**common_args, **roundtripped_args, debayer_args=dict(output_bps=16))
-        print(f'{filename: <30}\tvif: {vifp_mscale(debayered_original, debayered_roundtripped):02f}')
+        vifp = vifp_mscale(debayered_original, debayered_roundtripped)
 
-    huffman_tables = generate_huffman_tables(merge_symbol_frequencies(symbol_frequencies_array), levels, input_range, quantization)
+        compressed_sizes = []
+        for f in rggb_filenames:
+            index = filenames.index(f)
+            region_codes, rle_chunks, image = region_codes_array[index], rle_chunks_array[index], original[index]
+            huffman_encoded_size = get_huffman_size(huffman_tables, region_codes, rle_chunks, levels, input_range, quantization)
+            compressed_sizes.append((image.size * bit_depth) / huffman_encoded_size)
 
-    for region_codes, rle_chunks, (filename, image) in zip(region_codes_array, rle_chunks_array, images.items()):
-        huffman_encoded_size = get_huffman_size(huffman_tables, region_codes, rle_chunks, levels, input_range, quantization)
-        print(f'{filename: <30}\t1:{(image.size * bit_depth) / huffman_encoded_size:02f}')
+        print(f'{filename: <30}\t1:{np.mean(compressed_sizes):02f}\tvif: {vifp:02f}')
+    list(map(each_compute_vifp_ratio, metadata.items()))
+

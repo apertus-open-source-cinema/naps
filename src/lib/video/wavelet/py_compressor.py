@@ -138,14 +138,15 @@ def numeric_range_from_region_code(region_code, levels, input_range, quantizatio
     lf = lambda nr: nr + nr
     hf = lambda nr: (nr - nr) + (-nr - nr + nr + nr + 4) // 8
 
-    lf_h = lambda level: lf(input_range) if level == 1 else lf(lf_v(level - 1))
-    lf_v = lambda level: lf(lf_h(level)) / quantization[levels - level - 1][0]
+    lf_h = lambda level: lf(input_range) if level == 1 else lf(lf_v_quantized(level - 1))
+    lf_v = lambda level: lf(lf_h(level))
+    lf_v_quantized = lambda level: lf_v(level) / quantization[levels - level - 1][0]
     hf_top_right = lambda level: hf(lf_h(level))
     hf_bottom_left = lambda level: hf(lf_v(level))
     hf_bottom_right = lambda level: hf(hf_top_right(level))
 
     if region_code == 1:
-        return lf_v(levels)
+        return lf_v_quantized(levels)
 
     level = (levels - region_code // 10) + 1
     if region_code % 10 == 2:
@@ -153,7 +154,7 @@ def numeric_range_from_region_code(region_code, levels, input_range, quantizatio
     elif region_code % 10 == 3:
         return hf_bottom_left(level) / quantization[level - 1][2]
     elif region_code % 10 == 4:
-        return hf_bottom_right(level) / quantization[levels - level - 1][3]
+        return hf_bottom_right(level) / quantization[level - 1][3]
 
 
 def numeric_range_from_region_code_with_rle(region_code, levels, input_range, quantization):
@@ -234,7 +235,7 @@ def merge_symbol_frequencies(symbol_frequencies_list):
     return result
 
 
-def generate_huffman_tables(symbol_frequencies, levels, input_range, quantization, max_table_size=256):
+def generate_huffman_tables(symbol_frequencies, levels, input_range, quantization, max_table_size=1024):
     to_return = {}
     for rc, frequencies in symbol_frequencies.items():
         nr = numeric_range_from_region_code_with_rle(rc, levels, input_range, quantization)

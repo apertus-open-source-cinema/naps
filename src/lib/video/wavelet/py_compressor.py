@@ -162,7 +162,7 @@ def numeric_range_from_region_code_with_rle(region_code, levels, input_range, qu
 
 
 def gen_rle_dict(region_code, levels, input_range, quantization):
-    rle_codes = list(range(2, 300))
+    rle_codes = [2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 18, 25, 35, 50]
     nr = numeric_range_from_region_code(region_code, levels, input_range, quantization)
     return {v: i + nr.max for i, v in enumerate(rle_codes)}
 
@@ -234,7 +234,7 @@ def merge_symbol_frequencies(symbol_frequencies_list):
     return result
 
 
-def generate_huffman_tables(symbol_frequencies, levels, input_range, quantization, max_table_size=2560):
+def generate_huffman_tables(symbol_frequencies, levels, input_range, quantization, max_table_size=256):
     to_return = {}
     for rc, frequencies in symbol_frequencies.items():
         nr = numeric_range_from_region_code_with_rle(rc, levels, input_range, quantization)
@@ -245,10 +245,10 @@ def generate_huffman_tables(symbol_frequencies, levels, input_range, quantizatio
             sorting_indecies = np.argsort(frequencies)
 
             escape_symbol = nr.max + 1
-            real_symbols = np.append(symbols[sorting_indecies[:max_table_size]], [escape_symbol])
+            real_symbols = np.append(symbols[sorting_indecies[-max_table_size:]], [escape_symbol])
 
-            escape_frequency = np.sum(frequencies[max_table_size:])
-            real_frequencies = np.append(frequencies[sorting_indecies[:max_table_size]], [escape_frequency])
+            escape_frequency = np.sum(frequencies[:-max_table_size])
+            real_frequencies = np.append(frequencies[sorting_indecies[-max_table_size:]], [escape_frequency])
 
             cb = codebook(zip(real_symbols, real_frequencies))
 

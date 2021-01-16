@@ -59,11 +59,4 @@ def write_dng(filename, red, green1, green2, blue, bit_depth, order=('G1', 'R', 
 
     # save to dng file.
     RAW2DNG().convert(result, tags=t, filename=filename)
-
-
-def debayer(red, green1, green2, blue, bit_depth, order=('G1', 'R', 'B', 'G2'), debayer_args={}):
-    with tempfile.NamedTemporaryFile() as f:
-        write_dng(f.name, red, green1, green2, blue, bit_depth, order)
-        image = rawpy.imread(f.name + '.dng')
-    color_image = image.postprocess(**debayer_args)
-    return color_image
+    return filename + '.dng'

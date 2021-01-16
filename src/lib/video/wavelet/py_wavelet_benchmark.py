@@ -1,26 +1,20 @@
+import marshal
 import sys
+import types
+from itertools import repeat
 from pathlib import Path
 
 import numpy as np
-from pathos.pools import ProcessPool as Pool
+import rawpy
+from multiprocessing import Pool
 
-from lib.video.wavelet.dng import read_dng, write_dng, debayer
+from lib.video.wavelet.dng import read_dng, write_dng
 from lib.video.wavelet.py_compressor import NumericRange, to_chunks, rle_compress_chunks, compute_symbol_frequencies, generate_huffman_tables, merge_symbol_frequencies, get_huffman_size
 from lib.video.wavelet.py_wavelet import inverse_multi_stage_wavelet2d, multi_stage_wavelet2d, ty
 from lib.video.wavelet.vifp import vifp_mscale
 
 levels = 3
 bit_depth = None
-
-
-def interleave_v(images):
-    first = images[0]
-    h, w = first.shape
-    n_images = len(images)
-    result = np.empty((h * n_images, w), dtype=first.dtype)
-    for i, image in enumerate(images):
-        result[i::n_images, :] = image
-    return result
 
 
 def load_image(path):
@@ -42,15 +36,11 @@ def load_image(path):
     return images, {(f'{filename}--R', f'{filename}--G1', f'{filename}--G2', f'{filename}--B'): order}
 
 
-def get_image(images, filenames, rggb_filenames):
-    (filename_r, filename_g1, filename_g2, filename_b) = rggb_filenames
-    image_planes = dict(
-        red=images[filenames.index(filename_r)],
-        green1=images[filenames.index(filename_g1)],
-        green2=images[filenames.index(filename_g2)],
-        blue=images[filenames.index(filename_b)],
-    )
-    return image_planes, filename_r.split("--")[0]
+def wrapper(args):
+    fun, g, *args = args
+    code = marshal.loads(fun)
+    fun = types.FunctionType(code, dict(g) | globals(), "fn")
+    return fun(*args)
 
 
 if __name__ == '__main__':
@@ -69,6 +59,12 @@ if __name__ == '__main__':
     input_range = NumericRange(0, 2 ** bit_depth - 1)
     pool = Pool()
 
+
+    def pmap(fn, *iterables, capture=()):
+        g = [(k, v) for k, v in globals().items() if k in capture]
+        return pool.imap(wrapper, zip(repeat(marshal.dumps(fn.__code__)), repeat(g), *iterables))
+
+
     a, b, c, = 48, 32, 16
     d = 4
     quantization = np.array([
@@ -77,7 +73,8 @@ if __name__ == '__main__':
         [d, c, c, c * 1.5],
     ], dtype=ty)
 
-    def each_transform_rle(img, quantization, input_range):
+
+    def each_transform_rle(img):
         filename, image = img
         transformed = multi_stage_wavelet2d(image, levels, quantization=quantization)
 
@@ -90,32 +87,47 @@ if __name__ == '__main__':
         roundtripped = inverse_multi_stage_wavelet2d(transformed, levels, quantization=quantization)
 
         return filename, region_codes, rle_chunks, symbol_frequencies, image, roundtripped
+
+
     filenames, region_codes_array, rle_chunks_array, symbol_frequencies_array, original, roundtripped = \
-        zip(*pool.imap(each_transform_rle, images.items(), [quantization] * len(images), [input_range] * len(images)))
+        zip(*pmap(each_transform_rle, images.items(), capture=('levels', 'input_range', 'quantization')))
 
     huffman_tables = generate_huffman_tables(merge_symbol_frequencies(symbol_frequencies_array), levels, input_range, quantization)
 
-    def each_compute_vifp_ratio(metadata):
+
+    def recombine_images(metadata):
         rggb_filenames, order = metadata
+        filename = rggb_filenames[0].split("--")[0]
+
+        per_plane = []
+        for f in rggb_filenames:
+            idx = filenames.index(f)
+            per_plane.append((original[idx], roundtripped[idx], region_codes_array[idx], rle_chunks_array[idx]))
+        return per_plane, order, filename
+
+
+    recombined_images = map(recombine_images, metadata.items())
+
+
+    def each_compute_vifp_ratio(recombined_image):
+        (r, g1, g2, b), order, filename = recombined_image
         common_args = dict(
             bit_depth=bit_depth,
             order=order,
         )
-        original_args, filename = get_image(original, filenames, rggb_filenames)
-        roundtripped_args, _ = get_image(roundtripped, filenames, rggb_filenames)
-        write_dng(filename=f'{filename}-original', **common_args, **original_args)
-        write_dng(filename=f'{filename}-roundtripped', **common_args, **roundtripped_args)
-        debayered_original = debayer(**common_args, **original_args, debayer_args=dict(output_bps=16))
-        debayered_roundtripped = debayer(**common_args, **roundtripped_args, debayer_args=dict(output_bps=16))
+        original_path = write_dng(f'{filename}-original', r[0], g1[0], g2[0], b[0], bit_depth, order)
+        debayered_original = rawpy.imread(original_path).postprocess(output_bps=16)
+        roundtripped_path = write_dng(f'{filename}-roundtripped', r[1], g1[1], g2[1], b[1], bit_depth, order)
+        debayered_roundtripped = rawpy.imread(roundtripped_path).postprocess(output_bps=16)
         vifp = vifp_mscale(debayered_original, debayered_roundtripped)
 
         compressed_sizes = []
-        for f in rggb_filenames:
-            index = filenames.index(f)
-            region_codes, rle_chunks, image = region_codes_array[index], rle_chunks_array[index], original[index]
+        for plane in (r, g1, g2, b):
+            original, roundtripped, region_codes, rle_chunks = plane
             huffman_encoded_size = get_huffman_size(huffman_tables, region_codes, rle_chunks, levels, input_range, quantization)
-            compressed_sizes.append((image.size * bit_depth) / huffman_encoded_size)
+            compressed_sizes.append((original.size * bit_depth) / huffman_encoded_size)
 
         print(f'{filename: <30}\t1:{np.mean(compressed_sizes):02f}\tvif: {vifp:02f}')
-    list(map(each_compute_vifp_ratio, metadata.items()))
 
+
+    list(pmap(each_compute_vifp_ratio, recombined_images, capture=('bit_depth', 'order', 'quantization', 'huffman_tables')))

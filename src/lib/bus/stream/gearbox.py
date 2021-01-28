@@ -29,6 +29,9 @@ class StreamResizer(Elaboratable):
 
 class StreamGearbox(Elaboratable):
     """Resize a Stream by 'Gearing' it up / down (changing the word rate)"""
+    # TODO: add flushing on first & last
+    # (maybe add valid logic?)
+    # do we need streams with more granular word enables (also for more than 1 px / cycle throughput blocks?)
 
     def __init__(self, input: BasicStream, target_width):
         self.input = input
@@ -50,15 +53,15 @@ class StreamGearbox(Elaboratable):
         current_bits_in_shift_register = Signal(range(len(shift_register)))
 
         for k, v in self.input.out_of_band_signals.items():
-            if not (k == "payload" or (k.endswith("last") and len(v) == 1)):
+            if not (k == "payload" or (k.endswith("last") and len(v) == 1) or (k.endswith("first") and len(v) == 1)):
                 raise ValueError("payload signal {} of input has unknown role. dont know what do do with it")
 
-        last_shift_registers = {k: Signal.like(shift_register, name="{}_shift_register".format(k))
-                                for k, v in self.input.out_of_band_signals.items() if k.endswith("last")}
+        last_first_shift_registers = {k: Signal.like(shift_register, name="{}_shift_register".format(k))
+                                for k, v in self.input.out_of_band_signals.items() if (k.endswith("last") or k.endswith("first"))}
 
         shift_registers = [(shift_register, self.input.payload)]
-        shift_registers += [(reg, (getattr(self.input, k) << (input_width - 1))) for k, reg in
-                            last_shift_registers.items()]
+        shift_registers += [(reg, (getattr(self.input, k) << ((input_width - 1) if k.endswith("last") else 0)))
+                            for k, reg in last_first_shift_registers.items()]
 
         with m.If(input_read & ~output_write):
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register + input_width)
@@ -77,7 +80,7 @@ class StreamGearbox(Elaboratable):
         m.d.comb += self.output.valid.eq(current_bits_in_shift_register >= output_width)
         m.d.comb += self.input.ready.eq((len(shift_register) - current_bits_in_shift_register) >= input_width)
 
-        m.d.comb += [getattr(self.output, k).eq(reg[:output_width] != 0) for k, reg in last_shift_registers.items()]
+        m.d.comb += [getattr(self.output, k).eq(reg[:output_width] != 0) for k, reg in last_first_shift_registers.items()]
 
         return m
 

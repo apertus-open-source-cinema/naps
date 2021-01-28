@@ -1,15 +1,16 @@
-from nmigen import Signal
-
-from lib.data_structure.packed_struct import PackedStruct
+from nmigen import *
 
 
-class RGB(PackedStruct):
-    def __init__(self, bits=8, name=None, src_loc_at=1):
-        super().__init__(name, src_loc_at + 1)
-        self.r = Signal(bits)
-        self.g = Signal(bits)
-        self.b = Signal(bits)
+def gen_rgb_n(bits):
+    class RGB:
+        r: unsigned(bits)
+        g: unsigned(bits)
+        b: unsigned(bits)
 
-    @staticmethod
-    def brightness(value):
-        return value[0:8] + value[8:16] + value[16:24]
+        def brightness(self):
+            return self.r + self.g + self.b
+
+    return RGB
+
+
+RGB24 = gen_rgb_n(8)

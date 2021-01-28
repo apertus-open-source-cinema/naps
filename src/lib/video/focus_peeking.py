@@ -4,7 +4,7 @@ from nmigen import *
 
 from lib.peripherals.csr_bank import ControlSignal
 from lib.video.image_stream import ImageStream
-from lib.video.rgb import RGB
+from lib.video.rgb import RGB24
 from lib.video.video_transformer import VideoTransformer
 from util.nmigen_misc import nAbsDifference
 
@@ -27,17 +27,17 @@ class FocusPeeking(Elaboratable):
         m = Module()
 
         def transformer_function(x, y, image_proxy):
-            output = RGB()
+            output = RGB24()
             m.d.comb += output.eq(image_proxy[x, y])
             
-            self_rgb = RGB()
+            self_rgb = RGB24()
             m.d.comb += self_rgb.eq(image_proxy[x, y])
 
             other_rgbs = []
 
             for dx in range(-1, 2):
                 for dy in range(-1, 2):
-                    other_rgb = RGB()
+                    other_rgb = RGB24()
                     m.d.comb += other_rgb.eq(image_proxy[x + dx, y + dy])
                     other_rgbs.append(other_rgb)
 

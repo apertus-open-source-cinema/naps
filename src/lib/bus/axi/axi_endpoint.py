@@ -6,7 +6,7 @@ from nmigen.hdl.ast import MustUse
 
 from lib.bus.stream.stream import BasicStream, Stream
 from lib.data_structure.bundle import Bundle, UPWARDS, DOWNWARDS
-from lib.data_structure.packed_struct import PackedStruct
+from lib.data_structure.packed_struct import packed_struct
 
 
 class Response(Enum):
@@ -22,13 +22,11 @@ class BurstType(Enum):
     WRAP = 0b10
 
 
-class ProtectionType(PackedStruct):
-    def __init__(self, privileged=False, secure=False, is_instruction=False, src_loc_at=1, name=None):
-        super().__init__(src_loc_at=src_loc_at + 1, name=name)
-
-        self.privileged = Signal(reset=privileged)
-        self.secure = Signal(reset=secure)
-        self.is_instruction = Signal(reset=is_instruction)
+@packed_struct
+class ProtectionType:
+    privileged = unsigned(1)
+    secure = unsigned(1)
+    is_instruction = unsigned(1)
 
 
 class AddressStream(BasicStream):
@@ -131,7 +129,7 @@ class AxiEndpoint(Bundle, MustUse):
 
         self.write_address = AddressStream(addr_bits, data_bytes=self.data_bytes, **lite_args) @ DOWNWARDS
         self.write_data = DataStream(data_bits, read=False, **lite_args) @ DOWNWARDS
-        self.write_response = WriteResponseChannel(**lite_args) @UPWARDS
+        self.write_response = WriteResponseChannel(**lite_args) @ UPWARDS
 
     def connect_slave(self, slave):
         """

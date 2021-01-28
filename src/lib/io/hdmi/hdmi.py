@@ -7,7 +7,7 @@ from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.primitives.xilinx_s7.clocking import Mmcm
 from lib.primitives.xilinx_s7.io import OSerdes10
 from lib.primitives.xilinx_s7.ps7 import PS7
-from lib.video.rgb import RGB
+from lib.video.rgb import RGB24
 from util.nmigen_misc import max_error_freq
 from .parse_modeline import parse_modeline
 from .tmds import Encoder
@@ -21,7 +21,7 @@ class Hdmi(Elaboratable):
         self.initial_video_timing = parse_modeline(modeline)
         self.pix_freq = Clock(self.initial_video_timing.pxclk * 1e6)
 
-        self.rgb = RGB()
+        self.rgb = RGB24()
 
         self.hsync_polarity = ControlSignal()
         self.vsync_polarity = ControlSignal()

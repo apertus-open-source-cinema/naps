@@ -7,7 +7,7 @@ from nmigen.build import Clock
 
 from lib.bus.axi import AxiEndpoint
 from lib.primitives.instance_helper import InstanceHelper
-from lib.primitives.xilinx_s7.clocking import Bufg
+from lib.primitives.xilinx_s7.clocking import BufG
 from soc.fatbitstream import FatbitstreamContext
 from util.nmigen_misc import max_error_freq
 
@@ -139,7 +139,7 @@ class PS7(Elaboratable):
         driving_signal = Signal(attrs={"KEEP": "TRUE"}, name="{}_driving_signal".format(domain_name))
         self.m.d.comb += driving_signal.eq(self.instance.fclk.clk[fclk_num])
 
-        bufg = self.m.submodules["fclk_bufg_{}".format(fclk_num)] = Bufg(driving_signal)
+        bufg = self.m.submodules["fclk_bufg_{}".format(fclk_num)] = BufG(driving_signal)
 
         real_freq = [x for x in self.get_possible_fclk_frequencies() if x <= requested_frequency][-1]
         max_error_freq(real_freq, requested_frequency, max_error_percent)

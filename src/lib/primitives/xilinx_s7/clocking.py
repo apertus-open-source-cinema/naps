@@ -7,17 +7,43 @@ from lib.primitives.instance_helper import InstanceHelper
 from soc.soc_platform import SocPlatform
 from util.py_util import decimal_range
 
+_Pll = InstanceHelper("+/xilinx/cells_xtra.v", "PLLE2_ADV")
 
-class Bufg(Elaboratable):
+
+class ClockDivider(Elaboratable):
+    def __init__(self, i, divider):
+        self.divider = divider
+        self.i = i
+        self.o = Signal()
+
+    def elaborate(self, platform):
+        return Instance(
+            "BUFR",
+            p_BUFR_DIVIDE=self.divider,
+            p_SIM_DEVICE="7SERIES",
+            i_CE=1,
+            i_CLR=ResetSignal(),
+            i_I=self.i,
+            o_O=self.o
+        )
+
+
+class BufIO(Elaboratable):
+    def __init__(self, i):
+        self.i = i
+        self.o = Signal()
+
+    def elaborate(self, platform):
+        return Instance("BUFIO", i_I=self.i, o_O=self.o)
+
+
+class BufG(Elaboratable):
     def __init__(self, i):
         self.i = i
         self.o = Signal()
 
     def elaborate(self, platform):
         return Instance("BUFG", i_I=self.i, o_O=self.o)
-
-
-RawPll = InstanceHelper("+/xilinx/cells_xtra.v", "PLLE2_ADV")
 
 
 class Pll(Elaboratable):
@@ -48,7 +74,7 @@ class Pll(Elaboratable):
 
     def __init__(self, input_freq, vco_mul, vco_div, input_domain="sync"):
         Pll.is_valid_vco_conf(input_freq, vco_mul, vco_div, exception=True)
-        self._pll = RawPll(
+        self._pll = _Pll(
             clkin1_period=1 / input_freq * 1e9,
             clkfbout_mult=vco_mul, divclk_divide=vco_div,
         )
@@ -81,7 +107,7 @@ class Pll(Elaboratable):
 
         if bufg:
             # TODO: seems to not change anything
-            bufg = m.submodules["bufg_{}".format(number)] = Bufg(clock_signal)
+            bufg = m.submodules["bufg_{}".format(number)] = BufG(clock_signal)
             output = bufg.o
         else:
             output = clock_signal
@@ -178,7 +204,7 @@ class Mmcm(Elaboratable):
 
         if bufg:
             # TODO: seems to not change anything
-            bufg = m.submodules["bufg_{}".format(number)] = Bufg(clock_signal)
+            bufg = m.submodules["bufg_{}".format(number)] = BufG(clock_signal)
             output = bufg.o
         else:
             output = clock_signal

@@ -3,7 +3,7 @@ from nmigen.lib.cdc import FFSynchronizer
 
 from lib.peripherals.csr_bank import StatusSignal, ControlSignal
 from lib.primitives.xilinx_s7.clocking import Mmcm
-from lib.primitives.xilinx_s7.io import Iserdes
+from lib.primitives.xilinx_s7.io import _ISerdes
 from util.nmigen_misc import iterator_with_if_elif
 
 
@@ -38,7 +38,7 @@ class HispiPhy(Elaboratable):
         pll.output_domain("{}".format(self.hispi_domain), mul * 6)
 
         for lane in range(0, len(self.hispi_lanes)):
-            iserdes = m.submodules["hispi_iserdes_" + str(lane)] = Iserdes(
+            iserdes = m.submodules["hispi_iserdes_" + str(lane)] = _ISerdes(
                 data_width=6,
                 data_rate="DDR",
                 serdes_mode="master",

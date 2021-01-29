@@ -5,7 +5,7 @@ from lib.compression.bit_stuffing import VariableWidthStream, BitStuffer
 from lib.compression.huffman_encoder import HuffmanEncoder
 from lib.compression.rle import ZeroRle
 from lib.video.image_stream import ImageStream
-from lib.video.stream_converter import ImageStream2PacketizedStream
+from lib.video.adapters import ImageStream2PacketizedStream
 from lib.video.wavelet.wavelet import MultiStageWavelet2D
 
 

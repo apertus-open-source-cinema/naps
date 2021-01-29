@@ -43,6 +43,12 @@ def wrapper(args):
     return fun(*args)
 
 
+def pmap(fn, *iterables, capture=(), threads=None):
+    g = [(k, v) for k, v in globals().items() if k in capture]
+    with Pool(threads) as pool:
+        return pool.map(wrapper, zip(repeat(marshal.dumps(fn.__code__)), repeat(g), *iterables))
+
+
 if __name__ == '__main__':
     if len(sys.argv) < 2:
         print(f'usage:\n{sys.argv[0]} input...')
@@ -57,20 +63,11 @@ if __name__ == '__main__':
         metadata.update(new_metadata)
 
     input_range = NumericRange(0, 2 ** bit_depth - 1)
-    pool = Pool()
 
-
-    def pmap(fn, *iterables, capture=()):
-        g = [(k, v) for k, v in globals().items() if k in capture]
-        return pool.imap(wrapper, zip(repeat(marshal.dumps(fn.__code__)), repeat(g), *iterables))
-
-
-    a, b, c, = 48, 32, 16
-    d = 4
     quantization = np.array([
-        [1, a, a, a * 1.5],
-        [1, b, b, b * 1.5],
-        [d, c, c, c * 1.5],
+        [1, 48, 48, 72],
+        [2, 48, 48, 24],
+        [1, 48, 48, 24],
     ], dtype=ty)
 
 
@@ -90,7 +87,7 @@ if __name__ == '__main__':
 
 
     filenames, region_codes_array, rle_chunks_array, symbol_frequencies_array, original, roundtripped = \
-        zip(*pmap(each_transform_rle, images.items(), capture=('levels', 'input_range', 'quantization')))
+        zip(*map(each_transform_rle, images.items()))
 
     huffman_tables = generate_huffman_tables(merge_symbol_frequencies(symbol_frequencies_array), levels, input_range, quantization)
 
@@ -111,10 +108,6 @@ if __name__ == '__main__':
 
     def each_compute_vifp_ratio(recombined_image):
         (r, g1, g2, b), order, filename = recombined_image
-        common_args = dict(
-            bit_depth=bit_depth,
-            order=order,
-        )
         original_path = write_dng(f'{filename}-original', r[0], g1[0], g2[0], b[0], bit_depth, order)
         debayered_original = rawpy.imread(original_path).postprocess(output_bps=16)
         roundtripped_path = write_dng(f'{filename}-roundtripped', r[1], g1[1], g2[1], b[1], bit_depth, order)
@@ -130,4 +123,4 @@ if __name__ == '__main__':
         print(f'{filename: <30}\t1:{np.mean(compressed_sizes):02f}\tvif: {vifp:02f}')
 
 
-    list(pmap(each_compute_vifp_ratio, recombined_images, capture=('bit_depth', 'order', 'quantization', 'huffman_tables')))
+    list(pmap(each_compute_vifp_ratio, recombined_images, capture=('bit_depth', 'order', 'quantization', 'huffman_tables'), threads=4))

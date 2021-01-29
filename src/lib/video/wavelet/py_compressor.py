@@ -17,12 +17,13 @@ def zero_rle(array, codebook):
     codebook = {**codebook, 1: 0}
     keys = np.array(sorted(codebook.keys(), reverse=True), dtype=ty)
     values = np.array([codebook[x] for x in keys], dtype=ty)
-    output_array = np.zeros_like(array)
-    return zero_rle_inner(array, output_array, keys, values)
+    return zero_rle_inner(array, keys, values)
 
 
 @jit(nopython=True)
-def zero_rle_inner(input_array, output_array, keys, values):
+def zero_rle_inner(input_array, keys, values):
+    output_array = np.zeros_like(input_array)
+
     zeroes = 0
     write_ptr = 0
     for v in input_array:
@@ -48,6 +49,32 @@ def zero_rle_inner(input_array, output_array, keys, values):
                 write_ptr += 1
                 zeroes -= k
 
+    return output_array[:write_ptr]
+
+
+@jit(nopython=True)
+def n_combine(input_array, n, first_symbol):
+    output_array = np.zeros_like(input_array)
+    write_ptr = 0
+    in_range_cnt = 0
+    symbol = 0
+    for i in range(len(input_array)):
+        elem = input_array[i]
+        if -1 <= elem <= +1:
+            symbol += (in_range_cnt * 3) * (elem + 1)
+            if in_range_cnt == n - 1:
+                output_array[write_ptr] = first_symbol + symbol
+                write_ptr += 1
+                in_range_cnt = 0
+                symbol = 0
+            else:
+                in_range_cnt += 1
+        else:
+            for x in range(in_range_cnt + 1):
+                output_array[write_ptr] = input_array[i - x]
+                write_ptr += 1
+            in_range_cnt = 0
+            symbol = 0
     return output_array[:write_ptr]
 
 
@@ -159,11 +186,11 @@ def numeric_range_from_region_code(region_code, levels, input_range, quantizatio
 
 def numeric_range_from_region_code_with_rle(region_code, levels, input_range, quantization):
     nr = numeric_range_from_region_code(region_code, levels, input_range, quantization)
-    return NumericRange(nr.min, nr.max + len(gen_rle_dict(region_code, levels, input_range, quantization)))
+    return NumericRange(nr.min, nr.max + len(gen_rle_dict(region_code, levels, input_range, quantization)) + (3**2) + (3 ** 3))
 
 
 def gen_rle_dict(region_code, levels, input_range, quantization):
-    rle_codes = [2, 3, 4, 5, 6, 7, 8, 10, 12, 15, 18, 25, 35, 50]
+    rle_codes = [4, 5, 6, 7, 8, 10, 12, 15, 18, 25, 35, 50]
     nr = numeric_range_from_region_code(region_code, levels, input_range, quantization)
     return {v: i + nr.max for i, v in enumerate(rle_codes)}
 
@@ -176,7 +203,11 @@ def rle_region(data, region_code, levels, input_range, quantization):
     if region_code == 1:
         return data  # don't do rle for lf data
     else:
-        return zero_rle(data, gen_rle_dict(region_code, levels, input_range, quantization))
+        rled_region = zero_rle(data, gen_rle_dict(region_code, levels, input_range, quantization))
+        highest_rle_symbol = nr.max + len(gen_rle_dict(region_code, levels, input_range, quantization))
+        merge_3 = n_combine(rled_region, 3, highest_rle_symbol)
+        merge_2 = n_combine(merge_3, 2, highest_rle_symbol + (3 ** 3))
+        return merge_2
 
 
 def rle_region_decode(data, region_code, levels, length, input_range, quantization):

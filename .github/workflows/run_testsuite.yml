@@ -1,0 +1,41 @@
+name: Python package
+
+on: [push]
+
+jobs:
+  run_testsuite:
+    runs-on: ubuntu-latest
+    steps:
+    - name: Check out repository code
+      uses: actions/checkout@v2
+
+    - name: Setup Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: "3.9"
+    - name: Install pipenv
+      run: |
+        python -m pip install --upgrade pipenv wheel
+    - id: cache-pipenv
+      uses: actions/cache@v1
+      with:
+        path: ~/.local/share/virtualenvs
+        key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
+    
+    - name: Install native dependencies
+      if: steps.cache-pipenv.outputs.cache-hit != 'true'
+      run: |
+        sudo apt-get update -y -qq
+        sudo apt-get install -y -qq llvm-10-dev build-essential
+        sudo ln -s /usr/bin/llvm-config-10 /usr/bin/llvm-config
+    - name: Install python dependencies
+      if: steps.cache-pipenv.outputs.cache-hit != 'true'
+      run: |
+        pipenv install -d --sequential --skip-lock
+
+    - name: Run test suite
+      env:
+        NMIGEN_USE_YOSYS: system
+        YOSYS: yowasp-yosys
+      run:
+        pipenv run test

@@ -1,4 +1,4 @@
-from functools import reduce
+from typing import List
 
 from nmigen import *
 
@@ -7,16 +7,16 @@ from . import AxiEndpoint
 
 
 class AxiInterconnect(Elaboratable):
-    def __init__(self, uplink_axi_master):
+    def __init__(self, upstream):
         """
         A simple single master to many slaves AXI interconnect.
 
-        :type uplink_axi_master: AxiEndpoint
-        :param uplink_axi_master: The axi master to which the inteconnect is connected.
+        :type upstream: AxiEndpoint
+        :param upstream: The axi master to which the interconnect is connected.
         """
-        self._uplink_axi_master = uplink_axi_master
-        assert uplink_axi_master.is_lite, "AXI interconnect only supports AXI lite atm"
-        self._downstream_ports = []
+        assert upstream.is_lite, "AXI interconnect only supports AXI lite atm"
+        self._upstream = upstream
+        self._downstream_ports: List[AxiEndpoint] = []
 
     def get_port(self):
         """
@@ -24,48 +24,32 @@ class AxiInterconnect(Elaboratable):
 
         :return: A new AxiInterface shaped after the upstream port.
         """
-        downstream_master = AxiEndpoint.like(self._uplink_axi_master, name="axi_interconnect_downstream")
+        downstream_master = AxiEndpoint.like(self._upstream, name="axi_interconnect_downstream")
         self._downstream_ports.append(downstream_master)
         return downstream_master
 
     def elaborate(self, platform):
         m = Module()
 
-        uplink = AxiEndpoint.like(self._uplink_axi_master, master=False, name="uplink_slave")
-        m.d.comb += self._uplink_axi_master.connect_slave(uplink)
-
-        # beware: the following works only for axi lite!
-
         for downstream_port in self._downstream_ports:
-            m.d.comb += downstream_port.read_address.payload.eq(uplink.read_address.payload)
-            m.d.comb += downstream_port.read_address.valid.eq(uplink.read_address.valid)
-
-            m.d.comb += downstream_port.write_address.payload.eq(uplink.write_address.payload)
-            m.d.comb += downstream_port.write_address.valid.eq(uplink.write_address.valid)
-
-            m.d.comb += downstream_port.write_data.payload.eq(uplink.write_data.payload)
-            m.d.comb += downstream_port.write_data.valid.eq(uplink.write_data.valid)
-            m.d.comb += downstream_port.write_data.byte_strobe.eq(uplink.write_data.byte_strobe)
+            m.d.comb += downstream_port.read_address.connect_upstream(self._upstream.read_address)
+            m.d.comb += downstream_port.write_address.connect_upstream(self._upstream.write_address)
+            m.d.comb += downstream_port.write_data.connect_upstream(self._upstream.write_data)
 
         # wait until at least one peripherals is ready when writing the addresses
-        m.d.comb += uplink.read_address.ready.eq(nAny(d.read_address.ready for d in self._downstream_ports))
-        m.d.comb += uplink.write_address.ready.eq(nAny(d.write_address.ready for d in self._downstream_ports))
+        m.d.comb += self._upstream.read_address.ready.eq(nAny(d.read_address.ready for d in self._downstream_ports))
+        m.d.comb += self._upstream.write_address.ready.eq(nAny(d.write_address.ready for d in self._downstream_ports))
 
         # only one peripheral has to accept written data
-        m.d.comb += uplink.write_data.ready.eq(nAny(d.write_data.ready for d in self._downstream_ports))
+        m.d.comb += self._upstream.write_data.ready.eq(nAny(d.write_data.ready for d in self._downstream_ports))
 
         # we are creating priority encoders here: When multiple peripherals want to answer, we take the answer of the
         # first added peripheral
         for conditional, downstream_port in iterator_with_if_elif(self._downstream_ports, m):
             with conditional(downstream_port.read_data.valid):
-                m.d.comb += uplink.read_data.valid.eq(1)
-                m.d.comb += uplink.read_data.payload.eq(downstream_port.read_data.payload)
-                m.d.comb += uplink.read_data.resp.eq(downstream_port.read_data.resp)
-                m.d.comb += downstream_port.read_data.ready.eq(uplink.read_data.ready)
+                m.d.comb += self._upstream.read_data.connect_upstream(downstream_port.read_data)
         for conditional, downstream_port in iterator_with_if_elif(self._downstream_ports, m):
             with conditional(downstream_port.write_response.valid):
-                m.d.comb += uplink.write_response.valid.eq(1)
-                m.d.comb += uplink.write_response.resp.eq(downstream_port.write_response.resp)
-                m.d.comb += downstream_port.write_response.ready.eq(uplink.write_response.ready)
+                m.d.comb += self._upstream.write_response.connect_upstream(downstream_port.write_response)
 
         return m

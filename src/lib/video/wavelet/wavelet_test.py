@@ -17,12 +17,13 @@ import numpy as np
 
 class WaveletTest(unittest.TestCase):
     def test_wavelet_2d(self):
+        image = imageio.imread(join(dirname(__file__), "che_128.png"))
+        h, w = image.shape
         platform = SimPlatform()
         m = Module()
 
         input = ImageStream(8)
-        transformer = m.submodules.transformer = Wavelet2D(input, 100, 128)
-        image = imageio.imread(join(dirname(__file__), "che_128.png"))
+        transformer = m.submodules.transformer = Wavelet2D(input, w, h)
 
         def write_process():
             yield from write_frame_to_stream(input, image, pause=False)
@@ -44,14 +45,14 @@ class WaveletTest(unittest.TestCase):
         platform.sim(m)
 
     def test_stream_splitter(self):
+        image = imageio.imread(join(dirname(__file__), "che_128.png"))
+        h, w = image.shape
         platform = SimPlatform()
         m = Module()
 
         input = ImageStream(8)
-        transformer = m.submodules.transformer = Wavelet2D(input, 100, 128)
-        splitter = m.submodules.splitter = ImageSplitter(transformer.output, 100, 128)
-
-        image = imageio.imread(join(dirname(__file__), "che_128.png"))
+        transformer = m.submodules.transformer = Wavelet2D(input, w, h)
+        splitter = m.submodules.splitter = ImageSplitter(transformer.output, w, h)
 
         def write_process():
             yield from write_frame_to_stream(input, image, pause=False)
@@ -75,13 +76,14 @@ class WaveletTest(unittest.TestCase):
         platform.sim(m)
 
     def check_multistage(self, n):
+        image = imageio.imread(join(dirname(__file__), "che_64.png"))
+        h, w = image.shape
         platform = SimPlatform()
         m = Module()
 
-        image = imageio.imread(join(dirname(__file__), "che_64.png"))
 
         input = ImageStream(8)
-        wavelet = m.submodules.wavelet = MultiStageWavelet2D(input, *image.T.shape, stages=n)
+        wavelet = m.submodules.wavelet = MultiStageWavelet2D(input, w, h, stages=n)
 
         def write_process():
             yield from write_frame_to_stream(input, image, pause=False, timeout=10000)

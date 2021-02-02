@@ -5,8 +5,8 @@ from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
 
 from devices import MicroR2Platform
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
-from lib.primitives.xilinx_s7.clocking import RawPll, Bufg
-from lib.primitives.xilinx_s7.io import Oserdes, IdelayCtrl, Idelay, Iserdes
+from lib.primitives.xilinx_s7.clocking import _Pll, BufG
+from lib.primitives.xilinx_s7.io import _OSerdes, _IDelayCtrl, _IDelay, _ISerdes
 from soc.cli import cli
 from soc.platforms.zynq import ZynqSocPlatform
 
@@ -18,17 +18,17 @@ class Top(Elaboratable):
 
         # clock_setup: the serdes clockdomain has double the frequency of fclk1
         platform.ps7.fck_domain()
-        pll = m.submodules.pll = RawPll(startup_wait=False, ref_jitter1=0.01, clkin1_period=8.0,
-                                        clkfbout_mult=8, divclk_divide=1,
-                                        clkout0_divide=16, clkout0_phase=0.0,
-                                        clkout1_divide=4, clkout1_phase=0.0)
+        pll = m.submodules.pll = _Pll(startup_wait=False, ref_jitter1=0.01, clkin1_period=8.0,
+                                      clkfbout_mult=8, divclk_divide=1,
+                                      clkout0_divide=16, clkout0_phase=0.0,
+                                      clkout1_divide=4, clkout1_phase=0.0)
         platform.ps7.fck_domain(requested_frequency=200e6, domain_name="pll_clk_in")
         m.d.comb += pll.clk.in_[1].eq(ClockSignal("pll_clk_in"))
         m.d.comb += pll.clk.fbin.eq(pll.clk.fbout)
-        bufg_serdes = m.submodules.bufg_serdes = Bufg(pll.clk.out[0])
+        bufg_serdes = m.submodules.bufg_serdes = BufG(pll.clk.out[0])
         m.domains += ClockDomain("serdes")
         m.d.comb += ClockSignal("serdes").eq(bufg_serdes.o)
-        bufg_serdes_4x = m.submodules.bufg_serdes_4x = Bufg(pll.clk.out[1])
+        bufg_serdes_4x = m.submodules.bufg_serdes_4x = BufG(pll.clk.out[1])
         m.domains += ClockDomain("serdes_4x")
         m.d.comb += ClockSignal("serdes_4x").eq(bufg_serdes_4x.o)
 
@@ -44,7 +44,7 @@ class Top(Elaboratable):
         ## sender side
         to_oserdes = Signal(8)
 
-        oserdes = m.submodules.oserdes = Oserdes(
+        oserdes = m.submodules.oserdes = _OSerdes(
             data_width=8,
             tristate_width=1,
             data_rate_oq="ddr",
@@ -59,14 +59,14 @@ class Top(Elaboratable):
         m.d.comb += loopback.tx.eq(oserdes.oq)
 
         ## reciver side
-        bufg_idelay_refclk = m.submodules.bufg_idelay_refclk = Bufg(pll.clk.out[1])
+        bufg_idelay_refclk = m.submodules.bufg_idelay_refclk = BufG(pll.clk.out[1])
         m.domains += ClockDomain("idelay_refclk")
         m.d.comb += ClockSignal("idelay_refclk").eq(bufg_idelay_refclk.o)
-        idelay_ctl = m.submodules.idelay_ctl = IdelayCtrl()
+        idelay_ctl = m.submodules.idelay_ctl = _IDelayCtrl()
         m.d.comb += StatusSignal(name="idelay_crl_rdy").eq(idelay_ctl.rdy)
         m.d.comb += idelay_ctl.refclk.eq(ClockSignal("idelay_refclk"))
         m.d.comb += idelay_ctl.rst.eq(ResetSignal("idelay_refclk"))
-        idelay = m.submodules.idelay = Idelay(
+        idelay = m.submodules.idelay = _IDelay(
             delay_src="iDataIn",
             signal_pattern="data",
             cinvctrl_sel=False,
@@ -87,7 +87,7 @@ class Top(Elaboratable):
         idelay_out = Signal()
         m.d.comb += idelay_out.eq(idelay.data.out)
 
-        iserdes = m.submodules.iserdes = Iserdes(
+        iserdes = m.submodules.iserdes = _ISerdes(
             data_width=8,
             data_rate="ddr",
             serdes_mode="master",

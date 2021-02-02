@@ -27,23 +27,19 @@ class FocusPeeking(Elaboratable):
         m = Module()
 
         def transformer_function(x, y, image_proxy):
-            output = RGB24()
-            m.d.comb += output.eq(image_proxy[x, y])
             
-            self_rgb = RGB24()
-            m.d.comb += self_rgb.eq(image_proxy[x, y])
-
-            other_rgbs = []
-
-            for dx in range(-1, 2):
-                for dy in range(-1, 2):
-                    other_rgb = RGB24()
-                    m.d.comb += other_rgb.eq(image_proxy[x + dx, y + dy])
-                    other_rgbs.append(other_rgb)
+            self_rgb = RGB24(image_proxy[x, y])
+            other_rgbs = [
+                RGB24(image_proxy[x + dx, y + dy])
+                for dx in range(-1, 2)
+                for dy in range(-1, 2)
+            ]
 
             deviations = [[nAbsDifference(self_rgb.r, o.r), nAbsDifference(self_rgb.g, o.g), nAbsDifference(self_rgb.b, o.b)] for o in other_rgbs]
             total_deviation = sum(chain(*deviations))
 
+            output = RGB24()
+            m.d.comb += output.eq(RGB24(image_proxy[x, y]))
             with m.If(total_deviation > self.threshold):
                 m.d.comb += output.r.eq(self.highlight_r)
                 m.d.comb += output.g.eq(self.highlight_g)

@@ -30,7 +30,9 @@ class Stream(Bundle):
         self.valid = Signal() @ DOWNWARDS
 
     def clone(self, name=None, src_loc_at=1):
-        new_stream = self.__class__(name=name, src_loc_at=1 + src_loc_at)
+        new_stream = self.__class__.__new__(self.__class__)
+        Stream.__init__(new_stream, name=name, src_loc_at=1 + src_loc_at)
+
         for k, signal in self.payload_signals.items():
             setattr(new_stream, k, Signal.like(signal) @ DOWNWARDS)
         new_stream._directions = copy.deepcopy(self._directions)
@@ -44,7 +46,7 @@ class Stream(Bundle):
 class BasicStream(Stream):
     """A basic stream that carries a payload"""
 
-    def __init__(self, payload_shape=0, name=None, src_loc_at=1):
+    def __init__(self, payload_shape, name=None, src_loc_at=1):
         super().__init__(name=name, src_loc_at=1 + src_loc_at)
         self.payload = Signal(payload_shape) @ DOWNWARDS
 
@@ -59,6 +61,6 @@ class PacketizedStream(BasicStream):
     last word of a packet
     """
 
-    def __init__(self, payload_shape=0, name=None, src_loc_at=1):
+    def __init__(self, payload_shape, name=None, src_loc_at=1):
         super().__init__(payload_shape, name, src_loc_at=1 + src_loc_at)
         self.last = Signal() @ DOWNWARDS

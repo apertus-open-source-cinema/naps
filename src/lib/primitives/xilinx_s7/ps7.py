@@ -99,7 +99,7 @@ class PS7(Elaboratable):
 
     gp_master_number = 0
     def get_axi_gp_master(self, clk) -> AxiEndpoint:
-        axi = AxiEndpoint(addr_bits=32, data_bits=32, lite=False, id_bits=12, master=True)
+        axi = AxiEndpoint(addr_bits=32, data_bits=32, lite=False, id_bits=12)
 
         ps7_port = self.instance.maxigp[self.gp_master_number]
         self.gp_master_number += 1
@@ -110,7 +110,7 @@ class PS7(Elaboratable):
 
     hp_slave_number=0
     def get_axi_hp_slave(self, clk) -> AxiEndpoint:
-        axi = AxiEndpoint(addr_bits=32, data_bits=64, lite=False, id_bits=12, master=False)
+        axi = AxiEndpoint(addr_bits=32, data_bits=64, lite=False, id_bits=12)
 
         ps7_port = self.instance.saxi.hp[self.hp_slave_number]
         self.hp_slave_number += 1

@@ -4,23 +4,19 @@ import os
 from nmigen import *
 
 from devices import MicroR2Platform
-from lib.bus.axi.buffer_writer import AxiBufferWriter
-from lib.bus.ring_buffer import RingBufferAddressStorage
-from lib.bus.stream.debug import StreamInfo
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO, BufferedSyncStreamFIFO
 from lib.bus.stream.gearbox import StreamGearbox, StreamResizer
-from lib.debug.clocking_debug import ClockingDebug
+from lib.dram_packet_ringbuffer.cpu_if import DramPacketRingbufferCpuReader
+from lib.dram_packet_ringbuffer.stream_if import DramPacketRingbufferStreamReader, DramPacketRingbufferStreamWriter
 from lib.io.hdmi.cvt_python import generate_modeline
 from lib.io.hdmi.hdmi_stream_sink import HdmiStreamSink
 from lib.io.hispi.hispi import Hispi
 from lib.peripherals.csr_bank import ControlSignal
 from lib.peripherals.i2c.bitbang_i2c import BitbangI2c
-from lib.video.buffer_reader import VideoBufferReader
-from lib.video.debayer import RecoloringDebayerer, SimpleInterpolatingDebayerer
+from lib.video.debayer import SimpleInterpolatingDebayerer
 from lib.video.focus_peeking import FocusPeeking
 from lib.video.resizer import VideoResizer
-from lib.video.stream_converter import ImageStream2PacketizedStream
-from lib.video.demo_source import BlinkDemoVideoSource
+from lib.video.adapters import ImageStream2PacketizedStream, PacketizedStream2ImageStream
 from soc.cli import cli
 from soc.platforms import ZynqSocPlatform
 from soc.pydriver.drivermethod import driver_method
@@ -34,7 +30,6 @@ class Top(Elaboratable):
         m = Module()
 
         platform.ps7.fck_domain(143e6, "axi_hp")
-        ring_buffer = RingBufferAddressStorage(buffer_size=0x800000, n=4)
 
         # Control Pane
         i2c_pads = platform.request("i2c")
@@ -55,18 +50,19 @@ class Top(Elaboratable):
         )
         input_stream_resizer = m.submodules.input_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(input_fifo.output, 64))
         input_converter = m.submodules.input_converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(input_stream_resizer.output))
-        m.submodules.input_writer = DomainRenamer("axi_hp")(AxiBufferWriter(ring_buffer, input_converter.output))
+        dram_writer = m.submodules.dram_writer = DomainRenamer("axi_hp")(
+            DramPacketRingbufferStreamWriter(input_converter.output, max_packet_size=0x800000, n_buffers=4)
+        )
 
         # Output pipeline
-        output_reader = m.submodules.output_reader = DomainRenamer("axi_hp")(VideoBufferReader(
-            ring_buffer, bits_per_pixel=16,
-            width_pixels=2304, height_pixels=1296,
-        ))
+        cpu_reader = m.submodules.cpu_reader = DramPacketRingbufferCpuReader(dram_writer)
+        output_reader = m.submodules.output_reader = DomainRenamer("axi_hp")(DramPacketRingbufferStreamReader(dram_writer))
         output_stream_resizer = m.submodules.output_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(output_reader.output, 48))
-        output_gearbox = m.submodules.output_gearbox = DomainRenamer("axi_hp")(
-            StreamGearbox(output_stream_resizer.output, target_width=12)
+        output_gearbox = m.submodules.output_gearbox = DomainRenamer("axi_hp")(StreamGearbox(output_stream_resizer.output, target_width=12))
+        output_image_stream_adapter = m.submodules.output_image_stream_adapter = DomainRenamer("axi_hp")(
+            PacketizedStream2ImageStream(output_gearbox.output, 2304)
         )
-        output_resizer_12_to_8 = m.submodules.output_resizer_12_to_8 = StreamResizer(output_gearbox.output, 8, upper_bits=True)
+        output_resizer_12_to_8 = m.submodules.output_resizer_12_to_8 = StreamResizer(output_image_stream_adapter.output, 8, upper_bits=True)
         debayerer = m.submodules.debayerer = DomainRenamer("axi_hp")(SimpleInterpolatingDebayerer(output_resizer_12_to_8.output, 2304, 1296))
         output_after_debayer_fifo = m.submodules.output_after_debayer_fifo = DomainRenamer("axi_hp")(BufferedSyncStreamFIFO(debayerer.output, 32))
         output_focus = m.submodules.output_focus = DomainRenamer("axi_hp")(FocusPeeking(output_after_debayer_fifo.output, 2304, 1296))

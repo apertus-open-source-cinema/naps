@@ -2,7 +2,6 @@ import math
 from enum import Enum
 
 from nmigen import *
-from nmigen.hdl.ast import MustUse
 
 from lib.bus.stream.stream import BasicStream, Stream
 from lib.data_structure.bundle import Bundle, UPWARDS, DOWNWARDS
@@ -24,9 +23,9 @@ class BurstType(Enum):
 
 @packed_struct
 class ProtectionType:
-    privileged = unsigned(1)
-    secure = unsigned(1)
-    is_instruction = unsigned(1)
+    privileged: unsigned(1)
+    secure: unsigned(1)
+    is_instruction: unsigned(1)
 
 
 class AddressStream(BasicStream):
@@ -48,15 +47,14 @@ class DataStream(BasicStream):
         if read:
             self.resp = Signal(Response)
         else:
-            byte_strobe_len = int(data_bits // 8)
-            self.byte_strobe = Signal(byte_strobe_len)
+            self.byte_strobe = Signal(data_bits // 8)
 
         if not lite:
             self.last = Signal()
             self.id = Signal(id_bits)
 
 
-class WriteResponseChannel(Stream):
+class WriteResponseStream(Stream):
     def __init__(self, lite, id_bits, src_loc_at=1, **kwargs):
         super().__init__(src_loc_at=1 + src_loc_at, **kwargs)
 
@@ -68,33 +66,30 @@ class WriteResponseChannel(Stream):
             self.id = Signal(id_bits)
 
 
-class AxiEndpoint(Bundle, MustUse):
+class AxiEndpoint(Bundle):
     @staticmethod
-    def like(model, master=None, lite=None, name="axi", **kwargs):
+    def like(model, lite=None, name="axi", **kwargs):
         """
         Create an AxiInterface shaped like a given model.
         :param name: the name of the resulting axi port
         :type model: AxiEndpoint
         :param model: the model after which the axi port should be created
-        :type master: bool
-        :param master: overrides the master property of the model
         :param lite: overrides the lite property of the model. Only works for creating an AXI lite inteface from an AXI full bus.
         :return:
         """
-        if lite is not None:
-            assert model.is_master or lite, "cant make up id_bits out of thin air"
+        if lite is False:
+            assert not model.is_lite, "cant make up id_bits out of thin air"
 
         return AxiEndpoint(
             addr_bits=model.addr_bits,
             data_bits=model.data_bits,
             lite=lite if lite is not None else model.is_lite,
             id_bits=None if (lite is not None and lite) else model.id_bits,
-            master=master if master is not None else model.is_master,
             name=name,
             **kwargs
         )
 
-    def __init__(self, *, addr_bits, data_bits, master, lite, id_bits=None, src_loc_at=1, **kwargs):
+    def __init__(self, *, addr_bits, data_bits, lite, id_bits=None, src_loc_at=1, **kwargs):
         """
         Constructs a Record holding all the signals for axi (lite)
 
@@ -102,7 +97,6 @@ class AxiEndpoint(Bundle, MustUse):
         :param data_bits: the number of bits the
         :param lite: whether to construct an AXI lite or full bus.
         :param id_bits: the number of bits for the id signal of full axi. do not specify if :param lite is True.
-        :param master: whether the record represents a master or a slave
         """
         super().__init__(**kwargs, src_loc_at=1 + src_loc_at)
 
@@ -110,12 +104,6 @@ class AxiEndpoint(Bundle, MustUse):
             assert not lite, "there is no id tracking on axi lite buses"
         if lite:
             assert id_bits is None
-        if not master:
-            self._MustUse__silence = True
-
-        self.is_master = master
-        if master:
-            self.num_slaves = 0
         self.addr_bits = addr_bits
         self.data_bits = data_bits
         self.data_bytes = data_bits // 8
@@ -129,23 +117,4 @@ class AxiEndpoint(Bundle, MustUse):
 
         self.write_address = AddressStream(addr_bits, data_bytes=self.data_bytes, **lite_args) @ DOWNWARDS
         self.write_data = DataStream(data_bits, read=False, **lite_args) @ DOWNWARDS
-        self.write_response = WriteResponseChannel(**lite_args) @ UPWARDS
-
-    def connect_slave(self, slave):
-        """
-        Connects an AXI slave to this AXI master. Can only be used a single time since every other case requires some kind
-        of AXI inteconnect.
-
-        usage example:
-        >>> m.d.comb += master.connect_slave(slave)
-
-        :type slave: AxiEndpoint
-        :param slave: the slave to connect.
-        :returns the list of
-        """
-        assert self.is_master
-        assert not slave.is_master
-        assert self.is_lite == slave.is_lite
-        assert self.num_slaves == 0, "Only one Slave can be added to an AXI master without an interconnect"
-
-        return self.connect_downstream(slave)
+        self.write_response = WriteResponseStream(**lite_args) @ UPWARDS

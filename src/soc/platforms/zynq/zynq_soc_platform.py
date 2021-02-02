@@ -3,7 +3,7 @@ from os.path import join, dirname
 from nmigen import Fragment, Module, ClockSignal, DomainRenamer
 
 from lib.bus.axi import AxiEndpoint
-from lib.bus.axi.axi_lite_peripheral_connector import AxiLitePeripheralConnector
+from lib.bus.axi.peripheral_connector import AxiLitePeripheralConnector
 from lib.bus.axi.full_to_lite import AxiFullToLiteBridge
 from lib.bus.axi.interconnect import AxiInterconnect
 from lib.primitives.xilinx_s7.ps7 import PS7
@@ -33,7 +33,7 @@ class ZynqSocPlatform(SocPlatform):
                     )
                     axi_lite_master = axi_lite_bridge.lite_master
                 else:  # we are in a simulation platform
-                    axi_lite_master = AxiEndpoint(addr_bits=32, data_bits=32, master=True, lite=True)
+                    axi_lite_master = AxiEndpoint(addr_bits=32, data_bits=32, lite=True)
                     self.axi_lite_master = axi_lite_master
 
                 if use_axi_interconnect:
@@ -42,14 +42,14 @@ class ZynqSocPlatform(SocPlatform):
                     )
                     for peripheral in platform.peripherals:
                         controller = DomainRenamer("axi_lite")(AxiLitePeripheralConnector(peripheral))
-                        m.d.comb += interconnect.get_port().connect_slave(controller.axi)
+                        m.d.comb += interconnect.get_port().connect_downstream(controller.axi)
                         m.submodules += controller
                 else:
                     aggregator = PeripheralsAggregator()
                     for peripheral in platform.peripherals:
                         aggregator.add_peripheral(peripheral)
                     controller = DomainRenamer("axi_lite")(AxiLitePeripheralConnector(aggregator))
-                    m.d.comb += axi_lite_master.connect_slave(controller.axi)
+                    m.d.comb += axi_lite_master.connect_downstream(controller.axi)
                     m.submodules += controller
                 platform.to_inject_subfragments.append((m, "axi_lite"))
         self.prepare_hooks.append(peripherals_connect_hook)

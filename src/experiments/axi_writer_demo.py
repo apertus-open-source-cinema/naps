@@ -3,9 +3,8 @@
 from nmigen import *
 
 from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
-from lib.bus.axi.buffer_writer import AxiBufferWriter
-from lib.bus.ring_buffer import RingBufferAddressStorage
 from lib.bus.stream.stream import PacketizedStream
+from lib.dram_packet_ringbuffer.stream_if import DramPacketRingbufferStreamWriter
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from soc.cli import cli
 from soc.platforms.zynq import ZynqSocPlatform
@@ -25,16 +24,11 @@ class Top(Elaboratable):
         platform.ps7.fck_domain(requested_frequency=200e6)
         m.d.comb += ResetSignal().eq(self.reset)
 
-        ring_buffer = RingBufferAddressStorage(buffer_size=0x1200000, n=4)
-
         stream = PacketizedStream(64)
         m.d.comb += self.data_ready.eq(stream.ready)
         m.d.comb += stream.valid.eq(self.data_valid)
 
-        clock_signal = Signal()
-        m.d.comb += clock_signal.eq(ClockSignal())
-        axi_slave = platform.ps7.get_axi_hp_slave(clock_signal)
-        axi_writer = m.submodules.axi_writer = AxiBufferWriter(ring_buffer, stream, axi_slave=axi_slave)
+        axi_writer = m.submodules.axi_writer = DramPacketRingbufferStreamWriter(stream, max_packet_size=0x1200000, n_buffers=4)
 
         with m.If(axi_writer.input.ready & axi_writer.input.valid):
             m.d.sync += self.data_counter.eq(self.data_counter + 1)

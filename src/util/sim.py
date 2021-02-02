@@ -18,14 +18,21 @@ class SimPlatform:
         self.handed_out_resources = {}
 
         functions = []
+        test_class = None
         caller_path = ""
         stack = inspect.stack()
         for frame in stack[1:]:
             if "unittest" in frame.filename:
                 if not filename:
                     filename = "__".join(reversed(functions))
+                    if test_class:
+                        filename = f'{test_class}__{filename}'
                 break
             functions.append(frame.function)
+            try:
+                test_class = frame.frame.f_locals['self'].__class__.__name__
+            except:
+                pass
             caller_path = frame.filename
         assert isinstance(filename, str)
 

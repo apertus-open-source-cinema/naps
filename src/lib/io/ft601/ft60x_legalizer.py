@@ -2,24 +2,23 @@ from math import ceil
 
 from nmigen import *
 
-from lib.bus.stream.stream import BasicStream
+from lib.bus.stream.stream import BasicStream, PacketizedStream
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.video.image_stream import ImageStream
 
 
 class Ft60xLegalizer(Elaboratable):
-    def __init__(self, input: ImageStream, width, height, bit_depth):
+    def __init__(self, input: PacketizedStream, packet_len):
         self.input = input
         self.output = BasicStream(input.payload.shape())
 
         # we calculate everything in bytes to make it easier to reason about
         buffer_size = 2048 * 4
         blanking = buffer_size
-        frame_len = int(width * height * bit_depth / 8)
-        aligned_len = ceil((frame_len + blanking) / buffer_size) * buffer_size
-        print("ft60x paddnig:", (aligned_len - frame_len), (aligned_len - frame_len) // 4)
+        aligned_len = ceil((packet_len + blanking) / buffer_size) * buffer_size
+        print("ft60x paddnig:", (aligned_len - packet_len), (aligned_len - packet_len) // 4)
 
-        self.padding = ControlSignal(16, reset=(aligned_len - frame_len) // 4)
+        self.padding = ControlSignal(16, reset=(aligned_len - packet_len) // 4)
         self.frame_len = StatusSignal(32)
         self.frame_len_changed = StatusSignal(32)
 
@@ -40,7 +39,7 @@ class Ft60xLegalizer(Elaboratable):
                     m.d.comb += self.output.payload.eq(self.input.payload)
                 with m.If(input_transaction):
                     m.d.sync += frame_len_ctr.eq(frame_len_ctr + 1)
-                with m.If(self.input.frame_last & input_transaction):
+                with m.If(self.input.last & input_transaction):
                     m.next = "PADDING"
                     m.d.sync += padding_ctr.eq(0)
             with m.State("PADDING"):

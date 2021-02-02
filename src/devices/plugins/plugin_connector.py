@@ -1,6 +1,8 @@
 # a helper to generate the plugin connector *on the camera side*
 from nmigen.build import Connector, DiffPairs
 
+from util.sim import SimPlatform
+
 
 def add_plugin_connector(platform, number, conn, lvds, gpio=None, i2c=None):
     if not hasattr(platform, "inverts"):
@@ -93,6 +95,9 @@ def is_resource_pin_inverted(platform, resource, path):
 
 
 def is_signal_inverted(platform, signal):
+    if isinstance(platform, SimPlatform):
+        return False
+
     for res_name, res in platform._requested.items():
         def recurse_fields(x, path):
             if hasattr(x, "fields"):

@@ -3,6 +3,7 @@ from nmigen import *
 from lib.bus.stream.stream import PacketizedStream
 from lib.bus.stream.stream_transformer import StreamTransformer
 from lib.data_structure.bundle import DOWNWARDS
+from lib.peripherals.csr_bank import StatusSignal
 from lib.video.image_stream import ImageStream
 
 
@@ -16,7 +17,6 @@ class ImageStream2PacketizedStream(Elaboratable):
         for name in self.additional_signal_names:
             setattr(self.output, name, Signal(name=name) @ DOWNWARDS)
 
-
     def elaborate(self, platform):
         m = Module()
 
@@ -25,5 +25,33 @@ class ImageStream2PacketizedStream(Elaboratable):
             m.d.comb += self.output.last.eq(self.input.frame_last)
             for name in self.additional_signal_names:
                 m.d.comb += getattr(self.output, name).eq(getattr(self.input, name))
+
+        return m
+
+
+class PacketizedStream2ImageStream(Elaboratable):
+    """Convert a Packetized stream to an Image stream by creating lines with `width`"""
+    def __init__(self, input: PacketizedStream, width):
+        self.input = input
+        self.width = width
+        self.not_exact_number_of_lines_error = StatusSignal(32)
+        self.output = ImageStream(input.payload.shape(), name="adapted_image_stream")
+
+    def elaborate(self, platform):
+        m = Module()
+
+        line_ctr = Signal(16)
+        with StreamTransformer(self.input, self.output, m):
+            with m.If(self.input.last):
+                m.d.comb += self.output.frame_last.eq(1)
+                m.d.sync += line_ctr.eq(0)
+                with m.If(line_ctr != self.width - 1):
+                    m.d.sync += self.not_exact_number_of_lines_error.eq(self.not_exact_number_of_lines_error + 1)
+            with m.Elif(line_ctr < self.width):
+                m.d.sync += line_ctr.eq(line_ctr + 1)
+                with m.If(line_ctr == self.width - 1):
+                    m.d.comb += self.output.line_last.eq(1)
+            with m.Else():
+                m.d.sync += line_ctr.eq(0)
 
         return m

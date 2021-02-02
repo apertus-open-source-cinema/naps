@@ -25,8 +25,8 @@ imageio = "*"
 scipy = "*"
 
 [packages]
-nmigen = {editable = true,path = "/home/anuejn/code/nmigen"}
 yowasp-yosys = "*"
+nmigen = {git = "https://github.com/nmigen/nmigen.git"}
 nmigen-boards = {git = "https://github.com/nmigen/nmigen-boards.git"}
 
 [scripts]

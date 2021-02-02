@@ -4,6 +4,7 @@ from lib.bus.stream.debug import InflexibleSinkDebug, StreamInfo
 from lib.io.hdmi.hdmi import Hdmi
 from lib.peripherals.csr_bank import ControlSignal, StatusSignal
 from lib.video.image_stream import ImageStream
+from lib.video.rgb import RGB24
 
 
 class HdmiStreamSink(Elaboratable):
@@ -19,7 +20,7 @@ class HdmiStreamSink(Elaboratable):
 
         hdmi = m.submodules.hdmi = Hdmi(self.resource, self.modeline, self.pix_domain, self.generate_clocks)
         m.submodules.aligner = DomainRenamer(self.pix_domain)(HdmiStreamAligner(self.input, hdmi))
-        m.d.comb += hdmi.rgb.eq(self.input.payload)
+        m.d.comb += hdmi.rgb.eq(RGB24(self.input.payload))
 
         m.submodules.input_stream_info = DomainRenamer(self.pix_domain)(StreamInfo(self.input))
 

@@ -12,6 +12,7 @@ class PackedStructBaseClass(ValueCastable):
         self.name = name or tracer.get_var_name(depth=2 + src_loc_at, default=camel_to_snake(self.__class__.__name__))
 
         if backing_signal is not None:
+            assert isinstance(backing_signal, Value)
             assert len(kwargs) == 0
             assert len(backing_signal) == self._PACKED_LEN
             self._backing_signal = backing_signal
@@ -59,6 +60,10 @@ class PackedStructBaseClass(ValueCastable):
     @ValueCastable.lowermethod
     def as_value(self):
         return self._backing_signal
+
+    def eq(self, other):
+        assert isinstance(other, self.__class__)
+        return self.as_value().eq(other.as_value())
 
 
 def needed_bits(obj):

@@ -9,7 +9,7 @@ class VariableWidthStream(PacketizedStream):
     A stream that can indicate that only n bits of the payload are relevant.
     """
 
-    def __init__(self, payload_shape=0, name=None, reset_width=0, src_loc_at=1):
+    def __init__(self, payload_shape, name=None, reset_width=0, src_loc_at=1):
         super().__init__(payload_shape, name, src_loc_at=1 + src_loc_at)
         self.current_width = Signal(range(len(self.payload)), reset=reset_width) @ DOWNWARDS
 

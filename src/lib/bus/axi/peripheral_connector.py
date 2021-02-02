@@ -15,7 +15,7 @@ class AxiLitePeripheralConnector(Elaboratable):
         self.peripheral = peripheral
         self.timeout = timeout
 
-        self.axi = AxiEndpoint(master=False, addr_bits=32, data_bits=32, lite=True, name=bundle_name)
+        self.axi = AxiEndpoint(addr_bits=32, data_bits=32, lite=True, name=bundle_name)
 
     def elaborate(self, platform):
         m = Module()

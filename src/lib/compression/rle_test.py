@@ -1,7 +1,7 @@
 import unittest
 from nmigen import *
 from lib.bus.stream.sim_util import write_to_stream, read_from_stream
-from lib.bus.stream.stream import BasicStream
+from lib.bus.stream.stream import BasicStream, PacketizedStream
 from lib.compression.rle import ZeroRle
 from util.sim import SimPlatform
 
@@ -11,7 +11,7 @@ class RleTest(unittest.TestCase):
         platform = SimPlatform()
         m = Module()
 
-        input = BasicStream(8)
+        input = PacketizedStream(8)
         input_data = [1, 0, 1, *([0] * 14), 1]
         run_length_options = [3, 10, 27, 80, 160]
 

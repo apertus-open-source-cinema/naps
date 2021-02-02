@@ -1,4 +1,4 @@
-name: test build
+name: Vivado Builds
 
 on: [workflow_dispatch]
 

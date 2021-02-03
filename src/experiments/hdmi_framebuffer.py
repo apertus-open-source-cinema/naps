@@ -22,6 +22,11 @@ class Top(Elaboratable):
         self.height = 720
 
     def elaborate(self, platform: ZynqSocPlatform):
+        from devices.zybo_platform import ZyboPlatform
+        if not isinstance(platform, ZyboPlatform):
+            from devices.plugins.hdmi_plugin_resource import hdmi_plugin_connect
+            hdmi_plugin_connect(platform, "north")
+
         m = Module()
 
         cpu_writer = m.submodules.cpu_writer = DramPacketRingbufferCpuWriter(
@@ -70,8 +75,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform), possible_socs=(ZynqSocPlatform, )) as platform:
-        from devices.zybo_platform import ZyboPlatform
-        if not isinstance(platform, ZyboPlatform):
-            from devices.plugins.hdmi_plugin_resource import hdmi_plugin_connect
-            hdmi_plugin_connect(platform, "north")
+    cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform), possible_socs=(ZynqSocPlatform, ))

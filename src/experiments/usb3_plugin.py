@@ -31,5 +31,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(Usb3PluginPlatform,), possible_socs=(JTAGSocPlatform,)) as platform:
-        pass
+    cli(Top, runs_on=(Usb3PluginPlatform,), possible_socs=(JTAGSocPlatform,))

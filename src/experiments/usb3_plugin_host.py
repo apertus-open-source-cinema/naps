@@ -15,6 +15,9 @@ from soc.platforms.zynq import ZynqSocPlatform
 
 class Top(Elaboratable):
     def elaborate(self, platform: ZynqSocPlatform):
+        from devices.plugins.usb3_plugin_resource import usb3_plugin_connect
+        usb3_plugin_connect(platform, "south")
+
         m = Module()
 
         platform.ps7.fck_domain(20e6, "fclk_in")
@@ -46,6 +49,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(MicroR2Platform, BetaPlatform), possible_socs=(ZynqSocPlatform,)) as platform:
-        from devices.plugins.usb3_plugin_resource import usb3_plugin_connect
-        usb3_plugin_connect(platform, "south")
+    cli(Top, runs_on=(MicroR2Platform, BetaPlatform), possible_socs=(ZynqSocPlatform,))

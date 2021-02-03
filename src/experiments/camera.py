@@ -27,6 +27,9 @@ class Top(Elaboratable):
         self.sensor_reset_n = ControlSignal(name='sensor_reset', reset=1)
 
     def elaborate(self, platform):
+        from devices.plugins.hdmi_plugin_resource import hdmi_plugin_connect
+        hdmi_plugin_connect(platform, "north")
+
         m = Module()
 
         platform.ps7.fck_domain(143e6, "axi_hp")
@@ -88,7 +91,5 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(MicroR2Platform,), possible_socs=(ZynqSocPlatform,)) as platform:
-        from devices.plugins.hdmi_plugin_resource import hdmi_plugin_connect
+    cli(Top, runs_on=(MicroR2Platform,), possible_socs=(ZynqSocPlatform,))
 
-        hdmi_plugin_connect(platform, "north")

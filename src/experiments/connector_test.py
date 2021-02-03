@@ -13,8 +13,15 @@ from soc.platforms.zynq import ZynqSocPlatform
 
 class Top(Elaboratable):
     def elaborate(self, platform: ZynqSocPlatform):
-        m = Module()
+        platform.add_resources([
+            Resource("loopback", 0,
+                     # high speed serial lanes
+                     Subsignal("tx", DiffPairs("1", "7", dir='o', conn=("pmod", "south")), Attrs(IOSTANDARD="LVDS_25")),
+                     Subsignal("rx", DiffPairs("8", "2", dir='i', conn=("pmod", "south")), Attrs(IOSTANDARD="LVDS_25")),
+                     )
+        ])
 
+        m = Module()
 
         # clock_setup: the serdes clockdomain has double the frequency of fclk1
         platform.ps7.fck_domain()
@@ -157,11 +164,5 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    with cli(Top, runs_on=(MicroR2Platform, ), possible_socs=(ZynqSocPlatform,)) as platform:
-        platform.add_resources([
-            Resource("loopback", 0,
-                     # high speed serial lanes
-                     Subsignal("tx", DiffPairs("1", "7", dir='o', conn=("pmod", "south")), Attrs(IOSTANDARD="LVDS_25")),
-                     Subsignal("rx", DiffPairs("8", "2", dir='i', conn=("pmod", "south")), Attrs(IOSTANDARD="LVDS_25")),
-                     )
-        ])
+    cli(Top, runs_on=(MicroR2Platform, ), possible_socs=(ZynqSocPlatform,))
+

@@ -1,11 +1,13 @@
 import subprocess
 from shlex import quote
+import os
 
 from nmigen.build.run import BuildProducts
 
-default_host = "10.42.0.156"
-default_user = "operator"
-default_password = "axiom"
+
+default_host = os.getenv("ZYNQ_HOST", "10.42.0.1")
+default_user = os.getenv("ZYNQ_USER", "operator")
+default_password = os.getenv("ZYNQ_PASSWORD", "axiom")
 
 
 def run_on_zynq(cmd, host=default_host, user=default_user, password=default_password, sudo=False, sshpass=True):

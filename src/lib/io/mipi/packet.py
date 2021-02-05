@@ -5,6 +5,7 @@ from nmigen import *
 
 from lib.data_structure.packed_struct import packed_struct
 from lib.io.mipi.aligner import LaneWordAligner
+from lib.video.image_stream import ImageStream
 
 
 class ShortPacketDataType(Enum):
@@ -59,6 +60,8 @@ class PacketHeader:
 class MipiCSIPacketLayer(Elaboratable):
     def __init__(self, lane_word_aligner: LaneWordAligner):
         self.lane_word_aligner = lane_word_aligner
+
+        self.output = ImageStream(32)  # we currently only support raw8 with 4 pixels / cycle
 
     def elaborate(self, platform):
         m = Module()

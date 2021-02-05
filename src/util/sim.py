@@ -73,7 +73,7 @@ class SimPlatform:
     def sim(self, dut, testbench=None, traces=(), engine="pysim"):
         dut = self.prepare(dut)
         self.fragment = dut
-        simulator = Simulator(dut, engine = engine)
+        simulator = Simulator(dut, engine=engine)
         for name, frequency in self.clocks.items():
             simulator.add_clock(1 / frequency, domain=name)
 
@@ -121,11 +121,16 @@ class FakeResource(UserValue):
 def wait_for(expr, timeout=100, must_clock=True):
     if must_clock:
         yield
-    for i in range(timeout):
+
+    i = 0
+    while True:
+        if timeout != -1 and i >= timeout:
+            raise TimeoutError("{} did not become '1' within {} cycles".format(expr, timeout))
+        i += 1
+
         if (yield expr):
             return
         yield
-    raise TimeoutError("{} did not become '1' within {} cycles".format(expr, timeout))
 
 
 def pulse(signal, length=1, after=0):

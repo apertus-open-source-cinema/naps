@@ -42,6 +42,7 @@ class PacketizedStream2ImageStream(Elaboratable):
 
         line_ctr = Signal(16)
         with StreamTransformer(self.input, self.output, m):
+            m.d.comb += self.output.payload.eq(self.input.payload)
             with m.If(self.input.last):
                 m.d.comb += self.output.frame_last.eq(1)
                 m.d.sync += line_ctr.eq(0)

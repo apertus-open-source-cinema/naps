@@ -16,13 +16,13 @@ class StreamIfTest(unittest.TestCase):
         writer_axi_port, reader_axi_port = axi_ram_sim_model(plat)
 
         input_stream = PacketizedStream(64)
-        writer = m.submodules.writer = DramPacketRingbufferStreamWriter(input_stream, max_packet_size=1000, n_buffers=4, axi=writer_axi_port)
+        writer = m.submodules.writer = DramPacketRingbufferStreamWriter(input_stream, max_packet_size=1000 * 8, n_buffers=4, axi=writer_axi_port)
         reader = m.submodules.reader = DramPacketRingbufferStreamReader(writer, axi=reader_axi_port)
 
         def testbench():
             test_packets = [
-                [0, 0, 0, 0, 0, 0],
-                [1, 2, 3, 4, 5, 6]
+                [0 for _ in range(900)],
+                [i for i in range(900)]
             ]
 
             for p in test_packets:

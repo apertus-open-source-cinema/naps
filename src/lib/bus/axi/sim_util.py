@@ -63,14 +63,14 @@ def axi_ram_sim_model(platform: SimPlatform, domain="sync"):
     def writer_port_process():
         yield Passive()
         while True:
-            memory, accepted = yield from answer_write_burst(axi_writer_port, timeout=1000)
+            memory, accepted = yield from answer_write_burst(axi_writer_port, timeout=-1)
             mem.update(memory)
     platform.add_process(writer_port_process, domain)
 
     def reader_port_process():
         yield Passive()
         while True:
-            yield from answer_read_burst(axi_reader_port, mem, timeout=1000)
+            yield from answer_read_burst(axi_reader_port, mem, timeout=-1)
     platform.add_process(reader_port_process, domain)
 
     return axi_writer_port, axi_reader_port

@@ -4,6 +4,7 @@ from lib.bus.stream.stream import BasicStream
 from lib.peripherals.csr_bank import StatusSignal
 from .axi_endpoint import Response, AddressStream, BurstType
 from .zynq_util import if_none_get_zynq_hp_port
+from ..stream.debug import StreamInfo
 
 
 class AxiReader(Elaboratable):
@@ -15,7 +16,7 @@ class AxiReader(Elaboratable):
         self.address_source = address_source
         self.axi = axi
 
-        self.output = address_source.clone(name="buffer_reader_output_stream")
+        self.output = BasicStream(axi_data_width, name="buffer_reader_output_stream")
         self.output.payload = Signal(axi_data_width)
 
         self.last_resp = StatusSignal(Response)
@@ -27,6 +28,9 @@ class AxiReader(Elaboratable):
         axi = if_none_get_zynq_hp_port(self.axi, m, platform)
         assert len(self.output.payload) == axi.data_bits
         assert len(self.address_source.payload) == axi.addr_bits
+
+        m.submodules.axi_read_address_info = StreamInfo(axi.read_address)
+        m.submodules.axi_read_data_info = StreamInfo(axi.read_data)
 
         burster = m.submodules.burster = AxiReaderBurster(self.address_source, data_bytes=axi.data_bytes)
         m.d.comb += axi.read_address.connect_upstream(burster.output)

@@ -34,7 +34,7 @@ class Top(Elaboratable):
             default_packet_size=self.width * self.height * 4
         )
 
-        platform.ps7.fck_domain(200e6, "axi_hp")
+        platform.ps7.fck_domain(100e6, "axi_hp")
         buffer_reader = m.submodules.buffer_reader = DomainRenamer("axi_hp")(DramPacketRingbufferStreamReader(cpu_writer))
         gearbox = m.submodules.gearbox = DomainRenamer("axi_hp")(SimpleStreamGearbox(buffer_reader.output, target_width=32))
         resizer = m.submodules.resizer = StreamResizer(gearbox.output, target_width=24)

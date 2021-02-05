@@ -3,6 +3,7 @@ from nmigen import Elaboratable, Module, Signal, Array
 from lib.bus.axi.stream_reader import AxiReader
 from lib.bus.axi.stream_writer import AxiWriter
 from lib.bus.axi.zynq_util import if_none_get_zynq_hp_port
+from lib.bus.stream.debug import StreamInfo
 from lib.bus.stream.metadata_wrapper import LastWrapper
 from lib.bus.stream.stream import PacketizedStream, BasicStream
 from lib.peripherals.csr_bank import StatusSignal
@@ -50,20 +51,20 @@ class DramPacketRingbufferStreamWriter(Elaboratable):
             m.d.comb += address_stream.valid.eq(1)
             m.d.comb += address_stream.payload.eq(address_offset + self.buffer_base_list[self.current_write_buffer])
 
-            m.d.sync += self.buffer_level_list[self.current_write_buffer].eq(address_offset + axi.data_bytes)
-
-            with m.If(~self.input.last & (address_offset + axi.data_bytes < self.max_packet_size)):
-                m.d.sync += address_offset.eq(address_offset + axi.data_bytes)
-            with m.Elif(self.input.last):
-                m.d.sync += is_in_overflow.eq(0)
-                next_buffer = (self.current_write_buffer + 1) % self.n_buffers
-                m.d.sync += address_offset.eq(0)
-                m.d.sync += self.current_write_buffer.eq(next_buffer)
-                m.d.sync += self.buffers_written.eq(self.buffers_written + 1)
-            with m.Else():
-                with m.If(~is_in_overflow):
-                    m.d.sync += is_in_overflow.eq(1)
-                    m.d.sync += self.overflowed_buffers.eq(self.overflowed_buffers + 1)
+            with m.If(self.input.ready):
+                m.d.sync += self.buffer_level_list[self.current_write_buffer].eq(address_offset + axi.data_bytes)
+                with m.If(~self.input.last & (address_offset + axi.data_bytes < self.max_packet_size)):
+                    m.d.sync += address_offset.eq(address_offset + axi.data_bytes)
+                with m.Elif(self.input.last):
+                    m.d.sync += is_in_overflow.eq(0)
+                    next_buffer = (self.current_write_buffer + 1) % self.n_buffers
+                    m.d.sync += address_offset.eq(0)
+                    m.d.sync += self.current_write_buffer.eq(next_buffer)
+                    m.d.sync += self.buffers_written.eq(self.buffers_written + 1)
+                with m.Else():
+                    with m.If(~is_in_overflow):
+                        m.d.sync += is_in_overflow.eq(1)
+                        m.d.sync += self.overflowed_buffers.eq(self.overflowed_buffers + 1)
 
         return m
 
@@ -87,6 +88,8 @@ class DramPacketRingbufferStreamReader(Elaboratable):
         writer = self.writer
 
         address_stream = PacketizedStream(axi.read_address.payload.shape())
+        m.submodules.address_stream_info = StreamInfo(address_stream)
+
         address_offset = Signal.like(axi.read_address.payload)
 
         with m.If(address_offset < writer.buffer_level_list[self.current_read_buffer]):

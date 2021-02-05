@@ -58,7 +58,7 @@ class StreamInfo(Elaboratable):
 
     @driver_property
     def stall_both_percent(self):
-        return (self.valid_not_ready + self.valid_not_ready + self.successful_transactions_counter) / self.reference_counter * 100
+        return (100 - self.efficiency_percent) - self.stall_source_percent - self.stall_sink_percent
 
 
 class MetadataSignalDebug(Elaboratable):

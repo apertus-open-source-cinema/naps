@@ -3,6 +3,7 @@ import unittest
 from nmigen import *
 
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
+from lib.bus.stream.formal_util import verify_stream_output_contract
 from lib.bus.stream.gearbox import StreamGearbox, SimpleStreamGearbox
 from lib.bus.stream.sim_util import read_from_stream, write_to_stream
 from lib.bus.stream.stream import BasicStream, PacketizedStream
@@ -261,6 +262,10 @@ class TestGearbox(unittest.TestCase):
             for output_width in range(1, 100, 3):
                 test_gearbox(input_width, output_width)
 
+    def test_output_stream_contract(self):
+        input = BasicStream(7)
+        verify_stream_output_contract(StreamGearbox(input, 3))
+
 
 class TestSimpleGearbox(unittest.TestCase):
     def test_simple_gearbox_8_to_4_last(self):
@@ -334,3 +339,7 @@ class TestSimpleGearbox(unittest.TestCase):
         platform.add_process(writer, "sync")
         platform.add_process(reader, "sync")
         platform.sim(dut)
+
+    def test_output_stream_contract(self):
+        input = BasicStream(8)
+        verify_stream_output_contract(SimpleStreamGearbox(input, 4))

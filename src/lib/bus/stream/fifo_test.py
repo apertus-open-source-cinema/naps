@@ -2,6 +2,7 @@ import unittest
 
 from lib.bus.stream.fifo import UnbufferedAsyncStreamFIFO, BufferedAsyncStreamFIFO, UnbufferedSyncStreamFIFO, \
     BufferedSyncStreamFIFO
+from lib.bus.stream.formal_util import verify_stream_output_contract
 from lib.bus.stream.sim_util import write_to_stream, read_from_stream
 from lib.bus.stream.stream import BasicStream
 from util.sim import SimPlatform, do_nothing
@@ -43,3 +44,19 @@ class TestFifo(unittest.TestCase):
     def test_sync_stream_fifo_buffered(self):
         fifo_gen = lambda input, depth: BufferedSyncStreamFIFO(input, depth)
         self.check_fifo_basic(fifo_gen)
+
+    def test_async_stream_fifo_output_properties(self):
+        input = BasicStream(32)
+        verify_stream_output_contract(UnbufferedAsyncStreamFIFO(input, 10, o_domain="sync", i_domain="sync"))
+
+    def test_async_stream_fifo_buffered_output_properties(self):
+        input = BasicStream(32)
+        verify_stream_output_contract(BufferedAsyncStreamFIFO(input, 10, o_domain="sync", i_domain="sync"))
+
+    def test_sync_stream_fifo_output_properties(self):
+        input = BasicStream(32)
+        verify_stream_output_contract(UnbufferedSyncStreamFIFO(input, 10))
+
+    def test_sync_stream_fifo_buffered_output_properties(self):
+        input = BasicStream(32)
+        verify_stream_output_contract(BufferedSyncStreamFIFO(input, 10))

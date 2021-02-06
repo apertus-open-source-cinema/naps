@@ -1,16 +1,18 @@
 import unittest
 
+from nmigen import *
 from nmigen.sim import Passive
 
 from lib.bus.axi.axi_endpoint import AxiEndpoint
 from lib.bus.axi.sim_util import answer_read_burst
-from lib.bus.axi.stream_reader import AxiReader
+from lib.bus.axi.stream_reader import AxiReader, AxiReaderBurster
+from lib.bus.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from lib.bus.stream.sim_util import write_to_stream, read_from_stream
 from lib.bus.stream.stream import BasicStream
 from util.sim import SimPlatform
 
 
-class TestSimAxiReader(unittest.TestCase):
+class TestAxiReader(unittest.TestCase):
     def test_basic(self):
         platform = SimPlatform()
 
@@ -57,3 +59,17 @@ class TestSimAxiReader(unittest.TestCase):
 
         platform.add_sim_clock("sync", 100e6)
         platform.sim(dut)
+
+    def test_reader_stream_output(self):
+        axi = AxiEndpoint(addr_bits=32, data_bits=64, lite=False, id_bits=12)
+        verify_stream_output_contract(
+            AxiReader(BasicStream(32), axi),
+            support_modules=(LegalStreamSource(axi.read_data),)
+        )
+
+    def test_burster_stream_output(self):
+        i = BasicStream(32)
+        verify_stream_output_contract(
+            AxiReaderBurster(i),
+            support_modules=(LegalStreamSource(i),)
+        )

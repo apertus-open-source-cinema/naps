@@ -48,6 +48,10 @@ class Bundle:
         return self._connect(self, downstream, allow_partial)
 
     @property
+    def signals(self):
+        return [getattr(self, k) for k in self._directions.keys()]
+
+    @property
     def _downwards_ports(self):
         return [k for k, v in self._directions.items() if v == Direction.DOWNWARDS]
 

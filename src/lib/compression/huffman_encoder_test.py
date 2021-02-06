@@ -2,6 +2,8 @@ import unittest
 from collections import defaultdict
 
 from nmigen import *
+
+from lib.bus.stream.formal_util import LegalStreamSource, verify_stream_output_contract
 from lib.bus.stream.sim_util import write_to_stream, read_from_stream
 from lib.bus.stream.stream import PacketizedStream
 from lib.compression.bit_stuffing import BitStuffer
@@ -80,3 +82,7 @@ class HuffmanTest(unittest.TestCase):
         platform.add_sim_clock("sync", 100e6)
         platform.add_process(write_process, "sync")
         platform.sim(m, read_process)
+
+    def test_output_stream_properties(self):
+        input = PacketizedStream(8)
+        verify_stream_output_contract(HuffmanEncoder(input, {i: i for i in range(256)}), support_modules=(LegalStreamSource(input),))

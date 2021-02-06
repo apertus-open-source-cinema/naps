@@ -13,8 +13,15 @@ class CounterStreamSource(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
+        # we initialize our counter with one to compensate for the 2 cycle delay
+        # from it to the payload
+        counter = Signal(self.output.payload.shape(), reset=1)
+
+        m.d.comb += self.output.valid.eq(1)
         with m.If(self.output.ready | self.count_if_not_ready):
-            m.d.comb += self.output.valid.eq(1)
-            m.d.sync += self.output.payload.eq(self.output.payload + 1)
+            m.d.sync += counter.eq(counter + 1)
+
+        with m.If(self.output.ready):
+            m.d.sync += self.output.payload.eq(counter)
 
         return m

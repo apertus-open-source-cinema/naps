@@ -1,5 +1,7 @@
 import unittest
 from nmigen import *
+
+from lib.bus.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from lib.bus.stream.sim_util import write_to_stream, read_from_stream
 from lib.compression.bit_stuffing import BitStuffer, VariableWidthStream
 from util.sim import SimPlatform
@@ -92,3 +94,7 @@ class BitStufferTest(unittest.TestCase):
         platform.add_sim_clock("sync", 100e6)
         platform.add_process(write_process, "sync")
         platform.sim(m, read_process)
+
+    def test_output_stream_properties(self):
+        input = VariableWidthStream(32)
+        verify_stream_output_contract(BitStuffer(input, 32), support_modules=(LegalStreamSource(input),))

@@ -2,13 +2,14 @@ import unittest
 
 from lib.bus.axi.axi_endpoint import AxiEndpoint
 from lib.bus.axi.sim_util import answer_write_burst
-from lib.bus.axi.stream_writer import AxiWriter
+from lib.bus.axi.stream_writer import AxiWriter, AxiWriterBurster
+from lib.bus.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from lib.bus.stream.sim_util import write_to_stream
 from lib.bus.stream.stream import BasicStream
 from util.sim import SimPlatform, do_nothing
 
 
-class TestSimAxiWriter(unittest.TestCase):
+class TestAxiWriter(unittest.TestCase):
     def test_basic(self):
         platform = SimPlatform()
         axi = AxiEndpoint(addr_bits=32, data_bits=64, lite=False, id_bits=12)
@@ -62,3 +63,20 @@ class TestSimAxiWriter(unittest.TestCase):
 
         platform.add_sim_clock("sync", 100e6)
         platform.sim(dut)
+
+    def test_burster_address_output_stream_spec(self):
+        data_stream = BasicStream(64)
+        address_stream = BasicStream(32)
+
+        dut = AxiWriterBurster(address_stream, data_stream)
+        verify_stream_output_contract(dut, stream_output=dut.address_output)
+
+    def test_burster_data_output_stream_spec(self):
+        data_stream = BasicStream(64)
+        address_stream = BasicStream(32)
+
+        dut = AxiWriterBurster(address_stream, data_stream)
+        verify_stream_output_contract(
+            dut, stream_output=dut.data_output,
+            support_modules=(LegalStreamSource(data_stream), LegalStreamSource(address_stream))
+        )

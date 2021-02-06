@@ -2,9 +2,10 @@ import unittest
 import random
 
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
+from lib.bus.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from lib.bus.stream.metadata_wrapper import LastWrapper
 from lib.bus.stream.sim_util import write_packet_to_stream, read_packet_from_stream
-from lib.bus.stream.stream import PacketizedStream
+from lib.bus.stream.stream import PacketizedStream, BasicStream
 from util.sim import SimPlatform
 
 
@@ -78,3 +79,18 @@ class MetadataWrapperTest(unittest.TestCase):
 
         platform.add_sim_clock("sync", 100e6)
         platform.sim(dut)
+
+    def test_output_stream_contract(self):
+        input_stream = PacketizedStream(32)
+        dut = LastWrapper(input_stream, lambda i: BufferedSyncStreamFIFO(i, 10), last_fifo_depth=1, last_rle_bits=3)
+        verify_stream_output_contract(dut, support_modules=(LegalStreamSource(input_stream),))
+
+    def test_core_output_stream_contract(self):
+        input_stream = PacketizedStream(32)
+        device_input_stream: BasicStream
+        def core_producer(i):
+            nonlocal device_input_stream
+            device_input_stream = i
+            return LegalStreamSource(i.clone())
+        dut = LastWrapper(input_stream, core_producer, last_fifo_depth=1, last_rle_bits=3)
+        verify_stream_output_contract(dut, stream_output=device_input_stream, support_modules=(LegalStreamSource(input_stream),))

@@ -3,7 +3,7 @@ from nmigen import *
 from lib.bus.stream.stream import PacketizedStream
 from lib.compression.bit_stuffing import VariableWidthStream, BitStuffer
 from lib.compression.huffman_encoder import HuffmanEncoder
-from lib.compression.rle import ZeroRle
+from lib.compression.rle import ZeroRleEncoder
 from lib.video.image_stream import ImageStream
 from lib.video.adapters import ImageStream2PacketizedStream
 from lib.video.wavelet.wavelet import MultiStageWavelet2D
@@ -35,7 +35,7 @@ class WaveletCompressor(Elaboratable):
         with m.If(packetizer.output.is_hf):
             rle_input = PacketizedStream()
             m.d.comb += rle_input.connect_upstream(packetizer.output)
-            rle = m.submodules.rle = ZeroRle(rle_input, self.possible_run_lengths)
+            rle = m.submodules.rle = ZeroRleEncoder(rle_input, self.possible_run_lengths)
             huffman = m.submodules.huffman = HuffmanEncoder(rle.output)
             m.d.comb += bit_stuffing_input.connect_upstream(huffman.output)
         with m.Else():

@@ -39,7 +39,6 @@ class BitStuffer(Elaboratable):
         with m.Elif(~input_read & output_write):
             with m.If(flush & (current_bits_in_shift_register <= output_width)):
                 m.d.sync += flush.eq(0)
-                m.d.comb += self.output.last.eq(1)
                 m.d.sync += current_bits_in_shift_register.eq(0)
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register - output_width)
             m.d.sync += shift_register.eq(shift_register[output_width:])
@@ -49,8 +48,16 @@ class BitStuffer(Elaboratable):
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register + self.input.current_width - output_width)
             m.d.sync += shift_register.eq((self.input.payload << (current_bits_in_shift_register - output_width)) | (shift_register >> output_width))
 
+        with m.If(flush & (current_bits_in_shift_register <= output_width)):
+            m.d.comb += self.output.last.eq(1)
         m.d.comb += self.output.payload.eq(shift_register[:output_width])
         m.d.comb += self.output.valid.eq((current_bits_in_shift_register >= output_width) | flush)
-        m.d.comb += self.input.ready.eq(((len(shift_register) - current_bits_in_shift_register) >= len(self.input.payload)) | ~flush)
+
+        # do not accept a zero lenght packet if we are already presenting a valid output as this could
+        # change the last signal of an ongoing transaction.
+        with m.If((self.input.current_width == 0) & (current_bits_in_shift_register >= output_width)):
+            m.d.comb += self.input.ready.eq(0)
+        with m.Else():
+            m.d.comb += self.input.ready.eq(((len(shift_register) - current_bits_in_shift_register) >= len(self.input.payload)) & ~self.output.last)
 
         return m

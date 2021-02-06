@@ -1,3 +1,5 @@
+from math import log2
+
 from nmigen import *
 
 from lib.bus.stream.stream import BasicStream
@@ -68,31 +70,36 @@ class AxiReaderBurster(Elaboratable):
                 m.d.comb += self.output.burst_type.eq(BurstType.INCR)
                 m.d.comb += self.output.burst_len.eq(burst_ctr - 1)
 
-        with m.If(self.output.ready):
+        with m.If((self.input.payload == last_address + self.data_bytes) &
+                  (burst_ctr < self.max_burst_length) &
+                  self.input.valid):
             m.d.comb += self.input.ready.eq(1)
+            m.d.sync += last_address.eq(self.input.payload)
+            m.d.sync += burst_ctr.eq(burst_ctr + 1)
+            m.d.sync += timeout_ctr.eq(0)
+            with m.If(burst_ctr == 0):
+                m.d.sync += burst_start.eq(self.input.payload)
 
-            with m.If((self.input.payload == last_address + self.data_bytes) &
-                      (burst_ctr < self.max_burst_length) &
-                      self.input.valid):
-                m.d.sync += last_address.eq(self.input.payload)
-                m.d.sync += burst_ctr.eq(burst_ctr + 1)
-                m.d.sync += timeout_ctr.eq(0)
-                with m.If(burst_ctr == 0):
-                    m.d.sync += burst_start.eq(self.input.payload)
-
-            with m.Else():
-                with m.If(self.input.valid):
+        with m.Else():
+            with m.If(self.input.valid):
+                write_address_burst()
+                with m.If(self.output.ready):
+                    m.d.comb += self.input.ready.eq(1)
                     m.d.sync += last_address.eq(self.input.payload)
                     m.d.sync += burst_start.eq(self.input.payload)
-
-                    write_address_burst()
                     m.d.sync += burst_ctr.eq(1)
                     m.d.sync += timeout_ctr.eq(0)
-                with m.Elif((burst_ctr > 0)):
-                    with m.If(timeout_ctr < self.burst_creation_timeout - 1):
-                        m.d.sync += timeout_ctr.eq(timeout_ctr + 1)
-                    with m.Else():
-                        write_address_burst()
+            with m.Elif((burst_ctr > 0)):
+                with m.If(timeout_ctr < self.burst_creation_timeout - 1):
+                    m.d.sync += timeout_ctr.eq(timeout_ctr + 1)
+                with m.Else():
+                    write_address_burst()
+                    with m.If(self.output.ready):
+                        m.d.comb += self.input.ready.eq(1)
                         m.d.sync += burst_ctr.eq(0)
+
+        m.d.comb += self.output.id.eq(self.output.id.reset)
+        m.d.comb += self.output.beat_size_bytes.eq(self.output.beat_size_bytes.reset)
+        m.d.comb += self.output.protection_type.eq(self.output.protection_type.reset)
 
         return m

@@ -44,8 +44,8 @@ class HuffmanEncoder(Elaboratable):
         has_output = Signal()
         with m.If(has_output | output_produce):
             m.d.comb += self.output.valid.eq(1)
-        m.d.sync += has_output.eq(has_output + output_produce - output_transaction)
+        m.d.sync += has_output.eq(has_output + output_produce - output_transaction > 0)
 
-        m.d.comb += self.input.ready.eq(self.output.ready)
+        m.d.comb += self.input.ready.eq(self.output.ready | (~has_output & ~output_produce))
 
         return m

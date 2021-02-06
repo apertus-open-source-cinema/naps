@@ -40,10 +40,12 @@ def cli(top_class, runs_on, possible_socs=(None,)):
     parser.add_argument('-p', '--program', help='programs the board; programs the last build if used without -b',
                         action="store_true")
     runs_on_choices = [plat.__name__.replace("Platform", "") for plat in runs_on]
+    default = runs_on_choices[0] if len(runs_on_choices) == 1 else None
     parser.add_argument('-d', '--device', help='specify the device to build for', choices=runs_on_choices,
-                        required=True)
+                        required=default == None, default=default)
     runs_on_choices = [plat.__name__.replace("SocPlatform", "") for plat in possible_socs if plat is not None]
-    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=runs_on_choices)
+    default = runs_on_choices[0] if len(runs_on_choices) == 1 else None
+    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=runs_on_choices, default=default)
     parser = parser
     args = parser.parse_args()
 

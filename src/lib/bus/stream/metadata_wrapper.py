@@ -57,7 +57,7 @@ class LastWrapper(Elaboratable):
                 m.d.comb += self.core_output.ready.eq(1)
                 with m.If((rle_output_counter == last_fifo.output.payload) & last_fifo.output.valid):
                     m.d.comb += last_fifo.output.ready.eq(1)
-                    with m.If(rle_output_counter != overflow_word:
+                    with m.If(rle_output_counter != overflow_word):
                         m.d.comb += self.output.last.eq(1)
                     m.d.sync += rle_output_counter.eq(0)
                 with m.Elif((rle_output_counter > last_fifo.output.payload) & last_fifo.output.valid):

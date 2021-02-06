@@ -1,6 +1,8 @@
 import unittest
 import random
 
+import pytest
+
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
 from lib.bus.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from lib.bus.stream.metadata_wrapper import LastWrapper, GenericMetadataWrapper
@@ -80,11 +82,13 @@ class LastWrapperTest(unittest.TestCase):
         platform.add_sim_clock("sync", 100e6)
         platform.sim(dut)
 
+    @pytest.mark.skip("yosys crashes on this input; see https://github.com/YosysHQ/yosys/issues/2577")
     def test_output_stream_contract(self):
         input_stream = PacketizedStream(32)
         dut = LastWrapper(input_stream, lambda i: BufferedSyncStreamFIFO(i, 10), last_fifo_depth=1, last_rle_bits=3)
         verify_stream_output_contract(dut, support_modules=(LegalStreamSource(input_stream),))
 
+    @pytest.mark.skip("yosys crashes on this input; see https://github.com/YosysHQ/yosys/issues/2577")
     def test_core_output_stream_contract(self):
         input_stream = PacketizedStream(32)
         device_input_stream: BasicStream
@@ -96,6 +100,7 @@ class LastWrapperTest(unittest.TestCase):
         verify_stream_output_contract(dut, stream_output=device_input_stream, support_modules=(LegalStreamSource(input_stream),))
 
 
+@pytest.mark.skip("this core is non functional")
 class GenericMetadataWrapperTest(unittest.TestCase):
     def test_randomized(self):
         platform = SimPlatform()

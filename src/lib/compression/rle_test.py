@@ -3,8 +3,8 @@ from nmigen import *
 
 from lib.bus.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from lib.bus.stream.sim_util import write_to_stream, read_from_stream
-from lib.bus.stream.stream import BasicStream, PacketizedStream
-from lib.compression.rle import ZeroRleEncoder
+from lib.bus.stream.stream import PacketizedStream
+from lib.compression.rle import ZeroRleEncoder, RleEncodingSpace
 from util.sim import SimPlatform
 
 
@@ -17,7 +17,7 @@ class RleTest(unittest.TestCase):
         input_data = [1, 0, 1, *([0] * 14), 1]
         run_length_options = [3, 10, 27, 80, 160]
 
-        rle = m.submodules.rle = ZeroRleEncoder(input, run_length_options)
+        rle = m.submodules.rle = ZeroRleEncoder(input, RleEncodingSpace(range(0, 255), run_length_options, zero_value=0))
 
         def write_process():
             for x in input_data:
@@ -44,4 +44,5 @@ class RleTest(unittest.TestCase):
 
     def test_output_stream_properties(self):
         input = PacketizedStream(8)
-        verify_stream_output_contract(ZeroRleEncoder(input, [3, 10, 27, 80, 160]), support_modules=(LegalStreamSource(input),))
+        encoding_space = RleEncodingSpace(range(0, 255), [3, 10, 27, 80, 160], zero_value=0)
+        verify_stream_output_contract(ZeroRleEncoder(input, encoding_space), support_modules=(LegalStreamSource(input),))

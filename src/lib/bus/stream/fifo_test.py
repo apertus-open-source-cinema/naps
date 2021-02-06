@@ -1,5 +1,7 @@
 import unittest
 
+import pytest
+
 from lib.bus.stream.fifo import UnbufferedAsyncStreamFIFO, BufferedAsyncStreamFIFO, UnbufferedSyncStreamFIFO, \
     BufferedSyncStreamFIFO
 from lib.bus.stream.formal_util import verify_stream_output_contract
@@ -45,10 +47,10 @@ class TestFifo(unittest.TestCase):
         fifo_gen = lambda input, depth: BufferedSyncStreamFIFO(input, depth)
         self.check_fifo_basic(fifo_gen)
 
-    # TODO: this can not be proven at the moment because FFSyncronizer is resetless & we cant prove the correctness
-    # def test_async_stream_fifo_output_properties(self):
-    #     input = BasicStream(32)
-    #     verify_stream_output_contract(UnbufferedAsyncStreamFIFO(input, 10, o_domain="sync", i_domain="sync"))
+    @pytest.mark.skip("this can not be proven at the moment because a FFSyncronizer in the async FIFO is resetless")
+    def test_async_stream_fifo_output_properties(self):
+        input = BasicStream(32)
+        verify_stream_output_contract(UnbufferedAsyncStreamFIFO(input, 10, o_domain="sync", i_domain="sync"))
 
     def test_async_stream_fifo_buffered_output_properties(self):
         input = BasicStream(32)

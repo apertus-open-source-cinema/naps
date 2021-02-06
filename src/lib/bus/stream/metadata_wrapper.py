@@ -30,30 +30,23 @@ class LastWrapper(Elaboratable):
 
         last_fifo_input = BasicStream(self.last_rle_bits)
         last_fifo = m.submodules.last_fifo = BufferedSyncStreamFIFO(last_fifo_input, self.last_fifo_depth)
-
         rle_input_counter = StatusSignal(self.last_rle_bits)
-        with m.If(self.input.last & last_fifo_input.ready & self.core_input.ready):
-            m.d.comb += self.input.ready.eq(1)
-            with m.If(self.input.valid):
-                m.d.comb += self.core_input.valid.eq(1)
-                m.d.comb += self.core_input.payload.eq(self.input.payload)
-                m.d.comb += last_fifo_input.valid.eq(1)
-                m.d.comb += last_fifo_input.payload.eq(rle_input_counter)
-                m.d.sync += rle_input_counter.eq(0)
-        with m.Elif((rle_input_counter < (2 ** self.last_rle_bits - 1)) & self.core_input.ready & ~self.input.last):
-            m.d.comb += self.input.ready.eq(1)
-            with m.If(self.input.valid):
-                m.d.comb += self.core_input.valid.eq(1)
-                m.d.comb += self.core_input.payload.eq(self.input.payload)
-                m.d.sync += rle_input_counter.eq(rle_input_counter + 1)
-        with m.Elif(last_fifo_input.ready & self.core_input.ready & ~self.input.last):
-            m.d.comb += self.input.ready.eq(1)
-            with m.If(self.input.valid):
-                m.d.comb += self.core_input.valid.eq(1)
-                m.d.comb += self.core_input.payload.eq(self.input.payload)
-                m.d.comb += last_fifo_input.valid.eq(1)
-                m.d.comb += last_fifo_input.payload.eq(rle_input_counter)
-                m.d.sync += rle_input_counter.eq(0)
+
+        overflow_word = (2 ** self.last_rle_bits - 1)
+
+        with m.If(self.input.valid & last_fifo_input.ready):
+            m.d.comb += self.core_input.valid.eq(1)
+            m.d.comb += self.core_input.payload.eq(self.input.payload)
+
+            with m.If(self.core_input.ready):
+                m.d.comb += self.input.ready.eq(1)
+
+                with m.If(self.input.last | (rle_input_counter == overflow_word)):
+                    m.d.comb += last_fifo_input.payload.eq(rle_input_counter)
+                    m.d.comb += last_fifo_input.valid.eq(1)
+                    m.d.sync += rle_input_counter.eq(0)
+                with m.Else():
+                    m.d.sync += rle_input_counter.eq(rle_input_counter + 1)
 
         rle_output_counter = StatusSignal(self.last_rle_bits)
         with m.If(self.core_output.valid):
@@ -63,7 +56,7 @@ class LastWrapper(Elaboratable):
                 m.d.comb += self.core_output.ready.eq(1)
                 with m.If((rle_output_counter == last_fifo.output.payload) & last_fifo.output.valid):
                     m.d.comb += last_fifo.output.ready.eq(1)
-                    with m.If(rle_output_counter != (2 ** self.last_rle_bits - 1)):
+                    with m.If(rle_output_counter != overflow_word:
                         m.d.comb += self.output.last.eq(1)
                     m.d.sync += rle_output_counter.eq(0)
                 with m.Elif((rle_output_counter > last_fifo.output.payload) & last_fifo.output.valid):

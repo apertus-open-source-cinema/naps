@@ -3,7 +3,7 @@ import unittest
 from nmigen import *
 
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
-from lib.bus.stream.formal_util import verify_stream_output_contract
+from lib.bus.stream.formal_util import LegalStreamSource, verify_stream_output_contract
 from lib.bus.stream.gearbox import StreamGearbox, SimpleStreamGearbox
 from lib.bus.stream.sim_util import read_from_stream, write_to_stream
 from lib.bus.stream.stream import BasicStream, PacketizedStream
@@ -342,4 +342,4 @@ class TestSimpleGearbox(unittest.TestCase):
 
     def test_output_stream_contract(self):
         input = BasicStream(8)
-        verify_stream_output_contract(SimpleStreamGearbox(input, 4))
+        verify_stream_output_contract(SimpleStreamGearbox(input, 4), support_modules=(LegalStreamSource(input),))

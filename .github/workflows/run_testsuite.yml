@@ -8,7 +8,11 @@ jobs:
     steps:
     - name: Check out repository code
       uses: actions/checkout@v2
-
+    - name: Install yices
+      run: |
+        sudo add-apt-repository ppa:sri-csl/formal-methods
+        sudo apt-get update
+        sudo apt-get install yices2
     - name: Setup Python
       uses: actions/setup-python@v2
       with:
@@ -21,7 +25,6 @@ jobs:
       with:
         path: ~/.local/share/virtualenvs
         key: ${{ runner.os }}-pipenv-${{ hashFiles('**/Pipfile.lock') }}
-    
     - name: Install native dependencies
       if: steps.cache-pipenv.outputs.cache-hit != 'true'
       run: |
@@ -36,6 +39,8 @@ jobs:
     - name: Run test suite
       env:
         NMIGEN_USE_YOSYS: system
+        SBY: yowasp-sby
+        SMTBMC: yowasp-yosys-smtbmc
         YOSYS: yowasp-yosys
       run:
         pipenv run test

@@ -3,6 +3,7 @@ from nmigen import *
 from lib.bus.stream.debug import StreamInfo
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
 from lib.bus.stream.stream import BasicStream, PacketizedStream
+from lib.data_structure.bundle import DOWNWARDS
 from lib.peripherals.csr_bank import StatusSignal
 
 
@@ -68,5 +69,38 @@ class LastWrapper(Elaboratable):
         m.submodules.info_output = StreamInfo(self.output)
         m.submodules.info_fifo_input = StreamInfo(last_fifo_input)
         m.submodules.info_fifo_output = StreamInfo(last_fifo.output)
+
+        return m
+
+
+class GenericMetadataWrapper(Elaboratable):
+    def __init__(self, input: BasicStream, core_producer, fifo_depth=128):
+        self.fifo_depth = fifo_depth
+        self.input = input
+
+        self.core_input = BasicStream(input.payload.shape())
+        self.core = core_producer(self.core_input)
+        self.core_output = self.core.output
+
+        self.output = self.input.clone()
+        self.output.payload = Signal(len(self.core_output.payload)) @ DOWNWARDS
+
+    def elaborate(self, platform):
+        m = Module()
+
+        metadata_fifo_input = BasicStream(len(Cat(*self.input.out_of_band_signals.values())))
+        metadata_fifo = m.submodules.metadata_fifo = BufferedSyncStreamFIFO(metadata_fifo_input, self.fifo_depth)
+
+        m.d.comb += self.input.ready.eq(metadata_fifo_input.ready & self.core_input.ready)
+        m.d.comb += metadata_fifo_input.valid.eq(self.input.ready & self.input.valid)
+        m.d.comb += self.core_input.valid.eq(self.input.ready & self.input.valid)
+        m.d.comb += self.core_input.payload.eq(self.input.payload)
+        m.d.comb += metadata_fifo_input.payload.eq(Cat(*self.input.out_of_band_signals.values()))
+
+        m.d.comb += self.output.valid.eq(metadata_fifo.output.valid & self.core_output.valid)
+        m.d.comb += self.output.payload.eq(self.core_output.payload)
+        m.d.comb += metadata_fifo.output.ready.eq(self.output.valid & self.core_output.ready)
+        m.d.comb += self.core_output.ready.eq(self.output.valid & self.core_output.ready)
+        m.d.comb += Cat(*self.output.out_of_band_signals.values()).eq(metadata_fifo.output.payload)
 
         return m

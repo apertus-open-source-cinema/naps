@@ -110,6 +110,7 @@ class AxiWriterBurster(Elaboratable):
             m.d.comb += self.address_input.ready.eq(1)
             m.d.sync += burst_len.eq(burst_len + 1)
             m.d.sync += last_address.eq(self.address_input.payload)
+
         with m.If(self.address_input.valid & self.data_input.valid & data_output.ready):
             m.d.sync += timeout_counter.eq(0)
             with m.If((self.address_input.payload == (last_address + self.word_bytes)) & (burst_len < self.max_burst_length - 1)):

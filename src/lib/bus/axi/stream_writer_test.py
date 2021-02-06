@@ -65,18 +65,21 @@ class TestAxiWriter(unittest.TestCase):
         platform.sim(dut)
 
     def test_burster_address_output_stream_spec(self):
-        data_stream = BasicStream(64)
-        address_stream = BasicStream(32)
+        data_input = BasicStream(64)
+        address_input = BasicStream(32)
 
-        dut = AxiWriterBurster(address_stream, data_stream)
-        verify_stream_output_contract(dut, stream_output=dut.address_output)
+        dut = AxiWriterBurster(address_input, data_input)
+        verify_stream_output_contract(
+            dut, stream_output=dut.address_output,
+            support_modules=(LegalStreamSource(data_input), LegalStreamSource(address_input))
+        )
 
     def test_burster_data_output_stream_spec(self):
-        data_stream = BasicStream(64)
-        address_stream = BasicStream(32)
+        data_input = BasicStream(64)
+        address_input = BasicStream(32)
 
-        dut = AxiWriterBurster(address_stream, data_stream)
+        dut = AxiWriterBurster(address_input, data_input)
         verify_stream_output_contract(
             dut, stream_output=dut.data_output,
-            support_modules=(LegalStreamSource(data_stream), LegalStreamSource(address_stream))
+            support_modules=(LegalStreamSource(data_input), LegalStreamSource(address_input))
         )

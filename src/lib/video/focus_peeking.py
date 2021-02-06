@@ -27,7 +27,6 @@ class FocusPeeking(Elaboratable):
         m = Module()
 
         def transformer_function(x, y, image_proxy):
-            
             self_rgb = RGB24(image_proxy[x, y])
             other_rgbs = [
                 RGB24(image_proxy[x + dx, y + dy])
@@ -52,3 +51,15 @@ class FocusPeeking(Elaboratable):
         m.d.comb += self.output.connect_upstream(video_transformer.output)
 
         return m
+
+
+def stream_ports(stream):
+    return [getattr(stream, n) for n in [*stream._downwards_ports, *stream._upwards_ports]]
+
+if __name__ == "__main__":
+    in_stream = ImageStream(len(RGB24()))
+    dut = FocusPeeking(in_stream, width=512, height=512)
+
+    from nmigen.back.cxxrtl import convert
+    from pathlib import Path
+    (Path(__file__).parent / "focus_peeking_cxxrtl_test" / "focus_peeking_test.cpp").write_text(convert(dut, ports=[*stream_ports(in_stream), *stream_ports(dut.output), dut.threshold, dut.highlight_r, dut.highlight_g, dut.highlight_b]))

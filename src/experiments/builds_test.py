@@ -17,9 +17,13 @@ for file in glob("{}/*.py".format(dirname(__file__))):
         continue
     except subprocess.CalledProcessError as e:
         usage = e.stderr.decode("utf-8")
-    print(file, usage)
-    devices = re.search("-d\\W*{(.*?)}", usage).group(1).split(",")
-    socs = re.search("-s\\W*{(.*?)}", usage).group(1).split(",")
+    try:
+        devices = re.search("-d\\W*{(.*?)}", usage).group(1).split(",")
+        socs = re.search("-s\\W*{(.*?)}", usage).group(1).split(",")
+    except Exception as e:
+        print(e)
+        print(file, usage)
+        raise e
 
     for device in devices:
         for soc in socs:

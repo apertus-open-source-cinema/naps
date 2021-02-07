@@ -2,6 +2,7 @@ import argparse
 import inspect
 import os
 import pickle
+import sys
 from collections import OrderedDict
 from datetime import datetime
 from glob import glob
@@ -64,7 +65,7 @@ def cli(top_class, runs_on, possible_socs=(None,)):
 
     if not (args.program or args.build or args.elaborate):
         print("no action specified")
-        parser.print_help()
+        parser.print_help(sys.stderr)
         exit(-1)
 
     if args.elaborate or args.build:

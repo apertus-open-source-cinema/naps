@@ -107,7 +107,7 @@ class DramPacketRingbufferStreamReader(Elaboratable):
             m.d.sync += self.current_read_buffer.eq(next_buffer)
             m.d.sync += address_offset.eq(0)
 
-        reader = m.submodules.axi_reader = LastWrapper(address_stream, lambda i: AxiReader(i, axi=axi, axi_data_width=len(self.output.payload)))
+        reader = m.submodules.axi_reader = LastWrapper(address_stream, lambda i: AxiReader(i, axi=axi, axi_data_width=len(self.output.payload)), last_fifo_depth=10, last_rle_bits=32)
         m.d.comb += self.output.connect_upstream(reader.output)
 
         return m

@@ -21,7 +21,7 @@ class StreamInfo(Elaboratable):
 
         with m.If(self.stream.valid & ~self.stream.ready):
             m.d.sync += self.valid_not_ready.eq(self.valid_not_ready + 1)
-        with m.If(self.stream.ready & ~self.stream.ready):
+        with m.If(self.stream.ready & ~self.stream.valid):
             m.d.sync += self.ready_not_valid.eq(self.ready_not_valid + 1)
 
         m.d.sync += self.reference_counter.eq(self.reference_counter + 1)
@@ -41,6 +41,10 @@ class StreamInfo(Elaboratable):
                 current_state = StatusSignal(signal.shape())
                 m.d.comb += current_state.eq(signal)
                 setattr(self, "current_{}".format(name), current_state)
+                last_transaction_state = StatusSignal(signal.shape())
+                with m.If(transaction):
+                    m.d.sync += last_transaction_state.eq(signal)
+                setattr(self, "last_transaction_{}".format(name), last_transaction_state)
 
         return m
 

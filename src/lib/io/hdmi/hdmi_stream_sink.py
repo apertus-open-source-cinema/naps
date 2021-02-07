@@ -22,8 +22,6 @@ class HdmiStreamSink(Elaboratable):
         m.submodules.aligner = DomainRenamer(self.pix_domain)(HdmiStreamAligner(self.input, hdmi))
         m.d.comb += hdmi.rgb.eq(RGB24(self.input.payload))
 
-        m.submodules.input_stream_info = DomainRenamer(self.pix_domain)(StreamInfo(self.input))
-
         return m
 
 

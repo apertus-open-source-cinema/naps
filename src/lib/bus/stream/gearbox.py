@@ -41,9 +41,6 @@ class StreamGearbox(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.input_stream_info = StreamInfo(self.input)
-        m.submodules.output_stream_info = StreamInfo(self.output)
-
         input_width = len(self.input.payload)
         output_width = len(self.output.payload)
 

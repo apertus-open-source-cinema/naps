@@ -31,9 +31,6 @@ class AxiReader(Elaboratable):
         assert len(self.output.payload) == axi.data_bits
         assert len(self.address_source.payload) == axi.addr_bits
 
-        m.submodules.axi_read_address_info = StreamInfo(axi.read_address)
-        m.submodules.axi_read_data_info = StreamInfo(axi.read_data)
-
         burster = m.submodules.burster = AxiReaderBurster(self.address_source, data_bytes=axi.data_bytes)
         m.d.comb += axi.read_address.connect_upstream(burster.output)
         m.d.comb += self.output.connect_upstream(axi.read_data, allow_partial=True)

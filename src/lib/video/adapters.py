@@ -45,14 +45,15 @@ class PacketizedStream2ImageStream(Elaboratable):
             m.d.comb += self.output.payload.eq(self.input.payload)
             with m.If(self.input.last):
                 m.d.comb += self.output.frame_last.eq(1)
+                m.d.comb += self.output.line_last.eq(1)
                 m.d.sync += line_ctr.eq(0)
                 with m.If(line_ctr != self.width - 1):
                     m.d.sync += self.not_exact_number_of_lines_error.eq(self.not_exact_number_of_lines_error + 1)
-            with m.Elif(line_ctr < self.width):
-                m.d.sync += line_ctr.eq(line_ctr + 1)
-                with m.If(line_ctr == self.width - 1):
-                    m.d.comb += self.output.line_last.eq(1)
             with m.Else():
-                m.d.sync += line_ctr.eq(0)
+                with m.If(line_ctr >= (self.width - 1)):
+                    m.d.comb += self.output.line_last.eq(1)
+                    m.d.sync += line_ctr.eq(0)
+                with m.Else():
+                    m.d.sync += line_ctr.eq(line_ctr + 1)
 
         return m

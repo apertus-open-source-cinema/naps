@@ -1,14 +1,48 @@
 import unittest
 import random
-
 import pytest
 
-from lib.bus.stream.fifo import BufferedSyncStreamFIFO
+from nmigen import *
+from nmigen.hdl.ast import Assert
+
+from lib.bus.stream.fifo import BufferedSyncStreamFIFO, UnbufferedSyncStreamFIFO, BufferedAsyncStreamFIFO
 from lib.bus.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from lib.bus.stream.metadata_wrapper import LastWrapper, GenericMetadataWrapper
 from lib.bus.stream.sim_util import write_packet_to_stream, read_packet_from_stream
 from lib.bus.stream.stream import PacketizedStream, BasicStream
+from util.formal import assert_formal
 from util.sim import SimPlatform
+
+
+class LastWrapperContract(Elaboratable):
+    def __init__(self, last_wrapper, packets=(1, 27, 3, 5)):
+        self.last_wrapper = last_wrapper
+        self.last_data = Array((i == l - 1) for l in packets for i in range(l))
+        self.n_packets = len(packets)
+
+    def elaborate(self, platform):
+        m = Module()
+
+        m.submodules.last_wrapper = self.last_wrapper
+
+        lw_input = self.last_wrapper.input
+        lw_output = self.last_wrapper.output
+
+        write_ctr = Signal(range(len(self.last_data)))
+        with m.If(write_ctr < len(self.last_data) - 1):
+            m.d.comb += lw_input.valid.eq(1)
+            m.d.comb += lw_input.last.eq(self.last_data[write_ctr])
+            with m.If(lw_input.ready):
+                m.d.sync += write_ctr.eq(write_ctr + 1)
+
+        read_ctr = Signal.like(write_ctr)
+        with m.If(read_ctr < len(self.last_data) - 1):
+            m.d.comb += lw_output.ready.eq(1)
+            with m.If(lw_output.valid):
+                m.d.sync += read_ctr.eq(read_ctr + 1)
+                m.d.comb += Assert(lw_output.last == self.last_data[read_ctr])
+
+        return m
 
 
 class LastWrapperTest(unittest.TestCase):
@@ -81,6 +115,11 @@ class LastWrapperTest(unittest.TestCase):
 
         platform.add_sim_clock("sync", 100e6)
         platform.sim(dut)
+
+    @pytest.mark.skip("yosys crashes on this input; see https://github.com/YosysHQ/yosys/issues/2577")
+    def test_last_wrapper_contract(self):
+        dut = LastWrapperContract(LastWrapper(PacketizedStream(32), lambda i: BufferedAsyncStreamFIFO(i, 10, i_domain="sync", o_domain="sync")))
+        assert_formal(dut, mode="hybrid", depth=10)
 
     @pytest.mark.skip("yosys crashes on this input; see https://github.com/YosysHQ/yosys/issues/2577")
     def test_output_stream_contract(self):

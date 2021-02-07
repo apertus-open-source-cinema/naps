@@ -1,10 +1,12 @@
 from nmigen import *
 
-from lib.bus.axi.axi_endpoint import AddressStream, DataStream, BurstType, Response
+from lib.bus.axi.axi_endpoint import AddressStream, DataStream, Response
+from lib.bus.axi.stream_reader import AxiReaderBurster
 from lib.bus.axi.zynq_util import if_none_get_zynq_hp_port
 from lib.bus.stream.debug import StreamInfo
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
-from lib.bus.stream.stream import BasicStream
+from lib.bus.stream.stream import BasicStream, PacketizedStream
+from lib.bus.stream.tee import StreamTee
 from lib.peripherals.csr_bank import StatusSignal
 
 
@@ -82,76 +84,49 @@ class AxiWriterBurster(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
+        address_burster = m.submodules.address_burster = AxiReaderBurster(self.address_input, self.word_bytes, self.max_burst_length, self.burst_creation_timeout)
+        burst_tee = m.submodules.burst_tee = StreamTee(address_burster.output)
+        m.d.comb += self.address_output.connect_upstream(burst_tee.get_output())
 
-        timeout_counter = Signal(range(self.burst_creation_timeout))
+        burst_stream = burst_tee.get_output()
+        packet_length_stream = BasicStream(burst_stream.burst_len.shape())
+        m.d.comb += packet_length_stream.valid.eq(burst_stream.valid)
+        m.d.comb += burst_stream.ready.eq(packet_length_stream.ready)
+        m.d.comb += packet_length_stream.payload.eq(burst_stream.burst_len)
 
-        # burst len is NOT the same representation as in the AXI bus
-        # we encode 1 for a burst for 1 data word while AXI would encode that as 0.
-        # we use the 0 value to encode, that no data burst is in progress
-        # (important for the timeout logic)
-        burst_len = Signal(range(self.max_burst_length + 1))
-        burst_start_address = Signal.like(self.address_input.payload)
-        last_address = Signal.like(self.address_input.payload)
-        last_data = Signal.like(self.data_input.payload)
+        stream_packetizer = m.submodules.stream_packetizer = StreamPacketizer(packet_length_stream, self.data_input)
+        data_output_fifo = m.submodules.data_output_fifo = BufferedSyncStreamFIFO(stream_packetizer.output, self.data_fifo_depth)
+        m.d.comb += self.data_output.connect_upstream(data_output_fifo.output, allow_partial=True)
+        m.d.comb += self.data_output.id.eq(self.data_output.id.reset)
+        m.d.comb += self.data_output.byte_strobe.eq(-1)
 
-        # we buffer data_output in a FIFO to be able to have outstanding transactions & work with axi masters that expect
-        # that the address is transmitted first (like our simulation model)
-        data_output = self.data_output.clone(name="data_output_before_fifo")
-        data_fifo = m.submodules.data_fifo = BufferedSyncStreamFIFO(data_output, self.data_fifo_depth)
-        m.d.comb += self.data_output.connect_upstream(data_fifo.output, allow_partial=True)
+        return m
 
-        def finish_burst():
-            # for calling this function, data_ready must be 1
-            with m.If(self.address_output.ready):
-                with m.If(self.address_input.valid & self.data_input.valid):
-                    m.d.comb += self.data_input.ready.eq(1)
-                    m.d.sync += last_data.eq(self.data_input.payload)
-                    m.d.sync += burst_len.eq(1)
-                    m.d.sync += burst_start_address.eq(self.address_input.payload)
-                    m.d.comb += self.address_input.ready.eq(1)
-                    m.d.sync += last_address.eq(self.address_input.payload)
-                with m.Else():
-                    m.d.sync += burst_len.eq(0)
-            with m.If(burst_len > 0):
-                m.d.comb += self.address_output.valid.eq(1)
-                m.d.comb += self.address_output.payload.eq(burst_start_address)
-                m.d.comb += self.address_output.burst_len.eq(burst_len - 1)
-                m.d.comb += self.address_output.burst_type.eq(BurstType.INCR)
-                with m.If(self.address_output.ready):
-                    m.d.comb += data_output.valid.eq(1)
-                    m.d.comb += data_output.last.eq(1)
-                    m.d.comb += data_output.payload.eq(last_data)
-                    m.d.comb += data_output.byte_strobe.eq(-1)
 
-        def enlarge_burst():
-            # for calling this function, self.address_input.valid, self.data_input.valid, data_output.ready must be 1
-            m.d.comb += self.data_input.ready.eq(1)
-            m.d.comb += data_output.valid.eq(1)
-            m.d.comb += data_output.payload.eq(last_data)
-            m.d.sync += last_data.eq(self.data_input.payload)
-            m.d.comb += data_output.byte_strobe.eq(-1)
+class StreamPacketizer(Elaboratable):
+    def __init__(self, packet_length_stream: BasicStream, data_stream: BasicStream):
+        self.packet_length_stream = packet_length_stream
+        self.data_stream = data_stream
 
-            m.d.comb += self.address_input.ready.eq(1)
-            m.d.sync += burst_len.eq(burst_len + 1)
-            m.d.sync += last_address.eq(self.address_input.payload)
+        self.output = PacketizedStream(self.data_stream.payload.shape())
 
-        with m.If(self.address_input.valid & self.data_input.valid & data_output.ready):
-            m.d.sync += timeout_counter.eq(0)
-            with m.If((self.address_input.payload == (last_address + self.word_bytes)) & (burst_len < self.max_burst_length - 1)):
-                enlarge_burst()
+    def elaborate(self, platform):
+        m = Module()
+        m.d.comb += self.output.payload.eq(self.data_stream.payload)
+
+        packet_counter = Signal(self.packet_length_stream.payload.shape())
+        with m.If(self.packet_length_stream.valid & self.data_stream.valid):
+            m.d.comb += self.output.valid.eq(1)
+            with m.If(self.output.ready):
+                m.d.comb += self.data_stream.ready.eq(1)
+
+            with m.If(packet_counter < self.packet_length_stream.payload):
+                with m.If(self.output.ready):
+                    m.d.sync += packet_counter.eq(packet_counter + 1)
             with m.Else():
-                finish_burst()
-        with m.Elif((burst_len > 0) & (timeout_counter == self.burst_creation_timeout - 1) & data_output.ready):
-            finish_burst()
-        with m.Elif((burst_len > 0) & data_output.ready & self.address_output.ready):
-            m.d.sync += timeout_counter.eq(timeout_counter + 1)
-
-        m.d.comb += self.address_output.id.eq(self.address_output.id.reset)
-        m.d.comb += self.address_output.beat_size_bytes.eq(self.address_output.beat_size_bytes.reset)
-        m.d.comb += self.address_output.protection_type.eq(self.address_output.protection_type.reset)
-        m.d.comb += data_output.id.eq(data_output.id.reset)
-
-        with m.If(self.address_output.ready & self.address_output.valid):
-            m.d.sync += self.written_address_bursts_for_n_wards.eq(self.written_address_bursts_for_n_wards + self.address_output.burst_len + 1)
+                m.d.comb += self.output.last.eq(1)
+                with m.If(self.output.ready):
+                    m.d.comb += self.packet_length_stream.ready.eq(1)
+                    m.d.sync += packet_counter.eq(0)
 
         return m

@@ -21,10 +21,11 @@ class ImageStream2PacketizedStream(Elaboratable):
         m = Module()
 
         with StreamTransformer(self.input, self.output, m):
-            m.d.comb += self.output.payload.eq(self.input.payload)
-            m.d.comb += self.output.last.eq(self.input.frame_last)
-            for name in self.additional_signal_names:
-                m.d.comb += getattr(self.output, name).eq(getattr(self.input, name))
+            pass
+        m.d.comb += self.output.payload.eq(self.input.payload)
+        m.d.comb += self.output.last.eq(self.input.frame_last)
+        for name in self.additional_signal_names:
+            m.d.comb += getattr(self.output, name).eq(getattr(self.input, name))
 
         return m
 
@@ -41,19 +42,24 @@ class PacketizedStream2ImageStream(Elaboratable):
         m = Module()
 
         line_ctr = Signal(16)
+
         with StreamTransformer(self.input, self.output, m):
-            m.d.comb += self.output.payload.eq(self.input.payload)
             with m.If(self.input.last):
-                m.d.comb += self.output.frame_last.eq(1)
-                m.d.comb += self.output.line_last.eq(1)
                 m.d.sync += line_ctr.eq(0)
                 with m.If(line_ctr != self.width - 1):
                     m.d.sync += self.not_exact_number_of_lines_error.eq(self.not_exact_number_of_lines_error + 1)
             with m.Else():
                 with m.If(line_ctr >= (self.width - 1)):
-                    m.d.comb += self.output.line_last.eq(1)
                     m.d.sync += line_ctr.eq(0)
                 with m.Else():
                     m.d.sync += line_ctr.eq(line_ctr + 1)
+
+        m.d.comb += self.output.payload.eq(self.input.payload)
+        with m.If(self.input.last):
+            m.d.comb += self.output.frame_last.eq(1)
+            m.d.comb += self.output.line_last.eq(1)
+        with m.Else():
+            with m.If(line_ctr >= (self.width - 1)):
+                m.d.comb += self.output.line_last.eq(1)
 
         return m

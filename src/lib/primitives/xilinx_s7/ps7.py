@@ -6,6 +6,7 @@ from nmigen import *
 from nmigen.build import Clock
 
 from lib.bus.axi import AxiEndpoint
+from lib.data_structure.bundle import DOWNWARDS
 from lib.primitives.instance_helper import InstanceHelper
 from lib.primitives.xilinx_s7.clocking import BufG
 from soc.fatbitstream import FatbitstreamContext
@@ -57,6 +58,18 @@ class PS7(Elaboratable):
         m.d.comb += [axi.write_response.valid.eq(ps7_port.bvalid)]
         m.d.comb += [axi.write_response.id.eq(ps7_port.bid)]
         m.d.comb += [ps7_port.bre.ady.eq(axi.write_response.ready)]
+
+        # we add the non standard fifo levels to the axi interface because we need
+        # them to reset the reader / writer cores when they are stuck (e.g. after
+        # reloading the PL
+        axi.read_address_fifo_level = Signal(3) @ DOWNWARDS
+        m.d.comb += axi.read_address_fifo_level.eq(ps7_port.racount)
+        axi.read_data_fifo_level = Signal(8) @ DOWNWARDS
+        m.d.comb += axi.read_data_fifo_level.eq(ps7_port.rcount)
+        axi.write_address_fifo_level = Signal(6) @ DOWNWARDS
+        m.d.comb += axi.write_address_fifo_level.eq(ps7_port.wacount)
+        axi.write_data_fifo_level = Signal(8) @ DOWNWARDS
+        m.d.comb += axi.write_data_fifo_level.eq(ps7_port.wcount)
 
     def _axi_master_helper(self, axi, ps7_port):
         m = self.m

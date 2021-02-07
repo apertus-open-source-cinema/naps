@@ -24,13 +24,11 @@ class RecoloringDebayerer(Elaboratable):
         y_odd = Signal()
         with StreamTransformer(self.input, self.output, m):
             with m.If(self.input.line_last):
-                m.d.comb += self.output.line_last.eq(1)
                 m.d.sync += x_odd.eq(0)
                 m.d.sync += y_odd.eq(~y_odd)
             with m.Else():
                 m.d.sync += x_odd.eq(~x_odd)
             with m.If(self.input.frame_last):
-                m.d.comb += self.output.frame_last.eq(1)
                 m.d.sync += y_odd.eq(0)
                 m.d.sync += x_odd.eq(0)
 
@@ -46,6 +44,8 @@ class RecoloringDebayerer(Elaboratable):
             m.d.comb += rgb.g.eq(self.input.payload // 2)
 
         m.d.comb += self.output.payload.eq(rgb)
+        m.d.comb += self.output.frame_last.eq(self.input.frame_last)
+        m.d.comb += self.output.line_last.eq(self.input.line_last)
 
         return m
 

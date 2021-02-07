@@ -1,27 +1,35 @@
 from collections import defaultdict
-from functools import reduce
 from typing import List
 
 from nmigen import *
 
+from lib.bus.stream.fifo import BufferedSyncStreamFIFO
 from lib.bus.stream.stream import Stream, DOWNWARDS
 from util.nmigen_misc import nAll
 
 
-class StreamSplitter(Elaboratable):
-    """routes a single stream input to multiple outputs"""
+class StreamTee(Elaboratable):
+    """Routes a single stream input to multiple outputs (like a tee shaped piece of pipe).
+    To be able to fulfil the stream contract, every output has a 1 deep fifo.
+    """
 
     def __init__(self, input: Stream):
         self.input = input
         self.outputs: List[Stream] = []
+        self.m = Module()
 
     def get_output(self):
-        output = self.input.clone(name="tee_output_{}".format(len(self.outputs)))
-        self.outputs.append(output)
-        return output
+        n = len(self.outputs)
+        output_before_fifo = self.input.clone(name=f"output{n}_before_fifo")
+        self.outputs.append(output_before_fifo)
+        output_fifo = BufferedSyncStreamFIFO(output_before_fifo, 2, output_stream_name=f"output{n}_fifo_out")
+        # TODO: a 1 deep fifo would suffice here but that is not verifiable due to a yosys bug:
+        #       https://github.com/YosysHQ/yosys/issues/2577
+        self.m.submodules[f"output{n}_fifo"] = output_fifo
+        return output_fifo.output
 
     def elaborate(self, platform):
-        m = Module()
+        m = self.m
 
         m.d.comb += self.input.ready.eq(nAll(output.ready for output in self.outputs))
         for output in self.outputs:
@@ -68,5 +76,19 @@ class StreamCombiner(Elaboratable):
             m.d.comb += input.ready.eq(self.output.ready)
         for k, expr in self.payload_expressions.items():
             m.d.comb += getattr(self.output, k).eq(expr)
+
+        return m
+
+
+class StreamHandshakeTie(Elaboratable):
+    """Takes N streams as Input and outputs N streams. The streams are then """
+
+    def __init__(self):
+        pass
+
+    def elaborate(self, platform):
+        m = Module()
+
+
 
         return m

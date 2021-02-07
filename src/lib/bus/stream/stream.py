@@ -34,7 +34,7 @@ class Stream(Bundle):
         Stream.__init__(new_stream, name=name, src_loc_at=1 + src_loc_at)
 
         for k, signal in self.payload_signals.items():
-            setattr(new_stream, k, Signal.like(signal) @ DOWNWARDS)
+            setattr(new_stream, k, Signal(signal.shape()) @ DOWNWARDS)
         new_stream._directions = copy.deepcopy(self._directions)
         return new_stream
 

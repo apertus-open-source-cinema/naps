@@ -30,6 +30,12 @@ class AxiReader(Elaboratable):
         axi = if_none_get_zynq_hp_port(self.axi, m, platform)
         assert len(self.output.payload) == axi.data_bits
         assert len(self.address_source.payload) == axi.addr_bits
+        for fifo_signal_name in ["read_address_fifo_level", "read_data_fifo_level"]:
+            if hasattr(axi, fifo_signal_name):
+                axi_fifo_signal = getattr(axi, fifo_signal_name)
+                fifo_signal = StatusSignal(axi_fifo_signal.shape(), name=f"axi_{fifo_signal_name}")
+                m.d.comb += fifo_signal.eq(axi_fifo_signal)
+                setattr(self, f"axi_{fifo_signal_name}", fifo_signal)
 
         burster = m.submodules.burster = AxiReaderBurster(self.address_source, data_bytes=axi.data_bytes)
         m.d.comb += axi.read_address.connect_upstream(burster.output)

@@ -1,6 +1,6 @@
 from nmigen import *
 
-from lib.bus.axi.axi_endpoint import AddressStream, DataStream, BurstType
+from lib.bus.axi.axi_endpoint import AddressStream, DataStream, BurstType, Response
 from lib.bus.axi.zynq_util import if_none_get_zynq_hp_port
 from lib.bus.stream.debug import StreamInfo
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
@@ -21,6 +21,8 @@ class AxiWriter(Elaboratable):
 
         self.axi_address_ready = StatusSignal()
         self.axi_data_ready = StatusSignal()
+        self.write_response_ok = StatusSignal(32)
+        self.write_response_err = StatusSignal(32)
 
     def elaborate(self, platform):
         m = Module()
@@ -28,12 +30,23 @@ class AxiWriter(Elaboratable):
         burster = m.submodules.burster = AxiWriterBurster(self.address_source, self.data_source)
 
         axi = if_none_get_zynq_hp_port(self.axi, m, platform)
+        for fifo_signal_name in ["write_address_fifo_level", "write_data_fifo_level"]:
+            if hasattr(axi, fifo_signal_name):
+                axi_fifo_signal = getattr(axi, fifo_signal_name)
+                fifo_signal = StatusSignal(axi_fifo_signal.shape(), name=f"axi_{fifo_signal_name}")
+                m.d.comb += fifo_signal.eq(axi_fifo_signal)
+                setattr(self, f"axi_{fifo_signal_name}", fifo_signal)
 
         m.d.comb += axi.write_data.connect_upstream(burster.data_output)
         m.d.comb += axi.write_address.connect_upstream(burster.address_output)
 
         # we do not currently care about the write responses
         m.d.comb += axi.write_response.ready.eq(1)
+        with m.If(axi.write_response.valid):
+            with m.If(axi.write_response.resp == Response.OKAY):
+                m.d.sync += self.write_response_ok.eq(self.write_response_ok + 1)
+            with m.Else():
+                m.d.sync += self.write_response_err.eq(self.write_response_err + 1)
 
         m.d.comb += self.axi_data_ready.eq(axi.write_data.ready)
         m.d.comb += self.axi_address_ready.eq(axi.write_address.ready)
@@ -52,7 +65,7 @@ class AxiWriterBurster(Elaboratable):
             address_source: BasicStream,
             data_source: BasicStream,
             max_burst_length=16, burst_creation_timeout=31,
-            data_fifo_depth=32,
+            data_fifo_depth=128,
     ):
         self.max_burst_length = max_burst_length
         self.burst_creation_timeout = burst_creation_timeout
@@ -88,7 +101,7 @@ class AxiWriterBurster(Elaboratable):
         m.d.comb += self.data_output.connect_upstream(data_fifo.output, allow_partial=True)
 
         def finish_burst():
-            # for calling this function, no invariants must hold (everything is checked)
+            # for calling this function, data_ready must be 1
             with m.If(self.address_output.ready):
                 with m.If(self.address_input.valid & self.data_input.valid):
                     m.d.comb += self.data_input.ready.eq(1)

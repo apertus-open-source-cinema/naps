@@ -1,8 +1,8 @@
 from nmigen import *
 
-from lib.bus.stream.debug import StreamInfo
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
-from lib.bus.stream.stream import BasicStream, PacketizedStream
+from lib.bus.stream.stream import BasicStream, PacketizedStream, Stream
+from lib.bus.stream.tee import StreamTee, StreamCombiner
 from lib.data_structure.bundle import DOWNWARDS
 from lib.peripherals.csr_bank import StatusSignal
 
@@ -10,7 +10,9 @@ from lib.peripherals.csr_bank import StatusSignal
 class LastWrapper(Elaboratable):
     """wraps a core that transforms one BasicStream into another BasicStream (with variable latency) and applies the last signal correctly to its output"""
 
-    def __init__(self, input: PacketizedStream, core_producer, last_fifo_depth=1, last_rle_bits=10):
+    # TODO: if we have a last_fifo_depth of 2 we cant do formal anymore because of this yosys bug:
+    #       https://github.com/YosysHQ/yosys/issues/2577
+    def __init__(self, input: PacketizedStream, core_producer, last_fifo_depth=2, last_rle_bits=10):
         self.last_fifo_depth = last_fifo_depth
         self.last_rle_bits = last_rle_bits
         assert hasattr(input, "last")
@@ -26,7 +28,6 @@ class LastWrapper(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-
         m.submodules.core = self.core
 
         last_fifo_input = BasicStream(self.last_rle_bits)
@@ -56,18 +57,22 @@ class LastWrapper(Elaboratable):
         with m.If(self.core_output.valid):
             m.d.comb += self.output.valid.eq(1)
             m.d.comb += self.output.payload.eq(self.core_output.payload)
-            with m.If(self.output.ready):
-                m.d.comb += self.core_output.ready.eq(1)
-                overflow = (last_fifo.output.payload == overflow_word) & (rle_output_counter == (overflow_word - 1))
 
-                with m.If(((rle_output_counter == last_fifo.output.payload) | overflow) & last_fifo.output.valid):
-                    m.d.comb += last_fifo.output.ready.eq(1)
-                    with m.If(~overflow):
-                        m.d.comb += self.output.last.eq(1)
+            overflow = (last_fifo.output.payload == overflow_word) & (rle_output_counter == (overflow_word - 1))
+            with m.If(((rle_output_counter == last_fifo.output.payload) | overflow) & last_fifo.output.valid):
+                with m.If(~overflow):
+                    m.d.comb += self.output.last.eq(1)
+                with m.If(self.output.ready):
                     m.d.sync += rle_output_counter.eq(0)
-                with m.Elif((rle_output_counter > last_fifo.output.payload) & last_fifo.output.valid):
+                    m.d.comb += last_fifo.output.ready.eq(1)
+                    m.d.comb += self.core_output.ready.eq(1)
+            with m.Elif((rle_output_counter > last_fifo.output.payload) & last_fifo.output.valid):
+                with m.If(self.output.ready):
+                    m.d.comb += self.core_output.ready.eq(1)
                     m.d.sync += self.error.eq(self.error + 1)
-                with m.Else():
+            with m.Else():
+                with m.If(self.output.ready):
+                    m.d.comb += self.core_output.ready.eq(1)
                     m.d.sync += rle_output_counter.eq(rle_output_counter + 1)
 
         return m
@@ -87,20 +92,18 @@ class GenericMetadataWrapper(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
+        m.submodules.core = self.core
+        tee = m.submodules.tee = StreamTee(self.input)
 
-        metadata_fifo_input = BasicStream(len(Cat(*self.input.out_of_band_signals.values())))
+        m.d.comb += self.core_input.connect_upstream(tee.get_output(), allow_partial=True)
+
+        metadata_fifo_input = Stream()
+        for name, s in self.input.out_of_band_signals.items():
+            setattr(metadata_fifo_input, name, Signal.like(s) @ DOWNWARDS)
+        m.d.comb += metadata_fifo_input.connect_upstream(tee.get_output(), allow_partial=True)
         metadata_fifo = m.submodules.metadata_fifo = BufferedSyncStreamFIFO(metadata_fifo_input, self.fifo_depth)
 
-        m.d.comb += self.input.ready.eq(metadata_fifo_input.ready & self.core_input.ready)
-        m.d.comb += metadata_fifo_input.valid.eq(self.input.ready & self.input.valid)
-        m.d.comb += self.core_input.valid.eq(self.input.ready & self.input.valid)
-        m.d.comb += self.core_input.payload.eq(self.input.payload)
-        m.d.comb += metadata_fifo_input.payload.eq(Cat(*self.input.out_of_band_signals.values()))
-
-        m.d.comb += self.output.valid.eq(metadata_fifo.output.valid & self.core_output.valid)
-        m.d.comb += self.output.payload.eq(self.core_output.payload)
-        m.d.comb += metadata_fifo.output.ready.eq(self.output.valid & self.core_output.ready)
-        m.d.comb += self.core_output.ready.eq(self.output.valid & self.core_output.ready)
-        m.d.comb += Cat(*self.output.out_of_band_signals.values()).eq(metadata_fifo.output.payload)
+        combiner = m.submodules.combiner = StreamCombiner(self.core_output, metadata_fifo.output)
+        m.d.comb += self.output.connect_upstream(combiner.output)
 
         return m

@@ -6,9 +6,9 @@ from lib.peripherals.csr_bank import StatusSignal
 
 
 class StreamFIFO(Elaboratable):
-    def __init__(self, input: Stream, fifo_type, **fifo_args):
+    def __init__(self, input: Stream, fifo_type, output_stream_name="fifo_out", **fifo_args):
         self.input = input
-        self.output = input.clone(name="fifo_out")
+        self.output = input.clone(name=output_stream_name)
         self.fifo = fifo_type(width=len(Cat(self.input.payload_signals.values())), **fifo_args)
         self.depth = fifo_args['depth']
 
@@ -36,19 +36,23 @@ class StreamFIFO(Elaboratable):
         return m
 
 
-def BufferedSyncStreamFIFO(input: Stream, depth):
-    return StreamFIFO(input, SyncFIFO, depth=depth)
+def BufferedSyncStreamFIFO(input: Stream, depth, **kwargs):
+    return StreamFIFO(input, SyncFIFO, depth=depth, **kwargs)
 
 
-def UnbufferedSyncStreamFIFO(input: Stream, depth):
-    return StreamFIFO(input, SyncFIFOBuffered, depth=depth)
+def UnbufferedSyncStreamFIFO(input: Stream, depth, **kwargs):
+    return StreamFIFO(input, SyncFIFOBuffered, depth=depth, **kwargs)
 
 
-def BufferedAsyncStreamFIFO(input, depth, i_domain, o_domain, exact_depth=False):
+def BufferedAsyncStreamFIFO(input, depth, i_domain, o_domain, exact_depth=False, **kwargs):
     return StreamFIFO(
-        input, AsyncFIFOBuffered, depth=depth, r_domain=o_domain, w_domain=i_domain, exact_depth=exact_depth)
+        input, AsyncFIFOBuffered, depth=depth, r_domain=o_domain, w_domain=i_domain, exact_depth=exact_depth,
+        **kwargs
+    )
 
 
-def UnbufferedAsyncStreamFIFO(input, depth, i_domain, o_domain, exact_depth=False):
+def UnbufferedAsyncStreamFIFO(input, depth, i_domain, o_domain, exact_depth=False, **kwargs):
     return StreamFIFO(
-        input, AsyncFIFO, depth=depth, r_domain=o_domain, w_domain=i_domain, exact_depth=exact_depth)
+        input, AsyncFIFO, depth=depth, r_domain=o_domain, w_domain=i_domain, exact_depth=exact_depth,
+        **kwargs
+    )

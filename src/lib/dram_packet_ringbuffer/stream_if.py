@@ -6,6 +6,8 @@ from lib.bus.axi.zynq_util import if_none_get_zynq_hp_port
 from lib.bus.stream.debug import StreamInfo
 from lib.bus.stream.metadata_wrapper import LastWrapper
 from lib.bus.stream.stream import PacketizedStream, BasicStream
+from lib.bus.stream.stream_transformer import StreamTransformer
+from lib.bus.stream.tee import StreamTee
 from lib.peripherals.csr_bank import StatusSignal
 
 
@@ -37,34 +39,33 @@ class DramPacketRingbufferStreamWriter(Elaboratable):
         axi = if_none_get_zynq_hp_port(self.axi, m, platform)
         assert len(self.input.payload) <= axi.data_bits
 
-        address_stream = BasicStream(axi.write_address.payload.shape())
-        data_stream = BasicStream(self.input.payload.shape())
-        m.submodules.writer = AxiWriter(address_stream, data_stream, axi)
+        tee = m.submodules.tee = StreamTee(self.input)
 
+        data_stream = BasicStream(self.input.payload.shape())
+        m.d.comb += data_stream.connect_upstream(tee.get_output(), allow_partial=True)
+
+        transformer_input = tee.get_output()
+        address_stream = BasicStream(axi.write_address.payload.shape())
         address_offset = Signal.like(axi.write_address.payload)
         is_in_overflow = Signal()
-
-        m.d.comb += self.input.ready.eq(data_stream.ready & address_stream.ready)
-        with m.If(self.input.valid):
-            m.d.comb += data_stream.valid.eq(1)
-            m.d.comb += data_stream.payload.eq(self.input.payload)
-            m.d.comb += address_stream.valid.eq(1)
-            m.d.comb += address_stream.payload.eq(address_offset + self.buffer_base_list[self.current_write_buffer])
-
-            with m.If(self.input.ready):
-                m.d.sync += self.buffer_level_list[self.current_write_buffer].eq(address_offset + axi.data_bytes)
-                with m.If(~self.input.last & (address_offset + axi.data_bytes < self.max_packet_size)):
+        with StreamTransformer(transformer_input, address_stream, m):
+            m.d.sync += self.buffer_level_list[self.current_write_buffer].eq(address_offset + axi.data_bytes)
+            with m.If(transformer_input.last):
+                m.d.sync += is_in_overflow.eq(0)
+                next_buffer = (self.current_write_buffer + 1) % self.n_buffers
+                m.d.sync += address_offset.eq(0)
+                m.d.sync += self.current_write_buffer.eq(next_buffer)
+                m.d.sync += self.buffers_written.eq(self.buffers_written + 1)
+            with m.Else():
+                with m.If((address_offset + axi.data_bytes < self.max_packet_size)):
                     m.d.sync += address_offset.eq(address_offset + axi.data_bytes)
-                with m.Elif(self.input.last):
-                    m.d.sync += is_in_overflow.eq(0)
-                    next_buffer = (self.current_write_buffer + 1) % self.n_buffers
-                    m.d.sync += address_offset.eq(0)
-                    m.d.sync += self.current_write_buffer.eq(next_buffer)
-                    m.d.sync += self.buffers_written.eq(self.buffers_written + 1)
                 with m.Else():
                     with m.If(~is_in_overflow):
                         m.d.sync += is_in_overflow.eq(1)
                         m.d.sync += self.overflowed_buffers.eq(self.overflowed_buffers + 1)
+        m.d.comb += address_stream.payload.eq(address_offset + self.buffer_base_list[self.current_write_buffer])
+
+        m.submodules.writer = AxiWriter(address_stream, data_stream, axi)
 
         return m
 

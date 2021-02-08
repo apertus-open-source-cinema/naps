@@ -67,7 +67,7 @@ class AxiWriterBurster(Elaboratable):
             address_source: BasicStream,
             data_source: BasicStream,
             max_burst_length=16, burst_creation_timeout=31,
-            data_fifo_depth=128,
+            data_fifo_depth=16,
     ):
         self.max_burst_length = max_burst_length
         self.burst_creation_timeout = burst_creation_timeout
@@ -94,9 +94,9 @@ class AxiWriterBurster(Elaboratable):
         m.d.comb += burst_stream.ready.eq(packet_length_stream.ready)
         m.d.comb += packet_length_stream.payload.eq(burst_stream.burst_len)
 
-        stream_packetizer = m.submodules.stream_packetizer = StreamPacketizer(packet_length_stream, self.data_input)
-        data_output_fifo = m.submodules.data_output_fifo = BufferedSyncStreamFIFO(stream_packetizer.output, self.data_fifo_depth)
-        m.d.comb += self.data_output.connect_upstream(data_output_fifo.output, allow_partial=True)
+        data_fifo = m.submodules.data_fifo = BufferedSyncStreamFIFO(self.data_input, self.data_fifo_depth)
+        stream_packetizer = m.submodules.stream_packetizer = StreamPacketizer(packet_length_stream, data_fifo.output)
+        m.d.comb += self.data_output.connect_upstream(stream_packetizer.output, allow_partial=True)
         m.d.comb += self.data_output.id.eq(self.data_output.id.reset)
         m.d.comb += self.data_output.byte_strobe.eq(-1)
 

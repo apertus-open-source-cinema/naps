@@ -49,6 +49,7 @@ def answer_read_burst(axi: AxiEndpoint, memory: Dict[int, int], timeout=100):
     addr, burst_len, burst_type, beat_size_bytes = yield from read_from_stream(axi.read_address, ("payload", "burst_len", "burst_type", "beat_size_bytes"), timeout)
     assert 2 ** beat_size_bytes == axi.data_bytes
     assert burst_type == BurstType.INCR.value
+    print("read", addr, burst_len)
 
     for i in range(burst_len + 1):
         yield from write_to_stream(axi.read_data, payload=memory[addr + (i * axi.data_bytes)], resp=Response.OKAY, last=(i == burst_len), timeout=timeout)

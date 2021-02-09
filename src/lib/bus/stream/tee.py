@@ -3,14 +3,14 @@ from typing import List
 
 from nmigen import *
 
-from lib.bus.stream.fifo import BufferedSyncStreamFIFO
+from lib.bus.stream.buffer import StreamBuffer
 from lib.bus.stream.stream import Stream, DOWNWARDS
 from util.nmigen_misc import nAll
 
 
 class StreamTee(Elaboratable):
     """Routes a single stream input to multiple outputs (like a tee shaped piece of pipe).
-    To be able to fulfil the stream contract, every output has a 1 deep fifo.
+    To be able to fulfil the stream contract, every output has a StreamBuffer.
     """
 
     def __init__(self, input: Stream):
@@ -20,11 +20,9 @@ class StreamTee(Elaboratable):
 
     def get_output(self):
         n = len(self.outputs)
-        output_before_fifo = self.input.clone(name=f"output{n}_before_fifo")
-        self.outputs.append(output_before_fifo)
-        output_fifo = BufferedSyncStreamFIFO(output_before_fifo, 2, output_stream_name=f"output{n}_fifo_out")
-        # TODO: a 1 deep fifo would suffice here but that is not verifiable due to a yosys bug:
-        #       https://github.com/YosysHQ/yosys/issues/2577
+        output_before_buffer = self.input.clone(name=f"output{n}_before_fifo")
+        self.outputs.append(output_before_buffer)
+        output_fifo = StreamBuffer(output_before_buffer)
         self.m.submodules[f"output{n}_fifo"] = output_fifo
         return output_fifo.output
 
@@ -75,20 +73,7 @@ class StreamCombiner(Elaboratable):
         for input in self.inputs:
             m.d.comb += input.ready.eq(self.output.ready)
         for k, expr in self.payload_expressions.items():
-            m.d.comb += getattr(self.output, k).eq(expr)
+            m.d.comb += self.output[k].eq(expr)
 
         return m
 
-
-class StreamHandshakeTie(Elaboratable):
-    """Takes N streams as Input and outputs N streams. The streams are then """
-
-    def __init__(self):
-        pass
-
-    def elaborate(self, platform):
-        m = Module()
-
-
-
-        return m

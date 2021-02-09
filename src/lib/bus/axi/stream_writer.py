@@ -34,7 +34,7 @@ class AxiWriter(Elaboratable):
         axi = if_none_get_zynq_hp_port(self.axi, m, platform)
         for fifo_signal_name in ["write_address_fifo_level", "write_data_fifo_level"]:
             if hasattr(axi, fifo_signal_name):
-                axi_fifo_signal = getattr(axi, fifo_signal_name)
+                axi_fifo_signal = axi[fifo_signal_name]
                 fifo_signal = StatusSignal(axi_fifo_signal.shape(), name=f"axi_{fifo_signal_name}")
                 m.d.comb += fifo_signal.eq(axi_fifo_signal)
                 setattr(self, f"axi_{fifo_signal_name}", fifo_signal)

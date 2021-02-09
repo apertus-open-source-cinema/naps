@@ -8,7 +8,7 @@ from util.sim import SimPlatform
 
 
 class AdaptersTest(unittest.TestCase):
-    def test_basic(self):
+    def test_PacketizedStream2ImageStream(self):
         platform = SimPlatform()
         input_stream = PacketizedStream(32)
         dut = PacketizedStream2ImageStream(input_stream, width=10)

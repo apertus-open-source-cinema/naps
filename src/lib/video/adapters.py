@@ -1,8 +1,6 @@
 from nmigen import *
 
 from lib.bus.stream.stream import PacketizedStream
-from lib.bus.stream.stream_transformer import StreamTransformer
-from lib.data_structure.bundle import DOWNWARDS
 from lib.peripherals.csr_bank import StatusSignal
 from lib.video.image_stream import ImageStream
 
@@ -13,19 +11,12 @@ class ImageStream2PacketizedStream(Elaboratable):
     def __init__(self, input: ImageStream):
         self.input = input
         self.output = PacketizedStream(self.input.payload.shape(), name="packetized_image_stream")
-        self.additional_signal_names = [name for name in self.input.out_of_band_signals.keys() if name not in ["frame_last", "line_last"]]
-        for name in self.additional_signal_names:
-            setattr(self.output, name, Signal(name=name) @ DOWNWARDS)
 
     def elaborate(self, platform):
         m = Module()
 
-        with StreamTransformer(self.input, self.output, m):
-            pass
-        m.d.comb += self.output.payload.eq(self.input.payload)
+        m.d.comb += self.output.connect_upstream(self.input, exclude=["last", "frame_last", "line_last"])
         m.d.comb += self.output.last.eq(self.input.frame_last)
-        for name in self.additional_signal_names:
-            m.d.comb += getattr(self.output, name).eq(getattr(self.input, name))
 
         return m
 
@@ -43,7 +34,8 @@ class PacketizedStream2ImageStream(Elaboratable):
 
         line_ctr = Signal(16)
 
-        with StreamTransformer(self.input, self.output, m):
+        m.d.comb += self.output.connect_upstream(self.input, only=["ready", "valid", "payload"])
+        with m.If(self.input.ready & self.input.valid):
             with m.If(self.input.last):
                 m.d.sync += line_ctr.eq(0)
                 with m.If(line_ctr != self.width - 1):

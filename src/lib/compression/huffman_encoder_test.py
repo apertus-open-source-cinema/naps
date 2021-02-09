@@ -44,7 +44,7 @@ class HuffmanTest(unittest.TestCase):
                     decoded += chr(c)
             except ValueError:  # Decoding may not finish with the byte boundary
                 pass
-            self.assertEquals(input_data, decoded)
+            self.assertEqual(input_data, decoded)
 
         platform.add_sim_clock("sync", 100e6)
         platform.add_process(write_process, "sync")

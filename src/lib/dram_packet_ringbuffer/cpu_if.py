@@ -31,22 +31,25 @@ class DramPacketRingbufferCpuReader(Elaboratable):
     def __init__(self, writer: DramPacketRingbufferStreamWriter):
         self.writer = writer
 
-        self.current_read_buffer = ControlSignal(writer.current_write_buffer.shape())
-        self.next_buffer_ready = StatusSignal()
-        self.current_buffer_length = StatusSignal(writer.buffer_level_list[0].shape())
-        self.current_buffer_base = StatusSignal(range(writer.buffer_base_list[0] + 1))
-        self.num_buffers = StatusSignal(range(writer.n_buffers + 1), reset=writer.n_buffers)
-
-    def elaborate(self, platform):
         m = Module()
 
-        m.d.comb += self.current_buffer_length.eq(self.writer.buffer_level_list[self.current_read_buffer])
-        m.d.comb += self.current_buffer_base.eq(self.writer.buffer_base_list[self.current_read_buffer])
+        self.current_write_buffer = StatusSignal(range(writer.n_buffers))
+        m.d.comb += self.current_write_buffer.eq(writer.current_write_buffer)
 
-        with m.If(self.current_read_buffer != self.writer.current_write_buffer):
-            m.d.comb += self.next_buffer_ready.eq(1)
+        for i, (base, level) in enumerate(zip(writer.buffer_base_list, writer.buffer_level_list)):
+            print(base, level)
+            buffer_base = StatusSignal(range(base + 1))
+            m.d.comb += buffer_base.eq(base)
+            setattr(self, f"buffer{i}_base", buffer_base)
 
-        return m
+            buffer_level = StatusSignal(level.shape())
+            m.d.comb += buffer_level.eq(level)
+            setattr(self, f"buffer{i}_level", buffer_level)
+
+        self.m = m
+
+    def elaborate(self, platform):
+        return self.m
 
     @driver_method
     def read_packet_to_file(self, filename="packet.bin"):

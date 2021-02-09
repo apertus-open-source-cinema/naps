@@ -1,12 +1,15 @@
+import random
 import unittest
 
 from nmigen import *
+from nmigen.sim import Passive
 
 from lib.bus.stream.fifo import BufferedSyncStreamFIFO
 from lib.bus.stream.formal_util import LegalStreamSource, verify_stream_output_contract
 from lib.bus.stream.gearbox import StreamGearbox, SimpleStreamGearbox
 from lib.bus.stream.sim_util import read_from_stream, write_to_stream
 from lib.bus.stream.stream import BasicStream, PacketizedStream
+from lib.bus.stream.tee import StreamTee
 from util.sim import SimPlatform, do_nothing
 
 
@@ -122,6 +125,35 @@ class TestGearbox(unittest.TestCase):
         platform.add_process(writer, "sync")
         platform.add_process(reader, "sync")
         platform.sim(dut)
+
+    def test_gearbox_12_to_48_to_64(self):
+        m = Module()
+        platform = SimPlatform()
+        input = BasicStream(12)
+
+        tee = m.submodules.tee = StreamTee(input)
+        gear_12_to_48 = m.submodules.gear_12_to_48 = StreamGearbox(tee.get_output(), 48)
+        gear_48_to_64 = m.submodules.gear_48_to_64 = StreamGearbox(gear_12_to_48.output, 64)
+
+        gear_12_to_64 = m.submodules.gear_12_to_64 = StreamGearbox(tee.get_output(), 64)
+
+        def writer():
+            yield Passive()
+            random.seed(0)
+            while True:
+                yield from write_to_stream(input, payload=random.randrange(0, 2**12))
+        platform.add_process(writer, "sync")
+
+        def reader():
+            for _ in range(100):
+                a = yield from read_from_stream(gear_12_to_64.output)
+                b = yield from read_from_stream(gear_48_to_64.output)
+                print(f"{a:064b}")
+                self.assertEqual(a, b)
+        platform.add_process(reader, "sync")
+
+        platform.add_sim_clock("sync", 100e6)
+        platform.sim(m)
 
     def test_dont_loose_data(self):
         input = BasicStream(16)

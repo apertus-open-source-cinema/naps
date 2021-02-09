@@ -32,6 +32,16 @@ class Bundle:
 
         super().__setattr__(key, value)
 
+    def __setitem__(self, key, value):
+        assert isinstance(value, Port)
+        self.__setattr__(key, value)
+
+    def __getitem__(self, item):
+        if item in self._directions:
+            return getattr(self, item)
+        else:
+            raise KeyError(f"{item} not found in {repr(self)}")
+
     def _update_name(self):
         for attr_name in dir(self):
             attr = getattr(self, attr_name)
@@ -41,47 +51,51 @@ class Bundle:
     def __repr__(self):
         return "<{}(Interface) name={}>".format(self.__class__.__name__, self.name)
 
-    def connect_upstream(self, upstream, allow_partial=False):
-        return self._connect(upstream, self, allow_partial)
+    def connect_upstream(self, upstream, allow_partial=False, only=None, exclude=None):
+        return self._connect(upstream, self, allow_partial, only, exclude)
 
-    def connect_downstream(self, downstream, allow_partial=False):
-        return self._connect(self, downstream, allow_partial)
+    def connect_downstream(self, downstream, allow_partial=False, only=None, exclude=None):
+        return self._connect(self, downstream, allow_partial, only, exclude)
 
     @property
     def signals(self):
-        return [getattr(self, k) for k in self._directions.keys()]
-
-    @property
-    def _downwards_ports(self):
-        return [k for k, v in self._directions.items() if v == Direction.DOWNWARDS]
-
-    @property
-    def _upwards_ports(self):
-        return [k for k, v in self._directions.items() if v == Direction.UPWARDS]
+        return [self[k] for k in self._directions.keys()]
 
     @staticmethod
-    def _connect(upstream, downstream, allow_partial):
+    def _connect(upstream, downstream, allow_partial, only=None, exclude=None):
+        if only is not None:
+            assert exclude is None
+            upstream_directions = {k: v for k, v in upstream._directions.items() if k in only}
+            downstream_directions = {k: v for k, v in downstream._directions.items() if k in only}
+        elif exclude is not None:
+            assert only is None
+            upstream_directions = {k: v for k, v in upstream._directions.items() if k not in exclude}
+            downstream_directions = {k: v for k, v in downstream._directions.items() if k not in exclude}
+        else:
+            upstream_directions = upstream._directions
+            downstream_directions = downstream._directions
+
         assert isinstance(upstream, Bundle) and isinstance(downstream, Bundle)
         if not allow_partial:
-            assert upstream._directions == downstream._directions
+            assert upstream_directions == downstream_directions
 
         statements = []
-        for k in upstream._downwards_ports:
+        for k, direction in upstream_directions.items():
             if hasattr(upstream, k) and hasattr(downstream, k):
-                assert upstream._directions[k] == downstream._directions[k]
-                u, d = getattr(upstream, k), getattr(downstream, k)
-                if isinstance(d, Value):
-                    statements += [d.eq(u)]
-                elif isinstance(d, Bundle):
-                    statements += Bundle._connect(u, d, allow_partial)
-        for k in downstream._upwards_ports:
-            if hasattr(upstream, k) and hasattr(downstream, k):
-                assert upstream._directions[k] == downstream._directions[k]
-                u, d = getattr(upstream, k), getattr(downstream, k)
-                if isinstance(u, Value):
-                    statements += [u.eq(d)]
-                elif isinstance(u, Bundle):
-                    statements += Bundle._connect(d, u, allow_partial)
+                assert upstream_directions[k] == downstream_directions[k]
+
+                if direction == DOWNWARDS:
+                    u, d = upstream[k], getattr(downstream, k)
+                    if isinstance(d, Value):
+                        statements += [d.eq(u)]
+                    elif isinstance(d, Bundle):
+                        statements += Bundle._connect(u, d, allow_partial)
+                elif direction == UPWARDS:
+                    u, d = upstream[k], downstream[k]
+                    if isinstance(u, Value):
+                        statements += [u.eq(d)]
+                    elif isinstance(u, Bundle):
+                        statements += Bundle._connect(d, u, allow_partial)
         return statements
 
 

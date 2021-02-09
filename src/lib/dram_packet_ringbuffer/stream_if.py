@@ -6,7 +6,7 @@ from lib.bus.axi.zynq_util import if_none_get_zynq_hp_port
 from lib.bus.stream.debug import StreamInfo
 from lib.bus.stream.metadata_wrapper import LastWrapper
 from lib.bus.stream.stream import PacketizedStream, BasicStream
-from lib.bus.stream.stream_transformer import StreamTransformer
+from lib.bus.stream.stream_transformer import stream_transformer
 from lib.bus.stream.tee import StreamTee
 from lib.peripherals.csr_bank import StatusSignal
 
@@ -48,7 +48,8 @@ class DramPacketRingbufferStreamWriter(Elaboratable):
         address_stream = BasicStream(axi.write_address.payload.shape())
         address_offset = Signal.like(axi.write_address.payload)
         is_in_overflow = Signal()
-        with StreamTransformer(transformer_input, address_stream, m):
+        stream_transformer(transformer_input, address_stream, m, latency=0, handle_out_of_band=False)
+        with m.If(transformer_input.ready & transformer_input.valid):
             m.d.sync += self.buffer_level_list[self.current_write_buffer].eq(address_offset + axi.data_bytes)
             with m.If(transformer_input.last):
                 m.d.sync += is_in_overflow.eq(0)
@@ -66,6 +67,8 @@ class DramPacketRingbufferStreamWriter(Elaboratable):
         m.d.comb += address_stream.payload.eq(address_offset + self.buffer_base_list[self.current_write_buffer])
 
         m.submodules.writer = AxiWriter(address_stream, data_stream, axi)
+
+        m.submodules.input_stream_info = StreamInfo(self.input)
 
         return m
 
@@ -110,5 +113,7 @@ class DramPacketRingbufferStreamReader(Elaboratable):
 
         reader = m.submodules.axi_reader = LastWrapper(address_stream, lambda i: AxiReader(i, axi=axi, axi_data_width=len(self.output.payload)), last_fifo_depth=10, last_rle_bits=32)
         m.d.comb += self.output.connect_upstream(reader.output)
+
+        m.submodules.output_stream_info = StreamInfo(self.output)
 
         return m

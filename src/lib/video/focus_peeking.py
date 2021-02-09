@@ -11,6 +11,7 @@ from util.nmigen_misc import nAbsDifference
 
 class FocusPeeking(Elaboratable):
     """Adds A focus peeking overlay to the image"""
+
     def __init__(self, input: ImageStream, width=3000, height=3000):
         self.input = input
         self.output = ImageStream(24)
@@ -53,13 +54,14 @@ class FocusPeeking(Elaboratable):
         return m
 
 
-def stream_ports(stream):
-    return [getattr(stream, n) for n in [*stream._downwards_ports, *stream._upwards_ports]]
-
 if __name__ == "__main__":
     in_stream = ImageStream(len(RGB24()))
     dut = FocusPeeking(in_stream, width=512, height=512)
 
     from nmigen.back.cxxrtl import convert
     from pathlib import Path
-    (Path(__file__).parent / "focus_peeking_cxxrtl_test" / "focus_peeking_test.cpp").write_text(convert(dut, ports=[*stream_ports(in_stream), *stream_ports(dut.output), dut.threshold, dut.highlight_r, dut.highlight_g, dut.highlight_b]))
+
+    cpp_path = (Path(__file__).parent / "focus_peeking_cxxrtl_test" / "focus_peeking_test.cpp")
+    cpp_path.write_text(
+        convert(dut, ports=[*in_stream.signals, *dut.output.signals, dut.threshold, dut.highlight_r, dut.highlight_g, dut.highlight_b])
+    )

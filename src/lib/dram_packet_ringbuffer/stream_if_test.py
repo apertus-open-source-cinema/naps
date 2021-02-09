@@ -5,8 +5,9 @@ from nmigen import *
 from lib.bus.axi.sim_util import axi_ram_sim_model
 from lib.bus.stream.sim_util import write_packet_to_stream, read_packet_from_stream
 from lib.bus.stream.stream import PacketizedStream
+from lib.dram_packet_ringbuffer.cpu_if import DramPacketRingbufferCpuReader
 from lib.dram_packet_ringbuffer.stream_if import DramPacketRingbufferStreamWriter, DramPacketRingbufferStreamReader
-from util.sim import SimPlatform, do_nothing
+from util.sim import SimPlatform
 
 
 class StreamIfTest(unittest.TestCase):
@@ -18,6 +19,7 @@ class StreamIfTest(unittest.TestCase):
         input_stream = PacketizedStream(64)
         writer = m.submodules.writer = DramPacketRingbufferStreamWriter(input_stream, base_address=0, max_packet_size=10000, n_buffers=4, axi=writer_axi_port)
         reader = m.submodules.reader = DramPacketRingbufferStreamReader(writer, axi=reader_axi_port)
+        cpu_reader = m.submodules.cpu_reader = DramPacketRingbufferCpuReader(writer)
 
         def testbench():
             test_packets = [
@@ -34,6 +36,11 @@ class StreamIfTest(unittest.TestCase):
                 read_packets.append(read)
 
             self.assertEqual(read_packets, test_packets)
+            self.assertEqual((yield writer.buffer_level_list[0]), 800)
+            self.assertEqual((yield writer.buffer_level_list[1]), 800)
+
+            self.assertEqual((yield cpu_reader.buffer0_level), 800)
+            self.assertEqual((yield cpu_reader.buffer1_level), 800)
 
         plat.add_sim_clock("sync", 100e6)
         plat.sim(m, testbench)

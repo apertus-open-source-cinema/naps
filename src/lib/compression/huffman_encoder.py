@@ -1,11 +1,12 @@
 from nmigen import *
 import huffman
-from lib.bus.stream.stream import BasicStream
+from lib.bus.stream.stream import PacketizedStream
+from lib.bus.stream.stream_transformer import stream_transformer
 from lib.compression.bit_stuffing import VariableWidthStream
 
 
 class HuffmanEncoder(Elaboratable):
-    def __init__(self, input: BasicStream, distribution):
+    def __init__(self, input: PacketizedStream, distribution):
         self.input = input
 
         self.distribution = distribution
@@ -19,12 +20,8 @@ class HuffmanEncoder(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
+        stream_transformer(self.input, self.output, m, latency=1, allow_partial_out_of_band=True)
         input_transaction = self.input.ready & self.input.valid
-        output_transaction = self.output.ready & self.output.valid
-
-        with m.If(input_transaction):
-            for k in self.input.out_of_band_signals.keys():
-                m.d.sync += getattr(self.output, k).eq(getattr(self.input, k))
 
         code_memory = Memory(width=self.max_code_len, depth=self.max_input_word, init=[int(self.table.get(i, '0'), 2) for i in range(self.max_input_word)])
         code_port = m.submodules.code_port = code_memory.read_port(domain="sync", transparent=False)
@@ -37,15 +34,5 @@ class HuffmanEncoder(Elaboratable):
         m.d.comb += len_port.en.eq(input_transaction)
         m.d.comb += len_port.addr.eq(self.input.payload)
         m.d.comb += self.output.current_width.eq(len_port.data)
-
-        output_produce = Signal()
-        m.d.sync += output_produce.eq(input_transaction)
-
-        has_output = Signal()
-        with m.If(has_output | output_produce):
-            m.d.comb += self.output.valid.eq(1)
-        m.d.sync += has_output.eq(has_output + output_produce - output_transaction > 0)
-
-        m.d.comb += self.input.ready.eq(self.output.ready | (~has_output & ~output_produce))
 
         return m

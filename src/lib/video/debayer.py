@@ -1,6 +1,6 @@
 from nmigen import *
 
-from lib.bus.stream.stream_transformer import StreamTransformer
+from lib.bus.stream.stream_transformer import stream_transformer
 from lib.peripherals.csr_bank import ControlSignal
 from lib.video.image_stream import ImageStream
 from lib.video.rgb import RGB24
@@ -22,7 +22,8 @@ class RecoloringDebayerer(Elaboratable):
 
         x_odd = Signal()
         y_odd = Signal()
-        with StreamTransformer(self.input, self.output, m):
+        stream_transformer(self.input, self.output, m, latency=0)
+        with m.If(self.input.ready & self.input.valid):
             with m.If(self.input.line_last):
                 m.d.sync += x_odd.eq(0)
                 m.d.sync += y_odd.eq(~y_odd)
@@ -44,8 +45,6 @@ class RecoloringDebayerer(Elaboratable):
             m.d.comb += rgb.g.eq(self.input.payload // 2)
 
         m.d.comb += self.output.payload.eq(rgb)
-        m.d.comb += self.output.frame_last.eq(self.input.frame_last)
-        m.d.comb += self.output.line_last.eq(self.input.line_last)
 
         return m
 

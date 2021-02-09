@@ -2,7 +2,6 @@ from nmigen import *
 
 from lib.bus.stream.debug import StreamInfo
 from lib.bus.stream.stream import BasicStream
-from lib.bus.stream.stream_transformer import StreamTransformer
 from lib.data_structure.bundle import DOWNWARDS
 
 
@@ -17,14 +16,11 @@ class StreamResizer(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
-        with StreamTransformer(self.input, self.output, m):
-            pass
+        m.d.comb += self.output.connect_upstream(self.input, exclude=["payload"])
         if not self.upper_bits:
             m.d.comb += self.output.payload.eq(self.input.payload)
         else:
             m.d.comb += self.output.payload.eq(self.input.payload[-len(self.output.payload):])
-        for k in self.input.out_of_band_signals.keys():
-            m.d.comb += getattr(self.output, k).eq(getattr(self.input, k))
         return m
 
 
@@ -58,7 +54,7 @@ class StreamGearbox(Elaboratable):
                                 for k, v in self.input.out_of_band_signals.items() if (k.endswith("last") or k.endswith("first"))}
 
         shift_registers = [(shift_register, self.input.payload)]
-        shift_registers += [(reg, (getattr(self.input, k) << ((input_width - 1) if k.endswith("last") else 0)))
+        shift_registers += [(reg, (self.input[k] << ((input_width - 1) if k.endswith("last") else 0)))
                             for k, reg in last_first_shift_registers.items()]
 
         with m.If(input_read & ~output_write):
@@ -78,7 +74,7 @@ class StreamGearbox(Elaboratable):
         m.d.comb += self.output.valid.eq(current_bits_in_shift_register >= output_width)
         m.d.comb += self.input.ready.eq((len(shift_register) - current_bits_in_shift_register) >= input_width)
 
-        m.d.comb += [getattr(self.output, k).eq(reg[:output_width] != 0) for k, reg in last_first_shift_registers.items()]
+        m.d.comb += [self.output[k].eq(reg[:output_width] != 0) for k, reg in last_first_shift_registers.items()]
 
         return m
 
@@ -126,7 +122,7 @@ class SimpleStreamGearbox(Elaboratable):
                 m.d.sync += reg.eq(self.input.payload[self.output_width:])
                 m.d.sync += state.eq(state + 1)
                 for k, v in last_signals.items():
-                    m.d.sync += v.eq(getattr(self.input, k))
+                    m.d.sync += v.eq(self.input[k])
         with m.Else():
             m.d.comb += self.output.payload.eq(reg)
             m.d.comb += self.output.valid.eq(1)
@@ -136,6 +132,6 @@ class SimpleStreamGearbox(Elaboratable):
                 m.d.sync += state.eq(state + 1)
             with m.If(state == self.division_factor - 1):
                 for k, v in last_signals.items():
-                    m.d.comb += getattr(self.output, k).eq(v)
+                    m.d.comb += self.output[k].eq(v)
 
         return m

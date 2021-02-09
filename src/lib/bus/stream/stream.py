@@ -40,7 +40,7 @@ class Stream(Bundle):
 
     @property
     def payload_signals(self):
-        return OrderedDict((k, getattr(self, k)) for k in self._downwards_ports if k != "valid")
+        return OrderedDict((k, self[k]) for k, direction in self._directions.items() if k != "valid" and direction == DOWNWARDS)
 
 
 class BasicStream(Stream):

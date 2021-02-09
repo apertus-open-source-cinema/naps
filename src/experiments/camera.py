@@ -51,14 +51,14 @@ class Top(Elaboratable):
         input_fifo = m.submodules.input_fifo = BufferedAsyncStreamFIFO(
             hispi.output, 2048, i_domain="hispi", o_domain="axi_hp"
         )
-        input_stream_resizer = m.submodules.input_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(input_fifo.output, 64))
+        input_stream_resizer = m.submodules.input_stream_resizer = DomainRenamer("axi_hp")(StreamGearbox(input_fifo.output, 64))
         input_converter = m.submodules.input_converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(input_stream_resizer.output))
         dram_writer = m.submodules.dram_writer = DomainRenamer("axi_hp")(
             DramPacketRingbufferStreamWriter(input_converter.output, max_packet_size=0x800000, n_buffers=4)
         )
 
         # Output pipeline
-        cpu_reader = m.submodules.cpu_reader = DramPacketRingbufferCpuReader(dram_writer)
+        cpu_reader = m.submodules.cpu_reader = DomainRenamer("axi_hp")(DramPacketRingbufferCpuReader(dram_writer))
         output_reader = m.submodules.output_reader = DomainRenamer("axi_hp")(DramPacketRingbufferStreamReader(dram_writer))
         output_stream_resizer = m.submodules.output_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(output_reader.output, 48))
         output_gearbox = m.submodules.output_gearbox = DomainRenamer("axi_hp")(StreamGearbox(output_stream_resizer.output, target_width=12))
@@ -91,4 +91,3 @@ class Top(Elaboratable):
 
 if __name__ == "__main__":
     cli(Top, runs_on=(MicroR2Platform,), possible_socs=(ZynqSocPlatform,))
-

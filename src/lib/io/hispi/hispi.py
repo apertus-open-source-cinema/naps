@@ -152,6 +152,7 @@ class Hispi(Elaboratable):
             streams.append(lane_manager.output)
 
         stream_combiner = m.submodules.stream_combiner = in_hispi_domain(StreamCombiner(*streams, merge_payload=True))
-        m.submodules.output_stream_info = in_hispi_domain(StreamInfo(stream_combiner.output)); m.d.comb += self.output.connect_upstream(stream_combiner.output)
+        m.submodules.output_stream_info = in_hispi_domain(StreamInfo(stream_combiner.output))
+        m.d.comb += self.output.connect_upstream(stream_combiner.output)
 
         return m

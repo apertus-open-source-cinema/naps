@@ -27,8 +27,8 @@ class StreamResizer(Elaboratable):
 class StreamGearbox(Elaboratable):
     """Resize a Stream by 'Gearing' it up / down (changing the word rate)"""
     # TODO: add flushing on first & last
-    # (maybe add valid logic?)
-    # do we need streams with more granular word enables (also for more than 1 px / cycle throughput blocks?)
+    # (maybe add valid logic wit sub word granularity?)
+    # do we need streams with more granular enables (also for more than 1 px / cycle throughput blocks?)
 
     def __init__(self, input: BasicStream, target_width):
         self.input = input

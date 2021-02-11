@@ -6,6 +6,7 @@ from nmigen import *
 from devices import MicroR2Platform
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
 from lib.bus.stream.gearbox import StreamGearbox
+from lib.bus.stream.repacking import Repack12BitStream
 from lib.dram_packet_ringbuffer.cpu_if import DramPacketRingbufferCpuReader
 from lib.dram_packet_ringbuffer.stream_if import DramPacketRingbufferStreamWriter
 from lib.io.hispi.hispi import Hispi
@@ -40,8 +41,9 @@ class Top(Elaboratable):
             "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/hispi_sensor_0__lvds_clk__i]"
 
         hispi = m.submodules.hispi = Hispi(sensor, hispi_domain="hispi")
+        repack = m.submodules.repack = Repack12BitStream(hispi.output)
         input_fifo = m.submodules.input_fifo = BufferedAsyncStreamFIFO(
-            hispi.output, 2048, i_domain="hispi", o_domain="axi_hp"
+            repack.output, 2048, i_domain="hispi", o_domain="axi_hp"
         )
         gearbox = m.submodules.gearbox = DomainRenamer("axi_hp")(StreamGearbox(input_fifo.output, 64))
         input_converter = m.submodules.input_converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(gearbox.output))

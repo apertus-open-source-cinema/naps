@@ -5,6 +5,7 @@ from nmigen import *
 from devices import MicroR2Platform, BetaPlatform, ZyboPlatform
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
 from lib.bus.stream.gearbox import SimpleStreamGearbox, StreamResizer
+from lib.bus.stream.pipeline import Pipeline
 from lib.debug.clocking_debug import ClockingDebug
 from lib.dram_packet_ringbuffer.cpu_if import DramPacketRingbufferCpuWriter
 from lib.dram_packet_ringbuffer.stream_if import DramPacketRingbufferStreamReader
@@ -35,23 +36,16 @@ class Top(Elaboratable):
         )
 
         platform.ps7.fck_domain(100e6, "axi_hp")
-        buffer_reader = m.submodules.buffer_reader = DomainRenamer("axi_hp")(DramPacketRingbufferStreamReader(cpu_writer))
-        gearbox = m.submodules.gearbox = DomainRenamer("axi_hp")(SimpleStreamGearbox(buffer_reader.output, target_width=32))
-        resizer = m.submodules.resizer = StreamResizer(gearbox.output, target_width=24)
-        image_stream_adapter = m.submodules.image_stream_adapter = DomainRenamer("axi_hp")(
-            PacketizedStream2ImageStream(resizer.output, width=self.width)
-        )
 
-        fifo = m.submodules.fifo = BufferedAsyncStreamFIFO(
-            image_stream_adapter.output, depth=16 * 1024, i_domain="axi_hp", o_domain="pix"
-        )
+        p = Pipeline(m, start_domain="axi_hp")
+        p += DramPacketRingbufferStreamReader(cpu_writer)
+        p += SimpleStreamGearbox(p.output, target_width=32)
+        p += StreamResizer(p.output, target_width=24)
+        p += PacketizedStream2ImageStream(p.output, width=self.width)
+        p += BufferedAsyncStreamFIFO(p.output, depth=16 * 1024, o_domain="pix")
 
         hdmi = platform.request("hdmi", "north")
-        m.submodules.hdmi_stream_sink = HdmiStreamSink(
-            fifo.output, hdmi,
-            generate_modeline(self.width, self.height, 30),
-            pix_domain="pix"
-        )
+        p += HdmiStreamSink(p.output, hdmi, generate_modeline(self.width, self.height, 30), pix_domain="pix")
 
         m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x", "axi_hp")
 

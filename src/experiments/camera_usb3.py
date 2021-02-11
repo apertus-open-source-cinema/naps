@@ -6,6 +6,7 @@ from nmigen import *
 from devices import MicroR2Platform
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
 from lib.bus.stream.gearbox import StreamGearbox, StreamResizer
+from lib.bus.stream.pipeline import Pipeline
 from lib.debug.clocking_debug import ClockingDebug
 from lib.dram_packet_ringbuffer.stream_if import DramPacketRingbufferStreamReader, DramPacketRingbufferStreamWriter
 from lib.io.hispi.hispi import Hispi
@@ -62,35 +63,30 @@ class Top(Elaboratable):
         os.environ["NMIGEN_add_constraints"] = \
             "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/hispi_sensor_0__lvds_clk__i]"
 
-        hispi = m.submodules.hispi = Hispi(sensor, hispi_domain="hispi")
-        input_fifo = m.submodules.input_fifo = BufferedAsyncStreamFIFO(
-            hispi.output, 2048, i_domain="hispi", o_domain="axi_hp"
-        )
-        input_stream_resizer = m.submodules.input_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(input_fifo.output, 64))
-        input_converter = m.submodules.input_converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(input_stream_resizer.output))
-        writer = m.submodules.input_writer = DomainRenamer("axi_hp")(
-            DramPacketRingbufferStreamWriter(input_converter.output, max_packet_size=0x800000, n_buffers=4)
-        )
+        ip = Pipeline(m, prefix="input")
+        ip += Hispi(sensor, hispi_domain="hispi")
+        ip += BufferedAsyncStreamFIFO(ip.output, 2048, o_domain="axi_hp")
+        ip += StreamResizer(ip.output, 64)
+        ip += ImageStream2PacketizedStream(ip.output)
+        ip += DramPacketRingbufferStreamWriter(ip.output, max_packet_size=0x800000, n_buffers=4)
+        dram_writer = ip.last
 
         # Output pipeline
-        output_reader = m.submodules.output_reader = DomainRenamer("axi_hp")(DramPacketRingbufferStreamReader(writer))
-        output_stream_resizer = m.submodules.output_stream_resizer = DomainRenamer("axi_hp")(StreamResizer(output_reader.output, 48))
-        output_gearbox_down = m.submodules.output_gearbox_down = DomainRenamer("axi_hp")(
-            StreamGearbox(output_stream_resizer.output, target_width=12)
-        )
-        output_resizer_12_to_8 = m.submodules.output_resizer_12_to_8 = StreamResizer(output_gearbox_down.output, 8, upper_bits=True)
-        output_gearbox_up = m.submodules.output_gearbox_up = DomainRenamer("axi_hp")(
-            StreamGearbox(output_resizer_12_to_8.output, target_width=32)
-        )
+        op = Pipeline(m, prefix="output", start_domain="axi_hp")
+        op += DramPacketRingbufferStreamReader(dram_writer)
+        op += StreamResizer(op.output, 48)
+        op += StreamGearbox(op.output, target_width=12)
+        op += StreamResizer(op.output, 8, upper_bits=True)
+        op += StreamGearbox(op.output, target_width=32)
 
         platform.ps7.fck_domain(20e6, "usb3_fclk")
         pll = m.submodules.pll = Pll(20e6, 60, 1, input_domain="usb3_fclk")
         pll.output_domain("usb3_bitclk", 6)
         pll.output_domain("usb3_sync", 24)
 
-        output_cdc_fifo = m.submodules.output_cdc_fifo = BufferedAsyncStreamFIFO(output_gearbox_up.output, 1024, i_domain="axi_hp", o_domain="usb3_sync")
-        ft60x_legalizer = m.submodules.ft60x_legalizer = DomainRenamer("usb3_sync")(Ft60xLegalizer(output_cdc_fifo.output, packet_len=2304 * 1296))
-        m.submodules.tx = DomainRenamer("usb3_sync")(PluginModuleStreamerTx(usb3_plugin.lvds, ft60x_legalizer.output, bitclk_domain="usb3_bitclk"))
+        op += BufferedAsyncStreamFIFO(op.output, 1024, o_domain="usb3_sync")
+        op += Ft60xLegalizer(op.output, packet_len=2304 * 1296)
+        op += PluginModuleStreamerTx(usb3_plugin.lvds, op.output, bitclk_domain="usb3_bitclk")
 
         return m
 

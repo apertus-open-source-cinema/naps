@@ -6,6 +6,7 @@ from nmigen import *
 from devices import MicroR2Platform
 from lib.bus.stream.fifo import BufferedAsyncStreamFIFO
 from lib.bus.stream.gearbox import StreamGearbox
+from lib.bus.stream.pipeline import Pipeline
 from lib.bus.stream.repacking import Repack12BitStream
 from lib.dram_packet_ringbuffer.cpu_if import DramPacketRingbufferCpuReader
 from lib.dram_packet_ringbuffer.stream_if import DramPacketRingbufferStreamWriter
@@ -40,17 +41,15 @@ class Top(Elaboratable):
         os.environ["NMIGEN_add_constraints"] = \
             "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/hispi_sensor_0__lvds_clk__i]"
 
-        hispi = m.submodules.hispi = Hispi(sensor, hispi_domain="hispi")
-        repack = m.submodules.repack = Repack12BitStream(hispi.output)
-        input_fifo = m.submodules.input_fifo = BufferedAsyncStreamFIFO(
-            repack.output, 2048, i_domain="hispi", o_domain="axi_hp"
-        )
-        gearbox = m.submodules.gearbox = DomainRenamer("axi_hp")(StreamGearbox(input_fifo.output, 64))
-        input_converter = m.submodules.input_converter = DomainRenamer("axi_hp")(ImageStream2PacketizedStream(gearbox.output))
-        dram_writer = m.submodules.dram_writer = DomainRenamer("axi_hp")(
-            DramPacketRingbufferStreamWriter(input_converter.output, max_packet_size=0x800000, n_buffers=4)
-        )
-        m.submodules.cpu_reader = DomainRenamer("axi_hp")(DramPacketRingbufferCpuReader(dram_writer))
+        p = Pipeline(m)
+        p += Hispi(sensor, hispi_domain="hispi")
+        p += Repack12BitStream(p.output)
+
+        p += BufferedAsyncStreamFIFO(p.output, 2048, o_domain="axi_hp")
+        p += StreamGearbox(p.output, 64)
+        p += ImageStream2PacketizedStream(p.output)
+        p += DramPacketRingbufferStreamWriter(p.output, max_packet_size=0x800000, n_buffers=4)
+        p += DramPacketRingbufferCpuReader(p.last)
 
         return m
 

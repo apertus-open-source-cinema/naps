@@ -131,6 +131,7 @@ class Hispi(Elaboratable):
         self.bits = bits
 
         self.output = ImageStream(len(self.lvds) * bits)
+        self.output_domain = hispi_domain
         self.phy = HispiPhy(num_lanes=self.lanes, bits=self.bits, hispi_domain=hispi_domain)
 
     def elaborate(self, platform):

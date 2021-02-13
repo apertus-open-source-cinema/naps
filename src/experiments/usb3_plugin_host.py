@@ -49,4 +49,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(MicroR2Platform, BetaPlatform), possible_socs=(ZynqSocPlatform,))
+    cli(Top, runs_on=(MicroR2Platform,), possible_socs=(ZynqSocPlatform,))

@@ -1,4 +1,5 @@
-from nmigen.build import Resource, Pins, DiffPairs, Connector, Attrs
+from nmigen.build import Resource, Pins, DiffPairs, Attrs, Subsignal
+from nmigen.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
 
 from devices.plugins.plugin_connector import add_plugin_connector
 from .microzed_platform import MicroZedZ020Platform
@@ -22,7 +23,33 @@ class BetaPlatform(MicroZedZ020Platform):
         # TODO: add ext & shield connectors (but how?)
         # best would be a way to (transpranetly) handle the routing fabrics
         self.add_resources([
-            Resource("routing", 'east', DiffPairs('29', '31', dir='io', conn=("expansion", 1)),
-                     Attrs(IOSTANDARD="LVCMOS33")),
+            Resource("routing", 'east', DiffPairs('29', '31', dir='io', conn=("expansion", 1)), Attrs(IOSTANDARD="LVCMOS33")),
             Resource("routing", 'west', Pins("56", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
         ])
+
+
+class BetaRFWPlatform(LatticeMachXO2Platform):
+    device = "LCMXO2-2000HC"
+    package = "TG100"
+    speed = "6"
+
+    resources = [
+        Resource(
+            "pic_io", 0,
+            Subsignal("ss", Pins("27", dir="io"), Attrs(IO_TYPE="LVCMOS33", PULLMODE="UP", DRIVE="4")),
+            Subsignal("sck", Pins("31", dir="io"), Attrs(IO_TYPE="LVCMOS33", PULLMODE="UP", DRIVE="4")),
+            Subsignal("sdo", Pins("32", dir="io"), Attrs(IO_TYPE="LVCMOS33", PULLMODE="UP", DRIVE="4")),
+            Subsignal("pb22b", Pins("47", dir="io"), Attrs(IO_TYPE="LVCMOS33", PULLMODE="UP", DRIVE="4")),
+            Subsignal("sn", Pins("48", dir="io"), Attrs(IO_TYPE="LVCMOS33", PULLMODE="UP", DRIVE="4")),
+            Subsignal("sdi", Pins("49", dir="io"), Attrs(IO_TYPE="LVCMOS33", PULLMODE="UP", DRIVE="4")),
+            Subsignal("done", Pins("76", dir="io"), Attrs(IO_TYPE="LVCMOS33", PULLMODE="UP", DRIVE="4")),
+            Subsignal("initn", Pins("77", dir="io"), Attrs(IO_TYPE="LVCMOS33", PULLMODE="UP", DRIVE="4")),
+        )
+    ]
+    connectors = []
+
+    def __init__(self):
+        super().__init__()
+
+        add_plugin_connector(self, "north", gpio=["83", "78", "74", "75", "71", "70", "69", "68"])
+        add_plugin_connector(self, "south", gpio=["1", "2", "98", "99", "96", "97", "84", "87"])

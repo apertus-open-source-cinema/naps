@@ -1,4 +1,4 @@
-# An experiment that glues everything together and tries to get a full sensor -> hdmi flow working on the micro
+# An experiment that glues everything together and tries to get a full sensor -> ethernet flow working on the micro
 import os
 
 from nmigen import *

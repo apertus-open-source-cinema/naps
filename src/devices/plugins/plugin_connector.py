@@ -4,11 +4,14 @@ from nmigen.build import Connector, DiffPairs
 from util.sim import SimPlatform
 
 
-def add_plugin_connector(platform, number, conn, lvds, gpio=None, i2c=None):
+def add_plugin_connector(platform, number, conn=None, lvds=None, gpio=None, i2c=None):
     if not hasattr(platform, "inverts"):
         platform.inverts = {}
 
     mapping = {}
+
+    if lvds is None:
+        lvds = []
     for i, l in enumerate(lvds):
         splited = l.split()
         if len(splited) == 3:
@@ -29,7 +32,7 @@ def add_plugin_connector(platform, number, conn, lvds, gpio=None, i2c=None):
     for i, g in enumerate(gpio):
         mapping["gpio{}".format(i)] = "{}".format(g)
 
-    if i2c:
+    if i2c is not None:
         scl, sda = i2c
 
         mapping["i2c_scl"] = "{}".format(scl)

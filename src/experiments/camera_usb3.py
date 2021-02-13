@@ -1,4 +1,4 @@
-# An experiment that glues everything together and tries to get a full sensor -> hdmi flow working on the micro
+# An experiment that glues everything together and tries to get a full sensor -> usb3 flow working on the micro
 import os
 
 from nmigen import *
@@ -28,7 +28,7 @@ class Top(Elaboratable):
 
     def elaborate(self, platform):
         from devices.plugins.usb3_plugin_resource import usb3_plugin_connect
-        usb3_plugin_connect(platform, "south")
+        usb3_plugin_connect(platform, "south", gpio=isinstance(platform, MicroR2Platform))
 
         m = Module()
 

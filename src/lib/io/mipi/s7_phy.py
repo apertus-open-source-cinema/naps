@@ -19,8 +19,9 @@ class ClockRxPhy(Elaboratable):
         bufio = m.submodules.bufio = BufIO(self.pin)
         m.d.comb += ClockSignal(self.ddr_domain).eq(bufio.o)
 
-        divider = m.submodules.divider = ClockDivider(bufio.o, divider=4)
+        divider = m.submodules.divider = ClockDivider(self.pin, divider=4)
         m.d.comb += ClockSignal().eq(divider.o)
+        platform.add_clock_constraint(divider.o, 350e6 / 4)
 
         return m
 
@@ -30,7 +31,6 @@ class LaneRxPhy(Elaboratable):
         self.pin = pin
         self.ddr_domain = ddr_domain
 
-        self.delay = ControlSignal()
         self.bitslip = ControlSignal()
 
         self.output = Signal(8)
@@ -39,7 +39,7 @@ class LaneRxPhy(Elaboratable):
         m = Module()
 
         delay = m.submodules.delay = IDelay(self.pin)
-        serdes = m.submodules.serdes = DDRDeserializer(delay.output, self.ddr_domain, bit_width=8)
+        serdes = m.submodules.serdes = DDRDeserializer(delay.output, self.ddr_domain, bit_width=8, msb_first=False)
         m.d.comb += serdes.bitslip.eq(self.bitslip)
         m.d.comb += self.output.eq(serdes.output)
 

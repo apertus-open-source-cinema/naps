@@ -151,7 +151,8 @@ class DDRSerializer(Elaboratable):
 
 
 class DDRDeserializer(Elaboratable):
-    def __init__(self, pad, ddr_domain, bit_width=8):
+    def __init__(self, pad, ddr_domain, bit_width=8, msb_first=False):
+        self.msb_first = msb_first
         self.bit_width = bit_width
         self.ddr_domain = ddr_domain
         self.pad = pad
@@ -176,7 +177,7 @@ class DDRDeserializer(Elaboratable):
         m.d.comb += iserdes.clkb.eq(~ClockSignal(self.ddr_domain))
         m.d.comb += iserdes.rst.eq(ResetSignal())
         m.d.comb += iserdes.clkdiv.eq(ClockSignal())
-        m.d.comb += self.output.eq(Cat(iserdes.q[i] for i in range(1, 9)))
+        m.d.comb += self.output.eq(Cat(iserdes.q[i] for i in (range(1, 9) if self.msb_first else reversed(list(range(1, 9))))))
         m.d.comb += iserdes.bitslip.eq(self.bitslip)
 
         return m

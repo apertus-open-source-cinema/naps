@@ -23,6 +23,7 @@ class LaneWordAligner(Elaboratable):
         phy = m.submodules.phy = LaneRxPhy(self.pin, self.ddr_domain)
         m.d.comb += self.output.eq(phy.output)
 
+        # the spec says ‘00011101’ but we need to reverse this here because we are receiving a lsb first stream
         start_of_packet = 0b10111000
         m.d.sync += self.maybe_first_packet_byte.eq((self.output == start_of_packet) & ~self.in_packet)
 

@@ -28,6 +28,12 @@ setup(
         'nmigen @ git+https://github.com/nmigen/nmigen.git',
         'nmigen-boards @ git+https://github.com/nmigen/nmigen-boards.git',
     ],
+    keywords='nmigen apertus fpga gateware video camera',
+    project_urls={
+        'Documentation': 'https://apertus-open-source-cinema.github.io/nmigen-gateware/',
+        'Homepage': 'https://github.com/apertus-open-source-cinema/nmigen-gateware',
+        'Bug Tracker': 'https://github.com/apertus-open-source-cinema/nmigen-gateware/issues'
+    },
     extras_require={
         'test': [
             'pytest',

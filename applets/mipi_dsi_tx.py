@@ -18,16 +18,16 @@ class Top(Elaboratable):
 
         platform.ps7.fck_domain(20e6, "pxclk")
         pll = m.submodules.pll = Pll(20e6, 60, 1, input_domain="pxclk")
-        pll.output_domain("ddr_pixclk", 30)
+        pll.output_domain("ddr_pxclk", 30)
 
-        m.submodules.clocking = ClockingDebug("sync", "pxclk", "ddr_pixclk")
+        m.submodules.clocking = ClockingDebug("sync", "pxclk", "ddr_pxclk")
 
         # this experiment requires bodging the MicroR2 in a way that connects the southern plugin module
         # to a mipi DSI screen. Power and backlight have to be handled separated.
         platform.add_resources([
             Resource("mipi_dsi", 0,
-                     Subsignal("clk", DiffPairs("25", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS25")),
-                     Subsignal("lanes", DiffPairs("27", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS25")),
+                     Subsignal("clk", DiffPairs("25", "26", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS25")),
+                     Subsignal("lane0", DiffPairs("27", "28", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS25")),
             ),
         ])
         panel = platform.request("mipi_dsi")
@@ -52,9 +52,9 @@ class Top(Elaboratable):
         p = Pipeline(m)
         p += StreamBuffer(address_stream)
         p += AxiReader(p.output)
-        p += StreamGearbox(p.output, target_width=16)  # 2 lane MIPI DSI
+        p += StreamGearbox(p.output, target_width=8)
         p += BufferedAsyncStreamFIFO(p.output, depth=2048, o_domain="pxclk")
-        p += MipiMultiLaneTxPhy(p.output, panel.clk, panel.lanes, ddr_domain="ddr_pxclk")
+        p += MipiMultiLaneTxPhy(p.output, panel.clk, [panel.lane0], ddr_domain="ddr_pxclk")
 
         return m
 

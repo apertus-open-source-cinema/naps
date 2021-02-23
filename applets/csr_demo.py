@@ -23,9 +23,6 @@ class Top(Elaboratable):
         else:
             m.d.comb += self.counter.eq(42)  # we dont have a clock source so we cant count
 
-        if isinstance(platform, Usb3PluginPlatform):
-            m.d.comb += platform.request("led", 0).eq(platform.jtag_active)
-
         return m
 
 

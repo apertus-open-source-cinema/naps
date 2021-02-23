@@ -1,4 +1,3 @@
-
 import argparse
 import inspect
 import os
@@ -41,18 +40,20 @@ def cli(top_class, runs_on, possible_socs=(None,)):
                         action="store_true")
     parser.add_argument('-p', '--program', help='programs the board; programs the last build if used without -b',
                         action="store_true")
-    runs_on_choices = [plat.__name__.replace("Platform", "") for plat in runs_on]
-    default = runs_on_choices[0] if len(runs_on_choices) == 1 else None
-    parser.add_argument('-d', '--device', help='specify the device to build for', choices=runs_on_choices,
-                        required=default == None, default=default)
-    runs_on_choices = [plat.__name__.replace("SocPlatform", "") for plat in possible_socs if plat is not None]
-    default = runs_on_choices[0] if len(runs_on_choices) == 1 else None
-    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=runs_on_choices, default=default)
+
+    platform_choices = [plat.__name__.replace("Platform", "") for plat in runs_on]
+    default = platform_choices[0] if len(platform_choices) == 1 else None
+    parser.add_argument('-d', '--device', help='specify the device to build for', choices=platform_choices,
+                        required=default is None, default=default)
+
+    soc_choices = [plat.__name__.replace("SocPlatform", "") if plat is not None else "None" for plat in possible_socs]
+    default = soc_choices[0] if len(soc_choices) == 1 else None
+    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=soc_choices, default=default, required=default is None)
     parser = parser
     args = parser.parse_args()
 
     hardware_platform = getattr(__import__('nap.platform'), "{}Platform".format(args.device))
-    if args.soc:
+    if args.soc != 'None':
         soc_platform = getattr(__import__('nap.soc.platform'), "{}SocPlatform".format(args.soc))
         assert soc_platform in possible_socs
         platform = soc_platform(hardware_platform())

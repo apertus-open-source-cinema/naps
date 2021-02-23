@@ -1,17 +1,13 @@
 from nmigen.build import *
+from nmigen_boards.te0714_03_50_2I import TE0714_03_50_2IPlatform
 
 __all__ = ["HdmiDigitizerPlatform"]
-
-from nmigen_boards.resources import LEDResources
-from nmigen_boards.te0714_03_50_2I import TE0714_03_50_2IPlatform
 
 
 class HdmiDigitizerPlatform(TE0714_03_50_2IPlatform):
     def __init__(self):
         super().__init__()
         self.add_resources([
-            *LEDResources(pins="- 59 61 63 65 85 87 89 91", conn=("JM2", 0), invert=True, attrs=Attrs(IOSTANDARD="LVCMOS18")),
-
             Resource("ft601", 0,
                 Subsignal("reset", PinsN("39", dir="o", conn=("JM2", 0))),
                 Subsignal("data", Pins("34 32 30 28 26 24 22 20 16 14 12 10 8 6 4 2"
@@ -30,6 +26,8 @@ class HdmiDigitizerPlatform(TE0714_03_50_2IPlatform):
                 Attrs(IOSTANDARD="LVCMOS33"),
             ),
         ])
+        for i, p in enumerate([59, 61, 63, 65, 85, 87, 89, 91]):
+            self.add_resources([Resource("led", i + 1, Pins(str(p), dir='o', invert=True, conn=("JM2", 0)), Attrs(IOSTANDARD="LVCMOS18"))])
 
         # 'source [find bus/ftdi/digilent_jtag_hs3.cfg];'
         # 'source [find cpld/xilinx-xc7.cfg]; transport select jtag;'

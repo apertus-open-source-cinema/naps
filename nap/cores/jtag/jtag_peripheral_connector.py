@@ -25,59 +25,33 @@ class JTAGPeripheralConnector(Elaboratable):
             jtag = self.jtag
 
         address_range = self.peripheral.range()
-        state = Signal(4)
-        m.d.comb += platform.jtag_debug_signals[10:14].eq(state)
-        is_next_on_jtag_shift = Signal()
-        m.d.comb += platform.jtag_debug_signals[15].eq(is_next_on_jtag_shift)
-        is_next = Signal()
-        m.d.comb += platform.jtag_debug_signals[16].eq(is_next)
-
-        delayed_shift = Signal()
-        m.d.sync += delayed_shift.eq(jtag.shift)
-        m.d.comb += platform.jtag_debug_signals[4].eq(delayed_shift)
-
-        delayed_shift2 = Signal()
-        m.d[self.jtag_domain + '_p'] += delayed_shift2.eq(delayed_shift)
-        m.d.comb += platform.jtag_debug_signals[20].eq(delayed_shift2)
-
-        one = Signal()
-        m.d.comb += one.eq(1)
-        m.d.comb += platform.jtag_debug_signals[17].eq(one)
-        eighteen = Signal()
-        m.d.comb += platform.jtag_debug_signals[18].eq(eighteen)
-        nineteen = Signal()
-        m.d.comb += platform.jtag_debug_signals[19].eq(nineteen)
+        state = Signal(range(10))
 
         addr = Signal(32)
         data = Signal(32)
         status = Signal()
 
         read_write_done = Signal()
-        m.d.comb += platform.jtag_debug_signals[24].eq(read_write_done)
 
         def read_write_done_callback(error):
             m.d.sync += status.eq(error)
             m.d.sync += read_write_done.eq(1)
 
-        # This FSM should have two important properties:
+        # This FSM should has two important properties:
         # 1) It can be controlled with an unknown latency on both tdi and tdo
         # 2) When it is in an unknown state we can return to a defined state (IDLE0) by shifting in "0" for 96 cycles
         # READ:
-        # <0>*<1>(ADDRESS[32])<0><1 keep high until here>
+        # <0>*<1>(ADDRESS[32])<0><1 keep high>
         #                                             <1>(DATA[32])(STATUS_BIT[1])
         # WRITE:
         # <0>*<1>(ADDRESS[32])<1>(DATA[32])
         #                                             <1>(STATUS_BIT[1])
         with m.FSM():
-            def next_on_jtag_shift(next_state):
-                m.d.comb += is_next_on_jtag_shift.eq(1)
-                m.d.comb += eighteen.eq(1)
-                with m.If(delayed_shift2):
+            def next_on_jtag_shift(next_state, use_tdo_shift=False):
+                with m.If(jtag.shift_tdo if use_tdo_shift else jtag.shift_tdi):
                     m.next = next_state
-                    m.d.comb += is_next.eq(1)
 
             with m.State("IDLE0"):
-                m.d.comb += nineteen.eq(1)
                 m.d.comb += state.eq(0)
                 m.d.sync += read_write_done.eq(0)
                 with m.If(~jtag.tdi):  # in IDLE0 IDLE1 we wait for a 0->1 transition to have property 2) (see above)
@@ -118,7 +92,7 @@ class JTAGPeripheralConnector(Elaboratable):
                     m.d.comb += state.eq(5)
                     m.d.comb += jtag.tdo.eq(data[i])
                     if i < 31:
-                        next_on_jtag_shift("READ{}".format(i + 1))
+                        next_on_jtag_shift("READ{}".format(i + 1), use_tdo_shift=True)
                     else:
                         next_on_jtag_shift("READ_STATUS")
             with m.State("READ_STATUS"):

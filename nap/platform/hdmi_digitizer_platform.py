@@ -10,7 +10,7 @@ class HdmiDigitizerPlatform(TE0714_03_50_2IPlatform):
     def __init__(self):
         super().__init__()
         self.add_resources([
-            *LEDResources(pins="59 61 63 65 85 87 89 91", conn=("JM2", 0), invert=True, attrs=Attrs(IOSTANDARD="LVCMOS18")),
+            *LEDResources(pins="- 59 61 63 65 85 87 89 91", conn=("JM2", 0), invert=True, attrs=Attrs(IOSTANDARD="LVCMOS18")),
 
             Resource("ft601", 0,
                 Subsignal("reset", PinsN("39", dir="o", conn=("JM2", 0))),

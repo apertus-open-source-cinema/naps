@@ -29,7 +29,6 @@ setup(
 
             'bitarray',
 
-
             # needed for python wavelet compressor
             'numba',
             'numpy',

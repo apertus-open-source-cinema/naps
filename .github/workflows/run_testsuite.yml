@@ -1,29 +1,6 @@
-name: Python Testsuite
+name: Python Testsuite and pypi deploy
 on: [push]
 jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v1
-      - name: Set up Python
-        uses: actions/setup-python@v2
-        with:
-          python-version: 3.8
-      - name: Install deps
-        run: |
-          pip3 install twine setuptools-scm
-      - name: Build package
-        run: |
-          ./setup.py build sdist
-      - name: Upload to pypi
-        env:
-          TWINE_USERNAME: __token__
-          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
-          TWINE_REPOSITORY: testpypi
-          TWINE_NON_INTERACTIVE: 1
-        run: |
-          twine upload dist/nap*
   run_testsuite:
     runs-on: ubuntu-latest
     steps:
@@ -49,3 +26,25 @@ jobs:
           YOSYS: yowasp-yosys
         run:
           pytest
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install deps
+        run: |
+          pip3 install twine setuptools-scm
+      - name: Build package
+        run: |
+          ./setup.py build sdist
+      - name: Upload to pypi
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+          TWINE_NON_INTERACTIVE: 1
+        run: |
+          twine upload dist/nap*

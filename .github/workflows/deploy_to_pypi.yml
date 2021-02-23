@@ -1,6 +1,6 @@
 name: Deploy package to pypi
 name: Production deploy
-on:
+on: [push]
   workflow_run:
     workflows: ["Python Testsuite"]
     types:

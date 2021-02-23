@@ -1,6 +1,26 @@
 name: Python Testsuite
 on: [push]
 jobs:
+  publish:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Build package
+        run: |
+          ./setup.py build sdist
+      - name: Upload to pypi
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TEST_TOKEN }}
+          TWINE_REPOSITORY: testpypi
+          TWINE_NON_INTERACTIVE: 1
+        run: |
+          twine upload dist/nap*
   run_testsuite:
     runs-on: ubuntu-latest
     steps:

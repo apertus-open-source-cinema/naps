@@ -8,7 +8,7 @@ def scm_version():
         if version.tag and not version.distance:
             return version.format_with("")
         else:
-            return version.format_choice(".{node}", ".{node}.dirty")
+            return version.format_choice("", "")
     return {
         "relative_to": __file__,
         "version_scheme": "guess-next-dev",
@@ -19,7 +19,7 @@ def scm_version():
 setup(
     name='nap',
     use_scm_version=scm_version(),
-    url='http',
+    url='https://github.com/apertus-open-source-cinema/nmigen-gateware',
     description='nMigen Apertus Package',
     long_description=Path("README.rst").read_text(),
     packages=find_packages(),

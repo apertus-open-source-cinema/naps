@@ -2,7 +2,7 @@ name: Deploy package to pypi
 name: Production deploy
 on:
   workflow_run:
-    workflows: ["run_testsuite"]
+    workflows: ["Python Testsuite"]
     types:
       - completed
 jobs:

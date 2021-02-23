@@ -1,0 +1,61 @@
+nap.platform package
+====================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   nap.platform.plugins
+
+Submodules
+----------
+
+nap.platform.beta\_platform module
+----------------------------------
+
+.. automodule:: nap.platform.beta_platform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.platform.hdmi\_digitizer\_platform module
+---------------------------------------------
+
+.. automodule:: nap.platform.hdmi_digitizer_platform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.platform.micro\_r2\_platform module
+---------------------------------------
+
+.. automodule:: nap.platform.micro_r2_platform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.platform.usb3\_plugin\_platform module
+------------------------------------------
+
+.. automodule:: nap.platform.usb3_plugin_platform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.platform.zybo\_platform module
+----------------------------------
+
+.. automodule:: nap.platform.zybo_platform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: nap.platform
+   :members:
+   :undoc-members:
+   :show-inheritance:

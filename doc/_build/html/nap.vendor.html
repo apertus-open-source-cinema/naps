@@ -1,0 +1,374 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nap.vendor package &mdash; axiom-nmigen-gateware  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="axiom-nmigen-gateware  documentation" href="index.html"/>
+        <link rel="up" title="nap package" href="nap.html"/>
+        <link rel="next" title="nap.vendor.generic package" href="nap.vendor.generic.html"/>
+        <link rel="prev" title="nap.util package" href="nap.util.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> axiom-nmigen-gateware
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="nap.html">nap package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="nap.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="nap.cores.html">nap.cores package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.data_structure.html">nap.data_structure package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.platform.html">nap.platform package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.soc.html">nap.soc package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.stream.html">nap.stream package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.util.html">nap.util package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">nap.vendor package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.vendor.instance_helper">nap.vendor.instance_helper module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.vendor.platform_agnostic_elaboratable">nap.vendor.platform_agnostic_elaboratable module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.vendor">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nap.html#module-nap">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">axiom-nmigen-gateware</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="nap.html">nap package</a> &raquo;</li>
+        
+      <li>nap.vendor package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/nap.vendor.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nap-vendor-package">
+<h1>nap.vendor package<a class="headerlink" href="#nap-vendor-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="nap.vendor.generic.html">nap.vendor.generic package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.generic.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.generic.html#module-nap.vendor.generic.jtag">nap.vendor.generic.jtag module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.generic.html#module-nap.vendor.generic">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nap.vendor.lattice_machxo2.html">nap.vendor.lattice_machxo2 package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.lattice_machxo2.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.lattice_machxo2.html#module-nap.vendor.lattice_machxo2.clocking">nap.vendor.lattice_machxo2.clocking module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.lattice_machxo2.html#module-nap.vendor.lattice_machxo2.io">nap.vendor.lattice_machxo2.io module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.lattice_machxo2.html#module-nap.vendor.lattice_machxo2.jtag">nap.vendor.lattice_machxo2.jtag module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.lattice_machxo2.html#module-nap.vendor.lattice_machxo2">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="nap.vendor.xilinx_s7.html">nap.vendor.xilinx_s7 package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.xilinx_s7.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.xilinx_s7.html#module-nap.vendor.xilinx_s7.clocking">nap.vendor.xilinx_s7.clocking module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.xilinx_s7.html#module-nap.vendor.xilinx_s7.io">nap.vendor.xilinx_s7.io module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.xilinx_s7.html#module-nap.vendor.xilinx_s7.jtag">nap.vendor.xilinx_s7.jtag module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.xilinx_s7.html#module-nap.vendor.xilinx_s7.ps7">nap.vendor.xilinx_s7.ps7 module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.vendor.xilinx_s7.html#module-nap.vendor.xilinx_s7">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nap.vendor.instance_helper">
+<span id="nap-vendor-instance-helper-module"></span><h2>nap.vendor.instance_helper module<a class="headerlink" href="#module-nap.vendor.instance_helper" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.vendor.instance_helper.HelperedInstance">
+<em class="property">class </em><code class="sig-prename descclassname">nap.vendor.instance_helper.</code><code class="sig-name descname">HelperedInstance</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">src_loc_at</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.vendor.instance_helper.HelperedInstance" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<dl class="py method">
+<dt id="nap.vendor.instance_helper.HelperedInstance.elaborate">
+<code class="sig-name descname">elaborate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">platform</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.vendor.instance_helper.HelperedInstance.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="nap.vendor.instance_helper.InstanceHelper">
+<code class="sig-prename descclassname">nap.vendor.instance_helper.</code><code class="sig-name descname">InstanceHelper</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">source_files</span></em>, <em class="sig-param"><span class="n">instance_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.vendor.instance_helper.InstanceHelper" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py exception">
+<dt id="nap.vendor.instance_helper.PortNotFoundException">
+<em class="property">exception </em><code class="sig-prename descclassname">nap.vendor.instance_helper.</code><code class="sig-name descname">PortNotFoundException</code><a class="headerlink" href="#nap.vendor.instance_helper.PortNotFoundException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.vendor.instance_helper.SignalProxy">
+<em class="property">class </em><code class="sig-prename descclassname">nap.vendor.instance_helper.</code><code class="sig-name descname">SignalProxy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">ports</span></em>, <em class="sig-param"><span class="n">path</span><span class="o">=</span><span class="default_value">''</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.vendor.instance_helper.SignalProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ast.UserValue</span></code></p>
+<dl class="py method">
+<dt id="nap.vendor.instance_helper.SignalProxy.lower">
+<code class="sig-name descname">lower</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.vendor.instance_helper.SignalProxy.lower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Conversion to a concrete representation.</p>
+</dd></dl>
+
+<dl class="py method">
+<dt id="nap.vendor.instance_helper.SignalProxy.used_ports">
+<em class="property">property </em><code class="sig-name descname">used_ports</code><a class="headerlink" href="#nap.vendor.instance_helper.SignalProxy.used_ports" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.vendor.platform_agnostic_elaboratable">
+<span id="nap-vendor-platform-agnostic-elaboratable-module"></span><h2>nap.vendor.platform_agnostic_elaboratable module<a class="headerlink" href="#module-nap.vendor.platform_agnostic_elaboratable" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.vendor.platform_agnostic_elaboratable.ImplementationMarkerMetaclass">
+<em class="property">class </em><code class="sig-prename descclassname">nap.vendor.platform_agnostic_elaboratable.</code><code class="sig-name descname">ImplementationMarkerMetaclass</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">bases</span></em>, <em class="sig-param"><span class="n">namespace</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.vendor.platform_agnostic_elaboratable.ImplementationMarkerMetaclass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABCMeta</span></code></p>
+<dl class="py method">
+<dt id="nap.vendor.platform_agnostic_elaboratable.ImplementationMarkerMetaclass.implementation">
+<em class="property">property </em><code class="sig-name descname">implementation</code><a class="headerlink" href="#nap.vendor.platform_agnostic_elaboratable.ImplementationMarkerMetaclass.implementation" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.vendor.platform_agnostic_elaboratable.PlatformAgnosticElaboratable">
+<em class="property">class </em><code class="sig-prename descclassname">nap.vendor.platform_agnostic_elaboratable.</code><code class="sig-name descname">PlatformAgnosticElaboratable</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">src_loc_at</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.vendor.platform_agnostic_elaboratable.PlatformAgnosticElaboratable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<p>A helper to write Platform agnostic code. Searches in the vendor directories for the real elaboratable.</p>
+<dl class="py method">
+<dt id="nap.vendor.platform_agnostic_elaboratable.PlatformAgnosticElaboratable.elaborate">
+<code class="sig-name descname">elaborate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">platform</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.vendor.platform_agnostic_elaboratable.PlatformAgnosticElaboratable.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py exception">
+<dt id="nap.vendor.platform_agnostic_elaboratable.PlatformNotSupportedError">
+<em class="property">exception </em><code class="sig-prename descclassname">nap.vendor.platform_agnostic_elaboratable.</code><code class="sig-name descname">PlatformNotSupportedError</code><a class="headerlink" href="#nap.vendor.platform_agnostic_elaboratable.PlatformNotSupportedError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="nap.vendor.platform_agnostic_elaboratable.PrimitiveNotSupportedByPlatformError">
+<em class="property">exception </em><code class="sig-prename descclassname">nap.vendor.platform_agnostic_elaboratable.</code><code class="sig-name descname">PrimitiveNotSupportedByPlatformError</code><a class="headerlink" href="#nap.vendor.platform_agnostic_elaboratable.PrimitiveNotSupportedByPlatformError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">ValueError</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.vendor">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-nap.vendor" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="nap.vendor.generic.html" class="btn btn-neutral float-right" title="nap.vendor.generic package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="nap.util.html" class="btn btn-neutral" title="nap.util package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Robin Heinemann, Jaro Habiger.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

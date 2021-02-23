@@ -1,0 +1,571 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nap.util package &mdash; axiom-nmigen-gateware  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="axiom-nmigen-gateware  documentation" href="index.html"/>
+        <link rel="up" title="nap package" href="nap.html"/>
+        <link rel="next" title="nap.vendor package" href="nap.vendor.html"/>
+        <link rel="prev" title="nap.stream package" href="nap.stream.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> axiom-nmigen-gateware
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="nap.html">nap package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="nap.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="nap.cores.html">nap.cores package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.data_structure.html">nap.data_structure package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.platform.html">nap.platform package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.soc.html">nap.soc package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.stream.html">nap.stream package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">nap.util package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.util.draw_hierarchy">nap.util.draw_hierarchy module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.util.formal">nap.util.formal module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.util.nmigen_misc">nap.util.nmigen_misc module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.util.nmigen_misc_test">nap.util.nmigen_misc_test module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.util.plot_util">nap.util.plot_util module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.util.python_misc">nap.util.python_misc module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.util.sim">nap.util.sim module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.util.size_estimation">nap.util.size_estimation module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.util.yosys">nap.util.yosys module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.util">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="nap.vendor.html">nap.vendor package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nap.html#module-nap">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">axiom-nmigen-gateware</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="nap.html">nap package</a> &raquo;</li>
+        
+      <li>nap.util package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/nap.util.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nap-util-package">
+<h1>nap.util package<a class="headerlink" href="#nap-util-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nap.util.draw_hierarchy">
+<span id="nap-util-draw-hierarchy-module"></span><h2>nap.util.draw_hierarchy module<a class="headerlink" href="#module-nap.util.draw_hierarchy" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="nap.util.draw_hierarchy.hierarchy_to_dot">
+<code class="sig-prename descclassname">nap.util.draw_hierarchy.</code><code class="sig-name descname">hierarchy_to_dot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">e</span><span class="p">:</span> <span class="n">nmigen.hdl.ir.Elaboratable</span></em>, <em class="sig-param"><span class="n">plat</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.draw_hierarchy.hierarchy_to_dot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-nap.util.formal">
+<span id="nap-util-formal-module"></span><h2>nap.util.formal module<a class="headerlink" href="#module-nap.util.formal" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="nap.util.formal.assert_formal">
+<code class="sig-prename descclassname">nap.util.formal.</code><code class="sig-name descname">assert_formal</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">spec</span></em>, <em class="sig-param"><span class="n">mode</span><span class="o">=</span><span class="default_value">'bmc'</span></em>, <em class="sig-param"><span class="n">depth</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.formal.assert_formal" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-nap.util.nmigen_misc">
+<span id="nap-util-nmigen-misc-module"></span><h2>nap.util.nmigen_misc module<a class="headerlink" href="#module-nap.util.nmigen_misc" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.assert_is_pot">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">assert_is_pot</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.assert_is_pot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.connect_leds">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">connect_leds</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span></em>, <em class="sig-param"><span class="n">platform</span></em>, <em class="sig-param"><span class="n">signal</span></em>, <em class="sig-param"><span class="n">upper_bits</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.connect_leds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.delay_by">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">delay_by</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">signal</span></em>, <em class="sig-param"><span class="n">cycles</span></em>, <em class="sig-param"><span class="n">m</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.delay_by" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.ends_with">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">ends_with</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">signal</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">patterns</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.ends_with" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.iterator_with_if_elif">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">iterator_with_if_elif</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">iterator</span><span class="p">:</span> <span class="n">Iterable</span></em>, <em class="sig-param"><span class="n">module</span><span class="p">:</span> <span class="n">nmigen.hdl.dsl.Module</span></em><span class="sig-paren">)</span> &#x2192; Iterator<a class="headerlink" href="#nap.util.nmigen_misc.iterator_with_if_elif" title="Permalink to this definition">¶</a></dt>
+<dd><p>A helper to build a priority encoder using If / Elif constructs
+:param iterator: the iterator contaianing all the elements
+:param module: the module from which m.If and m.Elif are sourced</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.log2">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">log2</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">x</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.log2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.max_error_freq">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">max_error_freq</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">real_freq</span></em>, <em class="sig-param"><span class="n">requested_freq</span></em>, <em class="sig-param"><span class="n">max_error_percent</span><span class="o">=</span><span class="default_value">1</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.max_error_freq" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.nAbsDifference">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">nAbsDifference</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.nAbsDifference" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.nAll">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">nAll</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seq</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.nAll" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.nAny">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">nAny</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">seq</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.nAny" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.nAvrg">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">nAvrg</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">values</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.nAvrg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.nMax">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">nMax</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.nMax" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.nMin">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">nMin</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">a</span></em>, <em class="sig-param"><span class="n">b</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.nMin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.nmigen_misc.with_reset">
+<code class="sig-prename descclassname">nap.util.nmigen_misc.</code><code class="sig-name descname">with_reset</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">m</span></em>, <em class="sig-param"><span class="n">signal</span></em>, <em class="sig-param"><span class="n">exclusive</span><span class="o">=</span><span class="default_value">False</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc.with_reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-nap.util.nmigen_misc_test">
+<span id="nap-util-nmigen-misc-test-module"></span><h2>nap.util.nmigen_misc_test module<a class="headerlink" href="#module-nap.util.nmigen_misc_test" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.util.nmigen_misc_test.TestNMigenMisc">
+<em class="property">class </em><code class="sig-prename descclassname">nap.util.nmigen_misc_test.</code><code class="sig-name descname">TestNMigenMisc</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc_test.TestNMigenMisc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt id="nap.util.nmigen_misc_test.TestNMigenMisc.test_ends_with">
+<code class="sig-name descname">test_ends_with</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc_test.TestNMigenMisc.test_ends_with" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.nmigen_misc_test.TestNMigenMisc.test_is_pot">
+<code class="sig-name descname">test_is_pot</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc_test.TestNMigenMisc.test_is_pot" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.nmigen_misc_test.TestNMigenMisc.test_log2">
+<code class="sig-name descname">test_log2</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc_test.TestNMigenMisc.test_log2" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.nmigen_misc_test.TestNMigenMisc.test_nAbsDifference">
+<code class="sig-name descname">test_nAbsDifference</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc_test.TestNMigenMisc.test_nAbsDifference" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.nmigen_misc_test.TestNMigenMisc.test_nAll">
+<code class="sig-name descname">test_nAll</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc_test.TestNMigenMisc.test_nAll" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.nmigen_misc_test.TestNMigenMisc.test_nAny">
+<code class="sig-name descname">test_nAny</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc_test.TestNMigenMisc.test_nAny" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.nmigen_misc_test.TestNMigenMisc.test_nMax">
+<code class="sig-name descname">test_nMax</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc_test.TestNMigenMisc.test_nMax" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.nmigen_misc_test.TestNMigenMisc.test_nMin">
+<code class="sig-name descname">test_nMin</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.nmigen_misc_test.TestNMigenMisc.test_nMin" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.util.plot_util">
+<span id="nap-util-plot-util-module"></span><h2>nap.util.plot_util module<a class="headerlink" href="#module-nap.util.plot_util" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="nap.util.plot_util.plt_discrete_hist">
+<code class="sig-prename descclassname">nap.util.plot_util.</code><code class="sig-name descname">plt_discrete_hist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">title</span></em>, <em class="sig-param"><span class="n">data</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.plot_util.plt_discrete_hist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.plot_util.plt_hist">
+<code class="sig-prename descclassname">nap.util.plot_util.</code><code class="sig-name descname">plt_hist</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">title</span></em>, <em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.plot_util.plt_hist" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.plot_util.plt_image">
+<code class="sig-prename descclassname">nap.util.plot_util.</code><code class="sig-name descname">plt_image</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">title</span></em>, <em class="sig-param"><span class="n">data</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.plot_util.plt_image" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.plot_util.plt_show">
+<code class="sig-prename descclassname">nap.util.plot_util.</code><code class="sig-name descname">plt_show</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.plot_util.plt_show" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-nap.util.python_misc">
+<span id="nap-util-python-misc-module"></span><h2>nap.util.python_misc module<a class="headerlink" href="#module-nap.util.python_misc" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="nap.util.python_misc.camel_to_snake">
+<code class="sig-prename descclassname">nap.util.python_misc.</code><code class="sig-name descname">camel_to_snake</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.python_misc.camel_to_snake" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.python_misc.decimal_range">
+<code class="sig-prename descclassname">nap.util.python_misc.</code><code class="sig-name descname">decimal_range</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">start</span></em>, <em class="sig-param"><span class="n">stop</span></em>, <em class="sig-param"><span class="n">step</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.python_misc.decimal_range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-nap.util.sim">
+<span id="nap-util-sim-module"></span><h2>nap.util.sim module<a class="headerlink" href="#module-nap.util.sim" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.util.sim.FakeResource">
+<em class="property">class </em><code class="sig-prename descclassname">nap.util.sim.</code><code class="sig-name descname">FakeResource</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">handed_out_resources</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.FakeResource" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ast.UserValue</span></code></p>
+<dl class="py method">
+<dt id="nap.util.sim.FakeResource.lower">
+<code class="sig-name descname">lower</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.FakeResource.lower" title="Permalink to this definition">¶</a></dt>
+<dd><p>Conversion to a concrete representation.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.util.sim.SimPlatform">
+<em class="property">class </em><code class="sig-prename descclassname">nap.util.sim.</code><code class="sig-name descname">SimPlatform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">filename</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.SimPlatform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="nap.util.sim.SimPlatform.add_file">
+<code class="sig-name descname">add_file</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">contents</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.SimPlatform.add_file" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.sim.SimPlatform.add_process">
+<code class="sig-name descname">add_process</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">generator</span></em>, <em class="sig-param"><span class="n">domain</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.SimPlatform.add_process" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.sim.SimPlatform.add_sim_clock">
+<code class="sig-name descname">add_sim_clock</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">domain_name</span></em>, <em class="sig-param"><span class="n">frequency</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.SimPlatform.add_sim_clock" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.sim.SimPlatform.prepare">
+<code class="sig-name descname">prepare</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">top_fragment</span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'top'</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.SimPlatform.prepare" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.sim.SimPlatform.request">
+<code class="sig-name descname">request</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">name</span></em>, <em class="sig-param"><span class="n">number</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.SimPlatform.request" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.util.sim.SimPlatform.sim">
+<code class="sig-name descname">sim</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">dut</span></em>, <em class="sig-param"><span class="n">testbench</span><span class="o">=</span><span class="default_value">None</span></em>, <em class="sig-param"><span class="n">traces</span><span class="o">=</span><span class="default_value">()</span></em>, <em class="sig-param"><span class="n">engine</span><span class="o">=</span><span class="default_value">'pysim'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.SimPlatform.sim" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.util.sim.TristateIo">
+<em class="property">class </em><code class="sig-prename descclassname">nap.util.sim.</code><code class="sig-name descname">TristateIo</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">shape</span><span class="o">=</span><span class="default_value">None</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.TristateIo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.sim.do_nothing">
+<code class="sig-prename descclassname">nap.util.sim.</code><code class="sig-name descname">do_nothing</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">length</span><span class="o">=</span><span class="default_value">10</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.do_nothing" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.sim.pulse">
+<code class="sig-prename descclassname">nap.util.sim.</code><code class="sig-name descname">pulse</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">signal</span></em>, <em class="sig-param"><span class="n">length</span><span class="o">=</span><span class="default_value">1</span></em>, <em class="sig-param"><span class="n">after</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.pulse" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.sim.wait_for">
+<code class="sig-prename descclassname">nap.util.sim.</code><code class="sig-name descname">wait_for</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">expr</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">100</span></em>, <em class="sig-param"><span class="n">must_clock</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.sim.wait_for" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-nap.util.size_estimation">
+<span id="nap-util-size-estimation-module"></span><h2>nap.util.size_estimation module<a class="headerlink" href="#module-nap.util.size_estimation" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="nap.util.size_estimation.get_module_sizes">
+<code class="sig-prename descclassname">nap.util.size_estimation.</code><code class="sig-name descname">get_module_sizes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">module</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.size_estimation.get_module_sizes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.size_estimation.print_module_sizes">
+<code class="sig-prename descclassname">nap.util.size_estimation.</code><code class="sig-name descname">print_module_sizes</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">module</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.size_estimation.print_module_sizes" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-nap.util.yosys">
+<span id="nap-util-yosys-module"></span><h2>nap.util.yosys module<a class="headerlink" href="#module-nap.util.yosys" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="nap.util.yosys.get_verilog_module_ports">
+<code class="sig-prename descclassname">nap.util.yosys.</code><code class="sig-name descname">get_verilog_module_ports</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verilog_paths</span></em>, <em class="sig-param"><span class="n">module_name</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.yosys.get_verilog_module_ports" title="Permalink to this definition">¶</a></dt>
+<dd><p>Get the ports of a verilog module via yosys</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>verilog_paths</strong> – </p></li>
+<li><p><strong>module_name</strong> – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the verilog as a string</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.yosys.parse_yosys_json">
+<code class="sig-prename descclassname">nap.util.yosys.</code><code class="sig-name descname">parse_yosys_json</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">verilog_paths</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.yosys.parse_yosys_json" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.util.yosys.yosys_script">
+<code class="sig-prename descclassname">nap.util.yosys.</code><code class="sig-name descname">yosys_script</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">commands</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.util.yosys.yosys_script" title="Permalink to this definition">¶</a></dt>
+<dd><p>Executes a yosys script</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>commands</strong> – a list of commands to run</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>the stdout of yosys</p>
+</dd>
+</dl>
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.util">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-nap.util" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="nap.vendor.html" class="btn btn-neutral float-right" title="nap.vendor package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="nap.stream.html" class="btn btn-neutral" title="nap.stream package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Robin Heinemann, Jaro Habiger.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

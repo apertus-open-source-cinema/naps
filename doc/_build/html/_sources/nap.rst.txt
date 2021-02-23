@@ -1,0 +1,24 @@
+nap package
+===========
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   nap.cores
+   nap.data_structure
+   nap.platform
+   nap.soc
+   nap.stream
+   nap.util
+   nap.vendor
+
+Module contents
+---------------
+
+.. automodule:: nap
+   :members:
+   :undoc-members:
+   :show-inheritance:

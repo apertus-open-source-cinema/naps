@@ -1,0 +1,37 @@
+nap.cores.hispi package
+=======================
+
+Submodules
+----------
+
+nap.cores.hispi.hispi\_rx module
+--------------------------------
+
+.. automodule:: nap.cores.hispi.hispi_rx
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hispi.hispi\_rx\_test module
+--------------------------------------
+
+.. automodule:: nap.cores.hispi.hispi_rx_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hispi.s7\_phy module
+------------------------------
+
+.. automodule:: nap.cores.hispi.s7_phy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: nap.cores.hispi
+   :members:
+   :undoc-members:
+   :show-inheritance:

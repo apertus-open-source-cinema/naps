@@ -1,0 +1,338 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nap.soc.platform.jtag package &mdash; axiom-nmigen-gateware  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="axiom-nmigen-gateware  documentation" href="index.html"/>
+        <link rel="up" title="nap.soc.platform package" href="nap.soc.platform.html"/>
+        <link rel="next" title="nap.soc.platform.zynq package" href="nap.soc.platform.zynq.html"/>
+        <link rel="prev" title="nap.soc.platform package" href="nap.soc.platform.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> axiom-nmigen-gateware
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="nap.html">nap package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="nap.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="nap.cores.html">nap.cores package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.data_structure.html">nap.data_structure package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.platform.html">nap.platform package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="nap.soc.html">nap.soc package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="nap.soc.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.cli">nap.soc.cli module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.csr_types">nap.soc.csr_types module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.devicetree_overlay">nap.soc.devicetree_overlay module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.fatbitstream">nap.soc.fatbitstream module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.hooks">nap.soc.hooks module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.memorymap">nap.soc.memorymap module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.peripheral">nap.soc.peripheral module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.peripherals_aggregator">nap.soc.peripherals_aggregator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.smoke_test">nap.soc.smoke_test module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.soc_platform">nap.soc.soc_platform module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.soc_platform_test">nap.soc.soc_platform_test module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.tracing_elaborate">nap.soc.tracing_elaborate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="nap.stream.html">nap.stream package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.util.html">nap.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.vendor.html">nap.vendor package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nap.html#module-nap">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">axiom-nmigen-gateware</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="nap.html">nap package</a> &raquo;</li>
+        
+          <li><a href="nap.soc.html">nap.soc package</a> &raquo;</li>
+        
+          <li><a href="nap.soc.platform.html">nap.soc.platform package</a> &raquo;</li>
+        
+      <li>nap.soc.platform.jtag package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/nap.soc.platform.jtag.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nap-soc-platform-jtag-package">
+<h1>nap.soc.platform.jtag package<a class="headerlink" href="#nap-soc-platform-jtag-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nap.soc.platform.jtag.jtag_soc_platform">
+<span id="nap-soc-platform-jtag-jtag-soc-platform-module"></span><h2>nap.soc.platform.jtag.jtag_soc_platform module<a class="headerlink" href="#module-nap.soc.platform.jtag.jtag_soc_platform" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform">
+<em class="property">class </em><code class="sig-prename descclassname">nap.soc.platform.jtag.jtag_soc_platform.</code><code class="sig-name descname">JTAGSocPlatform</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">platform</span></em>, <em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nap.soc.html#nap.soc.soc_platform.SocPlatform" title="nap.soc.soc_platform.SocPlatform"><code class="xref py py-class docutils literal notranslate"><span class="pre">nap.soc.soc_platform.SocPlatform</span></code></a></p>
+<dl class="py attribute">
+<dt id="nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.base_address">
+<code class="sig-name descname">base_address</code><em class="property"> = 0x00[0:34359738360]</em><a class="headerlink" href="#nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.base_address" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.pack_bitstream_fatbitstream">
+<code class="sig-name descname">pack_bitstream_fatbitstream</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">builder</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.pack_bitstream_fatbitstream" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.pydriver_memory_accessor">
+<code class="sig-name descname">pydriver_memory_accessor</code><em class="property"> = 'class JTAGAccessor:\n    base = 0\n\n    def __init__(self, addr=&quot;127.0.0.1&quot;, port=4444, timeout=1024, debug=False, spawn_server=True, tap_name=&quot;dut.tap&quot;):\n        import socket\n        import os\n        import time\n        from os.path import dirname, abspath\n\n        self.tap_name = tap_name\n\n        if spawn_server:\n            addr = &quot;127.0.0.1&quot;\n            port = 4444\n            os.system(\'cd {}; openocd -f openocd.cfg &gt; /dev/null 2&gt;&amp;1 &amp;\'.format(dirname(abspath(__file__))))\n            time.sleep(0.1)\n\n        self.s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)\n        self.s.connect((addr, port))\n        self.timeout = timeout\n        self.debug = debug\n        self.spawn_server = spawn_server\n\n        # skip some strange random shit\n        self._readline(decode=False)\n        self._irscan(0x32)\n        for i in range(3):\n            self._shift_word(0)\n\n    def __del__(self):\n        if hasattr(self, &quot;spawn_server&quot;) and self.spawn_server:\n            self._writeline(&quot;shutdown&quot;)\n\n    def read(self, addr):\n        self._shift_bit(0)  # wakeup\n        self._shift_bit(1)  # wakeup\n        self._shift_word(addr)  # address\n        self._shift_bit(0)  # read\n\n        # read wait\n        timeout = self.timeout\n        for t in range(timeout):\n            if self._shift_bit(1) == 1:\n                break\n            if t == timeout - 1:\n                raise TimeoutError()\n\n        data = self._shift_word(0)\n        if self._shift_bit(0) != 0:  # read status\n            raise TransactionNotSuccessfulException()\n\n        return data\n\n    def write(self, addr, value):\n        self._shift_bit(0)  # wakeup\n        self._shift_bit(1)  # wakeup\n        self._shift_word(addr)  # address\n        self._shift_bit(1)  # write\n        self._shift_word(value)\n\n        # write wait\n        timeout = self.timeout\n        for t in range(timeout):\n            if self._shift_bit(1) == 1:\n                break\n            if t == timeout - 1:\n                raise TimeoutError()\n        if self._shift_bit(0) != 0:  # write status\n            raise TransactionNotSuccessfulException()\n\n    def _writeline(self, message):\n        message += &quot;\\n&quot;\n        self.s.send(message.encode(\'utf-8\'))\n\n    def _readline(self, decode=True):\n        buf = b&quot;&quot;\n\n        while buf[-2:] != b\'&gt; \':\n            buf += self.s.recv(1)\n\n        if decode and self.debug:\n            print(buf.decode(\'utf-8\'))\n\n        buf = buf.rsplit(b\'\\r\\n\', 2)[1][1:]\n\n        if decode:\n            buf = buf.decode(\'utf-8\')\n\n        return buf\n\n    def _writecmd(self, cmd):\n        self._writeline(cmd)\n        ret = self._readline()\n        if self.debug:\n            print(cmd, &quot;-&gt;&quot;, ret)\n        return ret\n\n    def _shift_word(self, write):\n        return int(self._drscan(32, write), 16)\n\n    def _shift_bit(self, write):\n        return int(self._drscan(1, write), 16)\n\n    def _irscan(self, instruction):\n        return self._writecmd(\'irscan {} {}\'.format(self.tap_name, instruction))\n\n    def _drscan(self, len, value):\n        return self._writecmd(\'drscan {} {} {}\'.format(self.tap_name, len, value))\n\n\nMemoryAccessor = JTAGAccessor\n\n\nclass TransactionNotSuccessfulException(Exception):\n    pass\n'</em><a class="headerlink" href="#nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.pydriver_memory_accessor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.soc.platform.jtag.memory_accessor_openocd">
+<span id="nap-soc-platform-jtag-memory-accessor-openocd-module"></span><h2>nap.soc.platform.jtag.memory_accessor_openocd module<a class="headerlink" href="#module-nap.soc.platform.jtag.memory_accessor_openocd" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">nap.soc.platform.jtag.memory_accessor_openocd.</code><code class="sig-name descname">JTAGAccessor</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">addr</span><span class="o">=</span><span class="default_value">'127.0.0.1'</span></em>, <em class="sig-param"><span class="n">port</span><span class="o">=</span><span class="default_value">4444</span></em>, <em class="sig-param"><span class="n">timeout</span><span class="o">=</span><span class="default_value">1024</span></em>, <em class="sig-param"><span class="n">debug</span><span class="o">=</span><span class="default_value">False</span></em>, <em class="sig-param"><span class="n">spawn_server</span><span class="o">=</span><span class="default_value">True</span></em>, <em class="sig-param"><span class="n">tap_name</span><span class="o">=</span><span class="default_value">'dut.tap'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.base">
+<code class="sig-name descname">base</code><em class="property"> = 0</em><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.read">
+<code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">addr</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.write">
+<code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">addr</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.MemoryAccessor">
+<code class="sig-prename descclassname">nap.soc.platform.jtag.memory_accessor_openocd.</code><code class="sig-name descname">MemoryAccessor</code><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.MemoryAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor" title="nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.TransactionNotSuccessfulException">
+<em class="property">exception </em><code class="sig-prename descclassname">nap.soc.platform.jtag.memory_accessor_openocd.</code><code class="sig-name descname">TransactionNotSuccessfulException</code><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.TransactionNotSuccessfulException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.soc.platform.jtag">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-nap.soc.platform.jtag" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="nap.soc.platform.zynq.html" class="btn btn-neutral float-right" title="nap.soc.platform.zynq package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="nap.soc.platform.html" class="btn btn-neutral" title="nap.soc.platform package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Robin Heinemann, Jaro Habiger.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

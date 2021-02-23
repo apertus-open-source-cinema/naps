@@ -1,0 +1,478 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nap.cores.mipi package &mdash; axiom-nmigen-gateware  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="axiom-nmigen-gateware  documentation" href="index.html"/>
+        <link rel="up" title="nap.cores package" href="nap.cores.html"/>
+        <link rel="next" title="nap.cores.peripherals package" href="nap.cores.peripherals.html"/>
+        <link rel="prev" title="nap.cores.jtag package" href="nap.cores.jtag.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> axiom-nmigen-gateware
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="nap.html">nap package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="nap.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="nap.cores.html">nap.cores package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="nap.cores.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.cores.html#module-nap.cores">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="nap.data_structure.html">nap.data_structure package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.platform.html">nap.platform package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.soc.html">nap.soc package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.stream.html">nap.stream package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.util.html">nap.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.vendor.html">nap.vendor package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nap.html#module-nap">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">axiom-nmigen-gateware</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="nap.html">nap package</a> &raquo;</li>
+        
+          <li><a href="nap.cores.html">nap.cores package</a> &raquo;</li>
+        
+      <li>nap.cores.mipi package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/nap.cores.mipi.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nap-cores-mipi-package">
+<h1>nap.cores.mipi package<a class="headerlink" href="#nap-cores-mipi-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nap.cores.mipi.aligner">
+<span id="nap-cores-mipi-aligner-module"></span><h2>nap.cores.mipi.aligner module<a class="headerlink" href="#module-nap.cores.mipi.aligner" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.cores.mipi.aligner.LaneWordAligner">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.aligner.</code><code class="sig-name descname">LaneWordAligner</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">src_loc_at</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.aligner.LaneWordAligner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<p>A timeout based word aligner. Issues a bitslip request to the PHY if for a specified time no valid packet (as indicated by a upper layer) was received.</p>
+<dl class="py method">
+<dt id="nap.cores.mipi.aligner.LaneWordAligner.elaborate">
+<code class="sig-name descname">elaborate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">platform</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.aligner.LaneWordAligner.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.cores.mipi.combiner">
+<span id="nap-cores-mipi-combiner-module"></span><h2>nap.cores.mipi.combiner module<a class="headerlink" href="#module-nap.cores.mipi.combiner" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.cores.mipi.combiner.MipiLaneCombiner">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.combiner.</code><code class="sig-name descname">MipiLaneCombiner</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">src_loc_at</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.combiner.MipiLaneCombiner" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<p>Combines 1 to 4 lanes to a 32 bit word that can be used for parsing the packet header.
+Also assists with the training of multiple lanes.</p>
+<dl class="py method">
+<dt id="nap.cores.mipi.combiner.MipiLaneCombiner.elaborate">
+<code class="sig-name descname">elaborate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">platform</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.combiner.MipiLaneCombiner.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.cores.mipi.mipi_test">
+<span id="nap-cores-mipi-mipi-test-module"></span><h2>nap.cores.mipi.mipi_test module<a class="headerlink" href="#module-nap.cores.mipi.mipi_test" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.cores.mipi.mipi_test.MipiTest">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.mipi_test.</code><code class="sig-name descname">MipiTest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.mipi_test.MipiTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt id="nap.cores.mipi.mipi_test.MipiTest.test_aling_testdata_0">
+<code class="sig-name descname">test_aling_testdata_0</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.mipi_test.MipiTest.test_aling_testdata_0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.cores.mipi.packet">
+<span id="nap-cores-mipi-packet-module"></span><h2>nap.cores.mipi.packet module<a class="headerlink" href="#module-nap.cores.mipi.packet" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.cores.mipi.packet.DataIdentifier">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.packet.</code><code class="sig-name descname">DataIdentifier</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.packet.DataIdentifier" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nap.data_structure.packed_struct.PackedStructBaseClass</span></code></p>
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.DataIdentifier.data_type">
+<code class="sig-name descname">data_type</code><em class="property"> = unsigned(6)</em><a class="headerlink" href="#nap.cores.mipi.packet.DataIdentifier.data_type" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.cores.mipi.packet.DataIdentifier.is_long_packet">
+<code class="sig-name descname">is_long_packet</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.packet.DataIdentifier.is_long_packet" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.DataIdentifier.virtual_channel_identifier">
+<code class="sig-name descname">virtual_channel_identifier</code><em class="property"> = unsigned(2)</em><a class="headerlink" href="#nap.cores.mipi.packet.DataIdentifier.virtual_channel_identifier" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.cores.mipi.packet.LongPacketDataType">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.packet.</code><code class="sig-name descname">LongPacketDataType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.packet.LongPacketDataType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.LongPacketDataType.RAW10">
+<code class="sig-name descname">RAW10</code><em class="property"> = 43</em><a class="headerlink" href="#nap.cores.mipi.packet.LongPacketDataType.RAW10" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.LongPacketDataType.RAW12">
+<code class="sig-name descname">RAW12</code><em class="property"> = 44</em><a class="headerlink" href="#nap.cores.mipi.packet.LongPacketDataType.RAW12" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.LongPacketDataType.RAW14">
+<code class="sig-name descname">RAW14</code><em class="property"> = 45</em><a class="headerlink" href="#nap.cores.mipi.packet.LongPacketDataType.RAW14" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.LongPacketDataType.RAW6">
+<code class="sig-name descname">RAW6</code><em class="property"> = 40</em><a class="headerlink" href="#nap.cores.mipi.packet.LongPacketDataType.RAW6" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.LongPacketDataType.RAW7">
+<code class="sig-name descname">RAW7</code><em class="property"> = 41</em><a class="headerlink" href="#nap.cores.mipi.packet.LongPacketDataType.RAW7" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.LongPacketDataType.RAW8">
+<code class="sig-name descname">RAW8</code><em class="property"> = 42</em><a class="headerlink" href="#nap.cores.mipi.packet.LongPacketDataType.RAW8" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.cores.mipi.packet.MipiCSIPacketLayer">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.packet.</code><code class="sig-name descname">MipiCSIPacketLayer</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">src_loc_at</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.packet.MipiCSIPacketLayer" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<dl class="py method">
+<dt id="nap.cores.mipi.packet.MipiCSIPacketLayer.elaborate">
+<code class="sig-name descname">elaborate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">platform</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.packet.MipiCSIPacketLayer.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.cores.mipi.packet.PacketHeader">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.packet.</code><code class="sig-name descname">PacketHeader</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.packet.PacketHeader" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nap.data_structure.packed_struct.PackedStructBaseClass</span></code></p>
+<dl class="py method">
+<dt id="nap.cores.mipi.packet.PacketHeader.calculate_ecc">
+<code class="sig-name descname">calculate_ecc</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.packet.PacketHeader.calculate_ecc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.PacketHeader.data_id">
+<code class="sig-name descname">data_id</code><em class="property">: <a class="reference internal" href="#nap.cores.mipi.packet.DataIdentifier" title="nap.cores.mipi.packet.DataIdentifier">nap.cores.mipi.packet.DataIdentifier</a></em><a class="headerlink" href="#nap.cores.mipi.packet.PacketHeader.data_id" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.PacketHeader.ecc">
+<code class="sig-name descname">ecc</code><em class="property">: unsigned(8)</em><a class="headerlink" href="#nap.cores.mipi.packet.PacketHeader.ecc" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.cores.mipi.packet.PacketHeader.is_packet_valid">
+<code class="sig-name descname">is_packet_valid</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.packet.PacketHeader.is_packet_valid" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.PacketHeader.word_count">
+<code class="sig-name descname">word_count</code><em class="property">: unsigned(16)</em><a class="headerlink" href="#nap.cores.mipi.packet.PacketHeader.word_count" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.cores.mipi.packet.ShortPacketDataType">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.packet.</code><code class="sig-name descname">ShortPacketDataType</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.packet.ShortPacketDataType" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.ShortPacketDataType.FRAME_END">
+<code class="sig-name descname">FRAME_END</code><em class="property"> = 1</em><a class="headerlink" href="#nap.cores.mipi.packet.ShortPacketDataType.FRAME_END" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.ShortPacketDataType.FRAME_START">
+<code class="sig-name descname">FRAME_START</code><em class="property"> = 0</em><a class="headerlink" href="#nap.cores.mipi.packet.ShortPacketDataType.FRAME_START" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.ShortPacketDataType.LINE_END">
+<code class="sig-name descname">LINE_END</code><em class="property"> = 3</em><a class="headerlink" href="#nap.cores.mipi.packet.ShortPacketDataType.LINE_END" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.cores.mipi.packet.ShortPacketDataType.LINE_START">
+<code class="sig-name descname">LINE_START</code><em class="property"> = 2</em><a class="headerlink" href="#nap.cores.mipi.packet.ShortPacketDataType.LINE_START" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.cores.mipi.s7_rx_phy">
+<span id="nap-cores-mipi-s7-rx-phy-module"></span><h2>nap.cores.mipi.s7_rx_phy module<a class="headerlink" href="#module-nap.cores.mipi.s7_rx_phy" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.cores.mipi.s7_rx_phy.MipiClockRxPhy">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.s7_rx_phy.</code><code class="sig-name descname">MipiClockRxPhy</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">src_loc_at</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.s7_rx_phy.MipiClockRxPhy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<p>Drives the sync domain with the word clock and produces a ddr bit clock derived from the clock lane at <cite>pin</cite></p>
+<dl class="py method">
+<dt id="nap.cores.mipi.s7_rx_phy.MipiClockRxPhy.elaborate">
+<code class="sig-name descname">elaborate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">platform</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.s7_rx_phy.MipiClockRxPhy.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.cores.mipi.s7_rx_phy.MipiLaneRxPhy">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.s7_rx_phy.</code><code class="sig-name descname">MipiLaneRxPhy</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">src_loc_at</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.s7_rx_phy.MipiLaneRxPhy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<dl class="py method">
+<dt id="nap.cores.mipi.s7_rx_phy.MipiLaneRxPhy.elaborate">
+<code class="sig-name descname">elaborate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">platform</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.s7_rx_phy.MipiLaneRxPhy.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.cores.mipi.s7_tx_phy">
+<span id="nap-cores-mipi-s7-tx-phy-module"></span><h2>nap.cores.mipi.s7_tx_phy module<a class="headerlink" href="#module-nap.cores.mipi.s7_tx_phy" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.cores.mipi.s7_tx_phy.MipiMultiLaneTxPhy">
+<em class="property">class </em><code class="sig-prename descclassname">nap.cores.mipi.s7_tx_phy.</code><code class="sig-name descname">MipiMultiLaneTxPhy</code><span class="sig-paren">(</span><em class="sig-param"><span class="o">*</span><span class="n">args</span></em>, <em class="sig-param"><span class="n">src_loc_at</span><span class="o">=</span><span class="default_value">0</span></em>, <em class="sig-param"><span class="o">**</span><span class="n">kwargs</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.s7_tx_phy.MipiMultiLaneTxPhy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<dl class="py method">
+<dt id="nap.cores.mipi.s7_tx_phy.MipiMultiLaneTxPhy.elaborate">
+<code class="sig-name descname">elaborate</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">platform</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.cores.mipi.s7_tx_phy.MipiMultiLaneTxPhy.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.cores.mipi">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-nap.cores.mipi" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="nap.cores.peripherals.html" class="btn btn-neutral float-right" title="nap.cores.peripherals package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="nap.cores.jtag.html" class="btn btn-neutral" title="nap.cores.jtag package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Robin Heinemann, Jaro Habiger.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

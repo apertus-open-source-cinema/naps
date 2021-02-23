@@ -12,12 +12,12 @@
 
 import os
 import sys
-sys.path.insert(0, os.path.abspath('../src/'))
+sys.path.insert(0, os.path.abspath('../'))
 
 
 # -- Project information -----------------------------------------------------
 
-project = 'axiom-nmigen-gateware'
+project = 'nap'
 copyright = '2021, Robin Heinemann, Jaro Habiger'
 author = 'Robin Heinemann, Jaro Habiger'
 

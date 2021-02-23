@@ -1,0 +1,365 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>nap.soc.pydriver package &mdash; axiom-nmigen-gateware  documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="axiom-nmigen-gateware  documentation" href="index.html"/>
+        <link rel="up" title="nap.soc package" href="nap.soc.html"/>
+        <link rel="next" title="nap.stream package" href="nap.stream.html"/>
+        <link rel="prev" title="nap.soc.platform.zynq package" href="nap.soc.platform.zynq.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> axiom-nmigen-gateware
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api_reference.html">API Reference</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="nap.html">nap package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="nap.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="nap.cores.html">nap.cores package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.data_structure.html">nap.data_structure package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.platform.html">nap.platform package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="nap.soc.html">nap.soc package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="nap.soc.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.cli">nap.soc.cli module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.csr_types">nap.soc.csr_types module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.devicetree_overlay">nap.soc.devicetree_overlay module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.fatbitstream">nap.soc.fatbitstream module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.hooks">nap.soc.hooks module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.memorymap">nap.soc.memorymap module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.peripheral">nap.soc.peripheral module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.peripherals_aggregator">nap.soc.peripherals_aggregator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.smoke_test">nap.soc.smoke_test module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.soc_platform">nap.soc.soc_platform module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.soc_platform_test">nap.soc.soc_platform_test module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.tracing_elaborate">nap.soc.tracing_elaborate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="nap.stream.html">nap.stream package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.util.html">nap.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.vendor.html">nap.vendor package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nap.html#module-nap">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">axiom-nmigen-gateware</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="nap.html">nap package</a> &raquo;</li>
+        
+          <li><a href="nap.soc.html">nap.soc package</a> &raquo;</li>
+        
+      <li>nap.soc.pydriver package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/nap.soc.pydriver.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nap-soc-pydriver-package">
+<h1>nap.soc.pydriver package<a class="headerlink" href="#nap-soc-pydriver-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nap.soc.pydriver.drivermethod">
+<span id="nap-soc-pydriver-drivermethod-module"></span><h2>nap.soc.pydriver.drivermethod module<a class="headerlink" href="#module-nap.soc.pydriver.drivermethod" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="nap.soc.pydriver.drivermethod.driver_method">
+<code class="sig-prename descclassname">nap.soc.pydriver.drivermethod.</code><code class="sig-name descname">driver_method</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">function</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.drivermethod.driver_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.soc.pydriver.drivermethod.driver_property">
+<code class="sig-prename descclassname">nap.soc.pydriver.drivermethod.</code><code class="sig-name descname">driver_property</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">function</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.drivermethod.driver_property" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-nap.soc.pydriver.generate">
+<span id="nap-soc-pydriver-generate-module"></span><h2>nap.soc.pydriver.generate module<a class="headerlink" href="#module-nap.soc.pydriver.generate" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="nap.soc.pydriver.generate.gen_hardware_proxy_python_code">
+<code class="sig-prename descclassname">nap.soc.pydriver.generate.</code><code class="sig-name descname">gen_hardware_proxy_python_code</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">mmap</span><span class="p">:</span> <span class="n"><a class="reference internal" href="nap.soc.html#nap.soc.memorymap.MemoryMap" title="nap.soc.memorymap.MemoryMap">nap.soc.memorymap.MemoryMap</a></span></em>, <em class="sig-param"><span class="n">name</span><span class="o">=</span><span class="default_value">'design'</span></em>, <em class="sig-param"><span class="n">superclass</span><span class="o">=</span><span class="default_value">''</span></em>, <em class="sig-param"><span class="n">top</span><span class="o">=</span><span class="default_value">True</span></em><span class="sig-paren">)</span> &#x2192; str<a class="headerlink" href="#nap.soc.pydriver.generate.gen_hardware_proxy_python_code" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.soc.pydriver.generate.generate_pydriver">
+<code class="sig-prename descclassname">nap.soc.pydriver.generate.</code><code class="sig-name descname">generate_pydriver</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">top_memorymap</span></em>, <em class="sig-param"><span class="n">memory_accessor</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.generate.generate_pydriver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="nap.soc.pydriver.generate.pydriver_hook">
+<code class="sig-prename descclassname">nap.soc.pydriver.generate.</code><code class="sig-name descname">pydriver_hook</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">platform</span><span class="p">:</span> <span class="n">nmigen.build.plat.Platform</span></em>, <em class="sig-param"><span class="n">top_fragment</span></em>, <em class="sig-param"><span class="n">sames</span><span class="p">:</span> <span class="n"><a class="reference internal" href="nap.soc.html#nap.soc.tracing_elaborate.ElaboratableSames" title="nap.soc.tracing_elaborate.ElaboratableSames">nap.soc.tracing_elaborate.ElaboratableSames</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.generate.pydriver_hook" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-nap.soc.pydriver.hardware_proxy">
+<span id="nap-soc-pydriver-hardware-proxy-module"></span><h2>nap.soc.pydriver.hardware_proxy module<a class="headerlink" href="#module-nap.soc.pydriver.hardware_proxy" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.soc.pydriver.hardware_proxy.BitwiseAccessibleInteger">
+<em class="property">class </em><code class="sig-prename descclassname">nap.soc.pydriver.hardware_proxy.</code><code class="sig-name descname">BitwiseAccessibleInteger</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">value</span><span class="o">=</span><span class="default_value">0</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.hardware_proxy.BitwiseAccessibleInteger" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.soc.pydriver.hardware_proxy.HardwareProxy">
+<em class="property">class </em><code class="sig-prename descclassname">nap.soc.pydriver.hardware_proxy.</code><code class="sig-name descname">HardwareProxy</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">memory_accessor</span><span class="p">:</span> <span class="n"><a class="reference internal" href="#nap.soc.pydriver.hardware_proxy.MemoryAccessor" title="nap.soc.pydriver.hardware_proxy.MemoryAccessor">nap.soc.pydriver.hardware_proxy.MemoryAccessor</a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.hardware_proxy.HardwareProxy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.soc.pydriver.hardware_proxy.MemoryAccessor">
+<em class="property">class </em><code class="sig-prename descclassname">nap.soc.pydriver.hardware_proxy.</code><code class="sig-name descname">MemoryAccessor</code><a class="headerlink" href="#nap.soc.pydriver.hardware_proxy.MemoryAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
+<dl class="py attribute">
+<dt id="nap.soc.pydriver.hardware_proxy.MemoryAccessor.base">
+<code class="sig-name descname">base</code><em class="property"> = 0</em><a class="headerlink" href="#nap.soc.pydriver.hardware_proxy.MemoryAccessor.base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.soc.pydriver.hardware_proxy.MemoryAccessor.read">
+<em class="property">abstract </em><code class="sig-name descname">read</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">addr</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.hardware_proxy.MemoryAccessor.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.soc.pydriver.hardware_proxy.MemoryAccessor.write">
+<em class="property">abstract </em><code class="sig-name descname">write</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">addr</span></em>, <em class="sig-param"><span class="n">value</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.hardware_proxy.MemoryAccessor.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.soc.pydriver.hardware_proxy_test">
+<span id="nap-soc-pydriver-hardware-proxy-test-module"></span><h2>nap.soc.pydriver.hardware_proxy_test module<a class="headerlink" href="#module-nap.soc.pydriver.hardware_proxy_test" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.soc.pydriver.hardware_proxy_test.BitwiseAccessibleIntegerTest">
+<em class="property">class </em><code class="sig-prename descclassname">nap.soc.pydriver.hardware_proxy_test.</code><code class="sig-name descname">BitwiseAccessibleIntegerTest</code><span class="sig-paren">(</span><em class="sig-param"><span class="n">methodName</span><span class="o">=</span><span class="default_value">'runTest'</span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.hardware_proxy_test.BitwiseAccessibleIntegerTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt id="nap.soc.pydriver.hardware_proxy_test.BitwiseAccessibleIntegerTest.test_construct">
+<code class="sig-name descname">test_construct</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.hardware_proxy_test.BitwiseAccessibleIntegerTest.test_construct" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.soc.pydriver.hardware_proxy_test.BitwiseAccessibleIntegerTest.test_destruct">
+<code class="sig-name descname">test_destruct</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.pydriver.hardware_proxy_test.BitwiseAccessibleIntegerTest.test_destruct" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.soc.pydriver.interactive">
+<span id="nap-soc-pydriver-interactive-module"></span><h2>nap.soc.pydriver.interactive module<a class="headerlink" href="#module-nap.soc.pydriver.interactive" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nap.soc.pydriver">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-nap.soc.pydriver" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="nap.stream.html" class="btn btn-neutral float-right" title="nap.stream package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="nap.soc.platform.zynq.html" class="btn btn-neutral" title="nap.soc.platform.zynq package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2021, Robin Heinemann, Jaro Habiger.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="_static/language_data.js"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

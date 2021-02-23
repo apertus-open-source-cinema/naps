@@ -1,0 +1,93 @@
+nap.cores.hdmi package
+======================
+
+Submodules
+----------
+
+nap.cores.hdmi.InfoFrame module
+-------------------------------
+
+.. automodule:: nap.cores.hdmi.InfoFrame
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hdmi.cvt\_python module
+---------------------------------
+
+.. automodule:: nap.cores.hdmi.cvt_python
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hdmi.cvt\_subprocess module
+-------------------------------------
+
+.. automodule:: nap.cores.hdmi.cvt_subprocess
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hdmi.hdmi\_stream\_sink module
+----------------------------------------
+
+.. automodule:: nap.cores.hdmi.hdmi_stream_sink
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hdmi.hdmi\_test module
+--------------------------------
+
+.. automodule:: nap.cores.hdmi.hdmi_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hdmi.hdmi\_tx module
+------------------------------
+
+.. automodule:: nap.cores.hdmi.hdmi_tx
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hdmi.parse\_modeline module
+-------------------------------------
+
+.. automodule:: nap.cores.hdmi.parse_modeline
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hdmi.pattern\_generator module
+----------------------------------------
+
+.. automodule:: nap.cores.hdmi.pattern_generator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hdmi.tmds module
+--------------------------
+
+.. automodule:: nap.cores.hdmi.tmds
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.hdmi.tmds2 module
+---------------------------
+
+.. automodule:: nap.cores.hdmi.tmds2
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: nap.cores.hdmi
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -8,7 +8,7 @@ jobs:
         uses: actions/checkout@v1
       - name: Install deps
         run: |
-          pip install -e .[doc,test]
+          pip3 install -e .[doc,test]
       - name: Run sphinx autodoc
         run: |
           sphinx-apidoc  -o doc nap

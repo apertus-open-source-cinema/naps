@@ -10,9 +10,9 @@ jobs:
         uses: actions/setup-python@v2
         with:
           python-version: 3.8
-      - name: Install twine
+      - name: Install deps
         run: |
-          pip3 install twine
+          pip3 install twine setuptools-scm
       - name: Build package
         run: |
           ./setup.py build sdist

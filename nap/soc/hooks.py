@@ -3,7 +3,6 @@ from functools import reduce
 from nmigen import *
 from nmigen.hdl.ast import SignalSet
 
-from nap.cores.peripherals.csr_bank import CsrBank
 from .csr_types import _Csr, ControlSignal, StatusSignal, EventReg
 from .memorymap import MemoryMap
 from .pydriver.drivermethod import DriverMethod
@@ -11,6 +10,7 @@ from .tracing_elaborate import ElaboratableSames
 
 
 def csr_and_driver_method_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
+    from nap.cores.peripherals.csr_bank import CsrBank
     already_done = []
 
     def inner(fragment):

@@ -1,7 +1,7 @@
 from nmigen import *
 
-from nap import ControlSignal, StatusSignal, ImageStream, RGB24
-from nap.cores import InflexibleSinkDebug, StreamInfo
+from nap import ControlSignal, StatusSignal
+from nap.cores import InflexibleSinkDebug, StreamInfo, ImageStream, RGB24
 from .hdmi_tx import HdmiTx
 
 __all__ = ['HdmiStreamSink', 'HdmiStreamAligner']

@@ -1,7 +1,8 @@
 from collections import defaultdict
 from typing import List
 from nmigen import *
-from nap import Stream, DOWNWARDS, StreamBuffer, nAll
+from nap import Stream, DOWNWARDS, nAll
+from . import StreamBuffer
 
 __all__ = ["StreamTee", "StreamCombiner"]
 

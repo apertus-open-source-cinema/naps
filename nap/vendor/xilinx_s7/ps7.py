@@ -3,7 +3,8 @@ from functools import lru_cache
 from os.path import join, dirname
 from nmigen import *
 from nmigen.build import Clock
-from nap import AxiEndpoint, DOWNWARDS, FatbitstreamContext, max_error_freq
+from nap import DOWNWARDS, FatbitstreamContext, max_error_freq
+from nap.cores import AxiEndpoint
 from ..instance_helper import InstanceHelper
 from .clocking import BufG
 

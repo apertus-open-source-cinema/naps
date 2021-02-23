@@ -1,5 +1,6 @@
 from nmigen import *
-from nap import BasicStream, DOWNWARDS, StreamInfo
+from nap import BasicStream, DOWNWARDS
+from . import StreamInfo
 
 __all__ = ["StreamResizer", "StreamGearbox", "SimpleStreamGearbox"]
 

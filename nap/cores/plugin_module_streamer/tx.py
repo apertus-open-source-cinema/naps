@@ -2,7 +2,8 @@
 # plugin module FPGA (i.e. the usb3 plugin module machxo2)
 
 from nmigen import *
-from nap import BasicStream, ControlSignal, InflexibleSinkDebug
+from nap import BasicStream, ControlSignal
+from nap.cores import InflexibleSinkDebug
 from nap.vendor.xilinx_s7 import DDRSerializer
 
 __all__ = ["PluginModuleStreamerTx"]

@@ -1,1 +1,1 @@
-from pixel_remapper import *
+from .pixel_remapper import *

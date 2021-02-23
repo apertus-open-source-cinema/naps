@@ -1,6 +1,7 @@
 import huffman
 from nmigen import *
-from nap import PacketizedStream, VariableWidthStream, stream_transformer
+from nap import PacketizedStream, stream_transformer
+from . import VariableWidthStream
 
 __all__ = ["HuffmanEncoder"]
 

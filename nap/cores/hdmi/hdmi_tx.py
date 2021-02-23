@@ -1,7 +1,8 @@
 from itertools import product
 from nmigen import *
 from nmigen.build import Clock
-from nap import ControlSignal, StatusSignal, RGB24, max_error_freq
+from nap import ControlSignal, StatusSignal, max_error_freq
+from nap.cores import RGB24
 from nap.vendor.xilinx_s7 import Mmcm, OSerdes10, PS7
 from .parse_modeline import parse_modeline
 from .tmds import TmdsEncoder

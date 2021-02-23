@@ -2,8 +2,6 @@ from os.path import join, dirname
 
 from nmigen import Fragment, Module, ClockSignal, DomainRenamer
 
-from nap.cores.axi import AxiEndpoint, AxiLitePeripheralConnector, AxiFullToLiteBridge, AxiInterconnect
-from nap.vendor.xilinx_s7 import PS7
 from ... import *
 
 __all__ = ["ZynqSocPlatform"]
@@ -14,11 +12,15 @@ class ZynqSocPlatform(SocPlatform):
     pydriver_memory_accessor = open(join(dirname(__file__), "memory_accessor_devmem.py")).read()
 
     def __init__(self, platform, use_axi_interconnect=False):
+        from nap.vendor.xilinx_s7 import PS7
+
         super().__init__(platform)
         self.ps7 = PS7(here_is_the_only_place_that_instanciates_ps7=True)
         self.final_to_inject_subfragments.append((self.ps7, "ps7"))
 
         def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
+            from nap.cores.axi import AxiEndpoint, AxiLitePeripheralConnector, AxiFullToLiteBridge, AxiInterconnect
+
             if platform.peripherals:
                 m = Module()
                 platform.ps7.fck_domain(domain_name="axi_lite", requested_frequency=10e6)

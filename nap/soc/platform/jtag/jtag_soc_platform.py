@@ -1,6 +1,6 @@
 from os.path import join, dirname
 from nmigen import Fragment, Signal
-from nap import JTAGPeripheralConnector, SocPlatform, Address, PeripheralsAggregator
+from ... import SocPlatform, Address, PeripheralsAggregator
 
 __all__ = ["JTAGSocPlatform"]
 
@@ -16,6 +16,7 @@ class JTAGSocPlatform(SocPlatform):
         self.jtag_debug_signals = Signal(32)
 
         def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
+            from nap import JTAGPeripheralConnector
             if platform.peripherals:
                 aggregator = PeripheralsAggregator()
                 for peripheral in platform.peripherals:

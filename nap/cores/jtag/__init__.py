@@ -1,1 +1,1 @@
-from jtag_peripheral_connector import *
+from .jtag_peripheral_connector import *

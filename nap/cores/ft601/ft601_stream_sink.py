@@ -1,7 +1,8 @@
 # a helper for interfacing the ft601 usb3 fifo bridge in 245 Synchronous FIFO mode
 
 from nmigen import *
-from nap import Stream, BufferedAsyncStreamFIFO
+from nap import Stream
+from nap.cores import BufferedAsyncStreamFIFO
 
 __all__ = ["FT601StreamSink", "FT601StreamSinkNoCDC"]
 

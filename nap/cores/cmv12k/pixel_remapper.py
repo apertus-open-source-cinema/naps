@@ -4,7 +4,8 @@
 from typing import List
 
 from nmigen import *
-from nap import BasicStream, ImageStream, packed_struct, BufferedSyncStreamFIFO
+from nap import BasicStream, packed_struct
+from nap.cores import ImageStream, BufferedSyncStreamFIFO
 
 __all__ = ["Cmv12kPixelRemapper"]
 

@@ -1,5 +1,6 @@
 from nmigen import *
-from nap import StatusSignal, ControlSignal, StreamInfo
+from nap import StatusSignal, ControlSignal
+from nap.cores import StreamInfo
 from . import ImageStream
 
 __all__ = ["VideoResizer"]

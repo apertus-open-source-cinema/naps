@@ -1,7 +1,7 @@
 from nmigen import *
 from nmigen.hdl.ast import Cover, Assume, Initial, Assert
 
-from nap import Stream
+from .stream import Stream
 from nap.util.formal import assert_formal
 
 __all__ = ["verify_stream_output_contract", "LegalStreamSource"]

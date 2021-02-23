@@ -1,7 +1,8 @@
 from typing import Tuple
 from nmigen import *
 from nmigen.hdl.ast import Operator
-from nap import StatusSignal, ImageStream
+from nap import StatusSignal
+from . import ImageStream
 
 __all__ = ["ImageConvoluter"]
 

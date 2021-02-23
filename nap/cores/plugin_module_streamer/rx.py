@@ -1,5 +1,6 @@
 from nmigen import *
-from nap import BasicStream, InflexibleSourceDebug, StatusSignal, ControlSignal, driver_method
+from nap import BasicStream, StatusSignal, ControlSignal, driver_method
+from nap.cores import InflexibleSourceDebug
 from nap.vendor.lattice_machxo2 import ISerdes8, Pll, EClkSync, ClkDiv
 
 __all__ = ["PluginModuleStreamerRx"]

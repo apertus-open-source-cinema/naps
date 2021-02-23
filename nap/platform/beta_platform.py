@@ -1,8 +1,8 @@
 from nmigen.build import Resource, Pins, DiffPairs, Attrs, Subsignal
 from nmigen.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
+from nmigen_boards.microzed_z020 import MicroZedZ020Platform
 
 from .plugins import add_plugin_connector
-from .microzed_platform import MicroZedZ020Platform
 
 __all__ = ["BetaPlatform", "BetaRFWPlatform"]
 

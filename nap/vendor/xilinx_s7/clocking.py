@@ -1,6 +1,7 @@
 from nmigen import *
 from nmigen.build import Clock
-from nap import SocPlatform, StatusSignal, DrpInterface, DrpBridge
+from nap import SocPlatform, StatusSignal
+from nap.cores import DrpBridge, DrpInterface
 from nap.util import decimal_range
 from ..instance_helper import InstanceHelper
 

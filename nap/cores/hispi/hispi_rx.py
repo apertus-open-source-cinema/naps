@@ -1,6 +1,6 @@
 from nmigen import *
-from nap import StatusSignal, ControlSignal, ImageStream
-from nap.cores.stream import StreamCombiner, StreamInfo, InflexibleSourceDebug
+from nap import StatusSignal, ControlSignal
+from nap.cores import StreamCombiner, StreamInfo, InflexibleSourceDebug, ImageStream
 from nap.util import delay_by, ends_with
 from .s7_phy import HispiPhy
 

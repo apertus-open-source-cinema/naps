@@ -3,10 +3,10 @@ from nmigen.build import *
 __all__ = ["HdmiDigitizerPlatform"]
 
 from nmigen_boards.resources import LEDResources
-from .te0714_03_50_2l import TE0714_03_50_2LPlatform
+from nmigen_boards.te0714_03_50_2I import TE0714_03_50_2IPlatform
 
 
-class HdmiDigitizerPlatform(TE0714_03_50_2LPlatform):
+class HdmiDigitizerPlatform(TE0714_03_50_2IPlatform):
     def __init__(self):
         super().__init__()
         self.add_resources([

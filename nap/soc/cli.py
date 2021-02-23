@@ -51,9 +51,9 @@ def cli(top_class, runs_on, possible_socs=(None,)):
     parser = parser
     args = parser.parse_args()
 
-    hardware_platform = getattr(__import__('platform'), "{}Platform".format(args.device))
+    hardware_platform = getattr(__import__('nap.platform'), "{}Platform".format(args.device))
     if args.soc:
-        soc_platform = getattr(__import__('soc.platform').platforms, "{}SocPlatform".format(args.soc))
+        soc_platform = getattr(__import__('nap.soc.platform'), "{}SocPlatform".format(args.soc))
         assert soc_platform in possible_socs
         platform = soc_platform(hardware_platform())
     else:

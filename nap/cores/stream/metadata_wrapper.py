@@ -1,6 +1,6 @@
 from nmigen import *
 from nap import BasicStream, PacketizedStream, Stream, DOWNWARDS, StatusSignal
-from nap.cores import BufferedSyncStreamFIFO, StreamTee, StreamCombiner
+from . import BufferedSyncStreamFIFO, StreamTee, StreamCombiner
 
 __all__ = ["LastWrapper", "GenericMetadataWrapper"]
 

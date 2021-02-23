@@ -1,12 +1,27 @@
 #!/usr/bin/env python3
 
 from setuptools import setup, find_packages
+from pathlib import Path
+
+def scm_version():
+    def local_scheme(version):
+        if version.tag and not version.distance:
+            return version.format_with("")
+        else:
+            return version.format_choice("+{node}", "+{node}.dirty")
+    return {
+        "relative_to": __file__,
+        "version_scheme": "guess-next-dev",
+        "local_scheme": local_scheme
+    }
+
 
 setup(
     name='nap',
-    version='0.1.0',
+    use_scm_version=scm_version(),
     url='http',
-    description='nMigen Apertus Packages',
+    description='nMigen Apertus Package',
+    long_description=Path("README.rst").read_text(),
     packages=find_packages(),
     install_requires=[
         'huffman',

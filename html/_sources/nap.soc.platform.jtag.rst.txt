@@ -1,0 +1,29 @@
+nap.soc.platform.jtag package
+=============================
+
+Submodules
+----------
+
+nap.soc.platform.jtag.jtag\_soc\_platform module
+------------------------------------------------
+
+.. automodule:: nap.soc.platform.jtag.jtag_soc_platform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.soc.platform.jtag.memory\_accessor\_openocd module
+------------------------------------------------------
+
+.. automodule:: nap.soc.platform.jtag.memory_accessor_openocd
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: nap.soc.platform.jtag
+   :members:
+   :undoc-members:
+   :show-inheritance:

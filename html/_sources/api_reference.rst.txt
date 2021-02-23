@@ -1,0 +1,13 @@
+API Reference
+=============
+
+.. automodule:: nap
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+.. autoclass:: nap.stream.Stream
+   :members:
+   :undoc-members:
+   :private-members:
+   :show-inheritance:

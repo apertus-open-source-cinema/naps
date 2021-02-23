@@ -1,0 +1,61 @@
+nap.cores.mipi package
+======================
+
+Submodules
+----------
+
+nap.cores.mipi.aligner module
+-----------------------------
+
+.. automodule:: nap.cores.mipi.aligner
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.mipi.combiner module
+------------------------------
+
+.. automodule:: nap.cores.mipi.combiner
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.mipi.mipi\_test module
+--------------------------------
+
+.. automodule:: nap.cores.mipi.mipi_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.mipi.packet module
+----------------------------
+
+.. automodule:: nap.cores.mipi.packet
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.mipi.s7\_rx\_phy module
+---------------------------------
+
+.. automodule:: nap.cores.mipi.s7_rx_phy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.mipi.s7\_tx\_phy module
+---------------------------------
+
+.. automodule:: nap.cores.mipi.s7_tx_phy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: nap.cores.mipi
+   :members:
+   :undoc-members:
+   :show-inheritance:

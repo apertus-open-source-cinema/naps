@@ -1,0 +1,93 @@
+nap.cores.axi package
+=====================
+
+Submodules
+----------
+
+nap.cores.axi.axi\_endpoint module
+----------------------------------
+
+.. automodule:: nap.cores.axi.axi_endpoint
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.axi.full\_to\_lite module
+-----------------------------------
+
+.. automodule:: nap.cores.axi.full_to_lite
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.axi.interconnect module
+---------------------------------
+
+.. automodule:: nap.cores.axi.interconnect
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.axi.peripheral\_connector module
+------------------------------------------
+
+.. automodule:: nap.cores.axi.peripheral_connector
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.axi.sim\_util module
+------------------------------
+
+.. automodule:: nap.cores.axi.sim_util
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.axi.stream\_reader module
+-----------------------------------
+
+.. automodule:: nap.cores.axi.stream_reader
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.axi.stream\_reader\_test module
+-----------------------------------------
+
+.. automodule:: nap.cores.axi.stream_reader_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.axi.stream\_writer module
+-----------------------------------
+
+.. automodule:: nap.cores.axi.stream_writer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.axi.stream\_writer\_test module
+-----------------------------------------
+
+.. automodule:: nap.cores.axi.stream_writer_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.axi.zynq\_util module
+-------------------------------
+
+.. automodule:: nap.cores.axi.zynq_util
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: nap.cores.axi
+   :members:
+   :undoc-members:
+   :show-inheritance:

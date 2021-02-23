@@ -1,0 +1,400 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>nap.platform package &mdash; nap  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="nap.platform.plugins package" href="nap.platform.plugins.html" />
+    <link rel="prev" title="nap.data_structure package" href="nap.data_structure.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> nap
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="nap.html">nap package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="nap.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="nap.cores.html">nap.cores package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.data_structure.html">nap.data_structure package</a></li>
+<li class="toctree-l3 current"><a class="current reference internal" href="#">nap.platform package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.platform.beta_platform">nap.platform.beta_platform module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.platform.hdmi_digitizer_platform">nap.platform.hdmi_digitizer_platform module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.platform.micro_r2_platform">nap.platform.micro_r2_platform module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.platform.usb3_plugin_platform">nap.platform.usb3_plugin_platform module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.platform.zybo_platform">nap.platform.zybo_platform module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#module-nap.platform">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="nap.soc.html">nap.soc package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.stream.html">nap.stream package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.util.html">nap.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.vendor.html">nap.vendor package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nap.html#module-nap">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">nap</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="nap.html">nap package</a> &raquo;</li>
+        
+      <li>nap.platform package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/nap.platform.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nap-platform-package">
+<h1>nap.platform package<a class="headerlink" href="#nap-platform-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="nap.platform.plugins.html">nap.platform.plugins package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="nap.platform.plugins.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.platform.plugins.html#module-nap.platform.plugins.hdmi_plugin_resource">nap.platform.plugins.hdmi_plugin_resource module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.platform.plugins.html#module-nap.platform.plugins.plugin_connector">nap.platform.plugins.plugin_connector module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.platform.plugins.html#module-nap.platform.plugins.usb3_plugin_resource">nap.platform.plugins.usb3_plugin_resource module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="nap.platform.plugins.html#module-nap.platform.plugins">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nap.platform.beta_platform">
+<span id="nap-platform-beta-platform-module"></span><h2>nap.platform.beta_platform module<a class="headerlink" href="#module-nap.platform.beta_platform" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.platform.beta_platform.BetaPlatform">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nap.platform.beta_platform.</span></code><code class="sig-name descname"><span class="pre">BetaPlatform</span></code><a class="headerlink" href="#nap.platform.beta_platform.BetaPlatform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen_boards.microzed_z020.MicroZedZ020Platform</span></code></p>
+<dl class="py method">
+<dt id="nap.platform.beta_platform.BetaPlatform.connect_mainboard">
+<code class="sig-name descname"><span class="pre">connect_mainboard</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#nap.platform.beta_platform.BetaPlatform.connect_mainboard" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="nap.platform.beta_platform.BetaRFWPlatform">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nap.platform.beta_platform.</span></code><code class="sig-name descname"><span class="pre">BetaRFWPlatform</span></code><a class="headerlink" href="#nap.platform.beta_platform.BetaRFWPlatform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.vendor.lattice_machxo_2_3l.LatticeMachXO2Or3LPlatform</span></code></p>
+<dl class="py attribute">
+<dt id="nap.platform.beta_platform.BetaRFWPlatform.connectors">
+<code class="sig-name descname"><span class="pre">connectors</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#nap.platform.beta_platform.BetaRFWPlatform.connectors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.beta_platform.BetaRFWPlatform.device">
+<code class="sig-name descname"><span class="pre">device</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'LCMXO2-2000HC'</span></em><a class="headerlink" href="#nap.platform.beta_platform.BetaRFWPlatform.device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.beta_platform.BetaRFWPlatform.package">
+<code class="sig-name descname"><span class="pre">package</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'TG100'</span></em><a class="headerlink" href="#nap.platform.beta_platform.BetaRFWPlatform.package" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.beta_platform.BetaRFWPlatform.resources">
+<code class="sig-name descname"><span class="pre">resources</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[(resource</span> <span class="pre">pic_io</span> <span class="pre">0</span> <span class="pre">(subsignal</span> <span class="pre">ss</span> <span class="pre">(pins</span> <span class="pre">io</span> <span class="pre">27)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'</span> <span class="pre">PULLMODE='UP'</span> <span class="pre">DRIVE='4'))</span> <span class="pre">(subsignal</span> <span class="pre">sck</span> <span class="pre">(pins</span> <span class="pre">io</span> <span class="pre">31)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'</span> <span class="pre">PULLMODE='UP'</span> <span class="pre">DRIVE='4'))</span> <span class="pre">(subsignal</span> <span class="pre">sdo</span> <span class="pre">(pins</span> <span class="pre">io</span> <span class="pre">32)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'</span> <span class="pre">PULLMODE='UP'</span> <span class="pre">DRIVE='4'))</span> <span class="pre">(subsignal</span> <span class="pre">pb22b</span> <span class="pre">(pins</span> <span class="pre">io</span> <span class="pre">47)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'</span> <span class="pre">PULLMODE='UP'</span> <span class="pre">DRIVE='4'))</span> <span class="pre">(subsignal</span> <span class="pre">sn</span> <span class="pre">(pins</span> <span class="pre">io</span> <span class="pre">48)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'</span> <span class="pre">PULLMODE='UP'</span> <span class="pre">DRIVE='4'))</span> <span class="pre">(subsignal</span> <span class="pre">sdi</span> <span class="pre">(pins</span> <span class="pre">io</span> <span class="pre">49)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'</span> <span class="pre">PULLMODE='UP'</span> <span class="pre">DRIVE='4'))</span> <span class="pre">(subsignal</span> <span class="pre">done</span> <span class="pre">(pins</span> <span class="pre">io</span> <span class="pre">76)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'</span> <span class="pre">PULLMODE='UP'</span> <span class="pre">DRIVE='4'))</span> <span class="pre">(subsignal</span> <span class="pre">initn</span> <span class="pre">(pins</span> <span class="pre">io</span> <span class="pre">77)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'</span> <span class="pre">PULLMODE='UP'</span> <span class="pre">DRIVE='4')))]</span></em><a class="headerlink" href="#nap.platform.beta_platform.BetaRFWPlatform.resources" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.beta_platform.BetaRFWPlatform.speed">
+<code class="sig-name descname"><span class="pre">speed</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'6'</span></em><a class="headerlink" href="#nap.platform.beta_platform.BetaRFWPlatform.speed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.platform.hdmi_digitizer_platform">
+<span id="nap-platform-hdmi-digitizer-platform-module"></span><h2>nap.platform.hdmi_digitizer_platform module<a class="headerlink" href="#module-nap.platform.hdmi_digitizer_platform" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.platform.hdmi_digitizer_platform.HdmiDigitizerPlatform">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nap.platform.hdmi_digitizer_platform.</span></code><code class="sig-name descname"><span class="pre">HdmiDigitizerPlatform</span></code><a class="headerlink" href="#nap.platform.hdmi_digitizer_platform.HdmiDigitizerPlatform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen_boards.te0714_03_50_2I.TE0714_03_50_2IPlatform</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.platform.micro_r2_platform">
+<span id="nap-platform-micro-r2-platform-module"></span><h2>nap.platform.micro_r2_platform module<a class="headerlink" href="#module-nap.platform.micro_r2_platform" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.platform.micro_r2_platform.MicroR2Platform">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nap.platform.micro_r2_platform.</span></code><code class="sig-name descname"><span class="pre">MicroR2Platform</span></code><a class="headerlink" href="#nap.platform.micro_r2_platform.MicroR2Platform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen_boards.zturn_lite_z010.ZTurnLiteZ010Platform</span></code></p>
+<dl class="py method">
+<dt id="nap.platform.micro_r2_platform.MicroR2Platform.toolchain_program">
+<code class="sig-name descname"><span class="pre">toolchain_program</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">products</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.platform.micro_r2_platform.MicroR2Platform.toolchain_program" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract bitstream for fragment <code class="docutils literal notranslate"><span class="pre">name</span></code> from <code class="docutils literal notranslate"><span class="pre">products</span></code> and download it to a target.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.platform.usb3_plugin_platform">
+<span id="nap-platform-usb3-plugin-platform-module"></span><h2>nap.platform.usb3_plugin_platform module<a class="headerlink" href="#module-nap.platform.usb3_plugin_platform" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.platform.usb3_plugin_platform.Usb3PluginPlatform">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nap.platform.usb3_plugin_platform.</span></code><code class="sig-name descname"><span class="pre">Usb3PluginPlatform</span></code><a class="headerlink" href="#nap.platform.usb3_plugin_platform.Usb3PluginPlatform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.vendor.lattice_machxo_2_3l.LatticeMachXO2Or3LPlatform</span></code></p>
+<dl class="py attribute">
+<dt id="nap.platform.usb3_plugin_platform.Usb3PluginPlatform.connectors">
+<code class="sig-name descname"><span class="pre">connectors</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#nap.platform.usb3_plugin_platform.Usb3PluginPlatform.connectors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.usb3_plugin_platform.Usb3PluginPlatform.device">
+<code class="sig-name descname"><span class="pre">device</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'LCMXO2-2000HC'</span></em><a class="headerlink" href="#nap.platform.usb3_plugin_platform.Usb3PluginPlatform.device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.usb3_plugin_platform.Usb3PluginPlatform.package">
+<code class="sig-name descname"><span class="pre">package</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'TG100'</span></em><a class="headerlink" href="#nap.platform.usb3_plugin_platform.Usb3PluginPlatform.package" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.usb3_plugin_platform.Usb3PluginPlatform.resources">
+<code class="sig-name descname"><span class="pre">resources</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[(resource</span> <span class="pre">ft601</span> <span class="pre">0</span> <span class="pre">(subsignal</span> <span class="pre">reset</span> <span class="pre">(pins-n</span> <span class="pre">o</span> <span class="pre">4)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">data</span> <span class="pre">(pins</span> <span class="pre">o</span> <span class="pre">75</span> <span class="pre">74</span> <span class="pre">70</span> <span class="pre">69</span> <span class="pre">68</span> <span class="pre">67</span> <span class="pre">66</span> <span class="pre">65</span> <span class="pre">64</span> <span class="pre">61</span> <span class="pre">60</span> <span class="pre">59</span> <span class="pre">58</span> <span class="pre">57</span> <span class="pre">54</span> <span class="pre">53</span> <span class="pre">83</span> <span class="pre">84</span> <span class="pre">85</span> <span class="pre">86</span> <span class="pre">87</span> <span class="pre">88</span> <span class="pre">96</span> <span class="pre">97</span> <span class="pre">98</span> <span class="pre">99</span> <span class="pre">7</span> <span class="pre">8</span> <span class="pre">21</span> <span class="pre">24</span> <span class="pre">20</span> <span class="pre">25)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">be</span> <span class="pre">(pins</span> <span class="pre">o</span> <span class="pre">19</span> <span class="pre">18</span> <span class="pre">17</span> <span class="pre">16)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">oe</span> <span class="pre">(pins-n</span> <span class="pre">o</span> <span class="pre">9)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">read</span> <span class="pre">(pins-n</span> <span class="pre">o</span> <span class="pre">10)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">write</span> <span class="pre">(pins-n</span> <span class="pre">o</span> <span class="pre">12)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">siwu</span> <span class="pre">(pins-n</span> <span class="pre">o</span> <span class="pre">13)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">rxf</span> <span class="pre">(pins-n</span> <span class="pre">i</span> <span class="pre">14)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">txe</span> <span class="pre">(pins-n</span> <span class="pre">i</span> <span class="pre">15)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">gpio</span> <span class="pre">(pins</span> <span class="pre">io</span> <span class="pre">2</span> <span class="pre">1)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">wakeup</span> <span class="pre">(pins-n</span> <span class="pre">io</span> <span class="pre">3)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">clk</span> <span class="pre">(pins</span> <span class="pre">i</span> <span class="pre">63)</span> <span class="pre">(clock</span> <span class="pre">100000000.0)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))</span> <span class="pre">(subsignal</span> <span class="pre">clk1</span> <span class="pre">(pins</span> <span class="pre">i</span> <span class="pre">62)</span> <span class="pre">(clock</span> <span class="pre">100000000.0)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33'))),</span> <span class="pre">(resource</span> <span class="pre">led</span> <span class="pre">0</span> <span class="pre">(pins</span> <span class="pre">o</span> <span class="pre">71)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVCMOS33')),</span> <span class="pre">(resource</span> <span class="pre">plugin_stream_input</span> <span class="pre">0</span> <span class="pre">(subsignal</span> <span class="pre">valid</span> <span class="pre">(diffpairs</span> <span class="pre">i</span> <span class="pre">(p</span> <span class="pre">45)</span> <span class="pre">(n</span> <span class="pre">47))</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVDS25'</span> <span class="pre">DIFFRESISTOR='100'))</span> <span class="pre">(subsignal</span> <span class="pre">lvds0</span> <span class="pre">(diffpairs</span> <span class="pre">i</span> <span class="pre">(p</span> <span class="pre">42)</span> <span class="pre">(n</span> <span class="pre">43))</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVDS25'</span> <span class="pre">DIFFRESISTOR='100'))</span> <span class="pre">(subsignal</span> <span class="pre">lvds1</span> <span class="pre">(diffpairs</span> <span class="pre">i</span> <span class="pre">(p</span> <span class="pre">40)</span> <span class="pre">(n</span> <span class="pre">41))</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVDS25'</span> <span class="pre">DIFFRESISTOR='100'))</span> <span class="pre">(subsignal</span> <span class="pre">lvds2</span> <span class="pre">(diffpairs</span> <span class="pre">i</span> <span class="pre">(p</span> <span class="pre">36)</span> <span class="pre">(n</span> <span class="pre">37))</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVDS25'</span> <span class="pre">DIFFRESISTOR='100'))</span> <span class="pre">(subsignal</span> <span class="pre">lvds3</span> <span class="pre">(diffpairs</span> <span class="pre">i</span> <span class="pre">(p</span> <span class="pre">29)</span> <span class="pre">(n</span> <span class="pre">30))</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVDS25'</span> <span class="pre">DIFFRESISTOR='100'))</span> <span class="pre">(subsignal</span> <span class="pre">clk_word</span> <span class="pre">(diffpairs</span> <span class="pre">i</span> <span class="pre">(p</span> <span class="pre">34)</span> <span class="pre">(n</span> <span class="pre">35))</span> <span class="pre">(clock</span> <span class="pre">50000000.0)</span> <span class="pre">(attrs</span> <span class="pre">IO_TYPE='LVDS25'</span> <span class="pre">DIFFRESISTOR='100')))]</span></em><a class="headerlink" href="#nap.platform.usb3_plugin_platform.Usb3PluginPlatform.resources" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.usb3_plugin_platform.Usb3PluginPlatform.speed">
+<code class="sig-name descname"><span class="pre">speed</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'6'</span></em><a class="headerlink" href="#nap.platform.usb3_plugin_platform.Usb3PluginPlatform.speed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.platform.usb3_plugin_platform.Usb3PluginPlatform.toolchain_program">
+<code class="sig-name descname"><span class="pre">toolchain_program</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.platform.usb3_plugin_platform.Usb3PluginPlatform.toolchain_program" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract bitstream for fragment <code class="docutils literal notranslate"><span class="pre">name</span></code> from <code class="docutils literal notranslate"><span class="pre">products</span></code> and download it to a target.</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.platform.zybo_platform">
+<span id="nap-platform-zybo-platform-module"></span><h2>nap.platform.zybo_platform module<a class="headerlink" href="#module-nap.platform.zybo_platform" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.platform.zybo_platform.ZyboPlatform">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nap.platform.zybo_platform.</span></code><code class="sig-name descname"><span class="pre">ZyboPlatform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toolchain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Vivado'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.platform.zybo_platform.ZyboPlatform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.vendor.xilinx_7series.Xilinx7SeriesPlatform</span></code></p>
+<dl class="py attribute">
+<dt id="nap.platform.zybo_platform.ZyboPlatform.connectors">
+<code class="sig-name descname"><span class="pre">connectors</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[]</span></em><a class="headerlink" href="#nap.platform.zybo_platform.ZyboPlatform.connectors" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.zybo_platform.ZyboPlatform.device">
+<code class="sig-name descname"><span class="pre">device</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'xc7z010'</span></em><a class="headerlink" href="#nap.platform.zybo_platform.ZyboPlatform.device" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.zybo_platform.ZyboPlatform.package">
+<code class="sig-name descname"><span class="pre">package</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'clg400'</span></em><a class="headerlink" href="#nap.platform.zybo_platform.ZyboPlatform.package" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.zybo_platform.ZyboPlatform.resources">
+<code class="sig-name descname"><span class="pre">resources</span></code><em class="property"> <span class="pre">=</span> <span class="pre">[(resource</span> <span class="pre">hdmi</span> <span class="pre">north</span> <span class="pre">(subsignal</span> <span class="pre">clock</span> <span class="pre">(diffpairs</span> <span class="pre">o</span> <span class="pre">(p</span> <span class="pre">H16)</span> <span class="pre">(n</span> <span class="pre">H17))</span> <span class="pre">(attrs</span> <span class="pre">IOSTANDARD='TMDS_33'))</span> <span class="pre">(subsignal</span> <span class="pre">b</span> <span class="pre">(diffpairs</span> <span class="pre">o</span> <span class="pre">(p</span> <span class="pre">D19)</span> <span class="pre">(n</span> <span class="pre">D20))</span> <span class="pre">(attrs</span> <span class="pre">IOSTANDARD='TMDS_33'))</span> <span class="pre">(subsignal</span> <span class="pre">g</span> <span class="pre">(diffpairs</span> <span class="pre">o</span> <span class="pre">(p</span> <span class="pre">C20)</span> <span class="pre">(n</span> <span class="pre">B20))</span> <span class="pre">(attrs</span> <span class="pre">IOSTANDARD='TMDS_33'))</span> <span class="pre">(subsignal</span> <span class="pre">r</span> <span class="pre">(diffpairs</span> <span class="pre">o</span> <span class="pre">(p</span> <span class="pre">B19)</span> <span class="pre">(n</span> <span class="pre">A20))</span> <span class="pre">(attrs</span> <span class="pre">IOSTANDARD='TMDS_33'))</span> <span class="pre">(subsignal</span> <span class="pre">out_en</span> <span class="pre">(pins</span> <span class="pre">o</span> <span class="pre">F17)</span> <span class="pre">(attrs</span> <span class="pre">IOSTANDARD='LVCMOS33')))]</span></em><a class="headerlink" href="#nap.platform.zybo_platform.ZyboPlatform.resources" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.platform.zybo_platform.ZyboPlatform.speed">
+<code class="sig-name descname"><span class="pre">speed</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'1'</span></em><a class="headerlink" href="#nap.platform.zybo_platform.ZyboPlatform.speed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.platform">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-nap.platform" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="nap.platform.plugins.html" class="btn btn-neutral float-right" title="nap.platform.plugins package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="nap.data_structure.html" class="btn btn-neutral float-left" title="nap.data_structure package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Robin Heinemann, Jaro Habiger.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

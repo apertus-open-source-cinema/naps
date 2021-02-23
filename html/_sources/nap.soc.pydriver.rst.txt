@@ -1,0 +1,53 @@
+nap.soc.pydriver package
+========================
+
+Submodules
+----------
+
+nap.soc.pydriver.drivermethod module
+------------------------------------
+
+.. automodule:: nap.soc.pydriver.drivermethod
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.soc.pydriver.generate module
+--------------------------------
+
+.. automodule:: nap.soc.pydriver.generate
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.soc.pydriver.hardware\_proxy module
+---------------------------------------
+
+.. automodule:: nap.soc.pydriver.hardware_proxy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.soc.pydriver.hardware\_proxy\_test module
+---------------------------------------------
+
+.. automodule:: nap.soc.pydriver.hardware_proxy_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.soc.pydriver.interactive module
+-----------------------------------
+
+.. automodule:: nap.soc.pydriver.interactive
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: nap.soc.pydriver
+   :members:
+   :undoc-members:
+   :show-inheritance:

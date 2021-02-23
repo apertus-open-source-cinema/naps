@@ -1,0 +1,313 @@
+
+
+<!DOCTYPE html>
+<html class="writer-html5" lang="en" >
+<head>
+  <meta charset="utf-8" />
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  
+  <title>nap.soc.platform.jtag package &mdash; nap  documentation</title>
+  
+
+  
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+
+  
+  
+
+  
+  
+
+  
+
+  
+  <!--[if lt IE 9]>
+    <script src="_static/js/html5shiv.min.js"></script>
+  <![endif]-->
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script src="_static/jquery.js"></script>
+        <script src="_static/underscore.js"></script>
+        <script src="_static/doctools.js"></script>
+    
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+
+    
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="nap.soc.platform.zynq package" href="nap.soc.platform.zynq.html" />
+    <link rel="prev" title="nap.soc.platform package" href="nap.soc.platform.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="index.html" class="icon icon-home"> nap
+          
+
+          
+          </a>
+
+          
+            
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <p class="caption"><span class="caption-text">Contents:</span></p>
+<ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="intro.html">Introduction</a></li>
+<li class="toctree-l1"><a class="reference internal" href="installation.html">Installation</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="nap.html">nap package</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="nap.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l3"><a class="reference internal" href="nap.cores.html">nap.cores package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.data_structure.html">nap.data_structure package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.platform.html">nap.platform package</a></li>
+<li class="toctree-l3 current"><a class="reference internal" href="nap.soc.html">nap.soc package</a><ul class="current">
+<li class="toctree-l4 current"><a class="reference internal" href="nap.soc.html#subpackages">Subpackages</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.cli">nap.soc.cli module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.csr_types">nap.soc.csr_types module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.devicetree_overlay">nap.soc.devicetree_overlay module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.fatbitstream">nap.soc.fatbitstream module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.hooks">nap.soc.hooks module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.memorymap">nap.soc.memorymap module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.peripheral">nap.soc.peripheral module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.peripherals_aggregator">nap.soc.peripherals_aggregator module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.smoke_test">nap.soc.smoke_test module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.soc_platform">nap.soc.soc_platform module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.soc_platform_test">nap.soc.soc_platform_test module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc.tracing_elaborate">nap.soc.tracing_elaborate module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="nap.soc.html#module-nap.soc">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="nap.stream.html">nap.stream package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.util.html">nap.util package</a></li>
+<li class="toctree-l3"><a class="reference internal" href="nap.vendor.html">nap.vendor package</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="nap.html#module-nap">Module contents</a></li>
+</ul>
+</li>
+</ul>
+
+            
+          
+        </div>
+        
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">nap</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html" class="icon icon-home"></a> &raquo;</li>
+        
+          <li><a href="nap.html">nap package</a> &raquo;</li>
+        
+          <li><a href="nap.soc.html">nap.soc package</a> &raquo;</li>
+        
+          <li><a href="nap.soc.platform.html">nap.soc.platform package</a> &raquo;</li>
+        
+      <li>nap.soc.platform.jtag package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/nap.soc.platform.jtag.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="nap-soc-platform-jtag-package">
+<h1>nap.soc.platform.jtag package<a class="headerlink" href="#nap-soc-platform-jtag-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-nap.soc.platform.jtag.jtag_soc_platform">
+<span id="nap-soc-platform-jtag-jtag-soc-platform-module"></span><h2>nap.soc.platform.jtag.jtag_soc_platform module<a class="headerlink" href="#module-nap.soc.platform.jtag.jtag_soc_platform" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nap.soc.platform.jtag.jtag_soc_platform.</span></code><code class="sig-name descname"><span class="pre">JTAGSocPlatform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="nap.soc.html#nap.soc.soc_platform.SocPlatform" title="nap.soc.soc_platform.SocPlatform"><code class="xref py py-class docutils literal notranslate"><span class="pre">nap.soc.soc_platform.SocPlatform</span></code></a></p>
+<dl class="py attribute">
+<dt id="nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.base_address">
+<code class="sig-name descname"><span class="pre">base_address</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0x00[0:34359738360]</span></em><a class="headerlink" href="#nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.base_address" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.pack_bitstream_fatbitstream">
+<code class="sig-name descname"><span class="pre">pack_bitstream_fatbitstream</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">builder</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.pack_bitstream_fatbitstream" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.pydriver_memory_accessor">
+<code class="sig-name descname"><span class="pre">pydriver_memory_accessor</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'class</span> <span class="pre">JTAGAccessor:\n</span>&#160;&#160;&#160; <span class="pre">base</span> <span class="pre">=</span> <span class="pre">0\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">__init__(self,</span> <span class="pre">addr=&quot;127.0.0.1&quot;,</span> <span class="pre">port=4444,</span> <span class="pre">timeout=1024,</span> <span class="pre">debug=False,</span> <span class="pre">spawn_server=True,</span> <span class="pre">tap_name=&quot;dut.tap&quot;):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">import</span> <span class="pre">socket\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">import</span> <span class="pre">os\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">import</span> <span class="pre">time\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">from</span> <span class="pre">os.path</span> <span class="pre">import</span> <span class="pre">dirname,</span> <span class="pre">abspath\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self.tap_name</span> <span class="pre">=</span> <span class="pre">tap_name\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">spawn_server:\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">addr</span> <span class="pre">=</span> <span class="pre">&quot;127.0.0.1&quot;\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">port</span> <span class="pre">=</span> <span class="pre">4444\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">os.system(\'cd</span> <span class="pre">{};</span> <span class="pre">openocd</span> <span class="pre">-f</span> <span class="pre">openocd.cfg</span> <span class="pre">&gt;</span> <span class="pre">/dev/null</span> <span class="pre">2&gt;&amp;1</span> <span class="pre">&amp;\'.format(dirname(abspath(__file__))))\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">time.sleep(0.1)\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self.s</span> <span class="pre">=</span> <span class="pre">socket.socket(socket.AF_INET,</span> <span class="pre">socket.SOCK_STREAM)\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self.s.connect((addr,</span> <span class="pre">port))\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self.timeout</span> <span class="pre">=</span> <span class="pre">timeout\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self.debug</span> <span class="pre">=</span> <span class="pre">debug\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self.spawn_server</span> <span class="pre">=</span> <span class="pre">spawn_server\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">skip</span> <span class="pre">some</span> <span class="pre">strange</span> <span class="pre">random</span> <span class="pre">shit\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._readline(decode=False)\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._irscan(0x32)\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">for</span> <span class="pre">i</span> <span class="pre">in</span> <span class="pre">range(3):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._shift_word(0)\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">__del__(self):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">hasattr(self,</span> <span class="pre">&quot;spawn_server&quot;)</span> <span class="pre">and</span> <span class="pre">self.spawn_server:\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._writeline(&quot;shutdown&quot;)\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">read(self,</span> <span class="pre">addr):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._shift_bit(0)</span>&#160; <span class="pre">#</span> <span class="pre">wakeup\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._shift_bit(1)</span>&#160; <span class="pre">#</span> <span class="pre">wakeup\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._shift_word(addr)</span>&#160; <span class="pre">#</span> <span class="pre">address\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._shift_bit(0)</span>&#160; <span class="pre">#</span> <span class="pre">read\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">read</span> <span class="pre">wait\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">timeout</span> <span class="pre">=</span> <span class="pre">self.timeout\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">range(timeout):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">self._shift_bit(1)</span> <span class="pre">==</span> <span class="pre">1:\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">break\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">t</span> <span class="pre">==</span> <span class="pre">timeout</span> <span class="pre">-</span> <span class="pre">1:\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">raise</span> <span class="pre">TimeoutError()\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">data</span> <span class="pre">=</span> <span class="pre">self._shift_word(0)\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">self._shift_bit(0)</span> <span class="pre">!=</span> <span class="pre">0:</span>&#160; <span class="pre">#</span> <span class="pre">read</span> <span class="pre">status\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">raise</span> <span class="pre">TransactionNotSuccessfulException()\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">return</span> <span class="pre">data\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">write(self,</span> <span class="pre">addr,</span> <span class="pre">value):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._shift_bit(0)</span>&#160; <span class="pre">#</span> <span class="pre">wakeup\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._shift_bit(1)</span>&#160; <span class="pre">#</span> <span class="pre">wakeup\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._shift_word(addr)</span>&#160; <span class="pre">#</span> <span class="pre">address\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._shift_bit(1)</span>&#160; <span class="pre">#</span> <span class="pre">write\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._shift_word(value)\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">#</span> <span class="pre">write</span> <span class="pre">wait\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">timeout</span> <span class="pre">=</span> <span class="pre">self.timeout\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">for</span> <span class="pre">t</span> <span class="pre">in</span> <span class="pre">range(timeout):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">self._shift_bit(1)</span> <span class="pre">==</span> <span class="pre">1:\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">break\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">t</span> <span class="pre">==</span> <span class="pre">timeout</span> <span class="pre">-</span> <span class="pre">1:\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">raise</span> <span class="pre">TimeoutError()\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">self._shift_bit(0)</span> <span class="pre">!=</span> <span class="pre">0:</span>&#160; <span class="pre">#</span> <span class="pre">write</span> <span class="pre">status\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">raise</span> <span class="pre">TransactionNotSuccessfulException()\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">_writeline(self,</span> <span class="pre">message):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">message</span> <span class="pre">+=</span> <span class="pre">&quot;\\n&quot;\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self.s.send(message.encode(\'utf-8\'))\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">_readline(self,</span> <span class="pre">decode=True):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">buf</span> <span class="pre">=</span> <span class="pre">b&quot;&quot;\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">while</span> <span class="pre">buf[-2:]</span> <span class="pre">!=</span> <span class="pre">b\'&gt;</span> <span class="pre">\':\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">buf</span> <span class="pre">+=</span> <span class="pre">self.s.recv(1)\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">decode</span> <span class="pre">and</span> <span class="pre">self.debug:\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">print(buf.decode(\'utf-8\'))\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">buf</span> <span class="pre">=</span> <span class="pre">buf.rsplit(b\'\\r\\n\',</span> <span class="pre">2)[1][1:]\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">decode:\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">buf</span> <span class="pre">=</span> <span class="pre">buf.decode(\'utf-8\')\n\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">return</span> <span class="pre">buf\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">_writecmd(self,</span> <span class="pre">cmd):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">self._writeline(cmd)\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">ret</span> <span class="pre">=</span> <span class="pre">self._readline()\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">if</span> <span class="pre">self.debug:\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">print(cmd,</span> <span class="pre">&quot;-&gt;&quot;,</span> <span class="pre">ret)\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">return</span> <span class="pre">ret\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">_shift_word(self,</span> <span class="pre">write):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">return</span> <span class="pre">int(self._drscan(32,</span> <span class="pre">write),</span> <span class="pre">16)\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">_shift_bit(self,</span> <span class="pre">write):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">return</span> <span class="pre">int(self._drscan(1,</span> <span class="pre">write),</span> <span class="pre">16)\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">_irscan(self,</span> <span class="pre">instruction):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">return</span> <span class="pre">self._writecmd(\'irscan</span> <span class="pre">{}</span> <span class="pre">{}\'.format(self.tap_name,</span> <span class="pre">instruction))\n\n</span>&#160;&#160;&#160; <span class="pre">def</span> <span class="pre">_drscan(self,</span> <span class="pre">len,</span> <span class="pre">value):\n</span>&#160;&#160;&#160;&#160;&#160;&#160;&#160; <span class="pre">return</span> <span class="pre">self._writecmd(\'drscan</span> <span class="pre">{}</span> <span class="pre">{}</span> <span class="pre">{}\'.format(self.tap_name,</span> <span class="pre">len,</span> <span class="pre">value))\n\n\nMemoryAccessor</span> <span class="pre">=</span> <span class="pre">JTAGAccessor\n\n\nclass</span> <span class="pre">TransactionNotSuccessfulException(Exception):\n</span>&#160;&#160;&#160; <span class="pre">pass\n'</span></em><a class="headerlink" href="#nap.soc.platform.jtag.jtag_soc_platform.JTAGSocPlatform.pydriver_memory_accessor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.soc.platform.jtag.memory_accessor_openocd">
+<span id="nap-soc-platform-jtag-memory-accessor-openocd-module"></span><h2>nap.soc.platform.jtag.memory_accessor_openocd module<a class="headerlink" href="#module-nap.soc.platform.jtag.memory_accessor_openocd" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">nap.soc.platform.jtag.memory_accessor_openocd.</span></code><code class="sig-name descname"><span class="pre">JTAGAccessor</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">addr</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'127.0.0.1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">port</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">4444</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">timeout</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1024</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">debug</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">spawn_server</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">tap_name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'dut.tap'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py attribute">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.base">
+<code class="sig-name descname"><span class="pre">base</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0</span></em><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.base" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.read">
+<code class="sig-name descname"><span class="pre">read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">addr</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.write">
+<code class="sig-name descname"><span class="pre">write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">addr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py attribute">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.MemoryAccessor">
+<code class="sig-prename descclassname"><span class="pre">nap.soc.platform.jtag.memory_accessor_openocd.</span></code><code class="sig-name descname"><span class="pre">MemoryAccessor</span></code><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.MemoryAccessor" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor" title="nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor"><code class="xref py py-class docutils literal notranslate"><span class="pre">nap.soc.platform.jtag.memory_accessor_openocd.JTAGAccessor</span></code></a></p>
+</dd></dl>
+
+<dl class="py exception">
+<dt id="nap.soc.platform.jtag.memory_accessor_openocd.TransactionNotSuccessfulException">
+<em class="property"><span class="pre">exception</span> </em><code class="sig-prename descclassname"><span class="pre">nap.soc.platform.jtag.memory_accessor_openocd.</span></code><code class="sig-name descname"><span class="pre">TransactionNotSuccessfulException</span></code><a class="headerlink" href="#nap.soc.platform.jtag.memory_accessor_openocd.TransactionNotSuccessfulException" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-nap.soc.platform.jtag">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-nap.soc.platform.jtag" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+        <a href="nap.soc.platform.zynq.html" class="btn btn-neutral float-right" title="nap.soc.platform.zynq package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="nap.soc.platform.html" class="btn btn-neutral float-left" title="nap.soc.platform package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+    </div>
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &#169; Copyright 2021, Robin Heinemann, Jaro Habiger.
+
+    </p>
+  </div>
+    
+    
+    
+    Built with <a href="https://www.sphinx-doc.org/">Sphinx</a> using a
+    
+    <a href="https://github.com/readthedocs/sphinx_rtd_theme">theme</a>
+    
+    provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

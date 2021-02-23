@@ -1,0 +1,37 @@
+nap.vendor.lattice\_machxo2 package
+===================================
+
+Submodules
+----------
+
+nap.vendor.lattice\_machxo2.clocking module
+-------------------------------------------
+
+.. automodule:: nap.vendor.lattice_machxo2.clocking
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.vendor.lattice\_machxo2.io module
+-------------------------------------
+
+.. automodule:: nap.vendor.lattice_machxo2.io
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.vendor.lattice\_machxo2.jtag module
+---------------------------------------
+
+.. automodule:: nap.vendor.lattice_machxo2.jtag
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: nap.vendor.lattice_machxo2
+   :members:
+   :undoc-members:
+   :show-inheritance:

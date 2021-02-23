@@ -1,0 +1,61 @@
+nap.cores.peripherals package
+=============================
+
+Submodules
+----------
+
+nap.cores.peripherals.bitbang\_i2c module
+-----------------------------------------
+
+.. automodule:: nap.cores.peripherals.bitbang_i2c
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.peripherals.csr\_bank module
+--------------------------------------
+
+.. automodule:: nap.cores.peripherals.csr_bank
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.peripherals.csr\_bank\_zynq\_test module
+--------------------------------------------------
+
+.. automodule:: nap.cores.peripherals.csr_bank_zynq_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.peripherals.drp\_bridge module
+----------------------------------------
+
+.. automodule:: nap.cores.peripherals.drp_bridge
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.peripherals.mmio\_gpio module
+---------------------------------------
+
+.. automodule:: nap.cores.peripherals.mmio_gpio
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.cores.peripherals.soc\_memory module
+----------------------------------------
+
+.. automodule:: nap.cores.peripherals.soc_memory
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: nap.cores.peripherals
+   :members:
+   :undoc-members:
+   :show-inheritance:

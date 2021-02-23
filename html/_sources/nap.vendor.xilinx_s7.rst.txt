@@ -1,0 +1,45 @@
+nap.vendor.xilinx\_s7 package
+=============================
+
+Submodules
+----------
+
+nap.vendor.xilinx\_s7.clocking module
+-------------------------------------
+
+.. automodule:: nap.vendor.xilinx_s7.clocking
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.vendor.xilinx\_s7.io module
+-------------------------------
+
+.. automodule:: nap.vendor.xilinx_s7.io
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.vendor.xilinx\_s7.jtag module
+---------------------------------
+
+.. automodule:: nap.vendor.xilinx_s7.jtag
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+nap.vendor.xilinx\_s7.ps7 module
+--------------------------------
+
+.. automodule:: nap.vendor.xilinx_s7.ps7
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: nap.vendor.xilinx_s7
+   :members:
+   :undoc-members:
+   :show-inheritance:

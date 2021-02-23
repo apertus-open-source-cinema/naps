@@ -1,7 +1,7 @@
 name: Python Testsuite
 on: [push]
 jobs:
-  publish:
+  run_testsuite:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -25,4 +25,4 @@ jobs:
           SMTBMC: yowasp-yosys-smtbmc
           YOSYS: yowasp-yosys
         run:
-          pipenv
+          pytest

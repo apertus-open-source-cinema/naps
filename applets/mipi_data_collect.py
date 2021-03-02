@@ -3,8 +3,8 @@
 
 from nmigen import *
 from nmigen.build import Subsignal, Pins, PinsN, Attrs, DiffPairs, Resource
-from nap import *
-from nap.vendor.xilinx_s7 import IDelayCtrl
+from naps import *
+from naps.vendor.xilinx_s7 import IDelayCtrl
 
 
 class Top(Elaboratable):

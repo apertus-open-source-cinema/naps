@@ -1,7 +1,7 @@
 # Test HDMI output using a given modeline by displaying a solid (adjustable) color
 
 from nmigen import *
-from nap import *
+from naps import *
 
 
 class Top(Elaboratable):

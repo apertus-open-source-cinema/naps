@@ -1,8 +1,8 @@
 # An experiment that glues everything together and tries to get a full sensor -> usb3 flow working on the micro
 import os
 from nmigen import *
-from nap import *
-from nap.vendor.xilinx_s7 import Pll
+from naps import *
+from naps.vendor.xilinx_s7 import Pll
 
 
 class Top(Elaboratable):

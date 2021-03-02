@@ -1,8 +1,8 @@
 # A simple experiment that demonstrates basic CSR / SOC functionality
 from nmigen import *
 from nmigen.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
-from nap import *
-from nap.vendor.lattice_machxo2 import Osc
+from naps import *
+from naps.vendor.lattice_machxo2 import Osc
 
 
 class Top(Elaboratable):

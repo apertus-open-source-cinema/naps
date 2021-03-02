@@ -1,7 +1,7 @@
 # An experiment that glues everything together and tries to get a full sensor -> hdmi flow working on the micro
 import os
 from nmigen import *
-from nap import *
+from naps import *
 
 
 class Top(Elaboratable):
@@ -9,7 +9,7 @@ class Top(Elaboratable):
         self.sensor_reset_n = ControlSignal(name='sensor_reset', reset=1)
 
     def elaborate(self, platform):
-        from nap.platform.plugins.hdmi_plugin_resource import hdmi_plugin_connect
+        from naps.platform.plugins.hdmi_plugin_resource import hdmi_plugin_connect
         hdmi_plugin_connect(platform, "north")
 
         m = Module()

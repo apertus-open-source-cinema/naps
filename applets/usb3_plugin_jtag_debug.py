@@ -1,8 +1,8 @@
 # An experiment for debugging the JTAG interface on the usb3 plugin module by using the USB3 output
 # as a usb3 output.
 from nmigen import *
-from nap import *
-from nap.vendor.lattice_machxo2 import Osc
+from naps import *
+from naps.vendor.lattice_machxo2 import Osc
 
 
 class Top(Elaboratable):

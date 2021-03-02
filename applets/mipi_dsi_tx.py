@@ -1,8 +1,8 @@
 # An experiment that outputs raw data from dram with a mipi dsi phy.
 from nmigen import *
 from nmigen.build import Subsignal, Attrs, Resource, DiffPairs
-from nap import *
-from nap.vendor.xilinx_s7 import Pll
+from naps import *
+from naps.vendor.xilinx_s7 import Pll
 
 
 class Top(Elaboratable):

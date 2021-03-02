@@ -1,6 +1,6 @@
 # An experiment to that checks the functionality of the axi writer
 from nmigen import *
-from nap import *
+from naps import *
 
 
 class Top(Elaboratable):

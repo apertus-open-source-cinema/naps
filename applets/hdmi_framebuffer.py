@@ -1,7 +1,7 @@
 # Provides a linux framebuffer via HDMI
 
 from nmigen import *
-from nap import *
+from naps import *
 
 
 class Top(Elaboratable):

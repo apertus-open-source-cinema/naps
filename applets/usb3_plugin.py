@@ -1,6 +1,6 @@
 # Experimental gateware for the usb3 plugin module
 from nmigen import *
-from nap import *
+from naps import *
 
 
 class Top(Elaboratable):

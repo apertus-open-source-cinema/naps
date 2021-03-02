@@ -1,7 +1,7 @@
 # An experiment that glues everything together and tries to get a full sensor -> ethernet flow working on the micro
 import os
 from nmigen import *
-from nap import *
+from naps import *
 
 
 class Top(Elaboratable):

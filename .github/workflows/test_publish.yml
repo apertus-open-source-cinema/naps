@@ -28,7 +28,7 @@ jobs:
           pytest
   publish:
     if: ${{ github.ref == 'main' }}
-    needs: build
+    needs: run_testsuite
     runs-on: ubuntu-latest
     steps:
       - name: Checkout

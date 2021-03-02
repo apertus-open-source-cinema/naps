@@ -17,10 +17,10 @@ def scm_version():
 
 
 setup(
-    name='nap',
+    name='naps',
     use_scm_version=scm_version(),
     url='https://github.com/apertus-open-source-cinema/nmigen-gateware',
-    description='nMigen Apertus Package',
+    description='nMigen Apertus Packages',
     long_description=Path("README.rst").read_text(),
     packages=find_packages(),
     install_requires=[

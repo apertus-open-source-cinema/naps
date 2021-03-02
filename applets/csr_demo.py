@@ -13,13 +13,19 @@ class Top(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
+        has_clk = False
         if isinstance(platform, ZynqSocPlatform):
             platform.ps7.fck_domain(requested_frequency=100e6)
-            m.d.sync += self.counter.eq(self.counter + 1)
+            has_clk = True
         elif isinstance(platform, LatticeMachXO2Platform):
-            print("using lattice osc")
             m.submodules.osc = Osc()
+            has_clk = True
+        elif isinstance(platform, Colorlight5a75b70Platform):
+            has_clk = True
+
+        if has_clk:
             m.d.sync += self.counter.eq(self.counter + 1)
+            m.d.comb += platform.request("led", 0).o.eq(self.counter[22])
         else:
             m.d.comb += self.counter.eq(42)  # we dont have a clock source so we cant count
 
@@ -27,4 +33,8 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform, BetaRFWPlatform), possible_socs=(JTAGSocPlatform, ZynqSocPlatform))
+    cli(
+        Top,
+        runs_on=(Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform, BetaRFWPlatform, Colorlight5a75b70Platform),
+        possible_socs=(JTAGSocPlatform, ZynqSocPlatform)
+    )

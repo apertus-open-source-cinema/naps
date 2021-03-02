@@ -5,6 +5,7 @@ from os.path import join, dirname, split
 
 from nmigen import *
 from nmigen.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
+from nmigen.vendor.lattice_ecp5 import LatticeECP5Platform
 from nmigen.vendor.xilinx_7series import Xilinx7SeriesPlatform
 
 
@@ -38,6 +39,8 @@ class PlatformAgnosticElaboratable(Elaboratable, metaclass=ImplementationMarkerM
             elaboratable = self._search_in_path("xilinx_s7")
         elif isinstance(platform, LatticeMachXO2Platform):
             elaboratable = self._search_in_path("lattice_machxo2")
+        elif isinstance(platform, LatticeECP5Platform):
+            elaboratable = self._search_in_path("lattice_ecp5")
         else:
             raise PlatformNotSupportedError()
 

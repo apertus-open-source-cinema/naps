@@ -59,4 +59,4 @@ class ZynqSocPlatform(SocPlatform):
         builder.append_command("echo {{name}}.bin > /sys/class/fpga_manager/fpga0/firmware\n")
 
     def toolchain_program(self, *args, **kwargs):
-        program_bitstream_ssh(self, *args, **kwargs)
+        program_fatbitstream_ssh(self, *args, **kwargs)

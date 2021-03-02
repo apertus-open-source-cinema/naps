@@ -9,3 +9,5 @@ from .devicetree_overlay import *
 from .soc_platform import *
 from .platform import *
 from .cli import *
+from .program_fatbitstream_local import *
+from .program_fatbitstream_ssh import *

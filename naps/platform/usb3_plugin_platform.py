@@ -3,7 +3,7 @@ from textwrap import dedent
 from nmigen.build import *
 from nmigen.vendor.lattice_machxo_2_3l import *
 
-from naps import FatbitstreamContext, program_bitstream_ssh
+from naps import FatbitstreamContext, program_fatbitstream_ssh
 
 __all__ = ["Usb3PluginPlatform"]
 
@@ -81,4 +81,4 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
         fc.pre_init_commands.append("[ $(cat /etc/hostname) == 'beta' ] && cp openocd_beta.cfg openocd.cfg || cp openocd_micro.cfg openocd.cfg")
 
     def toolchain_program(self, *args, **kwargs):
-        program_bitstream_ssh(self, *args, **kwargs)
+        program_fatbitstream_ssh(self, *args, **kwargs)

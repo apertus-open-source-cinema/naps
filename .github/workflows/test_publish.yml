@@ -1,4 +1,4 @@
-name: Python Testsuite and pypi deploy
+name: python testsuite and deploy
 on: [push]
 jobs:
   run_testsuite:
@@ -26,7 +26,8 @@ jobs:
           YOSYS: yowasp-yosys
         run:
           pytest
-  publish:
+
+  publish_pypi:
     if: ${{ github.ref == 'main' }}
     needs: run_testsuite
     runs-on: ubuntu-latest
@@ -50,3 +51,30 @@ jobs:
           TWINE_NON_INTERACTIVE: 1
         run: |
           twine upload dist/naps*
+
+  publish_docs:
+    if: ${{ github.ref == 'main' }}
+    needs: run_testsuite
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v1
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+      - name: Install deps
+        run: |
+          pip3 install -e .[doc,test]
+      - name: Run sphinx autodoc
+        run: |
+          sphinx-apidoc  -o doc naps
+      - name: Build docs
+        run: |
+          make -C doc html
+      - name: Deploy
+        uses: peaceiris/actions-gh-pages@v3
+        with:
+          github_token: ${{ secrets.GITHUB_TOKEN }}
+          publish_branch: gh-pages
+          publish_dir: ./doc/_build/html

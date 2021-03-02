@@ -1,0 +1,28 @@
+name: Vivado Builds
+
+on: [push]
+
+jobs:
+  hdmi_test:
+    strategy:
+      fail-fast: false
+      matrix:
+        device: [MicroR2, Beta, Zybo]
+        soc_platform: [Zynq]
+    runs-on: vivado
+    steps:
+    - uses: actions/checkout@v2
+    - name: Install dependecies
+      run:
+        pip3 install -e .[test]
+    - name: build
+      env:
+        NMIGEN_USE_YOSYS: system
+        YOSYS: yowasp-yosys
+      run:
+        python3 applets/hdmi_demo.py -b -d ${{ matrix.device }} -s ${{ matrix.soc_platform }}
+    - name: upload
+      uses: actions/upload-artifact@v2
+      with:
+        name: build_hdmi_test_${{ matrix.device }}_${{ matrix.soc_platform }}
+        path: build/*/*

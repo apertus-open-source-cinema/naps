@@ -56,7 +56,6 @@ setup(
 
             'scipy',  # only needed for vifp calculation
             'matplotlib',
-            'yowasp-yosys',
         ],
         'doc': [
             'sphinx',

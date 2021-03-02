@@ -6,11 +6,10 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v1
-      - name: Install yices
+      - name: Install fpga-tools
         run: |
-          sudo add-apt-repository ppa:sri-csl/formal-methods
-          sudo apt-get update
-          sudo apt-get install yices2
+          curl -s https://api.github.com/repos/yosysHQ/fpga-toolchain/releases/latest | grep "browser_download_url.*xz" | cut -d : -f 2,3 | tr -d "\"" | wget -qi - -O fpga_toolchain.tar.xz
+          tar -xf fpga_toolchain.tar.xz -C /
       - name: Set up Python
         uses: actions/setup-python@v2
         with:
@@ -19,11 +18,6 @@ jobs:
         run: |
           pip3 install -e .[doc,test]
       - name: Run test suite
-        env:
-          NMIGEN_USE_YOSYS: system
-          SBY: yowasp-sby
-          SMTBMC: yowasp-yosys-smtbmc
-          YOSYS: yowasp-yosys
         run:
           pytest
 

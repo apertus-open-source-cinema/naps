@@ -27,6 +27,8 @@ jobs:
         run:
           pytest
   publish:
+    if: ${{ github.ref == 'main' }}
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -47,4 +49,4 @@ jobs:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
           TWINE_NON_INTERACTIVE: 1
         run: |
-          twine upload dist/nap*
+          twine upload dist/naps*

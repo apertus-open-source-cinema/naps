@@ -1,0 +1,125 @@
+naps.cores.stream package
+=========================
+
+Submodules
+----------
+
+naps.cores.stream.buffer module
+-------------------------------
+
+.. automodule:: naps.cores.stream.buffer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.buffer\_test module
+-------------------------------------
+
+.. automodule:: naps.cores.stream.buffer_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.counter\_source module
+----------------------------------------
+
+.. automodule:: naps.cores.stream.counter_source
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.counter\_source\_test module
+----------------------------------------------
+
+.. automodule:: naps.cores.stream.counter_source_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.debug module
+------------------------------
+
+.. automodule:: naps.cores.stream.debug
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.fifo module
+-----------------------------
+
+.. automodule:: naps.cores.stream.fifo
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.fifo\_test module
+-----------------------------------
+
+.. automodule:: naps.cores.stream.fifo_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.gearbox module
+--------------------------------
+
+.. automodule:: naps.cores.stream.gearbox
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.gearbox\_test module
+--------------------------------------
+
+.. automodule:: naps.cores.stream.gearbox_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.metadata\_wrapper module
+------------------------------------------
+
+.. automodule:: naps.cores.stream.metadata_wrapper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.metadata\_wrapper\_test module
+------------------------------------------------
+
+.. automodule:: naps.cores.stream.metadata_wrapper_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.repacking module
+----------------------------------
+
+.. automodule:: naps.cores.stream.repacking
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.tee module
+----------------------------
+
+.. automodule:: naps.cores.stream.tee
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.tee\_test module
+----------------------------------
+
+.. automodule:: naps.cores.stream.tee_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.cores.stream
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,32 @@
+naps.cores package
+==================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   naps.cores.axi
+   naps.cores.cmv12k
+   naps.cores.compression
+   naps.cores.debug
+   naps.cores.dram_packet_ringbuffer
+   naps.cores.ft601
+   naps.cores.hdmi
+   naps.cores.hispi
+   naps.cores.ila
+   naps.cores.jtag
+   naps.cores.mipi
+   naps.cores.peripherals
+   naps.cores.plugin_module_streamer
+   naps.cores.stream
+   naps.cores.video
+
+Module contents
+---------------
+
+.. automodule:: naps.cores
+   :members:
+   :undoc-members:
+   :show-inheritance:

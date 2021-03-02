@@ -1,0 +1,29 @@
+naps.cores.ila package
+======================
+
+Submodules
+----------
+
+naps.cores.ila.ila module
+-------------------------
+
+.. automodule:: naps.cores.ila.ila
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.ila.ila\_platform module
+-----------------------------------
+
+.. automodule:: naps.cores.ila.ila_platform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.cores.ila
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,7 +1,7 @@
-nap
-===
+naps
+====
 
 .. toctree::
    :maxdepth: 4
 
-   nap
+   naps

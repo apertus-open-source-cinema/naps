@@ -1,0 +1,24 @@
+naps package
+============
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   naps.cores
+   naps.data_structure
+   naps.platform
+   naps.soc
+   naps.stream
+   naps.util
+   naps.vendor
+
+Module contents
+---------------
+
+.. automodule:: naps
+   :members:
+   :undoc-members:
+   :show-inheritance:

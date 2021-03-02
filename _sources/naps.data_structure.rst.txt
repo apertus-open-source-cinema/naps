@@ -1,0 +1,29 @@
+naps.data\_structure package
+============================
+
+Submodules
+----------
+
+naps.data\_structure.bundle module
+----------------------------------
+
+.. automodule:: naps.data_structure.bundle
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.data\_structure.packed\_struct module
+------------------------------------------
+
+.. automodule:: naps.data_structure.packed_struct
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.data_structure
+   :members:
+   :undoc-members:
+   :show-inheritance:

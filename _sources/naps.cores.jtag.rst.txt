@@ -1,0 +1,29 @@
+naps.cores.jtag package
+=======================
+
+Submodules
+----------
+
+naps.cores.jtag.jtag\_peripheral\_connector module
+--------------------------------------------------
+
+.. automodule:: naps.cores.jtag.jtag_peripheral_connector
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.jtag.jtag\_peripheral\_connector\_test module
+--------------------------------------------------------
+
+.. automodule:: naps.cores.jtag.jtag_peripheral_connector_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.cores.jtag
+   :members:
+   :undoc-members:
+   :show-inheritance:

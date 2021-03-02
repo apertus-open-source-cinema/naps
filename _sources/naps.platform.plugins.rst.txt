@@ -1,0 +1,37 @@
+naps.platform.plugins package
+=============================
+
+Submodules
+----------
+
+naps.platform.plugins.hdmi\_plugin\_resource module
+---------------------------------------------------
+
+.. automodule:: naps.platform.plugins.hdmi_plugin_resource
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.platform.plugins.plugin\_connector module
+----------------------------------------------
+
+.. automodule:: naps.platform.plugins.plugin_connector
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.platform.plugins.usb3\_plugin\_resource module
+---------------------------------------------------
+
+.. automodule:: naps.platform.plugins.usb3_plugin_resource
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.platform.plugins
+   :members:
+   :undoc-members:
+   :show-inheritance:

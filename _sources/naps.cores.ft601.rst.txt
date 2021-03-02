@@ -1,0 +1,45 @@
+naps.cores.ft601 package
+========================
+
+Submodules
+----------
+
+naps.cores.ft601.ft601\_perf\_debug module
+------------------------------------------
+
+.. automodule:: naps.cores.ft601.ft601_perf_debug
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.ft601.ft601\_stream\_sink module
+-------------------------------------------
+
+.. automodule:: naps.cores.ft601.ft601_stream_sink
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.ft601.ft601\_stream\_sink\_test module
+-------------------------------------------------
+
+.. automodule:: naps.cores.ft601.ft601_stream_sink_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.ft601.ft60x\_legalizer module
+----------------------------------------
+
+.. automodule:: naps.cores.ft601.ft60x_legalizer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.cores.ft601
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,21 @@
+naps.cores.cmv12k package
+=========================
+
+Submodules
+----------
+
+naps.cores.cmv12k.pixel\_remapper module
+----------------------------------------
+
+.. automodule:: naps.cores.cmv12k.pixel_remapper
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.cores.cmv12k
+   :members:
+   :undoc-members:
+   :show-inheritance:

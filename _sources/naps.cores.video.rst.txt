@@ -1,0 +1,125 @@
+naps.cores.video package
+========================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   naps.cores.video.wavelet
+
+Submodules
+----------
+
+naps.cores.video.adapters module
+--------------------------------
+
+.. automodule:: naps.cores.video.adapters
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.adapters\_test module
+--------------------------------------
+
+.. automodule:: naps.cores.video.adapters_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.debayer module
+-------------------------------
+
+.. automodule:: naps.cores.video.debayer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.debayer\_test module
+-------------------------------------
+
+.. automodule:: naps.cores.video.debayer_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.demo\_source module
+------------------------------------
+
+.. automodule:: naps.cores.video.demo_source
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.focus\_peeking module
+--------------------------------------
+
+.. automodule:: naps.cores.video.focus_peeking
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.image\_convoluter module
+-----------------------------------------
+
+.. automodule:: naps.cores.video.image_convoluter
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.image\_convoluter\_test module
+-----------------------------------------------
+
+.. automodule:: naps.cores.video.image_convoluter_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.image\_stream module
+-------------------------------------
+
+.. automodule:: naps.cores.video.image_stream
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.rearrange module
+---------------------------------
+
+.. automodule:: naps.cores.video.rearrange
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.resizer module
+-------------------------------
+
+.. automodule:: naps.cores.video.resizer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.rgb module
+---------------------------
+
+.. automodule:: naps.cores.video.rgb
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.test\_util module
+----------------------------------
+
+.. automodule:: naps.cores.video.test_util
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.cores.video
+   :members:
+   :undoc-members:
+   :show-inheritance:

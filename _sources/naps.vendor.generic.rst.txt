@@ -1,0 +1,21 @@
+naps.vendor.generic package
+===========================
+
+Submodules
+----------
+
+naps.vendor.generic.jtag module
+-------------------------------
+
+.. automodule:: naps.vendor.generic.jtag
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.vendor.generic
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,19 @@
+naps.soc.platform package
+=========================
+
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   naps.soc.platform.jtag
+   naps.soc.platform.zynq
+
+Module contents
+---------------
+
+.. automodule:: naps.soc.platform
+   :members:
+   :undoc-members:
+   :show-inheritance:

@@ -1,0 +1,29 @@
+naps.cores.debug package
+========================
+
+Submodules
+----------
+
+naps.cores.debug.blink\_debug module
+------------------------------------
+
+.. automodule:: naps.cores.debug.blink_debug
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.debug.clocking\_debug module
+---------------------------------------
+
+.. automodule:: naps.cores.debug.clocking_debug
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.cores.debug
+   :members:
+   :undoc-members:
+   :show-inheritance:

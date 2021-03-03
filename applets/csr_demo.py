@@ -22,10 +22,10 @@ class Top(Elaboratable):
             has_clk = True
         elif isinstance(platform, Colorlight5a75b70Platform):
             has_clk = True
+            m.d.comb += platform.request("led", 0).o.eq(self.counter[22])
 
         if has_clk:
             m.d.sync += self.counter.eq(self.counter + 1)
-            m.d.comb += platform.request("led", 0).o.eq(self.counter[22])
         else:
             m.d.comb += self.counter.eq(42)  # we dont have a clock source so we cant count
 

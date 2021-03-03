@@ -90,6 +90,6 @@ class _FatbitstreamBuilder:
 
     def append_self_extracting_blob_from_file(self, src_path, target_path):
         self.append_command(
-            '"base64 -d > {} <<EOF\\n$(base64 -w0 {})\\nEOF\\n"'.format(quote(target_path), quote(src_path)),
+            '"base64 -d > {} <<EOF\\n$(base64 {} | tr -d \'\n\')\\nEOF\\n"'.format(quote(target_path), quote(src_path)),
             do_quote=False
         )

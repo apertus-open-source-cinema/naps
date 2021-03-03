@@ -22,8 +22,10 @@ jobs:
           pytest
 
   publish_pypi:
-    if: ${{ github.ref == 'main' }}
-    needs: run_testsuite
+    if: github.ref == 'refs/heads/main'
+    needs:
+      - run_testsuite
+      - publish_docs
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
@@ -36,6 +38,8 @@ jobs:
         run: |
           pip3 install twine setuptools-scm
       - name: Build package
+        env:
+          DOC_SHA: ${{ needs.publish_docs.outputs.doc_sha }}
         run: |
           ./setup.py build sdist
       - name: Upload to pypi
@@ -45,11 +49,19 @@ jobs:
           TWINE_NON_INTERACTIVE: 1
         run: |
           twine upload dist/naps*
+      - name: upload
+        if: failure()
+        uses: actions/upload-artifact@v2
+        with:
+            name: sdist
+            path: dist/*
 
   publish_docs:
-    if: ${{ github.ref == 'main' }}
+    if: github.ref == 'refs/heads/main'
     needs: run_testsuite
     runs-on: ubuntu-latest
+    outputs:
+      doc_sha: ${{ steps.pages.outputs.dst_sha }}
     steps:
       - name: Checkout
         uses: actions/checkout@v1
@@ -67,8 +79,13 @@ jobs:
         run: |
           make -C doc html
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@v3
+        id: pages
+        uses: peaceiris/actions-gh-pages@7e55c73ee896b01b8b8668370794b96f1bc9c759 #514
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
           publish_dir: ./doc/_build/html
+          allow_empty_commit: true
+      - name: Update docs server
+        run: |
+          curl ${{ secrets.DOCS_UPDATE_HOOK }}

@@ -2,6 +2,7 @@
 
 from setuptools import setup, find_packages
 from pathlib import Path
+import os
 
 def scm_version():
     def local_scheme(version):
@@ -15,6 +16,11 @@ def scm_version():
         "local_scheme": local_scheme
     }
 
+def doc_url():
+    if "DOC_SHA" in os.environ:
+        return f"https://docs.niemo.de/naps/commit/{os.environ['DOC_SHA']}".strip()
+    else:
+        return 'https://apertus-open-source-cinema.github.io/nmigen-gateware/'
 
 setup(
     name='naps',
@@ -30,7 +36,7 @@ setup(
     ],
     keywords='nmigen apertus fpga gateware video camera',
     project_urls={
-        'Documentation': 'https://apertus-open-source-cinema.github.io/nmigen-gateware/',
+        'Documentation': doc_url(),
         'Homepage': 'https://github.com/apertus-open-source-cinema/nmigen-gateware',
         'Bug Tracker': 'https://github.com/apertus-open-source-cinema/nmigen-gateware/issues'
     },

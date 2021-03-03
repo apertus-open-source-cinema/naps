@@ -77,6 +77,22 @@ naps.soc.peripherals\_aggregator module
    :undoc-members:
    :show-inheritance:
 
+naps.soc.program\_fatbitstream\_local module
+--------------------------------------------
+
+.. automodule:: naps.soc.program_fatbitstream_local
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.soc.program\_fatbitstream\_ssh module
+------------------------------------------
+
+.. automodule:: naps.soc.program_fatbitstream_ssh
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.soc.smoke\_test module
 ---------------------------
 

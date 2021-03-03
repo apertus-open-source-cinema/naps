@@ -20,6 +20,14 @@ naps.platform.beta\_platform module
    :undoc-members:
    :show-inheritance:
 
+naps.platform.colorlight\_5a\_75b\_7\_0 module
+----------------------------------------------
+
+.. automodule:: naps.platform.colorlight_5a_75b_7_0
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.platform.hdmi\_digitizer\_platform module
 ----------------------------------------------
 

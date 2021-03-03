@@ -36,6 +36,14 @@ naps.cores.mipi.packet module
    :undoc-members:
    :show-inheritance:
 
+naps.cores.mipi.py\_dsi\_generator module
+-----------------------------------------
+
+.. automodule:: naps.cores.mipi.py_dsi_generator
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.cores.mipi.s7\_rx\_phy module
 ----------------------------------
 

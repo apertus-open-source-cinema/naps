@@ -220,6 +220,33 @@
 <dt id="naps.soc.pydriver.hardware_proxy.BitwiseAccessibleInteger">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.soc.pydriver.hardware_proxy.</span></code><code class="sig-name descname"><span class="pre">BitwiseAccessibleInteger</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.BitwiseAccessibleInteger" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="naps.soc.pydriver.hardware_proxy.BitwiseAccessibleInteger.from_list">
+<em class="property"><span class="pre">static</span> </em><code class="sig-name descname"><span class="pre">from_list</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.BitwiseAccessibleInteger.from_list" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="naps.soc.pydriver.hardware_proxy.Blob">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.soc.pydriver.hardware_proxy.</span></code><code class="sig-name descname"><span class="pre">Blob</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bit_start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bit_len</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.Blob" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#naps.soc.pydriver.hardware_proxy.Value" title="naps.soc.pydriver.hardware_proxy.Value"><code class="xref py py-class docutils literal notranslate"><span class="pre">naps.soc.pydriver.hardware_proxy.Value</span></code></a></p>
+<p>Represents bigger address chunks that are not useful to express as BitwiseAccessibleInteger</p>
+<dl class="py attribute">
+<dt id="naps.soc.pydriver.hardware_proxy.Blob.address">
+<code class="sig-name descname"><span class="pre">address</span></code><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.Blob.address" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.soc.pydriver.hardware_proxy.Blob.bit_len">
+<code class="sig-name descname"><span class="pre">bit_len</span></code><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.Blob.bit_len" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.soc.pydriver.hardware_proxy.Blob.bit_start">
+<code class="sig-name descname"><span class="pre">bit_start</span></code><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.Blob.bit_start" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="py class">
@@ -245,6 +272,28 @@
 <dl class="py method">
 <dt id="naps.soc.pydriver.hardware_proxy.MemoryAccessor.write">
 <em class="property"><span class="pre">abstract</span> </em><code class="sig-name descname"><span class="pre">write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">addr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.MemoryAccessor.write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="naps.soc.pydriver.hardware_proxy.Value">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.soc.pydriver.hardware_proxy.</span></code><code class="sig-name descname"><span class="pre">Value</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bit_start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bit_len</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.Value" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Represents a Value that is automatically converted to / from an Integer</p>
+<dl class="py attribute">
+<dt id="naps.soc.pydriver.hardware_proxy.Value.address">
+<code class="sig-name descname"><span class="pre">address</span></code><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.Value.address" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.soc.pydriver.hardware_proxy.Value.bit_len">
+<code class="sig-name descname"><span class="pre">bit_len</span></code><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.Value.bit_len" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.soc.pydriver.hardware_proxy.Value.bit_start">
+<code class="sig-name descname"><span class="pre">bit_start</span></code><em class="property"><span class="pre">:</span> <span class="pre">int</span></em><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.Value.bit_start" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

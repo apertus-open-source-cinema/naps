@@ -12,14 +12,6 @@ naps.soc.platform.zynq.memory\_accessor\_devmem module
    :undoc-members:
    :show-inheritance:
 
-naps.soc.platform.zynq.program\_bitstream\_ssh module
------------------------------------------------------
-
-.. automodule:: naps.soc.platform.zynq.program_bitstream_ssh
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
 naps.soc.platform.zynq.to\_raw\_bitstream module
 ------------------------------------------------
 

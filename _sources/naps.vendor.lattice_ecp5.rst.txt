@@ -1,0 +1,21 @@
+naps.vendor.lattice\_ecp5 package
+=================================
+
+Submodules
+----------
+
+naps.vendor.lattice\_ecp5.jtag module
+-------------------------------------
+
+.. automodule:: naps.vendor.lattice_ecp5.jtag
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.vendor.lattice_ecp5
+   :members:
+   :undoc-members:
+   :show-inheritance:

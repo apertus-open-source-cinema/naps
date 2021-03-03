@@ -1,5 +1,5 @@
 from nmigen import *
-from naps.soc import SocPlatform, MemoryMap, Peripheral, Response
+from naps.soc import SocPlatform, MemoryMap, Peripheral, Response, driver_method
 
 __all__ = ["SocMemory"]
 
@@ -16,10 +16,9 @@ class SocMemory(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        memory = m.submodules.memory = self.memory
         if isinstance(platform, SocPlatform):
             if self.soc_read:
-                read_port = m.submodules.soc_read_port = memory.read_port(domain="sync", transparent=False)
+                read_port = m.submodules.soc_read_port = self.memory.read_port(domain="sync", transparent=False)
 
                 def handle_read(m, addr, data, read_done):
                     with m.If(addr > self.depth - 1):
@@ -31,7 +30,7 @@ class SocMemory(Elaboratable):
                                 m.d.comb += read_port.en.eq(1)
                                 m.next = "DATA"
                             with m.State("DATA"):
-                                m.d.comb += data.eq(read_port.data)
+                                m.d.sync += data.eq(read_port.data)
                                 read_done(Response.OK)
                                 m.next = "ADDR"
             else:
@@ -39,7 +38,7 @@ class SocMemory(Elaboratable):
                     read_done(Response.ERR)
 
             if self.soc_write:
-                write_port = m.submodules.soc_write_port = memory.write_port(domain="sync", transparent=False)
+                write_port = m.submodules.soc_write_port = self.memory.write_port(domain="sync")
 
                 def handle_write(m, addr, data, write_done):
                     with m.If(addr > self.depth - 1):
@@ -54,7 +53,7 @@ class SocMemory(Elaboratable):
                     write_done(Response.ERR)
 
             memorymap = MemoryMap()
-            memorymap.allocate("drp", writable=True, bits=self.depth * memorymap.bus_word_width)
+            memorymap.allocate("memory", writable=True, bits=self.depth * memorymap.bus_word_width)
 
             m.submodules += Peripheral(
                 handle_read,
@@ -69,3 +68,11 @@ class SocMemory(Elaboratable):
 
     def write_port(self, *args, **kwargs):
         return self.memory.write_port(*args, **kwargs)
+
+    @driver_method
+    def __getitem__(self, item):
+        return self._memory_accessor.read(self.memory.address + item)
+
+    @driver_method
+    def __setitem__(self, item, value):
+        self._memory_accessor.write(self.memory.address + item, value)

@@ -29,6 +29,7 @@ setup(
     description='nMigen Apertus Packages',
     long_description=Path("README.rst").read_text(),
     packages=find_packages(),
+    setup_requires=["wheel", "setuptools", "setuptools_scm"],
     install_requires=[
         'huffman',
         'nmigen @ git+https://github.com/nmigen/nmigen.git',

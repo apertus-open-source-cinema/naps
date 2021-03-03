@@ -7,7 +7,7 @@ from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 from nmigen.sim import Simulator
 
-__all__ = ["SimPlatform", "FakeResource", "TristateIo", "wait_for", "pulse", "do_nothing"]
+__all__ = ["SimPlatform", "FakeResource", "TristateIo", "wait_for", "pulse", "do_nothing", "resolve"]
 
 
 class SimPlatform:
@@ -154,3 +154,18 @@ def pulse(signal, length=1, after=0):
 def do_nothing(length=10):
     for i in range(length):
         yield  # we expect that nothing happens here
+
+
+def resolve(expr):
+    """Resolves a nMigen expression that can be constantly evaluated to an integer"""
+
+    sim = Simulator(Module())
+
+    a = []
+
+    def testbench():
+        a.append((yield expr))
+
+    sim.add_process(testbench)
+    sim.run()
+    return a[0]

@@ -24,6 +24,8 @@ class PackedStructBaseClass(ValueCastable):
             def get_signal(name, type):
                 if name in kwargs:
                     signal = kwargs[name]
+                    if not isinstance(signal, Value):
+                        signal = Const(signal, type)
                     if hasattr(type, "_PACKED_FIELDS"):
                         assert isinstance(signal, type)
                     assert needed_bits(type) == len(signal)

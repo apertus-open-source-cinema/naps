@@ -30,9 +30,9 @@ def copy_ssh(source, destination, host=default_host, user=default_user, password
     return subprocess.check_output(scp_cmd, shell=True)
 
 
-def program_fatbitstream_ssh(platform, build_products: BuildProducts, name, **kwargs):
+def program_fatbitstream_ssh(platform, build_products: BuildProducts, name, run=False, **kwargs):
     fatbitstream_name = "{}.fatbitstream.sh".format(name)
     with build_products.extract(fatbitstream_name) as fatbitstream_file:
         copy_ssh(fatbitstream_file, "~/{}".format(fatbitstream_name))
     run_ssh("chmod +x {}".format(fatbitstream_name))
-    run_ssh("./{}".format(fatbitstream_name), sudo=True)
+    run_ssh(f"./{fatbitstream_name}  {'--run' if run else ''}", sudo=True)

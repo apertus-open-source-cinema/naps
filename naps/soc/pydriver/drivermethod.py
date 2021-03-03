@@ -1,7 +1,8 @@
 # a decorator to mark methods in elaboratables that should end up in the pydriver
-# all Drivermethod instances are collected and shipped with the pydriver
+# all DriverMethod instances are collected and shipped with the pydriver
 
 __all__ = ["driver_method", "driver_property"]
+
 
 class DriverMethod:
     def __init__(self, function, is_property):

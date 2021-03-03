@@ -35,16 +35,13 @@ def get_previous_build_dir(basename):
 def cli(top_class, runs_on, possible_socs=(None,)):
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--elaborate', help='Elaborates the experiment', action="store_true")
-    parser.add_argument('-b', '--build',
-                        help='builds the experiment with the vendor tools if the elaboration result changed; implies -e',
-                        action="store_true")
-    parser.add_argument('-p', '--program', help='programs the board; programs the last build if used without -b',
-                        action="store_true")
+    parser.add_argument('-b', '--build', help='builds the experiment with the vendor tools if the elaboration result changed; implies -e', action="store_true")
+    parser.add_argument('-p', '--program', help='programs the board; programs the last build if used without -b', action="store_true")
+    parser.add_argument('-r', '--run', help='run the pydriver shell after programming', action="store_true")
 
     platform_choices = [plat.__name__.replace("Platform", "") for plat in runs_on]
     default = platform_choices[0] if len(platform_choices) == 1 else None
-    parser.add_argument('-d', '--device', help='specify the device to build for', choices=platform_choices,
-                        required=default is None, default=default)
+    parser.add_argument('-d', '--device', help='specify the device to build for', choices=platform_choices, required=default is None, default=default)
 
     soc_choices = [plat.__name__.replace("SocPlatform", "") if plat is not None else "None" for plat in possible_socs]
     default = soc_choices[0] if len(soc_choices) == 1 else None
@@ -102,13 +99,13 @@ def cli(top_class, runs_on, possible_socs=(None,)):
             with open(path.join(build_path, 'extra_files.pickle'), 'wb') as f:
                 pickle.dump(platform.extra_files, f)
 
-    if args.program:
+    if args.program or args.run:
         previous_build_dir = get_previous_build_dir(dir_basename)
         with open(path.join(previous_build_dir, 'extra_files.pickle'), 'rb') as f:
             platform.extra_files = pickle.load(f)
         cwd = os.getcwd()
         try:
             os.chdir(previous_build_dir)
-            platform.toolchain_program(LocalBuildProducts(os.getcwd()), name=name)
+            platform.toolchain_program(LocalBuildProducts(os.getcwd()), name=name, run=args.run)
         finally:
             os.chdir(cwd)

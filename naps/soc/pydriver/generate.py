@@ -3,6 +3,7 @@ from inspect import getsource
 from os.path import dirname, join
 from textwrap import indent, dedent
 
+from nmigen import Signal
 from nmigen.build import Platform
 
 from ..fatbitstream import FatbitstreamContext
@@ -17,7 +18,7 @@ def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass=""
     for row in mmap.direct_children:
         address = mmap.own_offset.translate(row.address)
         to_return += indent(
-            "{} = (0x{:02x}, {}, {})\n".format(row.name, address.address, address.bit_offset, address.bit_len),
+            f"{row.name} = {'Value' if isinstance(row.obj, Signal) else 'Blob'}(0x{address.address:02x}, {address.bit_offset}, {address.bit_len})\n",
             "    "
         )
     for name, method in mmap.driver_methods.items():

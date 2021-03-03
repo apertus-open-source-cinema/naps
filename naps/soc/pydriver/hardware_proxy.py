@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from dataclasses import dataclass
 from textwrap import indent
 from math import ceil, log2
 from inspect import stack
@@ -17,6 +18,10 @@ class MemoryAccessor(ABC):
 
 
 class BitwiseAccessibleInteger:
+    @staticmethod
+    def from_list(*args):
+        pass
+
     def __init__(self, value=0):
         self.value = value
 
@@ -27,25 +32,41 @@ class BitwiseAccessibleInteger:
         elif isinstance(item, slice):
             assert 0 <= item.start <= item.stop
             assert (item.step == 1) or (item.step is None)
-            bit_mask = (2**(item.stop - item.start) - 1)
+            bit_mask = (2 ** (item.stop - item.start) - 1)
             return (self.value >> item.start) & bit_mask
 
     def __setitem__(self, key, value):
         if isinstance(key, int):
             assert key >= 0
             assert value <= 1, "you can at maximum assign '1' to a 1 bit value"
-            self.value = self.value & (((2**ceil(log2(self.value + 1))) - 1) ^ (1 << key))
+            self.value = self.value & (((2 ** ceil(log2(self.value + 1))) - 1) ^ (1 << key))
             self.value = self.value | ((value & 1) << key)
         elif isinstance(key, slice):
             assert (key.step == 1) or (key.step is None)
             assert 0 <= key.start <= key.stop
-            bit_mask = (2**(key.stop - key.start) - 1)
+            bit_mask = (2 ** (key.stop - key.start) - 1)
             assert value <= bit_mask, "you can at maximum assign '{}' to a {} bit value".format(bit_mask, (key.stop - key.start))
             self.value = self.value & (((2 ** ceil(log2(self.value + 1))) - 1) ^ (bit_mask << key.start))
             self.value = self.value | ((value & bit_mask) << key.start)
 
     def __int__(self):
         return self.value
+
+
+@dataclass
+class Value:
+    """Represents a Value that is automatically converted to / from an Integer"""
+    address: int
+    bit_start: int
+    bit_len: int
+
+
+@dataclass
+class Blob(Value):
+    """Represents bigger address chunks that are not useful to express as BitwiseAccessibleInteger"""
+    address: int
+    bit_start: int
+    bit_len: int
 
 
 class HardwareProxy:
@@ -63,17 +84,17 @@ class HardwareProxy:
         if name in {**self.__dict__, **self.__class__.__dict__}:
             obj = object.__getattribute__(self, name)
 
-            if not isinstance(obj, tuple):
+            if isinstance(obj, Blob):
                 return obj
-            else:
-                addr, bit_start, bit_len = obj
-
+            elif isinstance(obj, Value):
                 to_return = BitwiseAccessibleInteger()
-                read_bytes = ceil((bit_start + bit_len) / 32)
+                read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
                 for i in range(read_bytes):
-                    val = BitwiseAccessibleInteger(self._memory_accessor.read(addr - self._memory_accessor.base + (i * 4)))
-                    to_return[i*32:(i+1)*32] = val[bit_start:32+bit_start - (0 if i != read_bytes - 1 else bit_len % 32)]
+                    val = BitwiseAccessibleInteger(self._memory_accessor.read(obj.address - self._memory_accessor.base + (i * 4)))
+                    to_return[i * 32:(i + 1) * 32] = val[obj.bit_start:32 + obj.bit_start - (0 if i != read_bytes - 1 else obj.bit_len % 32)]
                 return int(to_return)
+            else:
+                return obj
         raise AttributeError("{} has no attribute {}".format(self.__class__.__name__, name))
 
     def __setattr__(self, name, value):
@@ -83,18 +104,17 @@ class HardwareProxy:
         if name in self.__class__.__dict__:
             obj = object.__getattribute__(self, name)
 
-            if not isinstance(obj, tuple):
-                return obj
-            else:
-                addr, bit_start, bit_len = obj
-                assert value < 2**bit_len,  "you can at maximum assign '{}' to a {} bit value".format((2**bit_len - 1), bit_len)
+            if not isinstance(obj, (Value, Blob)):
+                return object.__setattr__(self, name, value)
+            elif isinstance(obj, Value):
+                assert value < 2 ** obj.bit_len, "you can at maximum assign '{}' to a {} bit value".format((2 ** obj.bit_len - 1), obj.bit_len)
                 v = BitwiseAccessibleInteger(value)
-                read_bytes = ceil((bit_start + bit_len) / 32)
+                read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
                 for i in range(read_bytes):
-                    prev_value = BitwiseAccessibleInteger(self._memory_accessor.read(addr - self._memory_accessor.base + (i * 4)))
-                    prev_value[bit_start:32+bit_start - (0 if i != read_bytes - 1 else bit_len % 32)] = v[i * 32:(i + 1) * 32]
+                    prev_value = BitwiseAccessibleInteger(self._memory_accessor.read(obj.address - self._memory_accessor.base + (i * 4)))
+                    prev_value[obj.bit_start:32 + obj.bit_start - (0 if i != read_bytes - 1 else obj.bit_len % 32)] = v[i * 32:(i + 1) * 32]
                     self._memory_accessor.write(
-                        addr - self._memory_accessor.base + (i * 4),
+                        obj.address - self._memory_accessor.base + (i * 4),
                         int(prev_value)
                     )
         else:

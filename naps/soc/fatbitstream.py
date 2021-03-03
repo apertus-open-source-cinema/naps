@@ -67,6 +67,8 @@ class FatbitstreamContext:
         for cmd in self.init_commands:
             builder.append_command(cmd + "\n")
 
+        builder.append_command('\nif [[ $* == *--run* ]]\nthen\npython pydriver.py\nfi\n')
+
         builder.append_host("chmod +x {{name}}.fatbitstream.sh")
 
         return builder.cmds
@@ -80,7 +82,8 @@ class _FatbitstreamBuilder:
         self.cmds.append(cmd)
 
     def append_command(self, cmd, do_quote=True):
-        self.append_host("echo -ne {} >> {{{{name}}}}.fatbitstream.sh".format(quote(cmd.replace("\n", "\\n")) if do_quote else cmd.replace("\n", "\\n")))
+        echo = 'echo -ne {}'.format(quote(cmd.replace("\n", "\\n")) if do_quote else cmd.replace("\n", "\\n"))
+        self.append_host(f"bash -c {quote(echo)} >> {{{{name}}}}.fatbitstream.sh")  # we need to call bash here because macos does not alias bash to sh
 
     def append_self_extracting_blob_from_string(self, string, path):
         self.append_command("base64 -d > {} <<EOF\n{}\nEOF\n".format(quote(path), b64encode(string.encode("utf-8")).decode("ASCII")))

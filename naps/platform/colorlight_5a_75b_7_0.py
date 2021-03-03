@@ -110,7 +110,7 @@ class Colorlight5a75b70Platform(LatticeECP5Platform, ABC):
         super().__init__()
         fc = FatbitstreamContext.get(self)
         fc.self_extracting_blobs["openocd.cfg"] = dedent(r"""
-            openocd -c "source [find interface/jlink.cfg]"
+            source [find interface/jlink.cfg]
             adapter_khz 25000
 
             bindto 0.0.0.0

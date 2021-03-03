@@ -67,7 +67,7 @@ class FatbitstreamContext:
         for cmd in self.init_commands:
             builder.append_command(cmd + "\n")
 
-        builder.append_command('\nif [[ $* == *--run* ]]\nthen\npython pydriver.py\nfi\n')
+        builder.append_command('\nif [[ $* == *--run* ]]\nthen\npython3 pydriver.py\nfi\n')
 
         builder.append_host("chmod +x {{name}}.fatbitstream.sh")
 

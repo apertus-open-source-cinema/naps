@@ -21,7 +21,7 @@ class GammaCorrectorTest(unittest.TestCase):
         if gamma != 1:
             bpp = 8
             max_pix = 2**bpp - 1
-            lut = list(int(max_pix*((v/max_pix)**gamma)) for v in range(max_pix+1))
+            lut = list(int(max_pix*((v/max_pix)**gamma)+0.5) for v in range(max_pix+1))
             image_corrected = list(list(lut[pixel] for pixel in line) for line in image)
         else: # gamma = 1 should not change image at all
             image_corrected = list(list(pixel for pixel in line) for line in image)
@@ -29,8 +29,6 @@ class GammaCorrectorTest(unittest.TestCase):
         def write_process():
             yield from write_frame_to_stream(input, image, pause=False)
             yield Passive()
-            while True:
-                yield from write_to_stream(input, line_last=0, frame_last=0, payload=0)
 
         def read_process():
             result = yield from read_frame_from_stream(transformer.output, timeout=1000, pause=False)

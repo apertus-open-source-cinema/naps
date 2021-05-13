@@ -44,7 +44,3 @@ class DPhyDataLaneTest(unittest.TestCase):
 
         platform.add_sim_clock("sync", 30e6)
         platform.sim(m)
-
-    def test_stream_contract_control_rx(self):
-        m = DPhyDataLane(TristateIo(2), TristateIo(2), "ddr")
-        verify_stream_output_contract(m, m.control_input)

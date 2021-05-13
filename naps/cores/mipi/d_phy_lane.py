@@ -1,6 +1,8 @@
 from contextlib import contextmanager
 
 from nmigen import *
+from nmigen.hdl.ast import Rose
+
 from naps import StatusSignal, BasicStream, PacketizedStream, TristateIo, StreamBuffer
 
 # control mode lp symbols
@@ -46,10 +48,14 @@ class DPhyDataLane(Elaboratable):
 
         @contextmanager
         def delay(cycles):
+            timer = Signal(range(cycles))
+            is_delay = Signal()
+            m.d.comb += is_delay.eq(1)
             try:
-                timer = Signal(range(cycles))
                 with m.If(timer < cycles):
                     m.d.sync += timer.eq(timer + 1)
+                with m.If(Rose(is_delay)):  # TODO: using Rose in combination with domains renamer is problematic
+                    m.d.sync += timer.eq(0)
                 else_stmt = m.Else()
                 else_stmt.__enter__()
                 yield None

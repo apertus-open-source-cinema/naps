@@ -26,8 +26,9 @@ class Top(Elaboratable):
         # to a mipi DSI screen. Power and backlight have to be handled separated.
         platform.add_resources([
             Resource("mipi_dsi", 0,
-                     Subsignal("clk", DiffPairs("25", "26", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS25")),
-                     Subsignal("lane0", DiffPairs("27", "28", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS25")),
+                     Subsignal("clk", DiffPairs("lvds2_p", "lvds2_n", dir='o', conn=("plugin", 'south')), Attrs(IOSTANDARD="LVDS_25")),
+                     Subsignal("lane1", DiffPairs("lvds1_p", "lvds1_n", dir='o', conn=("plugin", 'south')), Attrs(IOSTANDARD="LVDS_25")),
+                     Subsignal("lane2", DiffPairs("lvds0_p", "lvds0_n", dir='o', conn=("plugin", 'south')), Attrs(IOSTANDARD="LVDS_25")),
             ),
         ])
         panel = platform.request("mipi_dsi")
@@ -52,9 +53,9 @@ class Top(Elaboratable):
         p = Pipeline(m)
         p += StreamBuffer(address_stream)
         p += AxiReader(p.output)
-        p += StreamGearbox(p.output, target_width=8)
+        p += StreamGearbox(p.output, target_width=16)
         p += BufferedAsyncStreamFIFO(p.output, depth=2048, o_domain="pxclk")
-        p += MipiMultiLaneTxPhy(p.output, panel.clk, [panel.lane0], ddr_domain="ddr_pxclk")
+        p += MipiMultiLaneTxPhy(p.output, panel.clk, [panel.lane1, panel.lane2], ddr_domain="ddr_pxclk")
 
         return m
 

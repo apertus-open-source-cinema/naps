@@ -25,13 +25,15 @@ class ClockDebug(Elaboratable):
         self.reset_less = reset_less
 
         self.counter = StatusSignal(32)
-        self.is_reset = StatusSignal()
+        if not self.reset_less:
+            self.is_reset = StatusSignal()
 
     def elaborate(self, platform):
         m = Module()
 
         m.d[self.domain_name] += self.counter.eq(self.counter + 1)
-        m.d.comb += self.is_reset.eq(ResetSignal(self.domain_name))
+        if not self.reset_less:
+            m.d.comb += self.is_reset.eq(ResetSignal(self.domain_name))
 
         return m
 

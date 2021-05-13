@@ -39,9 +39,9 @@ def cli(top_class, runs_on, possible_socs=(None,)):
     parser.add_argument('-p', '--program', help='programs the board; programs the last build if used without -b', action="store_true")
     parser.add_argument('-r', '--run', help='run the pydriver shell after programming', action="store_true")
 
-    platform_choices = [plat.__name__.replace("Platform", "") for plat in runs_on]
-    default = platform_choices[0] if len(platform_choices) == 1 else None
-    parser.add_argument('-d', '--device', help='specify the device to build for', choices=platform_choices, required=default is None, default=default)
+    platform_choices = {plat.__name__.replace("Platform", ""): plat for plat in runs_on}
+    default = list(platform_choices.keys())[0] if len(platform_choices) == 1 else None
+    parser.add_argument('-d', '--device', help='specify the device to build for', choices=list(platform_choices.keys()), required=default is None, default=default)
 
     soc_choices = [plat.__name__.replace("SocPlatform", "") if plat is not None else "None" for plat in possible_socs]
     default = soc_choices[0] if len(soc_choices) == 1 else None
@@ -49,7 +49,7 @@ def cli(top_class, runs_on, possible_socs=(None,)):
     parser = parser
     args = parser.parse_args()
 
-    hardware_platform = getattr(__import__('naps.platform'), "{}Platform".format(args.device))
+    hardware_platform = platform_choices[args.device]
     if args.soc != 'None':
         soc_platform = getattr(__import__('naps.soc.platform'), "{}SocPlatform".format(args.soc))
         assert soc_platform in possible_socs

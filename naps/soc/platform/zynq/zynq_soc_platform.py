@@ -1,7 +1,5 @@
 from os.path import join, dirname
-
 from nmigen import Fragment, Module, ClockSignal, DomainRenamer
-
 from ... import *
 
 __all__ = ["ZynqSocPlatform"]

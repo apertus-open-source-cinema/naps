@@ -8,7 +8,7 @@ jobs:
         uses: actions/checkout@v1
       - name: Install fpga-tools
         run: |
-          curl -s https://api.github.com/repos/yosysHQ/fpga-toolchain/releases/latest | grep "browser_download_url.*xz" | cut -d : -f 2,3 | tr -d "\"" | wget -qi - -O fpga_toolchain.tar.xz
+          curl -s https://api.github.com/repos/yosysHQ/fpga-toolchain/releases | grep "browser_download_url.*linux.*xz" | head -n1 | cut -d : -f 2,3 | tr -d "\"" | wget -qi - -O fpga_toolchain.tar.xz
           sudo tar -C / --strip-components=1 -xf fpga_toolchain.tar.xz
       - name: Set up Python
         uses: actions/setup-python@v2

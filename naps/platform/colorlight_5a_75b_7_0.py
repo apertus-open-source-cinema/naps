@@ -18,28 +18,28 @@ class Colorlight5a75b70Platform(LatticeECP5Platform, ABC):
     speed = '8'
 
     resources = [
-        Resource('clk25', 0, Pins('P6'), Clock(25e6), Attrs(GLOBAL=True, IO_STANDARD='LVCMOS33')),
+        Resource('clk25', 0, Pins('P6'), Clock(25e6), Attrs(GLOBAL=True, IO_TYPE='LVCMOS33')),
 
-        *LEDResources(pins='P11', attrs=Attrs(IO_STANDARD='LVCMOS33')),
-        Resource('user_led', 0, PinsN('P11', dir='o'), Attrs(IO_STANDARD='LVCMOS33')),
+        *LEDResources(pins='P11', attrs=Attrs(IO_TYPE='LVCMOS33')),
+        Resource('user_led', 0, PinsN('P11', dir='o'), Attrs(IO_TYPE='LVCMOS33')),
 
-        *ButtonResources(pins='M13', attrs=Attrs(IO_STANDARD='LVCMOS33')),
-        Resource('user_btn', 0, PinsN('M13'), Attrs(IO_STANDARD='LVCMOS33')),
+        *ButtonResources(pins='M13', attrs=Attrs(IO_TYPE='LVCMOS33')),
+        Resource('user_btn', 0, PinsN('M13'), Attrs(IO_TYPE='LVCMOS33')),
 
         # available in the J19 connector (rx = btn, tx=led)
         UARTResource(0,
             rx='P11', tx='M13',
-            attrs=Attrs(IO_STANDARD='LVCMOS33')
+            attrs=Attrs(IO_TYPE='LVCMOS33')
         ),
 
         # W25Q32JV
         #SPIResource(0,
         #    cs='N8', mosi='T8', miso='T7',  # clk driven through USRMCLK
-        #    attrs=Attrs(IO_STANDARD='LVCMOS33')
+        #    attrs=Attrs(IO_TYPE='LVCMOS33')
         #),
 
         # M12616161A
-        Resource('sdram_clock', 0, Pins('C6'), Attrs(IO_STANDARD='LVCMOS33')),
+        Resource('sdram_clock', 0, Pins('C6'), Attrs(IO_TYPE='LVCMOS33')),
         Resource('sdram', 0,
             Subsignal('a', Pins('A9 E10 B12 D13 C12 D11 D10 E9 D9 B7 C8')),
             Subsignal('dq', Pins(
@@ -52,14 +52,14 @@ class Colorlight5a75b70Platform(LatticeECP5Platform, ABC):
             Subsignal('ras_n', Pins('D7')),
             Subsignal('cas_n', Pins('E7')),
             Subsignal('ba',    Pins('A7')),
-            Attrs(IO_STANDARD='LVCMOS33')
+            Attrs(IO_TYPE='LVCMOS33')
         ),
 
         # B50612D
         Resource('eth_clocks', 0,
             Subsignal('tx', Pins('M2')),
             Subsignal('rx', Pins('M1')),
-            Attrs(IO_STANDARD='LVCMOS33')
+            Attrs(IO_TYPE='LVCMOS33')
         ),
         Resource('eth', 0,
             Subsignal('rst_n',   Pins('P5')),
@@ -69,12 +69,12 @@ class Colorlight5a75b70Platform(LatticeECP5Platform, ABC):
             Subsignal('rx_data', Pins('N1 M5 N5 M6')),
             Subsignal('tx_ctl',  Pins('M3')),
             Subsignal('tx_data', Pins('L1 L3 P2 L4')),
-            Attrs(IO_STANDARD='LVCMOS33')
+            Attrs(IO_TYPE='LVCMOS33')
         ),
         Resource('eth_clocks', 1,
             Subsignal('tx', Pins('M12')),
             Subsignal('rx', Pins('M16')),
-            Attrs(IO_STANDARD='LVCMOS33')
+            Attrs(IO_TYPE='LVCMOS33')
         ),
         Resource('eth', 1,
             Subsignal('rst_n',   Pins('P5')),
@@ -84,14 +84,14 @@ class Colorlight5a75b70Platform(LatticeECP5Platform, ABC):
             Subsignal('rx_data', Pins('P13 N13 P14 M15')),
             Subsignal('tx_ctl',  Pins('R15')),
             Subsignal('tx_data', Pins('T14 R12 R13 R14')),
-            Attrs(IO_STANDARD='LVCMOS33')
+            Attrs(IO_TYPE='LVCMOS33')
         ),
 
         Resource('usb', 0,
             Subsignal('d_p',    Pins('M8')),
             Subsignal('d_n',    Pins('R2')),
             Subsignal('pullup', Pins('P4')),
-            Attrs(IO_STANDARD='LVCMOS33')
+            Attrs(IO_TYPE='LVCMOS33')
         ),
     ]
 

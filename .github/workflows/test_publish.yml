@@ -12,7 +12,7 @@ jobs:
           python-version: 3.9
       - name: Install fpga-tools
         run: |
-          curl -s https://api.github.com/repos/yosysHQ/fpga-toolchain/releases | grep "browser_download_url.*linux.*xz" | head -n1 | cut -d : -f 2,3 | tr -d "\"" | wget -qi - -O fpga_toolchain.tar.xz
+          curl -s https://api.github.com/repos/yosysHQ/fpga-toolchain/releases | grep "browser_download_url.*linux.*gz" | head -n1 | cut -d : -f 2,3 | tr -d "\"" | wget -qi - -O fpga_toolchain.tar.xz
           sudo tar -C / --strip-components=1 -xf fpga_toolchain.tar.xz
       - name: Install deps
         run: |

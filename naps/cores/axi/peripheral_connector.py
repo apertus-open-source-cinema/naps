@@ -59,11 +59,12 @@ class AxiLitePeripheralConnector(Elaboratable):
             with m.State("READ"):
                 # Only write read and resp if we are in the READ state. Otherwise all bits are '0'.
                 # This allows us to simply or the data output of multiple axi slaves together.
-                m.d.sync += timeout_counter.eq(timeout_counter + 1)
-                self.peripheral.handle_read(m, addr, read_out, read_write_done_callback)
                 with m.If(read_write_done):
                     m.d.sync += read_write_done.eq(0)
                     m.next = "READ_DONE"
+                with m.Else():
+                    m.d.sync += timeout_counter.eq(timeout_counter + 1)
+                    self.peripheral.handle_read(m, addr, read_out, read_write_done_callback)
                 with m.If(timeout_counter == self.timeout):
                     m.d.sync += read_write_done.eq(1)
                     m.d.sync += resp_out.eq(AxiResponse.DECERR)
@@ -81,11 +82,12 @@ class AxiLitePeripheralConnector(Elaboratable):
                 m.d.sync += timeout_counter.eq(0)
             with m.State("WRITE"):
                 with m.If(self.axi.write_data.valid):
-                    self.peripheral.handle_write(m, addr, self.axi.write_data.payload, read_write_done_callback)
-                    m.d.sync += timeout_counter.eq(timeout_counter + 1)
                     with m.If(read_write_done):
                         m.d.sync += read_write_done.eq(0)
                         m.next = "WRITE_DONE"
+                    with m.Else():
+                        self.peripheral.handle_write(m, addr, self.axi.write_data.payload, read_write_done_callback)
+                        m.d.sync += timeout_counter.eq(timeout_counter + 1)
                     with m.If(timeout_counter == self.timeout):
                         m.d.sync += read_write_done.eq(1)
                         m.d.sync += resp_out.eq(AxiResponse.DECERR)

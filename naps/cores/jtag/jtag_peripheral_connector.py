@@ -81,10 +81,11 @@ class JTAGPeripheralConnector(Elaboratable):
             # read states
             with m.State("READ_WAIT"):
                 m.d.comb += state.eq(4)
-                self.peripheral.handle_read(m, addr - address_range.start, data, read_write_done_callback)
                 with m.If(read_write_done):
                     m.d.comb += jtag.tdo.eq(1)
                     next_on_jtag_shift("READ0")
+                with m.Else():
+                    self.peripheral.handle_read(m, addr - address_range.start, data, read_write_done_callback)
                 with m.If(~jtag.tdi):  # we are requested to abort the waiting
                     next_on_jtag_shift("IDLE0")
             for i in range(32):
@@ -111,10 +112,11 @@ class JTAGPeripheralConnector(Elaboratable):
                         next_on_jtag_shift("WRITE_WAIT")
             with m.State("WRITE_WAIT"):
                 m.d.comb += state.eq(8)
-                self.peripheral.handle_write(m, addr - address_range.start, data, read_write_done_callback)
                 with m.If(read_write_done):
                     m.d.comb += jtag.tdo.eq(1)
                     next_on_jtag_shift("WRITE_STATUS")
+                with m.Else():
+                    self.peripheral.handle_write(m, addr - address_range.start, data, read_write_done_callback)
                 with m.If(~jtag.tdi):  # we are requested to abort the waiting
                     next_on_jtag_shift("IDLE0")
             with m.State("WRITE_STATUS"):

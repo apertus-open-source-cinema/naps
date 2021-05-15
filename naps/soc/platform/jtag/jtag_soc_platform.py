@@ -9,6 +9,7 @@ __all__ = ["JTAGSocPlatform"]
 class JTAGSocPlatform(SocPlatform):
     base_address = Address(address=0x0000_0000, bit_offset=0, bit_len=0xFFFF_FFFF * 8)
     pydriver_memory_accessor = open(join(dirname(__file__), "memory_accessor_openocd.py")).read()
+    csr_domain = "jtag"
 
     def __init__(self, platform):
         super().__init__(platform)
@@ -23,7 +24,7 @@ class JTAGSocPlatform(SocPlatform):
                 for peripheral in platform.peripherals:
                     aggregator.add_peripheral(peripheral)
 
-                jtag_controller = JTAGPeripheralConnector(aggregator)
+                jtag_controller = JTAGPeripheralConnector(aggregator, jtag_domain=self.csr_domain)
                 platform.to_inject_subfragments.append((jtag_controller, "jtag_controller"))
 
         self.prepare_hooks.append(peripherals_connect_hook)

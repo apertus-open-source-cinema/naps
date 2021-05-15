@@ -3,6 +3,8 @@ from naps.soc import SocPlatform, MemoryMap, Peripheral, Response, driver_method
 
 __all__ = ["SocMemory"]
 
+from naps.util.past import Rose
+
 
 class SocMemory(Elaboratable):
     """A memory that can be read / written to by the soc"""
@@ -16,50 +18,53 @@ class SocMemory(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        if isinstance(platform, SocPlatform):
+        if not isinstance(platform, SocPlatform):
+            return m
+
+        def handle_read(m, addr, data, read_done):
             if self.soc_read:
                 read_port = m.submodules.soc_read_port = self.memory.read_port(domain="sync", transparent=False)
-
-                def handle_read(m, addr, data, read_done):
-                    with m.If(addr > self.depth - 1):
-                        read_done(Response.ERR)
-                    with m.Else():
-                        with m.FSM():
-                            with m.State("ADDR"):
-                                m.d.comb += read_port.addr.eq(addr)
-                                m.d.comb += read_port.en.eq(1)
-                                m.next = "DATA"
-                            with m.State("DATA"):
-                                m.d.sync += data.eq(read_port.data)
-                                read_done(Response.OK)
-                                m.next = "ADDR"
-            else:
-                def handle_read(m, addr, data, read_done):
+                with m.If(addr > self.depth - 1):
                     read_done(Response.ERR)
+                with m.Else():
+                    is_read = Signal()
+                    m.d.comb += is_read.eq(1)
+                    with m.If(Rose(m, is_read)):
+                        is_prepare = Signal()
+                        m.d.comb += is_prepare.eq(1)
+                        m.d.comb += read_port.addr.eq(addr)
+                        m.d.comb += read_port.en.eq(1)
+                    with m.Else():
+                        is_finish = Signal()
+                        m.d.comb += is_finish.eq(1)
+                        m.d.sync += data.eq(read_port.data)
+                        read_done(Response.OK)
+            else:
+                read_done(Response.ERR)
 
+        def handle_write(m, addr, data, write_done):
             if self.soc_write:
                 write_port = m.submodules.soc_write_port = self.memory.write_port(domain="sync")
-
-                def handle_write(m, addr, data, write_done):
-                    with m.If(addr > self.depth - 1):
-                        write_done(Response.ERR)
-                    with m.Else():
-                        m.d.comb += write_port.addr.eq(addr)
-                        m.d.comb += write_port.en.eq(1)
-                        m.d.comb += write_port.data.eq(data)
-                        write_done(Response.OK)
-            else:
-                def handle_write(m, addr, data, write_done):
+                with m.If(addr > self.depth - 1):
                     write_done(Response.ERR)
+                with m.Else():
+                    m.d.comb += write_port.addr.eq(addr)
+                    m.d.comb += write_port.data.eq(data)
+                    m.d.comb += write_port.en.eq(1)
+                    write_done(Response.OK)
 
-            memorymap = MemoryMap()
-            memorymap.allocate("memory", writable=True, bits=self.depth * memorymap.bus_word_width)
+            else:
+                write_done(Response.ERR)
 
-            m.submodules += Peripheral(
-                handle_read,
-                handle_write,
-                memorymap
-            )
+
+        memorymap = MemoryMap()
+        memorymap.allocate("memory", writable=True, bits=self.depth * memorymap.bus_word_width)
+
+        m.submodules += Peripheral(
+            handle_read,
+            handle_write,
+            memorymap
+        )
 
         return m
 

@@ -8,6 +8,7 @@ __all__ = ["ZynqSocPlatform"]
 class ZynqSocPlatform(SocPlatform):
     base_address = Address(0x4000_0000, 0, (0x7FFF_FFFF - 0x4000_0000) * 8)
     pydriver_memory_accessor = open(join(dirname(__file__), "memory_accessor_devmem.py")).read()
+    csr_domain = "axi_lite"
 
     def __init__(self, platform, use_axi_interconnect=False):
         from naps.vendor.xilinx_s7 import PS7
@@ -23,8 +24,8 @@ class ZynqSocPlatform(SocPlatform):
                 m = Module()
                 platform.ps7.fck_domain(domain_name="axi_lite", requested_frequency=10e6)
                 if not hasattr(platform, "is_sim"):  # we are not in a simulation platform
-                    axi_full_port: AxiEndpoint = platform.ps7.get_axi_gp_master(ClockSignal("axi_lite"))
-                    axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_lite")(
+                    axi_full_port: AxiEndpoint = platform.ps7.get_axi_gp_master(ClockSignal(self.csr_domain))
+                    axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer(self.csr_domain)(
                         AxiFullToLiteBridge(axi_full_port)
                     )
                     axi_lite_master = axi_lite_bridge.lite_master
@@ -33,21 +34,21 @@ class ZynqSocPlatform(SocPlatform):
                     self.axi_lite_master = axi_lite_master
 
                 if use_axi_interconnect:
-                    interconnect = m.submodules.interconnect = DomainRenamer("axi_lite")(
+                    interconnect = m.submodules.interconnect = DomainRenamer(self.csr_domain)(
                         AxiInterconnect(axi_lite_master)
                     )
                     for peripheral in platform.peripherals:
-                        controller = DomainRenamer("axi_lite")(AxiLitePeripheralConnector(peripheral))
-                        m.d.comb += interconnect.get_port().connect_downstream(controller.axi)
-                        m.submodules += controller
+                        connector = DomainRenamer(self.csr_domain)(AxiLitePeripheralConnector(peripheral))
+                        m.d.comb += interconnect.get_port().connect_downstream(connector.axi)
+                        m.submodules += connector
                 else:
                     aggregator = PeripheralsAggregator()
                     for peripheral in platform.peripherals:
                         aggregator.add_peripheral(peripheral)
-                    controller = DomainRenamer("axi_lite")(AxiLitePeripheralConnector(aggregator))
-                    m.d.comb += axi_lite_master.connect_downstream(controller.axi)
-                    m.submodules += controller
-                platform.to_inject_subfragments.append((m, "axi_lite"))
+                    connector = DomainRenamer(self.csr_domain)(AxiLitePeripheralConnector(aggregator))
+                    m.d.comb += axi_lite_master.connect_downstream(connector.axi)
+                    m.submodules.connector = connector
+                platform.to_inject_subfragments.append((m, self.csr_domain))
         self.prepare_hooks.append(peripherals_connect_hook)
 
     def pack_bitstream_fatbitstream(self, builder):

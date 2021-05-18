@@ -71,7 +71,8 @@ class JTAGPeripheralConnector(Elaboratable):
                     else:
                         next_on_jtag_shift("RW_CMD")
 
-            with m.State("RW_CMD"):  # we recive one bit that indicates if we want to read (0) or write (1)
+            with m.State("RW_CMD"):  # we receive one bit that indicates if we want to read (0) or write (1)
+                m.d.sync += data.eq(0)
                 m.d.comb += state.eq(3)
                 with m.If(jtag.tdi):
                     next_on_jtag_shift("WRITE0")

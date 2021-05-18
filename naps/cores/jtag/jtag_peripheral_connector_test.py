@@ -164,6 +164,7 @@ class TestJTAGPeripheralConnectorFSM(unittest.TestCase):
 
             for addr in range(0, 100, 10):
                 yield from write(addr, addr + 1)
+            for addr in range(0, 100, 10):
                 yield from read(addr, addr + 1)
 
         platform.add_sim_clock("sync", 100e6)

@@ -8,10 +8,11 @@ class JTAG(GenericJTAG.implementation):
     def elaborate(self, platform):
         m = Module()
 
-        print("warning: lattice JTAGF primitive is buggy as fuck")
-
-        cd = ClockDomain(self.jtag_domain, clk_edge="neg")  # we must sample tdo at the falling edge for some reason
+        cd = ClockDomain(self.jtag_domain)
         m.domains += cd
+        clock_signal = Signal()
+        m.d.comb += cd.clk.eq(~clock_signal)  # we do this to avoid using a negedge clockdomain (see: https://github.com/nmigen/nmigen/issues/611)
+
         platform.add_clock_constraint(cd.clk, 1e6)
 
         shift = Signal()  # for some reason we also have to delay shift
@@ -22,7 +23,7 @@ class JTAG(GenericJTAG.implementation):
             "JTAGF",
             i_JTDO1=self.tdo,
             o_JTDI=self.tdi,
-            o_JTCK=cd.clk,
+            o_JTCK=clock_signal,
             o_JSHIFT=shift,
         )
 

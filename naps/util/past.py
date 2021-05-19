@@ -15,3 +15,7 @@ def Sample(m, signal: Signal, clocks=1, domain="sync"):
 
 def Rose(m, expr: Signal, domain="sync", clocks=0):
     return ~Sample(m, expr, clocks + 1, domain) & Sample(m, expr, clocks, domain)
+
+
+def Changed(m, expr: Signal, domain="sync", clocks=0):
+    return Sample(m, expr, clocks + 1, domain) != Sample(m, expr, clocks, domain)

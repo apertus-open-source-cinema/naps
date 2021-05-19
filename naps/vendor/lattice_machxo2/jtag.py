@@ -12,8 +12,7 @@ class JTAG(GenericJTAG.implementation):
         m.domains += cd
         clock_signal = Signal()
         m.d.comb += cd.clk.eq(~clock_signal)  # we do this to avoid using a negedge clockdomain (see: https://github.com/nmigen/nmigen/issues/611)
-
-        platform.add_clock_constraint(cd.clk, 1e6)
+        platform.add_clock_constraint(clock_signal, 1e6)
 
         shift = Signal()  # for some reason we also have to delay shift
         m.d.comb += self.shift_tdo.eq(shift)

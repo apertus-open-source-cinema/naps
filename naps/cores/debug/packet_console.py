@@ -1,41 +1,57 @@
 # cores for producing / receiving packets from the console
 
 from nmigen import *
-from naps import PacketizedStream, SocMemory, ControlSignal, driver_method
+from nmigen.utils import bits_for
+
+from naps import PacketizedStream, SocMemory, ControlSignal, driver_method, StatusSignal, BasicStream
+from naps.cores.stream.stream_memory import StreamMemoryReader
+from naps.util.past import Changed
 
 
 class ConsolePacketSource(Elaboratable):
     def __init__(self, data_width=8, max_packet_size=1024):
         self.max_packet_size = max_packet_size
 
-        self.remaining_packet_length = ControlSignal(range(max_packet_size))
+        self.reset = ControlSignal()
         self.packet_length = ControlSignal(range(max_packet_size))
+        self.read_ptr = StatusSignal(range(max_packet_size))
+        self.done = StatusSignal(reset=1)
+        self.memory = SocMemory(
+            width=data_width, depth=self.max_packet_size,
+            soc_read=False, attrs=dict(syn_ramstyle="block_ram")
+        )
 
         self.output = PacketizedStream(data_width)
 
     def elaborate(self, platform):
         m = Module()
 
-        memory = m.submodules.memory = SocMemory(width=len(self.output.payload), depth=self.max_packet_size, soc_read=False)
-        read_port = m.submodules.read_port = memory.read_port(domain="sync")
-        with m.If(self.remaining_packet_length > 0):
-            m.d.comb += self.output.ready.eq(1)
-            m.d.comb += self.output.last.eq(self.remaining_packet_length == 1)
-            m.d.comb += self.output.payload.eq(read_port.data)
-            with m.If(self.output.valid):
-                m.d.comb += read_port.en.eq(1)
-                m.d.comb += read_port.addr.eq(self.packet_length - self.remaining_packet_length)
-                m.d.sync += self.remaining_packet_length.eq(self.remaining_packet_length - 1)
+        memory = m.submodules.memory = self.memory
+
+        address_stream = PacketizedStream(bits_for(self.max_packet_size))
+        with m.If(~self.done):
+            m.d.comb += address_stream.valid.eq(1)
+            m.d.comb += address_stream.last.eq(self.read_ptr == self.packet_length)
+            m.d.comb += address_stream.payload.eq(self.read_ptr)
+            with m.If(address_stream.ready):
+                m.d.sync += self.read_ptr.eq(self.read_ptr + 1)
+                m.d.sync += self.done.eq(self.read_ptr == self.packet_length)
+        with m.Elif(Changed(m, self.reset)):
+            m.d.sync += self.read_ptr.eq(0)
+            m.d.sync += self.done.eq(0)
+
+        reader = m.submodules.reader = StreamMemoryReader(address_stream, memory.memory)
+        m.d.comb += self.output.connect_upstream(reader.output)
 
         return m
 
     @driver_method
     def write_packet(self, packet):
-        assert self.remaining_packet_length == 0
+        assert self.done == True
         for i, word in enumerate(packet):
             self.memory[i] = word
-        self.packet_length = len(packet)
-        self.remaining_packet_length = len(packet)
+        self.packet_length = len(packet) - 1
+        self.reset = not self.reset
 
 
 
@@ -43,15 +59,20 @@ class ConsolePacketSink(Elaboratable):
     def __init__(self, input: PacketizedStream, max_packet_size=1024):
         self.max_packet_size = max_packet_size
 
-        self.write_pointer = ControlSignal(range(self.max_packet_size))
-        self.packet_done = ControlSignal()
+        self.reset = ControlSignal()
+        self.write_pointer = StatusSignal(range(self.max_packet_size))
+        self.packet_done = StatusSignal()
+        self.memory = SocMemory(
+            width=len(input.payload), depth=self.max_packet_size,
+            soc_write=False, attrs=dict(syn_ramstyle="block_ram")
+        )
 
         self.input = input
 
     def elaborate(self, platform):
         m = Module()
 
-        memory = m.submodules.memory = SocMemory(width=len(self.input.payload), depth=self.max_packet_size)
+        memory = m.submodules.memory = self.memory
         write_port = m.submodules.write_port = memory.write_port(domain="sync")
         with m.If(~self.packet_done & (self.write_pointer < self.max_packet_size)):
             m.d.comb += self.input.ready.eq(1)
@@ -59,8 +80,13 @@ class ConsolePacketSink(Elaboratable):
                 m.d.comb += write_port.en.eq(1)
                 m.d.comb += write_port.addr.eq(self.write_pointer)
                 m.d.comb += write_port.data.eq(self.input.payload)
+                m.d.sync += self.write_pointer.eq(self.write_pointer + 1)
                 with m.If(self.input.last):
                     m.d.sync += self.packet_done.eq(1)
+
+        with m.If(Changed(m, self.reset)):
+            m.d.sync += self.write_pointer.eq(0)
+            m.d.sync += self.packet_done.eq(0)
 
         return m
 
@@ -70,6 +96,5 @@ class ConsolePacketSink(Elaboratable):
             return None
 
         to_return = [self.memory[i] for i in range(self.write_pointer)]
-        self.write_pointer = 0
-        self.packet_done = False
+        self.reset = not self.reset
         return to_return

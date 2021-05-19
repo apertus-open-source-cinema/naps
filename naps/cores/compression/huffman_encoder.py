@@ -11,7 +11,7 @@ class HuffmanEncoder(Elaboratable):
         self.input = input
 
         self.distribution = distribution
-        self.table = {k: v[::-1] for k, v in  huffman.codebook(self.distribution.items()).items()}
+        self.table = {k: v[::-1] for k, v in huffman.codebook(self.distribution.items()).items()}
 
         self.max_input_word = max(self.distribution.keys()) + 1
         self.max_code_len = max([len(v) for v in self.table.values()])
@@ -21,6 +21,7 @@ class HuffmanEncoder(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
+        # this code is kind of similar to the StreamMemoryReader but not quite the same as it operates two memories at the same time
         stream_transformer(self.input, self.output, m, latency=1, allow_partial_out_of_band=True)
         input_transaction = self.input.ready & self.input.valid
 

@@ -9,8 +9,8 @@ from naps.util.past import Rose
 class SocMemory(Elaboratable):
     """A memory that can be read / written to by the soc"""
 
-    def __init__(self, *, width, depth, init=None, name=None, soc_read=True, soc_write=True):
-        self.memory = Memory(width=width, depth=depth, init=init, name=name)
+    def __init__(self, *, width, depth, init=None, name=None, soc_read=True, soc_write=True, **kwargs):
+        self.memory = Memory(width=width, depth=depth, init=init, name=name, **kwargs)
         self.soc_read = soc_read
         self.soc_write = soc_write
         self.depth = depth
@@ -18,7 +18,8 @@ class SocMemory(Elaboratable):
 
     def handle_read(self, m, addr, data, read_done):
         if self.soc_read:
-            read_port = m.submodules.soc_read_port = self.memory.read_port(domain="sync", transparent=False)
+            read_port = self.memory.read_port(domain="sync", transparent=False)
+            m.submodules += read_port
             with m.If(addr > self.depth - 1):
                 read_done(Response.ERR)
             with m.Else():
@@ -27,13 +28,15 @@ class SocMemory(Elaboratable):
                 with m.If(Rose(m, is_read)):
                     m.d.comb += read_port.addr.eq(addr)
                 with m.Else():
+                    m.d.sync += data.eq(read_port.data)
                     read_done(Response.OK)
         else:
             read_done(Response.ERR)
 
     def handle_write(self, m, addr, data, write_done):
         if self.soc_write:
-            write_port = m.submodules.soc_write_port = self.memory.write_port(domain="sync")
+            write_port = self.memory.write_port(domain="sync")
+            m.submodules += write_port
             with m.If(addr > self.depth - 1):
                 write_done(Response.ERR)
             with m.Else():

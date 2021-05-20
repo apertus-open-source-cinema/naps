@@ -5,11 +5,12 @@ from nmigen.hdl.ast import SignalSet
 
 from .csr_types import _Csr, ControlSignal, StatusSignal, EventReg
 from .memorymap import MemoryMap
-from .pydriver.drivermethod import DriverMethod
+from .pydriver.driver_items import DriverItem, DriverData
 from .tracing_elaborate import ElaboratableSames
+from ..util.py_serialize import is_serializable
 
 
-def csr_and_driver_method_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
+def csr_and_driver_item_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
     from naps.cores.peripherals.csr_bank import CsrBank
     already_done = []
 
@@ -47,10 +48,18 @@ def csr_and_driver_method_hook(platform, top_fragment: Fragment, sames: Elaborat
             for name, signal in old_csr_signals:
                 mmap.add_alias(name, signal)
 
-            driver_methods = [(name, getattr(elaboratable, name)) for name in dir(elaboratable)
-                              if isinstance(getattr(elaboratable, name), DriverMethod)]
-            for name, driver_method in driver_methods:
-                fragment.memorymap.add_driver_method(name, driver_method)
+            driver_items = [
+                (name, getattr(elaboratable, name))
+                for name in dir(elaboratable)
+                if isinstance(getattr(elaboratable, name), DriverItem)
+            ]
+            driver_items += [
+                (name, DriverData(getattr(elaboratable, name)))
+                for name in dir(elaboratable)
+                if is_serializable(getattr(elaboratable, name)) and not name.startswith("_")
+            ]
+            for name, driver_item in driver_items:
+                fragment.memorymap.add_driver_item(name, driver_item)
 
         for subfragment, name in fragment.subfragments:
             inner(subfragment)

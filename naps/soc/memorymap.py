@@ -7,7 +7,7 @@ from typing import List
 
 from nmigen._unused import MustUse
 
-from .pydriver.drivermethod import DriverMethod
+from .pydriver.driver_items import DriverItem
 
 __all__ = ["Address", "MemoryMap"]
 
@@ -149,7 +149,7 @@ class MemoryMap(MustUse):
 
         self.entries: List[MemoryMapRow] = []
         self.aliases = {}
-        self.driver_methods = {}
+        self.driver_items = {}
         self.frozen = False
         self._MustUse__warning = UnusedMemoryMap
 
@@ -301,9 +301,9 @@ class MemoryMap(MustUse):
         """
         self.aliases[name] = obj
 
-    def add_driver_method(self, name, drivermethod):
-        assert isinstance(drivermethod, DriverMethod)
-        self.driver_methods[name] = drivermethod
+    def add_driver_item(self, name, driver_item):
+        assert isinstance(driver_item, DriverItem)
+        self.driver_items[name] = driver_item
 
     def _added_to(self, parent, inlined_offset=None):
         self.frozen = True
@@ -364,7 +364,7 @@ class MemoryMap(MustUse):
             to_return[(*self.path, row.name)] = self.find_recursive(row, go_up=True)
         for name, obj in self.aliases.items():
             to_return[(*self.path, name)] = self.find_recursive(obj, go_up=True)
-        for name, method in self.driver_methods.items():
+        for name, method in self.driver_items.items():
             to_return[(*self.path, name)] = method
         for row in self.subranges:
             to_return.update(row.obj.flattened)

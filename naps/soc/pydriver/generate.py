@@ -6,9 +6,11 @@ from textwrap import indent, dedent
 from nmigen import Signal
 from nmigen.build import Platform
 
+from .driver_items import DriverMethod, DriverData
 from ..fatbitstream import FatbitstreamContext
 from ..memorymap import MemoryMap
 from ..tracing_elaborate import ElaboratableSames
+from ...util.py_serialize import serialize
 
 
 def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass="", top=True) -> str:
@@ -21,11 +23,16 @@ def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass=""
             f"{row.name} = {'Value' if isinstance(row.obj, Signal) else 'Blob'}(0x{address.address:02x}, {address.bit_offset}, {address.bit_len})\n",
             "    "
         )
-    for name, method in mmap.driver_methods.items():
-        function_body = dedent(getsource(method.function))
-        function_body_without_decorator = re.sub("^@.*$", "", function_body, flags=re.MULTILINE).strip()
-        function_string = ("@property\n" if method.is_property else "") + function_body_without_decorator
-        to_return += indent("\n" + function_string + "\n", "    ")
+    for name, item in mmap.driver_items.items():
+        if isinstance(item, DriverMethod):
+            function_body = dedent(getsource(item.function))
+            function_body_without_decorator = re.sub("^@.*$", "", function_body, flags=re.MULTILINE).strip()
+            function_string = ("@property\n" if item.is_property else "") + function_body_without_decorator
+            to_return += indent("\n" + function_string + "\n", "    ")
+        elif isinstance(item, DriverData):
+            to_return += indent(f"\n{name} = {serialize(item.data)}\n", "    ")
+        else:
+            raise TypeError("Unknown driver item type")
 
     for row in mmap.subranges:
         to_return += indent(gen_hardware_proxy_python_code(row.obj, row.name, superclass=superclass, top=False), "    ")

@@ -14,7 +14,11 @@ class ClockingDebug(Elaboratable):
         m = Module()
 
         for cd in self.clockdomains:
-            m.submodules[cd] = ClockDebug(cd)
+            if isinstance(cd, tuple):
+                cd, reset_less = cd
+            else:
+                reset_less = False
+            m.submodules[cd] = ClockDebug(cd, reset_less)
 
         return m
 

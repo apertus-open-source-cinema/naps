@@ -3,9 +3,12 @@
 from nmigen import *
 from nmigen.utils import bits_for
 
-from naps import PacketizedStream, SocMemory, ControlSignal, driver_method, StatusSignal, BasicStream
-from naps.cores.stream.stream_memory import StreamMemoryReader
-from naps.util.past import Changed
+from naps import PacketizedStream, ControlSignal, driver_method, StatusSignal, Changed
+from ..stream import StreamMemoryReader
+from ..peripherals import SocMemory
+
+
+__all__ = ["ConsolePacketSource", "ConsolePacketSink"]
 
 
 class ConsolePacketSource(Elaboratable):
@@ -40,7 +43,7 @@ class ConsolePacketSource(Elaboratable):
             m.d.sync += self.read_ptr.eq(0)
             m.d.sync += self.done.eq(0)
 
-        reader = m.submodules.reader = StreamMemoryReader(address_stream, memory.memory)
+        reader = m.submodules.reader = StreamMemoryReader(address_stream, memory)
         m.d.comb += self.output.connect_upstream(reader.output)
 
         return m

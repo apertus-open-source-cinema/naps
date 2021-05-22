@@ -1,8 +1,10 @@
 from nmigen import *
 from nmigen.hdl.dsl import FSM
 
-from naps import SocMemory, driver_method, StatusSignal
-from naps.util.past import Changed
+from naps import driver_method, StatusSignal, Changed
+from ..peripherals import SocMemory
+
+__all__ = ["Tracer"]
 
 
 class Tracer(Elaboratable):

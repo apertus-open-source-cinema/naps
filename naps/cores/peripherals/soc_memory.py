@@ -14,9 +14,12 @@ class SocMemory(Elaboratable):
         self.soc_read = soc_read
         self.soc_write = soc_write
         self.depth = depth
+        self.width = width
+        self.ports = []
 
 
     def handle_read(self, m, addr, data, read_done):
+        m.submodules += self.ports
         if self.soc_read:
             read_port = self.memory.read_port(domain="sync", transparent=False)
             m.submodules += read_port
@@ -64,11 +67,63 @@ class SocMemory(Elaboratable):
 
         return m
 
-    def read_port(self, *args, **kwargs):
-        return self.memory.read_port(*args, **kwargs)
+    def read_port(self, domain="sync", **kwargs):
+        outer_self = self
+        comb = domain == "comb"
 
-    def write_port(self, *args, **kwargs):
-        return self.memory.write_port(*args, **kwargs)
+        class SocMemoryReadPort(Elaboratable):
+            def __init__(self):
+                self.read_port = outer_self.memory.read_port(domain="comb" if comb else "sync", **kwargs)
+
+            def elaborate(self, platform):
+                nonlocal comb
+                nonlocal outer_self
+
+                if not hasattr(platform, "soc_memory_domains_counter"):
+                    platform.soc_memory_domains_counter = 0
+                else:
+                    platform.soc_memory_domains_counter += 1
+                domain_name = f"soc_memory_domain_{platform.soc_memory_domains_counter}"
+
+                dr = DomainRenamer(domain_name) if not comb else (lambda x: x)
+                outer_self.ports.append(dr(self.read_port))
+
+                m = Module()
+                m.domains += (cd := ClockDomain(domain_name))
+                m.d.comb += cd.clk.eq(ClockSignal())
+                return DomainRenamer(domain)(m)
+
+            def __getattr__(self, item):
+                return getattr(self.read_port, item)
+
+        return SocMemoryReadPort()
+
+    def write_port(self, domain="sync", **kwargs):
+        outer_self = self
+
+        class SocMemoryWritePort(Elaboratable):
+            def __init__(self):
+                self.write_port = outer_self.memory.write_port(domain="sync", **kwargs)
+
+            def elaborate(self, platform):
+                if not hasattr(platform, "soc_memory_domains_counter"):
+                    platform.soc_memory_domains_counter = 0
+                else:
+                    platform.soc_memory_domains_counter += 1
+                domain_name = f"soc_memory_domain_{platform.soc_memory_domains_counter}"
+
+                outer_self.ports.append(DomainRenamer(domain_name)(self.write_port))
+
+                m = Module()
+                m.domains += (cd := ClockDomain(domain_name))
+                m.d.comb += cd.clk.eq(ClockSignal())
+                return DomainRenamer(domain)(m)
+
+            def __getattr__(self, item):
+                return getattr(self.write_port, item)
+
+        return SocMemoryWritePort()
+
 
     @driver_method
     def __getitem__(self, item):

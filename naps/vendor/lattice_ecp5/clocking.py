@@ -87,9 +87,6 @@ class Pll(Elaboratable):
 
     def elaborate(self, platform):
         m = self.m
-        pprint({**{"p_{}".format(k): v for k, v in self.params.items()},
-            **{"i_{}".format(k): v for k, v in self.inputs.items()},
-            **{"o_{}".format(k): v for k, v in self.outputs.items()},})
         inst = m.submodules.inst = Instance(
             "EHXPLLL",
             **{"p_{}".format(k): v for k, v in self.params.items()},

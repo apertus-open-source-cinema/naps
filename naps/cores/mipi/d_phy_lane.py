@@ -1,6 +1,6 @@
 from contextlib import contextmanager
 from nmigen import *
-from naps import StatusSignal, PacketizedStream, TristateIo, StreamBuffer
+from naps import StatusSignal, PacketizedStream, TristateIo, StreamBuffer, trigger, probe
 
 # control mode lp symbols
 from naps.cores.debug.tracer import Tracer
@@ -47,6 +47,11 @@ class DPhyDataLane(Elaboratable):
         m.d.comb += self.lp_pins.oe.eq(self.is_lp & self.is_driving)
         m.d.comb += self.hs_pins.oe.eq(~self.is_lp & self.is_driving)
 
+        trigger(m, ~self.is_driving)
+        probe(m, self.lp_pins.oe)
+        probe(m, self.lp_pins.i)
+        probe(m, self.lp_pins.o)
+
         @contextmanager
         def delay(cycles):
             timer = Signal(range(cycles))
@@ -64,7 +69,7 @@ class DPhyDataLane(Elaboratable):
                 else_stmt.__exit__(None, None, None)
 
         def delay_next(cycles, next_state):
-            with delay(cycles):
+            with delay(cycles * 2):
                 m.next = next_state
 
         with m.If(self.is_driving):
@@ -72,30 +77,24 @@ class DPhyDataLane(Elaboratable):
             with m.FSM(name="tx_fsm") as fsm:
                 tx_tracer = m.submodules.tx_tracer = Tracer(fsm)
                 with m.State("IDLE"):
-                    m.d.comb += self.state_is_driving.eq(1)
                     m.d.comb += lp.eq(STOP)
                     with m.If(self.control_input.valid):
                         m.next = "LP_REQUEST"
                 with m.State("LP_REQUEST"):
-                    m.d.comb += self.state_is_driving.eq(2)
                     m.d.comb += lp.eq(LP_REQUEST)
                     delay_next(1, "LP_REQUEST_BRIDGE")
                 with m.State("LP_REQUEST_BRIDGE"):
-                    m.d.comb += self.state_is_driving.eq(3)
                     m.d.comb += lp.eq(BRIDGE)
                     delay_next(1, "ESCAPE_REQUEST")
                 with m.State("ESCAPE_REQUEST"):
-                    m.d.comb += self.state_is_driving.eq(4)
                     m.d.comb += lp.eq(ESCAPE_REQUEST)
                     delay_next(1, "ESCAPE_REQUEST_BRIDGE")
                 with m.State("ESCAPE_REQUEST_BRIDGE"):
-                    m.d.comb += self.state_is_driving.eq(5)
                     m.d.comb += lp.eq(BRIDGE)
                     delay_next(1, "ESCAPE_0")
 
                 for bit in range(8):
                     with m.State(f"ESCAPE_{bit}"):
-                        m.d.comb += self.state_is_driving.eq(6)
                         with m.If(self.control_input.valid):  # after transmitting the first byte, this can be false. the mipi spec allows us to wait here (in space state)
                             with m.If(self.control_input.payload[bit]):
                                 m.d.comb += lp.eq(MARK_1)
@@ -103,7 +102,6 @@ class DPhyDataLane(Elaboratable):
                                 m.d.comb += lp.eq(MARK_0)
                             delay_next(1, f"ESCAPE_{bit}_SPACE")
                     with m.State(f"ESCAPE_{bit}_SPACE"):
-                        m.d.comb += self.state_is_driving.eq(6)
                         m.d.comb += lp.eq(SPACE)
                         if bit < 7:
                             delay_next(1, f"ESCAPE_{bit + 1}")
@@ -118,28 +116,22 @@ class DPhyDataLane(Elaboratable):
                                     m.d.comb += self.control_input.ready.eq(1)
 
                 with m.State("ESCAPE_FINISH"):
-                    m.d.comb += self.state_is_driving.eq(7)
                     m.d.comb += lp.eq(MARK_1)
                     delay_next(1, "ESCAPE_FINISH_STOP")
                 with m.State("ESCAPE_FINISH_STOP"):
-                    m.d.comb += self.state_is_driving.eq(8)
                     m.d.comb += lp.eq(STOP)
                     delay_next(10, "TURNAROUND_LP_REQUEST")  # TODO: reduce the delay; it is here to ease debugging :)
 
                 with m.State("TURNAROUND_LP_REQUEST"):
-                    m.d.comb += self.state_is_driving.eq(9)
                     m.d.comb += lp.eq(LP_REQUEST)
                     delay_next(1, "TURNAROUND_LP_REQUEST_BRIDGE")
                 with m.State("TURNAROUND_LP_REQUEST_BRIDGE"):
-                    m.d.comb += self.state_is_driving.eq(9)
                     m.d.comb += lp.eq(BRIDGE)
                     delay_next(1, "TURNAROUND_REQUEST")
                 with m.State("TURNAROUND_REQUEST"):
-                    m.d.comb += self.state_is_driving.eq(10)
                     m.d.comb += lp.eq(TURNAROUND_REQUEST)
                     delay_next(1, "TURNAROUND_REQUEST_BRIDGE")
                 with m.State("TURNAROUND_REQUEST_BRIDGE"):
-                    m.d.comb += self.state_is_driving.eq(11)
                     m.d.comb += lp.eq(BRIDGE)
                     with delay(4):
                         m.next = "IDLE"
@@ -155,7 +147,7 @@ class DPhyDataLane(Elaboratable):
         with m.If(~self.is_driving):
             lp = self.lp_pins.i
             with m.FSM(name="rx_fsm") as fsm:
-                rx_tracer = m.submodules.rx_tracer = Tracer(fsm)
+                rx_tracer = m.submodules.rx_tracer = Tracer(fsm, trace_length=1024)
 
                 def maybe_next(condition, next_state):
                     with m.If(condition):
@@ -165,17 +157,14 @@ class DPhyDataLane(Elaboratable):
                     maybe_next(lp == STOP, "STOP")
 
                 with m.State("STOP"):
-                    m.d.comb += self.state_not_driving.eq(1)
                     maybe_next(lp == LP_REQUEST, "AFTER-LP-REQUEST")
                     maybe_stop()
 
                 with m.State("AFTER-LP-REQUEST"):
-                    m.d.comb += self.state_not_driving.eq(2)
                     with m.If(lp == BRIDGE):
                         m.next = "AFTER-LP-REQUEST-BRIDGE"
                     maybe_stop()
                 with m.State("AFTER-LP-REQUEST-BRIDGE"):
-                    m.d.comb += self.state_not_driving.eq(3)
                     with m.If(lp == ESCAPE_REQUEST):
                         m.next = "AFTER-ESCAPE-REQUEST"
                     with m.Elif(lp == TURNAROUND_REQUEST):
@@ -183,7 +172,6 @@ class DPhyDataLane(Elaboratable):
                     maybe_stop()
 
                 with m.State("AFTER-TURNAROUND-REQUEST"):
-                    m.d.comb += self.state_not_driving.eq(4)
                     with m.If(lp == BRIDGE):
                         with delay(4):
                             m.next = "STOP"
@@ -192,7 +180,6 @@ class DPhyDataLane(Elaboratable):
 
 
                 with m.State("AFTER-ESCAPE-REQUEST"):
-                    m.d.comb += self.state_not_driving.eq(5)
                     with m.If(lp == BRIDGE):
                         m.next = "ESCAPE_0"
 
@@ -211,7 +198,6 @@ class DPhyDataLane(Elaboratable):
                 bit_value = Signal()
                 for bit in range(8):
                     with m.State(f"ESCAPE_{bit}"):
-                        m.d.comb += self.state_not_driving.eq(6)
                         with m.If(lp == MARK_0):
                             m.d.sync += bit_value.eq(0)
                             m.next = f"ESCAPE_{bit}_SPACE"
@@ -220,7 +206,6 @@ class DPhyDataLane(Elaboratable):
                             m.next = f"ESCAPE_{bit}_SPACE"
                         maybe_finish_escape()
                     with m.State(f"ESCAPE_{bit}_SPACE"):
-                        m.d.comb += self.state_not_driving.eq(6)
                         with m.If(lp == SPACE):
                             if bit == 0:
                                 with m.If(~outboxed):

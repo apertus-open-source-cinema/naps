@@ -1,8 +1,9 @@
-AXIOM nMigen Gateware
-=====================
+nMigen Apertus PackageS
+=======================
 
-Building Blocks & FPGA Designs powering the AXIOM micro camera written in Python & `nMigen <https://github.com/nmigen/nmigen>`__.
+Building Blocks & Tools for FPGA Design with Python & `nMigen <https://github.com/nmigen/nmigen>`__.
 Mostly a place to experiment and figure out how to build things.
+Also the incubator for the future AXIOM Beta camera gateware & the home of the current AXIOM micro gateware.
 
 This repo contains:
 

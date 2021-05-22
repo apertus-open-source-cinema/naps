@@ -20,12 +20,12 @@ def doc_url():
     if "DOC_SHA" in os.environ:
         return f"https://docs.niemo.de/naps/commit/{os.environ['DOC_SHA']}".strip()
     else:
-        return 'https://apertus-open-source-cinema.github.io/nmigen-gateware/'
+        return 'https://apertus-open-source-cinema.github.io/naps/'
 
 setup(
     name='naps',
     use_scm_version=scm_version(),
-    url='https://github.com/apertus-open-source-cinema/nmigen-gateware',
+    url='https://github.com/apertus-open-source-cinema/naps',
     description='nMigen Apertus Packages',
     long_description=Path("README.rst").read_text(),
     packages=find_packages(),
@@ -38,8 +38,8 @@ setup(
     keywords='nmigen apertus fpga gateware video camera',
     project_urls={
         'Documentation': doc_url(),
-        'Homepage': 'https://github.com/apertus-open-source-cinema/nmigen-gateware',
-        'Bug Tracker': 'https://github.com/apertus-open-source-cinema/nmigen-gateware/issues'
+        'Homepage': 'https://github.com/apertus-open-source-cinema/naps',
+        'Bug Tracker': 'https://github.com/apertus-open-source-cinema/naps/issues'
     },
     extras_require={
         'test': [

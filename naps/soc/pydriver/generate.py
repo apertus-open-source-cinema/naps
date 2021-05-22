@@ -1,6 +1,7 @@
 import re
 from inspect import getsource
 from os.path import dirname, join
+from pathlib import Path
 from textwrap import indent, dedent
 
 from nmigen import Signal
@@ -42,13 +43,13 @@ def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass=""
 def generate_pydriver(top_memorymap, memory_accessor):
     pycode = "# pydriver hardware access file"
     pycode += "\n\n## HARDWARE PROXY STATIC: ###\n"
-    pycode += open(join(dirname(__file__), "hardware_proxy.py")).read()
+    pycode += (Path(__file__).parent / "hardware_proxy.py").read_text()
     pycode += "\n\n## HARDWARE PROXY DYNAMIC: ###\n"
     pycode += gen_hardware_proxy_python_code(top_memorymap, superclass="HardwareProxy")
     pycode += "\n\n## MEMORY ACCESSOR: ###\n"
     pycode += memory_accessor
     pycode += "\n\n## INTERACTIVE SHELL: ###\n"
-    pycode += open(join(dirname(__file__), "interactive.py")).read()
+    pycode += (Path(__file__).parent / "interactive.py").read_text()
     return pycode
 
 

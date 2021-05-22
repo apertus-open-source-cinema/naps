@@ -35,7 +35,7 @@ class FatbitstreamContext:
         BEWARE: this has kind of a double indirection because we write bash that generates bash that is then executed.
         Yields the commands that are to be executed during build time.
         """
-        builder = _FatbitstreamBuilder()
+        builder = _FatbitstreamBuilder(self)
         builder.append_host("\n")
         builder.append_host("touch {{name}}.fatbitstream.sh")
         builder.append_command("#!/bin/bash\n")
@@ -75,7 +75,8 @@ class FatbitstreamContext:
 
 
 class _FatbitstreamBuilder:
-    def __init__(self):
+    def __init__(self, context: FatbitstreamContext):
+        self.context = context
         self.cmds = []
 
     def append_host(self, cmd):

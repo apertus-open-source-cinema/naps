@@ -62,7 +62,7 @@ class Value:
 
 
 @dataclass
-class Blob(Value):
+class Blob:
     """Represents bigger address chunks that are not useful to express as BitwiseAccessibleInteger"""
     address: int
     bit_start: int
@@ -84,9 +84,7 @@ class HardwareProxy:
         if name in {**self.__dict__, **self.__class__.__dict__}:
             obj = object.__getattribute__(self, name)
 
-            if isinstance(obj, Blob):
-                return obj
-            elif isinstance(obj, Value):
+            if isinstance(obj, Value):
                 to_return = BitwiseAccessibleInteger()
                 read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
                 for i in range(read_bytes):
@@ -123,14 +121,12 @@ class HardwareProxy:
     def __repr__(self, allow_recursive=False):
         if stack()[1].filename == "<console>" or allow_recursive:
             to_return = ""
-            children = [(name, getattr(self, name)) for name in dir(self) if not name.startswith("_")]
+            children = [(name, object.__getattribute__(self, name)) for name in dir(self) if not name.startswith("_")]
             real_children = [(name, child) for name, child in children if not isinstance(child, HardwareProxy)]
             proxy_children = [(name, child) for name, child in children if isinstance(child, HardwareProxy)]
             for name, child in real_children:
-                if callable(child):
-                    to_return += "{}: method()\n".format(name)
-                else:
-                    to_return += "{}: {}\n".format(name, child)
+                if type(child) == Value:
+                    to_return += "{}: {}\n".format(name, getattr(self, name))
             for name, child in proxy_children:
                 to_return += "{}: \n{}\n".format(name, indent(child.__repr__(allow_recursive=True), "    "))
             return to_return.strip()

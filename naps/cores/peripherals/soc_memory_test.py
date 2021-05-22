@@ -1,6 +1,6 @@
 import unittest
 
-from naps import SimPlatform, SocMemory, axil_read, axil_write
+from naps import SimPlatform, SocMemory, axil_read, axil_write, do_nothing, SimSocPlatform
 from naps.soc.platform.zynq import ZynqSocPlatform
 
 
@@ -18,3 +18,19 @@ class SocMemoryTest(unittest.TestCase):
                 self.assertEqual(addr, (yield from axil_read(axi, addr + 0x40000000)))
 
         platform.sim(dut, (testbench, "axi_lite"))
+
+    def test_with_driver(self):
+        platform = SimSocPlatform(SimPlatform())
+
+        dut = SocMemory(width=32, depth=128)
+
+        def driver(design):
+            for i in range(128):
+                design[i] = i * i
+                yield from do_nothing(10)
+            for i in reversed(range(128)):
+                assert design[i] == i * i
+                yield from do_nothing(10)
+        platform.add_driver(driver)
+
+        platform.sim(dut)

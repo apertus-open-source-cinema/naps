@@ -2,7 +2,7 @@
 # (DomainRenamer and Sample do not work together)
 
 from nmigen import *
-from naps import delay_by
+from .nmigen_misc import delay_by
 
 
 def Sample(m, signal: Signal, clocks=1, domain="sync"):
@@ -15,6 +15,10 @@ def Sample(m, signal: Signal, clocks=1, domain="sync"):
 
 def Rose(m, expr: Signal, domain="sync", clocks=0):
     return ~Sample(m, expr, clocks + 1, domain) & Sample(m, expr, clocks, domain)
+
+
+def Fell(m, expr: Signal, domain="sync", clocks=0):
+    return Sample(m, expr, clocks + 1, domain) & ~Sample(m, expr, clocks, domain)
 
 
 def Changed(m, expr: Signal, domain="sync", clocks=0):

@@ -16,7 +16,8 @@ jobs:
           sudo tar -C / --strip-components=1 -xf fpga_toolchain.tar.xz
       - name: Install deps
         run: |
-          python -c "print('Hello, world')"
+          echo $(which python)
+#          python -c "print('Hello, world')"
 #          python -m pip install -e .[doc,test]
       - name: Run test suite
         run:

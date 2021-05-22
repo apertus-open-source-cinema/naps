@@ -120,6 +120,6 @@ class Ila(Elaboratable):
         with open(path, "w") as f:
             with VCDWriter(f, timescale=(int(1 / self.clock_freq * 1e9), 'ns')) as writer:
                 vcd_vars = [writer.register_var('ila_signals', name, 'reg', size=size) for name, size in self.probes.items()]
-                for timestamp, values in self.get_values():
+                for timestamp, values in enumerate(self.get_values()):
                     for var, value in zip(vcd_vars, values):
                         writer.change(var, timestamp, value)

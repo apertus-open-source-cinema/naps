@@ -6,7 +6,6 @@ from .axi import *
 from .dram_packet_ringbuffer import *
 from .jtag import *
 from .peripherals import *
-from .ila import *
 from .cmv12k import *
 from .hispi import *
 from .mipi import *

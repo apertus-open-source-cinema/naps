@@ -42,6 +42,8 @@ class SimSocPlatform(SocPlatform):
     def add_driver(self, driver):
         def driver_process(conn):
             class SimMemAccessor:
+                base = 0
+
                 def read(self, offset):
                     conn.send(('read', offset))
                     return conn.recv()

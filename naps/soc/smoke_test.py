@@ -3,6 +3,7 @@ from nmigen import *
 from naps import ZynqSocPlatform, SimPlatform
 from naps.cores.axi import axil_read
 from naps.cores.hdmi import generate_modeline, HdmiTx
+from naps.soc.pydriver.driver_items import DriverItem
 
 
 class SocSmokeTest(unittest.TestCase):
@@ -24,9 +25,7 @@ class SocSmokeTest(unittest.TestCase):
             axi = platform.axi_lite_master
             memorymap = platform.memorymap
             for name, addr in memorymap.flattened.items():
-                print(name, addr)
-                yield from axil_read(axi, addr.address)
-                # yield from axil_write(axi, addr.address, testdata)  # this will return an error if the register in question is a StatusRegister
-                # self.assertEqual(testdata, (yield from axil_read(axi, addr.address)))
+                if not isinstance(addr, DriverItem):
+                    yield from axil_read(axi, addr.address)
 
         platform.sim(dut, (testbench, "axi_lite"))

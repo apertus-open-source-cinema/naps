@@ -4,7 +4,7 @@ from nmigen import *
 from nmigen.utils import bits_for
 
 from naps import PacketizedStream, ControlSignal, driver_method, StatusSignal, Changed
-from ..stream import StreamMemoryReader
+from ..stream import StreamMemoryReader, StreamBuffer
 from ..peripherals import SocMemory
 
 
@@ -21,7 +21,7 @@ class ConsolePacketSource(Elaboratable):
         self.done = StatusSignal(reset=1)
         self.memory = SocMemory(
             width=data_width, depth=self.max_packet_size,
-            soc_read=False, attrs=dict(syn_ramstyle="block_ram")
+            soc_read=False,  attrs=dict(syn_ramstyle="block_ram")
         )
 
         self.output = PacketizedStream(data_width)
@@ -44,7 +44,8 @@ class ConsolePacketSource(Elaboratable):
             m.d.sync += self.done.eq(0)
 
         reader = m.submodules.reader = StreamMemoryReader(address_stream, memory)
-        m.d.comb += self.output.connect_upstream(reader.output)
+        buffer = m.submodules.buffer = StreamBuffer(reader.output)
+        m.d.comb += self.output.connect_upstream(buffer.output)
 
         return m
 

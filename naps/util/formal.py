@@ -8,6 +8,12 @@ from nmigen._toolchain import require_tool
 from nmigen.back import rtlil
 from shutil import rmtree
 
+__all__ = ["assert_formal", "FormalPlatform"]
+
+
+class FormalPlatform:
+    pass
+
 
 def assert_formal(spec, mode="bmc", depth=1):
     functions = []
@@ -56,12 +62,11 @@ def assert_formal(spec, mode="bmc", depth=1):
         mode=mode,
         depth=depth,
         script=script,
-        rtlil=rtlil.convert(Fragment.get(spec, platform="formal"))
+        rtlil=rtlil.convert(Fragment.get(spec, platform=FormalPlatform))
     )
     with subprocess.Popen([require_tool("sby"), "-f", "-d", filename], cwd=str(target_dir),
                           universal_newlines=True,
                           stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:
         stdout, stderr = proc.communicate(config)
         if proc.returncode != 0:
-
             assert False, "Formal verification failed:\n" + stdout + "\n\n" + f"vcd: {str(target_dir / filename)}/engine_0/trace.vcd"

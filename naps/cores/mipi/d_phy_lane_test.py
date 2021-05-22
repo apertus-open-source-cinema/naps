@@ -15,8 +15,8 @@ class DPhyDataLaneTest(unittest.TestCase):
         platform = SimPlatform()
         m = Module()
 
-        a = m.submodules.a = DPhyDataLane(TristateIo(2), TristateIo(2), "ddr", initial_driving=True)
-        b = m.submodules.b = DPhyDataLane(TristateIo(2), TristateIo(2), "ddr", initial_driving=False)
+        a = m.submodules.a = DPhyDataLane(TristateIo(2), TristateIo(2), initial_driving=True)
+        b = m.submodules.b = DPhyDataLane(TristateIo(2), TristateIo(2), initial_driving=False)
 
         with m.If(a.lp_pins.oe):
             m.d.comb += b.lp_pins.i.eq(a.lp_pins.o)

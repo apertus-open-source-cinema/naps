@@ -16,6 +16,8 @@ jobs:
           sudo tar -C / --strip-components=1 -xf fpga_toolchain.tar.xz
       - name: Install deps
         run: |
+          pip3 install numpy
+          echo $(which pip3)
           pip3 install -e .[doc,test]
       - name: Run test suite
         run:

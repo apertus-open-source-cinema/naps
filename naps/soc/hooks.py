@@ -7,7 +7,7 @@ from .csr_types import _Csr, ControlSignal, StatusSignal, EventReg
 from .memorymap import MemoryMap
 from .pydriver.driver_items import DriverItem, DriverData
 from .tracing_elaborate import ElaboratableSames
-from ..util.py_serialize import is_serializable
+from ..util.py_serialize import is_py_serializable
 
 
 def csr_and_driver_item_hook(platform, top_fragment: Fragment, sames: ElaboratableSames):
@@ -56,7 +56,7 @@ def csr_and_driver_item_hook(platform, top_fragment: Fragment, sames: Elaboratab
             driver_items += [
                 (name, DriverData(getattr(elaboratable, name)))
                 for name in dir(elaboratable)
-                if is_serializable(getattr(elaboratable, name)) and not name.startswith("_")
+                if is_py_serializable(getattr(elaboratable, name)) and not name.startswith("_")
             ]
             for name, driver_item in driver_items:
                 fragment.memorymap.add_driver_item(name, driver_item)

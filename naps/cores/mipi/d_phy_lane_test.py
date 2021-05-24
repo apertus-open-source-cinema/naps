@@ -29,8 +29,8 @@ class DPhyDataLaneTest(unittest.TestCase):
 
         def writer():
             for packet in packets:
-                yield from write_packet_to_stream(a.control_input, packet)
-                yield from write_packet_to_stream(b.control_input, packet)
+                yield from write_packet_to_stream(a.control_input, packet, timeout=200)
+                yield from write_packet_to_stream(b.control_input, packet, timeout=200)
             yield Passive()
             while True:
                 yield
@@ -38,8 +38,8 @@ class DPhyDataLaneTest(unittest.TestCase):
 
         def reader():
             for packet in packets:
-                print("b", (yield from read_packet_from_stream(b.control_output)))
-                print("a", (yield from read_packet_from_stream(a.control_output)))
+                print("b", (yield from read_packet_from_stream(b.control_output, timeout=200)))
+                print("a", (yield from read_packet_from_stream(a.control_output, timeout=200)))
         platform.add_process(reader, "sync")
 
         platform.add_sim_clock("sync", 30e6)

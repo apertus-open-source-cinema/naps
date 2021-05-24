@@ -1,13 +1,20 @@
 import sys
 
+from migen import FSM
 from nmigen import *
+from nmigen.lib.cdc import FFSynchronizer
+
 from naps import StatusSignal, ControlSignal, driver_method, Changed, SocPlatform
 from ..peripherals import SocMemory
 
 __all__ = ["probe", "trigger", "add_ila"]
 
 
-def probe(m, signal, name=None):
+def fsm_probe(m, fsm: FSM):
+    probe(m, fsm.state, decoder=fsm.decoding)
+
+
+def probe(m, signal, name=None, decoder=None):
     name = name if name else signal.name
 
     class Probe(Elaboratable):  # we use this to get the platform from the module
@@ -16,7 +23,7 @@ def probe(m, signal, name=None):
                 platform.probes = {}
             if name in platform.probes:
                 platform.ila_error = KeyError(f"probe witH name '{name}' more than once in design")
-            platform.probes[name] = signal
+            platform.probes[name] = (signal, None if decoder is None else dict(decoder))
             return Module()
 
     m.submodules += Probe()
@@ -36,24 +43,25 @@ def trigger(m, signal):
     return signal
 
 
-def add_ila(platform: SocPlatform, *args, **kwargs):
+def add_ila(platform: SocPlatform, *args, domain="sync", **kwargs):
     assert isinstance(platform, SocPlatform)
     sys.setrecursionlimit(500)
-    platform.to_inject_subfragments.append((Ila(*args, **kwargs), 'ila'))
+    platform.to_inject_subfragments.append((DomainRenamer(domain)(Ila(*args, **kwargs)), 'ila'))
 
 
 class Ila(Elaboratable):
-    def __init__(self, trace_length=2048, after_trigger=None, clock_freq=100e6):
+    def __init__(self, trace_length=2048, after_trigger=None):
         self.trace_length = trace_length
-        self.clock_freq = clock_freq
 
         self.after_trigger = ControlSignal(range(trace_length), reset=(trace_length // 2 if after_trigger is None else after_trigger))
         self.reset = ControlSignal()
 
+        self.initial = StatusSignal(reset=1)
         self.running = StatusSignal()
         self.write_ptr = StatusSignal(range(trace_length))
         self.trigger_since = StatusSignal(range(trace_length + 1))
-        self.probes = {}
+        self.probes = []
+        self.decoders = []
 
     def elaborate(self, platform):
         m = Module()
@@ -62,12 +70,16 @@ class Ila(Elaboratable):
             raise platform.ila_error
 
         assert hasattr(platform, "trigger"), "No trigger in Design"
-        trigger = platform.trigger
+        trigger = Signal()
+        m.submodules += FFSynchronizer(platform.trigger, trigger)
         assert hasattr(platform, "probes"), "No probes in Design"
-        probes = platform.probes
-        self.probes = {k: len(s) for k, s in probes.items()}
+        platform_probes = list(platform.probes.items())
+        probes = [(k, Signal.like(signal)) for k, (signal, decoder) in platform_probes]
+        for (_, (i, _)), (_, o) in zip(platform_probes, probes):
+            m.submodules += FFSynchronizer(i, o)
+        self.probes = [(k, (len(signal), decoder)) for k, (signal, decoder) in platform_probes]
 
-        self.mem = m.submodules.mem = SocMemory(width=sum(x for x in self.probes.values()), depth=self.trace_length, soc_write=False)
+        self.mem = m.submodules.mem = SocMemory(width=sum(length for name, (length, decoder) in self.probes), depth=self.trace_length, soc_write=False)
         write_port = m.submodules.write_port = self.mem.write_port(domain="sync")
 
         with m.If(self.running):
@@ -77,7 +89,7 @@ class Ila(Elaboratable):
                 m.d.sync += self.write_ptr.eq(0)
             m.d.comb += write_port.addr.eq(self.write_ptr)
             m.d.comb += write_port.en.eq(1)
-            m.d.comb += write_port.data.eq(Cat(s for s in probes.values()))
+            m.d.comb += write_port.data.eq(Cat([s for _, s in probes]))
 
             with m.If(self.trigger_since == 0):
                 with m.If(trigger):
@@ -90,6 +102,7 @@ class Ila(Elaboratable):
         with m.Else():
             with m.If(Changed(m, self.reset)):
                 m.d.sync += self.running.eq(1)
+                m.d.sync += self.initial.eq(0)
 
         return m
 
@@ -100,26 +113,30 @@ class Ila(Elaboratable):
 
     @driver_method
     def get_values(self):
+        assert not self.running and not self.initial, "ila didnt trigger yet"
         r = list(range(self.trace_length))
         addresses = r[self.write_ptr:] + r[:self.write_ptr]
         for address in addresses:
             value = self.mem[address]
             current_offset = 0
             current_row = []
-            for name, size in self.probes.items():
+            for name, (size, _) in self.probes:
                 current_row.append((value >> current_offset) & (2 ** size - 1))
+                current_offset += size
             yield current_row
 
     @driver_method
-    def write_vcd(self, path="ila.vcd"):
-        assert not self.running, "ila didnt trigger yet"
+    def write_vcd(self, path="/tmp/ila.vcd"):
         from pathlib import Path
         path = Path(path)
         print(f"writing vcd to {path.absolute()}")
         from vcd import VCDWriter
         with open(path, "w") as f:
-            with VCDWriter(f, timescale=(int(1 / self.clock_freq * 1e9), 'ns')) as writer:
-                vcd_vars = [writer.register_var('ila_signals', name, 'reg', size=size) for name, size in self.probes.items()]
+            with VCDWriter(f) as writer:
+                vcd_vars = [(writer.register_var('ila_signals', name, 'reg' if decoder is None else 'string', size=size), decoder) for name, (size, decoder) in self.probes]
+                clk = writer.register_var('ila_signals', 'clk', 'reg', size=1)
                 for timestamp, values in enumerate(self.get_values()):
-                    for var, value in zip(vcd_vars, values):
-                        writer.change(var, timestamp, value)
+                    writer.change(clk, timestamp * 2, 1)
+                    for (var, decoder), value in zip(vcd_vars, values):
+                        writer.change(var, timestamp * 2, value if decoder is None else decoder.get(value, str(value)))
+                    writer.change(clk, timestamp * 2 + 1, 0)

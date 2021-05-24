@@ -11,7 +11,7 @@ from .driver_items import DriverMethod, DriverData
 from ..fatbitstream import FatbitstreamContext
 from ..memorymap import MemoryMap
 from ..tracing_elaborate import ElaboratableSames
-from ...util.py_serialize import serialize
+from ...util.py_serialize import py_serialize
 
 
 def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass="", top=True) -> str:
@@ -31,7 +31,7 @@ def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass=""
             function_string = ("@property\n" if item.is_property else "") + function_body_without_decorator
             to_return += indent("\n" + function_string + "\n", "    ")
         elif isinstance(item, DriverData):
-            to_return += indent(f"\n{name} = {serialize(item.data)}\n", "    ")
+            to_return += indent(f"\n{name} = {py_serialize(item.data)}\n", "    ")
         else:
             raise TypeError("Unknown driver item type")
 

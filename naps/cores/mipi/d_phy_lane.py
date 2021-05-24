@@ -1,11 +1,10 @@
 from contextlib import contextmanager
 from nmigen import *
 from naps import StatusSignal, PacketizedStream, TristateIo, StreamBuffer, trigger, probe
-
-# control mode lp symbols
-from naps.cores.debug.tracer import Tracer
+from naps.cores.debug.ila import fsm_probe
 from naps.util.past import Rose
 
+# control mode lp symbols
 STOP = 0b11
 HS_REQUEST = 0b01
 LP_REQUEST = 0b10
@@ -40,6 +39,8 @@ class DPhyDataLane(Elaboratable):
         self.is_driving = StatusSignal(reset=initial_driving)
         self.state_not_driving = StatusSignal(32)
         self.state_is_driving = StatusSignal(32)
+        self.bta_timeout = 1023
+        self.bta_timeouts = StatusSignal(32)
 
     def elaborate(self, platform):
         m = Module()
@@ -47,10 +48,14 @@ class DPhyDataLane(Elaboratable):
         m.d.comb += self.lp_pins.oe.eq(self.is_lp & self.is_driving)
         m.d.comb += self.hs_pins.oe.eq(~self.is_lp & self.is_driving)
 
-        trigger(m, ~self.is_driving)
+        trigger(m, ~self.lp_pins.oe)
         probe(m, self.lp_pins.oe)
         probe(m, self.lp_pins.i)
         probe(m, self.lp_pins.o)
+        probe(m, self.control_input.payload)
+        probe(m, self.control_input.ready)
+        probe(m, self.control_input.valid)
+        probe(m, self.control_input.last)
 
         @contextmanager
         def delay(cycles):
@@ -58,24 +63,28 @@ class DPhyDataLane(Elaboratable):
             is_delay = Signal()
             m.d.comb += is_delay.eq(1)
             try:
-                with m.If(timer < cycles):
+                with m.If(timer < (cycles - 2)):
                     m.d.sync += timer.eq(timer + 1)
                 with m.If(Rose(m, is_delay)):
                     m.d.sync += timer.eq(0)
-                else_stmt = m.Else()
-                else_stmt.__enter__()
+                stmt = m.Elif(timer == cycles)
+                stmt.__enter__()
                 yield None
             finally:
-                else_stmt.__exit__(None, None, None)
+                stmt.__exit__(None, None, None)
 
         def delay_next(cycles, next_state):
-            with delay(cycles * 2):
+            with delay(cycles * 3):
                 m.next = next_state
 
+
+        bta_timeout_counter = Signal(range(self.bta_timeout))
+        bta_timeout_possible = Signal()
+
         with m.If(self.is_driving):
-            lp = self.lp_pins.o
+            lp = self.lp_pins.o  # TODO: reverse this
             with m.FSM(name="tx_fsm") as fsm:
-                tx_tracer = m.submodules.tx_tracer = Tracer(fsm)
+                fsm_probe(m, fsm)
                 with m.State("IDLE"):
                     m.d.comb += lp.eq(STOP)
                     with m.If(self.control_input.valid):
@@ -136,7 +145,8 @@ class DPhyDataLane(Elaboratable):
                     with delay(4):
                         m.next = "IDLE"
                         m.d.sync += self.is_driving.eq(0)  # this makes us leave this FSM and enter the one below
-                    # TODO: implement BTA timeout
+                        m.d.sync += bta_timeout_counter.eq(0)
+                        m.d.sync += bta_timeout_possible.eq(1)
 
 
         # we buffer the control output to be able to meet the stream contract
@@ -147,7 +157,7 @@ class DPhyDataLane(Elaboratable):
         with m.If(~self.is_driving):
             lp = self.lp_pins.i
             with m.FSM(name="rx_fsm") as fsm:
-                rx_tracer = m.submodules.rx_tracer = Tracer(fsm, trace_length=1024)
+                fsm_probe(m, fsm)
 
                 def maybe_next(condition, next_state):
                     with m.If(condition):
@@ -157,10 +167,19 @@ class DPhyDataLane(Elaboratable):
                     maybe_next(lp == STOP, "STOP")
 
                 with m.State("STOP"):
+                    with m.If(bta_timeout_possible):
+                        with m.If(bta_timeout_counter < self.bta_timeout):
+                            m.d.sync += bta_timeout_counter.eq(bta_timeout_counter + 1)
+                        with m.Else():
+                            m.d.sync += self.bta_timeouts.eq(self.bta_timeouts + 1)
+                            m.d.sync += self.is_driving.eq(1)
+                            m.d.sync += bta_timeout_counter.eq(0)
+                            m.d.sync += bta_timeout_possible.eq(0)
                     maybe_next(lp == LP_REQUEST, "AFTER-LP-REQUEST")
                     maybe_stop()
 
                 with m.State("AFTER-LP-REQUEST"):
+                    m.d.sync += bta_timeout_possible.eq(0)
                     with m.If(lp == BRIDGE):
                         m.next = "AFTER-LP-REQUEST-BRIDGE"
                     maybe_stop()

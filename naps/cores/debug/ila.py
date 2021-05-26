@@ -99,10 +99,14 @@ class Ila(Elaboratable):
                     m.d.sync += self.trigger_since.eq(self.trigger_since + 1)
                 with m.Else():
                     m.d.sync += self.running.eq(0)
+                    m.d.sync += self.initial.eq(0)
         with m.Else():
-            with m.If(Changed(m, self.reset)):
+            reset = Signal()
+            m.submodules += FFSynchronizer(self.reset, reset)
+            with m.If(Changed(m, reset)):
                 m.d.sync += self.running.eq(1)
-                m.d.sync += self.initial.eq(0)
+                m.d.sync += self.trigger_since.eq(0)
+                m.d.sync += self.write_ptr.eq(0)
 
         return m
 
@@ -113,7 +117,7 @@ class Ila(Elaboratable):
 
     @driver_method
     def get_values(self):
-        assert not self.running and not self.initial, "ila didnt trigger yet"
+        assert (not self.running) and (not self.initial), "ila didnt trigger yet"
         r = list(range(self.trace_length))
         addresses = r[self.write_ptr:] + r[:self.write_ptr]
         for address in addresses:

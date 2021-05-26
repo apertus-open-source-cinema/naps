@@ -1,7 +1,10 @@
 from contextlib import contextmanager
 from nmigen import *
+from nmigen.lib.cdc import FFSynchronizer
+
 from naps import StatusSignal, PacketizedStream, TristateIo, StreamBuffer, trigger, probe
 from naps.cores.debug.ila import fsm_probe
+from naps.util.nmigen_misc import bit_reversed
 from naps.util.past import Rose
 
 # control mode lp symbols
@@ -37,8 +40,6 @@ class DPhyDataLane(Elaboratable):
 
         self.is_lp = StatusSignal(reset=True)
         self.is_driving = StatusSignal(reset=initial_driving)
-        self.state_not_driving = StatusSignal(32)
-        self.state_is_driving = StatusSignal(32)
         self.bta_timeout = 1023
         self.bta_timeouts = StatusSignal(32)
 
@@ -50,16 +51,16 @@ class DPhyDataLane(Elaboratable):
 
         trigger(m, ~self.lp_pins.oe)
         probe(m, self.lp_pins.oe)
-        probe(m, self.lp_pins.i)
         probe(m, self.lp_pins.o)
-        probe(m, self.control_input.payload)
-        probe(m, self.control_input.ready)
-        probe(m, self.control_input.valid)
-        probe(m, self.control_input.last)
+        probe(m, self.control_output.payload)
+        probe(m, self.control_output.ready)
+        probe(m, self.control_output.valid)
+        probe(m, self.control_output.last)
 
         @contextmanager
         def delay(cycles):
-            timer = Signal(range(cycles))
+            cycles = cycles * 6
+            timer = Signal(range(cycles - 1))
             is_delay = Signal()
             m.d.comb += is_delay.eq(1)
             try:
@@ -67,14 +68,14 @@ class DPhyDataLane(Elaboratable):
                     m.d.sync += timer.eq(timer + 1)
                 with m.If(Rose(m, is_delay)):
                     m.d.sync += timer.eq(0)
-                stmt = m.Elif(timer == cycles)
+                stmt = m.Elif(timer >= cycles - 2)
                 stmt.__enter__()
                 yield None
             finally:
                 stmt.__exit__(None, None, None)
 
         def delay_next(cycles, next_state):
-            with delay(cycles * 3):
+            with delay(cycles):
                 m.next = next_state
 
 
@@ -82,7 +83,7 @@ class DPhyDataLane(Elaboratable):
         bta_timeout_possible = Signal()
 
         with m.If(self.is_driving):
-            lp = self.lp_pins.o  # TODO: reverse this
+            lp = bit_reversed(self.lp_pins.o)
             with m.FSM(name="tx_fsm") as fsm:
                 fsm_probe(m, fsm)
                 with m.State("IDLE"):
@@ -155,7 +156,10 @@ class DPhyDataLane(Elaboratable):
         m.d.comb += self.control_output.connect_upstream(control_output_buffer.output)
 
         with m.If(~self.is_driving):
-            lp = self.lp_pins.i
+            lp = Signal(2)
+            m.submodules += FFSynchronizer(bit_reversed(self.lp_pins.i), lp)
+            probe(m, lp)
+
             with m.FSM(name="rx_fsm") as fsm:
                 fsm_probe(m, fsm)
 

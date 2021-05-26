@@ -1,6 +1,7 @@
 # cores for producing / receiving packets from the console
 
 from nmigen import *
+from nmigen.lib.cdc import FFSynchronizer
 from nmigen.utils import bits_for
 
 from naps import PacketizedStream, ControlSignal, driver_method, StatusSignal, Changed
@@ -39,7 +40,10 @@ class ConsolePacketSource(Elaboratable):
             with m.If(address_stream.ready):
                 m.d.sync += self.read_ptr.eq(self.read_ptr + 1)
                 m.d.sync += self.done.eq(self.read_ptr == self.packet_length)
-        with m.Elif(Changed(m, self.reset)):
+
+        reset = Signal()
+        m.submodules += FFSynchronizer(self.reset, reset)
+        with m.If(Changed(m, reset)):
             m.d.sync += self.read_ptr.eq(0)
             m.d.sync += self.done.eq(0)
 
@@ -88,9 +92,12 @@ class ConsolePacketSink(Elaboratable):
                 with m.If(self.input.last):
                     m.d.sync += self.packet_done.eq(1)
 
-        with m.If(Changed(m, self.reset)):
+        reset = Signal()
+        m.submodules += FFSynchronizer(self.reset, reset)
+        with m.If(Changed(m, reset)):
             m.d.sync += self.write_pointer.eq(0)
             m.d.sync += self.packet_done.eq(0)
+
 
         return m
 

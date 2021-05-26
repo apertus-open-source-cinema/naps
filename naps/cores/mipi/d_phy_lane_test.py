@@ -3,7 +3,7 @@ import unittest
 from nmigen import *
 from nmigen.sim import Passive
 
-from naps import verify_stream_output_contract, TristateIo, SimPlatform, write_packet_to_stream, read_packet_from_stream
+from naps import TristateIo, SimPlatform, write_packet_to_stream, read_packet_from_stream
 from naps.cores.mipi.d_phy_lane import DPhyDataLane
 
 

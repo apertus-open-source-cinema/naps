@@ -1,7 +1,7 @@
 import sys
 
-from migen import FSM
 from nmigen import *
+from nmigen.hdl.dsl import FSM
 from nmigen.lib.cdc import FFSynchronizer
 
 from naps import StatusSignal, ControlSignal, driver_method, Changed, SocPlatform

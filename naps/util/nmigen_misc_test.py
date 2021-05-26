@@ -1,7 +1,7 @@
 import unittest
 
 from nmigen import *
-from .nmigen_misc import nMin, nAny, nAll, nMax, assert_is_pot, log2, ends_with, nAbsDifference
+from .nmigen_misc import nMin, nAny, nAll, nMax, assert_is_pot, log2, ends_with, nAbsDifference, bit_reversed
 from .sim import resolve
 
 
@@ -55,3 +55,6 @@ class TestNMigenMisc(unittest.TestCase):
         self.assertEqual(7, resolve(nAbsDifference(3, 10)))
         self.assertEqual(3, resolve(nAbsDifference(12, 9)))
         self.assertEqual(3, resolve(nAbsDifference(9, 12)))
+
+    def test_bit_reversed(self):
+        self.assertEqual(0b01, resolve(bit_reversed(Const(0b10, 2))))

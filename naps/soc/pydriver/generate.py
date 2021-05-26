@@ -1,6 +1,5 @@
 import re
 from inspect import getsource
-from os.path import dirname, join
 from pathlib import Path
 from textwrap import indent, dedent
 
@@ -24,12 +23,19 @@ def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass=""
             f"{row.name} = {'Value' if isinstance(row.obj, Signal) else 'Blob'}(0x{address.address:02x}, {address.bit_offset}, {address.bit_len})\n",
             "    "
         )
+    init_function_seen = False
     for name, item in mmap.driver_items.items():
         if isinstance(item, DriverMethod):
+            print(item.function)
             function_body = dedent(getsource(item.function))
             function_body_without_decorator = re.sub("^@.*$", "", function_body, flags=re.MULTILINE).strip()
             function_string = ("@property\n" if item.is_property else "") + function_body_without_decorator
             to_return += indent("\n" + function_string + "\n", "    ")
+            if item.is_init:
+                assert not init_function_seen, "only one function can be driver_init()"
+                init_function_seen = True
+                to_return += indent("\n" + f"init_function = {item.function.__name__}" + "\n\n", "    ")
+
         elif isinstance(item, DriverData):
             to_return += indent(f"\n{name} = {py_serialize(item.data)}\n", "    ")
         else:

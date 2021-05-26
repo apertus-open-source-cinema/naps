@@ -76,6 +76,8 @@ class HardwareProxy:
         for k, v in self.__class__.__dict__.items():
             if isinstance(v, type) and issubclass(v, HardwareProxy):
                 object.__setattr__(self, k[1:].lower(), v(memory_accessor))
+        if hasattr(self, 'init_function'):
+            self.init_function()
 
     def __getattribute__(self, name):
         if name.startswith("__"):

@@ -1,10 +1,41 @@
 from collections import defaultdict
 from typing import List
 from nmigen import *
-from naps import Stream, DOWNWARDS, nAll
+from naps import Stream, DOWNWARDS, nAll, BasicStream
 from . import StreamBuffer
 
-__all__ = ["StreamTee", "StreamCombiner"]
+__all__ = ["StreamTee", "StreamSplitter", "StreamCombiner"]
+
+
+class StreamSplitter(Elaboratable):
+    """ Routes a single N-bit stream to multiple (M) outputs which are each N/M bit wide.
+    Internally uses a StreamTee.
+    """
+
+    def __init__(self, input: BasicStream, num_outputs: int):
+        self.input = input
+        self.num_outputs = num_outputs
+
+        input_len = len(self.input.payload)
+        self.output_len = input_len // num_outputs
+        assert self.output_len * num_outputs == input_len
+
+        self.outputs: List[BasicStream] = []
+        for i in range(num_outputs):
+            output = self.input.clone(name=f"output{i}")
+            output.payload = Signal(self.output_len)
+            self.outputs.append(output)
+
+    def elaborate(self, platform):
+        m = Module()
+
+        tee = m.submodules.tee = StreamTee(self.input)
+        for i, output in enumerate(self.outputs):
+            tee_output = tee.get_output()
+            m.d.comb += output.connect_upstream(tee_output)
+            m.d.comb += output.payload.eq(tee_output.payload[i * self.output_len: (i + 1) * self.output_len])
+
+        return m
 
 
 class StreamTee(Elaboratable):
@@ -60,6 +91,7 @@ class StreamCombiner(Elaboratable):
                 super().__init__(name=name, src_loc_at=1 + src_loc_at)
                 for k, expr in payload_expressions.items():
                     setattr(self, k, Signal(len(expr)) @ DOWNWARDS)
+
         self.payload_expressions = payload_expressions
 
         self.inputs = inputs
@@ -75,4 +107,3 @@ class StreamCombiner(Elaboratable):
             m.d.comb += self.output[k].eq(expr)
 
         return m
-

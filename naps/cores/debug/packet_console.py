@@ -109,3 +109,11 @@ class ConsolePacketSink(Elaboratable):
         to_return = [self.memory[i] for i in range(self.write_pointer)]
         self.reset = not self.reset
         return to_return
+
+    @driver_method
+    def print_packet(self):
+        packet = self.read_packet()
+        if packet is None:
+            print("None")
+        else:
+            print(f"[{', '.join(['0x{:02x}'.format(x) for x in packet])}]")

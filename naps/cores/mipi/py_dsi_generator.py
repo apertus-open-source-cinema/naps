@@ -63,7 +63,7 @@ class DataIdentifier:
 
 
 def calculate_ecc(bytes):
-    ecc_table = [
+    ecc_table = reversed([
         [],
         [],
         [10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 21, 22, 23],
@@ -72,7 +72,7 @@ def calculate_ecc(bytes):
         [0, 2, 3, 5, 6, 9, 11, 12, 15, 18, 20, 21, 22],
         [0, 1, 3, 4, 6, 8, 10, 12, 14, 17, 20, 21, 22, 23],
         [0, 1, 2, 4, 5, 7, 10, 11, 13, 16, 20, 21, 22, 23]
-    ]
+    ])
     return Cat(reduce(lambda a, b: a ^ b, (bytes[i] for i in row), 0) for row in ecc_table)
 
 
@@ -83,6 +83,8 @@ def packet_header(data_type, payload=Const(0, 16)):
     to_return.append(payload[8:16])
     to_return.append(calculate_ecc(Cat(*to_return)))
     return to_return
+
+short_packet = packet_header
 
 
 def long_packet(data_type):
@@ -146,7 +148,7 @@ def full_frame(modeline):
 
 def assemble(generator):
     bytes = bytearray()
-    for byte in tqdm(generator):
+    for byte in generator:
         if not isinstance(byte, int):
             assert len(byte) == 8
             bytes.append(resolve(byte))
@@ -157,8 +159,5 @@ def assemble(generator):
 
 if __name__ == "__main__":
     modeline = parse_modeline(generate_modeline(480, 480, 30))
-    bytes = assemble(full_frame(modeline))
-    sim_results = Path(__file__).parent / '.sim_results'
-    sim_results.mkdir(exist_ok=True)
-    with open(sim_results / 'dsi_packet.bin', 'wb') as f:
-        f.write(bytes)
+    bytes = assemble(packet_header(ShortPacketDataType.GENERIC_READ_1_PARAMETER, Const(0x45, 16)))
+    print(f"design.rw_console([0x87, {', '.join(['0x{:02x}'.format(x) for x in bytes])}])")

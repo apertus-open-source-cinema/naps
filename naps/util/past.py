@@ -5,6 +5,9 @@ from nmigen import *
 from .nmigen_misc import delay_by
 
 
+__all__ = ["Sample", "Rose", "Fell", "Changed", "NewHere"]
+
+
 def Sample(m, signal: Signal, clocks=1, domain="sync"):
     if clocks == 0:
         return signal
@@ -23,3 +26,9 @@ def Fell(m, expr: Signal, domain="sync", clocks=0):
 
 def Changed(m, expr: Signal, domain="sync", clocks=0):
     return Sample(m, expr, clocks + 1, domain) != Sample(m, expr, clocks, domain)
+
+
+def NewHere(m):
+    _new_here_is_here = Signal()
+    m.d.comb += _new_here_is_here.eq(1)
+    return Rose(m, _new_here_is_here)

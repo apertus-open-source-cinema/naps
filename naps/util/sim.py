@@ -7,7 +7,7 @@ from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 from nmigen.sim import Simulator
 
-__all__ = ["SimPlatform", "FakeResource", "TristateIo", "wait_for", "pulse", "do_nothing", "resolve"]
+__all__ = ["SimPlatform", "FakeResource", "TristateIo", "TristateDdrIo", "wait_for", "pulse", "do_nothing", "resolve"]
 
 
 class SimPlatform:
@@ -125,6 +125,19 @@ class TristateIo:
         self.i = Signal(shape)
         self.o = Signal(shape)
         self.oe = Signal()
+
+
+class TristateDdrIo:
+    def __init__(self, shape=None):
+        self.oe = Signal()
+
+        self.i_clk = Signal()
+        self.i0 = Signal()
+        self.i1 = Signal()
+
+        self.o_clk = Signal()
+        self.o0 = Signal()
+        self.o1 = Signal()
 
 
 def wait_for(expr, timeout=100, must_clock=True):

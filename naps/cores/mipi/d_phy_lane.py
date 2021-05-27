@@ -2,12 +2,14 @@ from contextlib import contextmanager
 from nmigen import *
 from nmigen.lib.cdc import FFSynchronizer
 
-from naps import StatusSignal, PacketizedStream, TristateIo, StreamBuffer, trigger, probe
+from naps import StatusSignal, PacketizedStream, TristateIo, StreamBuffer, trigger, probe, process_delay, process_block, Process, TristateDdrIo, BasicStream, BufferedAsyncStreamFIFO, write_to_stream, \
+    process_write_to_stream
 from naps.cores.debug.ila import fsm_probe
 from naps.util.nmigen_misc import bit_reversed
-from naps.util.past import Rose
+from naps.util.past import Rose, NewHere
 
 # control mode lp symbols
+
 STOP = 0b11
 HS_REQUEST = 0b01
 LP_REQUEST = 0b10
@@ -21,16 +23,22 @@ MARK_0 = 0b01
 MARK_1 = 0b10
 
 
-class DPhyDataLane(Elaboratable):
+def fake_differential(v):
+    return Mux(v, 0b01, 0b10)
+
+
+class MipiDPhyDataLane(Elaboratable):
     """ A mipi D-Phy Data lane that can handle bidirectional lp data transfer and unidirectional hs transfer.
 
     The `sync` domain of this module should run at 2x the LP Hold period. Eg if the hold period is 66ns, the sync domain should run at 30 Mhz
     (these are reasonable values btw). This is needed to be able to sample the incoming data during bus turnaround since there is no fixed phase relation (nyquist).
     """
 
-    def __init__(self, lp_pins: TristateIo, hs_pins: TristateIo, initial_driving=True):
+    def __init__(self, lp_pins: TristateIo, hs_pins: TristateDdrIo, initial_driving=True, is_lane_0=False, ddr_domain="sync"):
         self.lp_pins = lp_pins
         self.hs_pins = hs_pins
+        self.is_lane_0 = is_lane_0
+        self.ddr_domain = ddr_domain
 
         # The control rx and control tx signals carry the raw escape mode packets.
         # After each transmitted packet, a bus turnaround is requested.
@@ -38,7 +46,10 @@ class DPhyDataLane(Elaboratable):
         self.control_input = PacketizedStream(8)
         self.control_output = PacketizedStream(8)
 
-        self.is_lp = StatusSignal(reset=True)
+        # the hs_input stream carries is polled to
+        self.hs_input = PacketizedStream(8)
+
+        self.is_hs = StatusSignal()
         self.is_driving = StatusSignal(reset=initial_driving)
         self.bta_timeout = 1023
         self.bta_timeouts = StatusSignal(32)
@@ -46,38 +57,41 @@ class DPhyDataLane(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.d.comb += self.lp_pins.oe.eq(self.is_lp & self.is_driving)
-        m.d.comb += self.hs_pins.oe.eq(~self.is_lp & self.is_driving)
+        m.d.comb += self.lp_pins.oe.eq(~self.is_hs & self.is_driving)
+        m.d.comb += self.hs_pins.oe.eq(self.is_hs & self.is_driving)
 
-        trigger(m, ~self.lp_pins.oe)
-        probe(m, self.lp_pins.oe)
-        probe(m, self.lp_pins.o)
-        probe(m, self.control_output.payload)
-        probe(m, self.control_output.ready)
-        probe(m, self.control_output.valid)
-        probe(m, self.control_output.last)
+        if self.is_lane_0:
+            trigger(m, ~self.lp_pins.oe)
+            probe(m, self.lp_pins.oe)
+            probe(m, self.lp_pins.o)
+            probe(m, self.control_output.payload)
+            probe(m, self.control_output.ready)
+            probe(m, self.control_output.valid)
+            probe(m, self.control_output.last)
 
-        @contextmanager
-        def delay(cycles):
-            cycles = cycles * 6
-            timer = Signal(range(cycles - 1))
-            is_delay = Signal()
-            m.d.comb += is_delay.eq(1)
-            try:
-                with m.If(timer < (cycles - 2)):
-                    m.d.sync += timer.eq(timer + 1)
-                with m.If(Rose(m, is_delay)):
-                    m.d.sync += timer.eq(0)
-                stmt = m.Elif(timer >= cycles - 2)
-                stmt.__enter__()
-                yield None
-            finally:
-                stmt.__exit__(None, None, None)
+        def delay_lp(cycles):
+            return process_delay(m, cycles * 6)
 
         def delay_next(cycles, next_state):
-            with delay(cycles):
+            with delay_lp(cycles):
                 m.next = next_state
 
+        m.d.comb += self.hs_pins.o_clk.eq(ClockSignal(self.ddr_domain))
+
+        hs_words = BasicStream(8)
+        hs_fifo = m.submodules.hs_fifo = BufferedAsyncStreamFIFO(hs_words, 8, o_domain=self.ddr_domain)
+        with m.FSM(name="serializer_fsm", domain=self.ddr_domain):
+            for i in range(8 // 2):
+                with m.State(f"{i}"):
+                    if i == 0:
+                        m.d.comb += hs_fifo.output.ready.eq(1)
+                    m.d.comb += self.hs_pins.o0.eq(fake_differential(hs_fifo.output.payload[i * 2 + 0]))
+                    m.d.comb += self.hs_pins.o1.eq(fake_differential(hs_fifo.output.payload[i * 2 + 1]))
+                    m.next = f"{(i + 1) % 4}"
+
+        @process_block
+        def send_hs(data):
+            return process_write_to_stream(m, hs_words, data)
 
         bta_timeout_counter = Signal(range(self.bta_timeout))
         bta_timeout_possible = Signal()
@@ -85,23 +99,60 @@ class DPhyDataLane(Elaboratable):
         with m.If(self.is_driving):
             lp = bit_reversed(self.lp_pins.o)
             with m.FSM(name="tx_fsm") as fsm:
-                fsm_probe(m, fsm)
+                if self.is_lane_0:
+                    fsm_probe(m, fsm)
                 with m.State("IDLE"):
                     m.d.comb += lp.eq(STOP)
-                    with m.If(self.control_input.valid):
-                        m.next = "LP_REQUEST"
+                    with delay_lp(1):
+                        with m.If(self.control_input.valid):
+                            m.next = "LP_REQUEST"
+                        with m.Elif(self.hs_input.valid):
+                            m.next = "HS_REQUEST"
+
+                with m.State("HS_REQUEST"):
+                    with Process(m) as p:
+                        m.d.comb += lp.eq(HS_REQUEST)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(BRIDGE)
+                        p += delay_lp(2)
+                        m.d.sync += self.is_hs.eq(1)
+                        p += delay_lp(2)
+                        # we are in HS-ZERO now and wait the constant part (150ns)
+                        p += delay_lp(3)
+                        p += send_hs(Repl(0, 8))
+                        p += send_hs(Const(0b10111000, 8))
+                        m.next = "HS_SEND"
+
+                with m.State("HS_SEND"):
+                    with send_hs(self.hs_input.payload):
+                        with m.If(self.hs_input.last):
+                            m.next = "HS_END"
+                        with m.Else():
+                            m.next = "HS_SEND"
+                            m.d.comb += self.hs_input.ready.eq(1)
+
+                with m.State("HS_END"):
+                    with Process(m) as p:
+                        p += send_hs(Repl(self.hs_input.payload[7], 8))
+                        p += send_hs(Repl(self.hs_input.payload[7], 8))
+                        with m.If(NewHere(m)):
+                            m.d.comb += self.hs_input.ready.eq(1)
+                        m.d.sync += self.is_hs.eq(0)
+                        m.d.comb += lp.eq(STOP)
+                        p += delay_lp(10)
+                        m.next = "TURNAROUND_LP_REQUEST"
+
                 with m.State("LP_REQUEST"):
-                    m.d.comb += lp.eq(LP_REQUEST)
-                    delay_next(1, "LP_REQUEST_BRIDGE")
-                with m.State("LP_REQUEST_BRIDGE"):
-                    m.d.comb += lp.eq(BRIDGE)
-                    delay_next(1, "ESCAPE_REQUEST")
-                with m.State("ESCAPE_REQUEST"):
-                    m.d.comb += lp.eq(ESCAPE_REQUEST)
-                    delay_next(1, "ESCAPE_REQUEST_BRIDGE")
-                with m.State("ESCAPE_REQUEST_BRIDGE"):
-                    m.d.comb += lp.eq(BRIDGE)
-                    delay_next(1, "ESCAPE_0")
+                    with Process(m) as p:
+                        m.d.comb += lp.eq(LP_REQUEST)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(BRIDGE)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(ESCAPE_REQUEST)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(BRIDGE)
+                        p += delay_lp(1)
+                        m.next = "ESCAPE_0"
 
                 for bit in range(8):
                     with m.State(f"ESCAPE_{bit}"):
@@ -117,38 +168,36 @@ class DPhyDataLane(Elaboratable):
                             delay_next(1, f"ESCAPE_{bit + 1}")
                         else:
                             with m.If(self.control_input.last):  # according to the stream contract, this may not change, until we assert ready :)
-                                with delay(1):
+                                with delay_lp(1):
                                     m.next = "ESCAPE_FINISH"
                                     m.d.comb += self.control_input.ready.eq(1)
                             with m.Else():
-                                with delay(1):
+                                with delay_lp(1):
                                     m.next = "ESCAPE_0"
                                     m.d.comb += self.control_input.ready.eq(1)
 
                 with m.State("ESCAPE_FINISH"):
-                    m.d.comb += lp.eq(MARK_1)
-                    delay_next(1, "ESCAPE_FINISH_STOP")
-                with m.State("ESCAPE_FINISH_STOP"):
-                    m.d.comb += lp.eq(STOP)
-                    delay_next(10, "TURNAROUND_LP_REQUEST")  # TODO: reduce the delay; it is here to ease debugging :)
+                    with Process(m) as p:
+                        m.d.comb += lp.eq(MARK_1)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(STOP)
+                        p += delay_lp(10)  # TODO: reduce the delay; it is here to ease debugging :)
+                        m.next = "TURNAROUND_LP_REQUEST"
 
                 with m.State("TURNAROUND_LP_REQUEST"):
-                    m.d.comb += lp.eq(LP_REQUEST)
-                    delay_next(1, "TURNAROUND_LP_REQUEST_BRIDGE")
-                with m.State("TURNAROUND_LP_REQUEST_BRIDGE"):
-                    m.d.comb += lp.eq(BRIDGE)
-                    delay_next(1, "TURNAROUND_REQUEST")
-                with m.State("TURNAROUND_REQUEST"):
-                    m.d.comb += lp.eq(TURNAROUND_REQUEST)
-                    delay_next(1, "TURNAROUND_REQUEST_BRIDGE")
-                with m.State("TURNAROUND_REQUEST_BRIDGE"):
-                    m.d.comb += lp.eq(BRIDGE)
-                    with delay(4):
+                    with Process(m) as p:
+                        m.d.comb += lp.eq(LP_REQUEST)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(BRIDGE)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(TURNAROUND_REQUEST)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(BRIDGE)
+                        p += delay_lp(4)
                         m.next = "IDLE"
                         m.d.sync += self.is_driving.eq(0)  # this makes us leave this FSM and enter the one below
                         m.d.sync += bta_timeout_counter.eq(0)
                         m.d.sync += bta_timeout_possible.eq(1)
-
 
         # we buffer the control output to be able to meet the stream contract
         control_output_unbuffered = PacketizedStream(8)
@@ -158,10 +207,11 @@ class DPhyDataLane(Elaboratable):
         with m.If(~self.is_driving):
             lp = Signal(2)
             m.submodules += FFSynchronizer(bit_reversed(self.lp_pins.i), lp)
-            probe(m, lp)
 
             with m.FSM(name="rx_fsm") as fsm:
-                fsm_probe(m, fsm)
+                if self.is_lane_0:
+                    probe(m, lp)
+                    fsm_probe(m, fsm)
 
                 def maybe_next(condition, next_state):
                     with m.If(condition):
@@ -196,11 +246,10 @@ class DPhyDataLane(Elaboratable):
 
                 with m.State("AFTER-TURNAROUND-REQUEST"):
                     with m.If(lp == BRIDGE):
-                        with delay(4):
+                        with delay_lp(4):
                             m.next = "STOP"
                             m.d.sync += self.is_driving.eq(1)
                     maybe_stop()
-
 
                 with m.State("AFTER-ESCAPE-REQUEST"):
                     with m.If(lp == BRIDGE):
@@ -239,5 +288,46 @@ class DPhyDataLane(Elaboratable):
                             m.d.sync += outboxed.eq(0)
                             m.next = f"ESCAPE_{(bit + 1) % 8}"
                         maybe_finish_escape()
+
+        return m
+
+
+class MipiDPhyClockLane(Elaboratable):
+    def __init__(self, lp_pins: TristateIo, hs_pins: TristateDdrIo, ddr_domain="sync"):
+        self.lp_pins = lp_pins
+        self.hs_pins = hs_pins
+        self.ddr_domain = ddr_domain
+
+        self.request_hs = Signal()
+        self.is_hs = StatusSignal()
+
+    def elaborate(self, platform):
+        m = Module()
+
+        m.d.comb += self.lp_pins.oe.eq(~self.is_hs)
+        m.d.comb += self.hs_pins.oe.eq(self.is_hs)
+
+        self.hs_pins.o_clk = ClockSignal(self.ddr_domain)
+
+        with m.If(~self.is_hs):
+            m.d.comb += self.lp_pins.o.eq(STOP)
+            with m.If(self.request_hs):
+                with Process(m) as p:
+                    p += process_delay(m, 6)  # we need to stay in lp state for some minimum time
+                    m.d.comb += self.lp_pins.o.eq(HS_REQUEST)
+                    p += process_delay(m, 6)
+                    m.d.comb += self.lp_pins.o.eq(BRIDGE)
+                    p += process_delay(m, 5)
+                    m.d.sync += self.is_hs.eq(1)
+        with m.Else():
+            with m.If(~self.request_hs):
+                with Process(m) as p:
+                    m.d.comb += self.hs_pins.o0.eq(fake_differential(0))
+                    m.d.comb += self.hs_pins.o1.eq(fake_differential(0))
+                    p += process_delay(m, 2)  # delay minimum 60ns
+                    m.d.sync += self.is_hs.eq(1)
+            with m.Else():
+                m.d.comb += self.hs_pins.o0.eq(fake_differential(0))
+                m.d.comb += self.hs_pins.o1.eq(fake_differential(0))
 
         return m

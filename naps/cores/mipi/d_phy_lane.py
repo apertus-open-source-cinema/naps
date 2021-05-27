@@ -85,8 +85,8 @@ class MipiDPhyDataLane(Elaboratable):
                 with m.State(f"{i}"):
                     if i == 0:
                         m.d.comb += hs_fifo.output.ready.eq(1)
-                    m.d.comb += self.hs_pins.o0.eq(fake_differential(hs_fifo.output.payload[i * 2 + 0]))
-                    m.d.comb += self.hs_pins.o1.eq(fake_differential(hs_fifo.output.payload[i * 2 + 1]))
+                    m.d.comb += self.hs_pins.o0.eq(fake_differential(hs_fifo.output.payload[i * 2 + 0] & hs_fifo.output.valid))
+                    m.d.comb += self.hs_pins.o1.eq(fake_differential(hs_fifo.output.payload[i * 2 + 1] & hs_fifo.output.valid))
                     m.next = f"{(i + 1) % 4}"
 
         @process_block
@@ -110,7 +110,7 @@ class MipiDPhyDataLane(Elaboratable):
                             m.next = "HS_REQUEST"
 
                 with m.State("HS_REQUEST"):
-                    with Process(m) as p:
+                    with Process(m, name="hs_request") as p:
                         m.d.comb += lp.eq(HS_REQUEST)
                         p += delay_lp(1)
                         m.d.comb += lp.eq(BRIDGE)
@@ -132,18 +132,19 @@ class MipiDPhyDataLane(Elaboratable):
                             m.d.comb += self.hs_input.ready.eq(1)
 
                 with m.State("HS_END"):
-                    with Process(m) as p:
+                    with Process(m, name="hs_end") as p:
                         p += send_hs(Repl(self.hs_input.payload[7], 8))
                         p += send_hs(Repl(self.hs_input.payload[7], 8))
                         with m.If(NewHere(m)):
                             m.d.comb += self.hs_input.ready.eq(1)
+                        p += m.If(hs_fifo.w_level == 0)
                         m.d.sync += self.is_hs.eq(0)
                         m.d.comb += lp.eq(STOP)
                         p += delay_lp(10)
                         m.next = "TURNAROUND_LP_REQUEST"
 
                 with m.State("LP_REQUEST"):
-                    with Process(m) as p:
+                    with Process(m, name="lp_request") as p:
                         m.d.comb += lp.eq(LP_REQUEST)
                         p += delay_lp(1)
                         m.d.comb += lp.eq(BRIDGE)
@@ -185,7 +186,7 @@ class MipiDPhyDataLane(Elaboratable):
                         m.next = "TURNAROUND_LP_REQUEST"
 
                 with m.State("TURNAROUND_LP_REQUEST"):
-                    with Process(m) as p:
+                    with Process(m, name="turnaround_lp_request") as p:
                         m.d.comb += lp.eq(LP_REQUEST)
                         p += delay_lp(1)
                         m.d.comb += lp.eq(BRIDGE)
@@ -312,7 +313,7 @@ class MipiDPhyClockLane(Elaboratable):
         with m.If(~self.is_hs):
             m.d.comb += self.lp_pins.o.eq(STOP)
             with m.If(self.request_hs):
-                with Process(m) as p:
+                with Process(m, name="hs_request") as p:
                     p += process_delay(m, 6)  # we need to stay in lp state for some minimum time
                     m.d.comb += self.lp_pins.o.eq(HS_REQUEST)
                     p += process_delay(m, 6)
@@ -321,7 +322,7 @@ class MipiDPhyClockLane(Elaboratable):
                     m.d.sync += self.is_hs.eq(1)
         with m.Else():
             with m.If(~self.request_hs):
-                with Process(m) as p:
+                with Process(m, name="hs_end") as p:
                     m.d.comb += self.hs_pins.o0.eq(fake_differential(0))
                     m.d.comb += self.hs_pins.o1.eq(fake_differential(0))
                     p += process_delay(m, 2)  # delay minimum 60ns

@@ -15,13 +15,15 @@ class Process:
     #  * TEST Througly
     #  * Avoid signal vcd pollution
     #  * document behaviour
-    def __init__(self, m: Module):
+    def __init__(self, m: Module, name="process"):
         self.m = m
+        self.name = name
 
-        self.current_cond_signal = Signal(reset=1, name="_process_initial_cond_signal")
-        self.current_cond_signal_gets_zeroed = Signal(reset=1, name="_process_initial_cond_signal_gets_zeroed")
-        self.current_conditional = m.If(1)
-        self.reset_process = Signal(name="_process_reset")
+        self.current_cond_signal = Signal(reset=1, name=f"_{name}_stage0_cond_signal")
+        self.current_cond_signal_gets_zeroed = Signal(reset=1, name=f"_{name}_stage0_cond_signal_gets_zeroed")
+        self.current_conditional = m.If(self.current_cond_signal_gets_zeroed)
+        self.reset_process = Signal(name=f"_{name}_reset")
+        self.stage = 0
 
 
     def __enter__(self):
@@ -35,8 +37,9 @@ class Process:
         self.current_conditional.__exit__(None, None, None)
         m = self.m
 
-        this_stage_is_cleared = Signal(name="_process_stage_is_cleared")
-        this_stage_was_cleared = Signal(name="_process_stage_was_cleared")
+        self.stage += 1
+        this_stage_is_cleared = Signal(name=f"_{self.name}_stage{self.stage}_is_cleared")
+        this_stage_was_cleared = Signal(name=f"_{self.name}_stage{self.stage}_was_cleared")
         with m.If(self.current_cond_signal):
             with other:
                 m.d.sync += this_stage_was_cleared.eq(1)
@@ -47,10 +50,10 @@ class Process:
         with m.If(this_stage_is_cleared | (this_stage_was_cleared & ~self.reset_process)):
             m.d.comb += self.current_cond_signal_gets_zeroed.eq(0)
 
-        self.current_cond_signal = Signal(name="_process_cond_signal")
+        self.current_cond_signal = Signal(name=f"_{self.name}_stage{self.stage}_cond_signal")
         m.d.comb += self.current_cond_signal.eq(this_stage_is_cleared | (this_stage_was_cleared & ~self.reset_process))
 
-        self.current_cond_signal_gets_zeroed = Signal(name="_process_cond_signal_gets_zeroed")
+        self.current_cond_signal_gets_zeroed = Signal(name=f"_{self.name}_stage{self.stage}_cond_signal_gets_zeroed")
         m.d.comb += self.current_cond_signal_gets_zeroed.eq(self.current_cond_signal)
         self.current_conditional = m.If(self.current_cond_signal_gets_zeroed)
         self.current_conditional.__enter__()
@@ -96,5 +99,11 @@ def process_delay(m, cycles):
 @process_block
 def process_write_to_stream(m, stream, data):
     m.d.comb += stream.payload.eq(data)
-    m.d.comb += stream.valid.eq(1)
-    return m.If(stream.ready)
+    stream_was_ready = Signal(name="_stream_was_ready")
+    with m.If(NewHere(m)):
+        m.d.sync += stream_was_ready.eq(0)
+    with m.If(stream.ready & ~NewHere(m)):
+        m.d.sync += stream_was_ready.eq(1)
+    with m.Else():
+        m.d.comb += stream.valid.eq(1)
+    return m.If(stream_was_ready)

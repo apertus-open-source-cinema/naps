@@ -7,7 +7,7 @@ from nmigen import Signal
 from nmigen.hdl.ast import UserValue
 from nmigen.sim import Simulator
 
-__all__ = ["SimPlatform", "FakeResource", "TristateIo", "TristateDdrIo", "wait_for", "pulse", "do_nothing", "resolve"]
+__all__ = ["SimPlatform", "FakeResource", "TristateIo", "TristateDdrIo", "SimDdr", "wait_for", "pulse", "do_nothing", "resolve"]
 
 
 class SimPlatform:
@@ -132,12 +132,29 @@ class TristateDdrIo:
         self.oe = Signal()
 
         self.i_clk = Signal()
-        self.i0 = Signal()
-        self.i1 = Signal()
+        self.i0 = Signal(shape)
+        self.i1 = Signal(shape)
 
         self.o_clk = Signal()
-        self.o0 = Signal()
-        self.o1 = Signal()
+        self.o0 = Signal(shape)
+        self.o1 = Signal(shape)
+
+
+class SimDdr(Elaboratable):
+    def __init__(self, pins: TristateDdrIo, domain):
+        self.pins = pins
+        self.domain = domain
+
+        self.o = Signal(pins.o0.shape())
+
+    def elaborate(self, platform):
+        m = Module()
+
+        toggle = Signal()
+        m.d.sync += toggle.eq(~toggle)
+        m.d.comb += self.o.eq(Mux(toggle, self.pins.o0, self.pins.o1))
+
+        return DomainRenamer(self.domain)(m)
 
 
 def wait_for(expr, timeout=100, must_clock=True):

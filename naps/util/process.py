@@ -8,6 +8,10 @@ __all__ = ["Process", "process_block", "process_delay", "process_write_to_stream
 
 
 class Process:
+    """
+    Processes are a list of sequential stages that are seperated by "locks". Each lock takes at least
+    one cycle to complete and may be time or event driven. The code between the locks is run in parallel.
+    """
     # TODO: think about:
     #       * have a minimum of one cycle delay? (better generated logic)
 
@@ -18,46 +22,38 @@ class Process:
     def __init__(self, m: Module, name="process"):
         self.m = m
         self.name = name
-
-        self.current_cond_signal = Signal(reset=1, name=f"_{name}_stage0_cond_signal")
-        self.current_cond_signal_gets_zeroed = Signal(reset=1, name=f"_{name}_stage0_cond_signal_gets_zeroed")
-        self.current_conditional = m.If(self.current_cond_signal_gets_zeroed)
-        self.reset_process = Signal(name=f"_{name}_reset")
+        self.current_stage = Signal(32, name=f"{name}_stage")  # we just pick a large value here and let the logic optimizer figure the real value out
+        self.is_reset = Signal(name=f"{name}_reset")
         self.stage = 0
+
+        self.current_conditional = m.If((self.current_stage == self.stage) | self.is_reset)
 
 
     def __enter__(self):
         m = self.m
-        m.d.comb += self.reset_process.eq(NewHere(m))
+        with m.If(NewHere(m)):
+            self.reset()
 
         self.current_conditional.__enter__()
         return self
 
     def __iadd__(self, other):
-        self.current_conditional.__exit__(None, None, None)
         m = self.m
 
         self.stage += 1
-        this_stage_is_cleared = Signal(name=f"_{self.name}_stage{self.stage}_is_cleared")
-        this_stage_was_cleared = Signal(name=f"_{self.name}_stage{self.stage}_was_cleared")
-        with m.If(self.current_cond_signal):
-            with other:
-                m.d.sync += this_stage_was_cleared.eq(1)
-                m.d.comb += this_stage_is_cleared.eq(1)
-        with m.If(self.reset_process):
-            m.d.sync += this_stage_was_cleared.eq(0)
 
-        with m.If(this_stage_is_cleared | (this_stage_was_cleared & ~self.reset_process)):
-            m.d.comb += self.current_cond_signal_gets_zeroed.eq(0)
+        with other:
+            m.d.sync += self.current_stage.eq(self.stage)
 
-        self.current_cond_signal = Signal(name=f"_{self.name}_stage{self.stage}_cond_signal")
-        m.d.comb += self.current_cond_signal.eq(this_stage_is_cleared | (this_stage_was_cleared & ~self.reset_process))
-
-        self.current_cond_signal_gets_zeroed = Signal(name=f"_{self.name}_stage{self.stage}_cond_signal_gets_zeroed")
-        m.d.comb += self.current_cond_signal_gets_zeroed.eq(self.current_cond_signal)
-        self.current_conditional = m.If(self.current_cond_signal_gets_zeroed)
+        self.current_conditional.__exit__(None, None, None)
+        self.current_conditional = m.If((self.current_stage == self.stage) & ~self.is_reset)
         self.current_conditional.__enter__()
         return self
+
+    def reset(self):
+        with self.m.If(NewHere(self.m)):
+            self.m.d.sync += self.current_stage.eq(0)
+            self.m.d.comb += self.is_reset.eq(1)
 
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.current_conditional.__exit__(exc_type, exc_val, exc_tb)
@@ -86,24 +82,17 @@ def process_block(function):
 
 @process_block
 def process_delay(m, cycles):
-
-    timer = Signal(range(cycles), name="_delay_timer")
-    with m.If(timer < (cycles - 1)):
+    timer = Signal(range(cycles - 1), name="_delay_timer")
+    with m.If(timer < (cycles - 2)):
         m.d.sync += timer.eq(timer + 1)
 
     with m.If(NewHere(m)):
         m.d.sync += timer.eq(0)
-    return m.Elif(timer >= cycles - 1)
+    return m.Elif(timer >= cycles - 2)
 
 
 @process_block
 def process_write_to_stream(m, stream, data):
     m.d.comb += stream.payload.eq(data)
-    stream_was_ready = Signal(name="_stream_was_ready")
-    with m.If(NewHere(m)):
-        m.d.sync += stream_was_ready.eq(0)
-    with m.If(stream.ready & ~NewHere(m)):
-        m.d.sync += stream_was_ready.eq(1)
-    with m.Else():
-        m.d.comb += stream.valid.eq(1)
-    return m.If(stream_was_ready)
+    m.d.comb += stream.valid.eq(1)
+    return m.If(stream.ready & stream.valid)

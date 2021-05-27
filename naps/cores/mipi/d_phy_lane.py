@@ -3,7 +3,7 @@ from nmigen import *
 from nmigen.lib.cdc import FFSynchronizer
 
 from naps import StatusSignal, PacketizedStream, TristateIo, StreamBuffer, trigger, probe, process_delay, process_block, Process, TristateDdrIo, BasicStream, BufferedAsyncStreamFIFO, write_to_stream, \
-    process_write_to_stream
+    process_write_to_stream, BufferedSyncStreamFIFO
 from naps.cores.debug.ila import fsm_probe
 from naps.util.nmigen_misc import bit_reversed
 from naps.util.past import Rose, NewHere
@@ -78,15 +78,19 @@ class MipiDPhyDataLane(Elaboratable):
 
         m.d.comb += self.hs_pins.o_clk.eq(ClockSignal(self.ddr_domain))
 
+        hs_idle = Signal()
         hs_words = BasicStream(8)
-        hs_fifo = m.submodules.hs_fifo = BufferedAsyncStreamFIFO(hs_words, 8, o_domain=self.ddr_domain)
+        # hs_fifo = m.submodules.hs_fifo = BufferedSyncStreamFIFO(hs_words, 8)
         with m.FSM(name="serializer_fsm", domain=self.ddr_domain):
+            hs_payload = Signal(8)
+            #m.d.comb += hs_payload.eq(Mux(hs_fifo.output.valid, hs_fifo.output.payload, Repl(hs_idle, 8)))
             for i in range(8 // 2):
                 with m.State(f"{i}"):
                     if i == 0:
-                        m.d.comb += hs_fifo.output.ready.eq(1)
-                    m.d.comb += self.hs_pins.o0.eq(fake_differential(hs_fifo.output.payload[i * 2 + 0] & hs_fifo.output.valid))
-                    m.d.comb += self.hs_pins.o1.eq(fake_differential(hs_fifo.output.payload[i * 2 + 1] & hs_fifo.output.valid))
+                        ...
+                        #m.d.comb += hs_fifo.output.ready.eq(1)
+                    m.d.comb += self.hs_pins.o0.eq(fake_differential(hs_payload[i * 2 + 0]))
+                    m.d.comb += self.hs_pins.o1.eq(fake_differential(hs_payload[i * 2 + 1]))
                     m.next = f"{(i + 1) % 4}"
 
         @process_block
@@ -133,11 +137,12 @@ class MipiDPhyDataLane(Elaboratable):
 
                 with m.State("HS_END"):
                     with Process(m, name="hs_end") as p:
+                        m.d.sync += hs_idle.eq(self.hs_input.payload[7])
                         p += send_hs(Repl(self.hs_input.payload[7], 8))
                         p += send_hs(Repl(self.hs_input.payload[7], 8))
                         with m.If(NewHere(m)):
                             m.d.comb += self.hs_input.ready.eq(1)
-                        p += m.If(hs_fifo.w_level == 0)
+                        # p += m.If(hs_fifo.w_level == 0)
                         m.d.sync += self.is_hs.eq(0)
                         m.d.comb += lp.eq(STOP)
                         p += delay_lp(10)

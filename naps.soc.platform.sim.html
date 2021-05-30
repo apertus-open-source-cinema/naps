@@ -7,7 +7,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   
-  <title>naps.cores.ila package &mdash; nap  documentation</title>
+  <title>naps.soc.platform.sim package &mdash; nap  documentation</title>
   
 
   
@@ -38,8 +38,8 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="naps.cores.jtag package" href="naps.cores.jtag.html" />
-    <link rel="prev" title="naps.cores.hispi package" href="naps.cores.hispi.html" /> 
+    <link rel="next" title="naps.soc.platform.zynq package" href="naps.soc.platform.zynq.html" />
+    <link rel="prev" title="naps.soc.platform.jtag package" href="naps.soc.platform.jtag.html" /> 
 </head>
 
 <body class="wy-body-for-nav">
@@ -91,10 +91,10 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">naps</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="naps.html">naps package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="naps.html#subpackages">Subpackages</a><ul class="current">
-<li class="toctree-l4 current"><a class="reference internal" href="naps.cores.html">naps.cores package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="naps.cores.html">naps.cores package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="naps.data_structure.html">naps.data_structure package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="naps.platform.html">naps.platform package</a></li>
-<li class="toctree-l4"><a class="reference internal" href="naps.soc.html">naps.soc package</a></li>
+<li class="toctree-l4 current"><a class="reference internal" href="naps.soc.html">naps.soc package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="naps.stream.html">naps.stream package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="naps.util.html">naps.util package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="naps.vendor.html">naps.vendor package</a></li>
@@ -157,15 +157,17 @@
         
           <li><a href="naps.html">naps package</a> &raquo;</li>
         
-          <li><a href="naps.cores.html">naps.cores package</a> &raquo;</li>
+          <li><a href="naps.soc.html">naps.soc package</a> &raquo;</li>
         
-      <li>naps.cores.ila package</li>
+          <li><a href="naps.soc.platform.html">naps.soc.platform package</a> &raquo;</li>
+        
+      <li>naps.soc.platform.sim package</li>
     
     
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="_sources/naps.cores.ila.rst.txt" rel="nofollow"> View page source</a>
+            <a href="_sources/naps.soc.platform.sim.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -178,51 +180,47 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="naps-cores-ila-package">
-<h1>naps.cores.ila package<a class="headerlink" href="#naps-cores-ila-package" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="naps-soc-platform-sim-package">
+<h1>naps.soc.platform.sim package<a class="headerlink" href="#naps-soc-platform-sim-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-naps.cores.ila.ila">
-<span id="naps-cores-ila-ila-module"></span><h2>naps.cores.ila.ila module<a class="headerlink" href="#module-naps.cores.ila.ila" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-naps.soc.platform.sim.sim_soc_platform">
+<span id="naps-soc-platform-sim-sim-soc-platform-module"></span><h2>naps.soc.platform.sim.sim_soc_platform module<a class="headerlink" href="#module-naps.soc.platform.sim.sim_soc_platform" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
-<dt id="naps.cores.ila.ila.Ila">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.ila.ila.</span></code><code class="sig-name descname"><span class="pre">Ila</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.ila.ila.Ila" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<dt id="naps.soc.platform.sim.sim_soc_platform.SimSocPlatform">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.soc.platform.sim.sim_soc_platform.</span></code><code class="sig-name descname"><span class="pre">SimSocPlatform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.platform.sim.sim_soc_platform.SimSocPlatform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="naps.soc.html#naps.soc.soc_platform.SocPlatform" title="naps.soc.soc_platform.SocPlatform"><code class="xref py py-class docutils literal notranslate"><span class="pre">naps.soc.soc_platform.SocPlatform</span></code></a></p>
 <dl class="py method">
-<dt id="naps.cores.ila.ila.Ila.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.ila.ila.Ila.elaborate" title="Permalink to this definition">¶</a></dt>
+<dt id="naps.soc.platform.sim.sim_soc_platform.SimSocPlatform.add_driver">
+<code class="sig-name descname"><span class="pre">add_driver</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">driver</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.platform.sim.sim_soc_platform.SimSocPlatform.add_driver" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.soc.platform.sim.sim_soc_platform.SimSocPlatform.base_address">
+<code class="sig-name descname"><span class="pre">base_address</span></code><em class="property"> <span class="pre">=</span> <span class="pre">0x00[0:34359738360]</span></em><a class="headerlink" href="#naps.soc.platform.sim.sim_soc_platform.SimSocPlatform.base_address" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.soc.platform.sim.sim_soc_platform.SimSocPlatform.csr_domain">
+<code class="sig-name descname"><span class="pre">csr_domain</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'axi_lite'</span></em><a class="headerlink" href="#naps.soc.platform.sim.sim_soc_platform.SimSocPlatform.csr_domain" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="naps.cores.ila.ila.Ila.probe">
-<code class="sig-name descname"><span class="pre">probe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.ila.ila.Ila.probe" title="Permalink to this definition">¶</a></dt>
+<dt id="naps.soc.platform.sim.sim_soc_platform.SimSocPlatform.pack_bitstream_fatbitstream">
+<code class="sig-name descname"><span class="pre">pack_bitstream_fatbitstream</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">builder</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.platform.sim.sim_soc_platform.SimSocPlatform.pack_bitstream_fatbitstream" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
-<dl class="py method">
-<dt id="naps.cores.ila.ila.Ila.trigger">
-<code class="sig-name descname"><span class="pre">trigger</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.ila.ila.Ila.trigger" title="Permalink to this definition">¶</a></dt>
+<dl class="py attribute">
+<dt id="naps.soc.platform.sim.sim_soc_platform.SimSocPlatform.pydriver_memory_accessor">
+<code class="sig-name descname"><span class="pre">pydriver_memory_accessor</span></code><em class="property"> <span class="pre">=</span> <span class="pre">''</span></em><a class="headerlink" href="#naps.soc.platform.sim.sim_soc_platform.SimSocPlatform.pydriver_memory_accessor" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 </div>
-<div class="section" id="module-naps.cores.ila.ila_platform">
-<span id="naps-cores-ila-ila-platform-module"></span><h2>naps.cores.ila.ila_platform module<a class="headerlink" href="#module-naps.cores.ila.ila_platform" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="naps.cores.ila.ila_platform.IlaPlatform">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.ila.ila_platform.</span></code><code class="sig-name descname"><span class="pre">IlaPlatform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.ila.ila_platform.IlaPlatform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.ila.ila_platform.IlaPlatform.probe">
-<code class="sig-name descname"><span class="pre">probe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.ila.ila_platform.IlaPlatform.probe" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-naps.cores.ila">
-<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-naps.cores.ila" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-naps.soc.platform.sim">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-naps.soc.platform.sim" title="Permalink to this headline">¶</a></h2>
 </div>
 </div>
 
@@ -232,8 +230,8 @@
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="naps.cores.jtag.html" class="btn btn-neutral float-right" title="naps.cores.jtag package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
-        <a href="naps.cores.hispi.html" class="btn btn-neutral float-left" title="naps.cores.hispi package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
+        <a href="naps.soc.platform.zynq.html" class="btn btn-neutral float-right" title="naps.soc.platform.zynq package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="naps.soc.platform.jtag.html" class="btn btn-neutral float-left" title="naps.soc.platform.jtag package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 
   <hr/>

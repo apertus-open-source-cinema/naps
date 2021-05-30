@@ -183,16 +183,27 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-naps.soc.pydriver.drivermethod">
-<span id="naps-soc-pydriver-drivermethod-module"></span><h2>naps.soc.pydriver.drivermethod module<a class="headerlink" href="#module-naps.soc.pydriver.drivermethod" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-naps.soc.pydriver.driver_items">
+<span id="naps-soc-pydriver-driver-items-module"></span><h2>naps.soc.pydriver.driver_items module<a class="headerlink" href="#module-naps.soc.pydriver.driver_items" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="naps.soc.pydriver.driver_items.DriverData">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.soc.pydriver.driver_items.</span></code><code class="sig-name descname"><span class="pre">DriverData</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">data</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.driver_items.DriverData" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">naps.soc.pydriver.driver_items.DriverItem</span></code></p>
+</dd></dl>
+
 <dl class="py function">
-<dt id="naps.soc.pydriver.drivermethod.driver_method">
-<code class="sig-prename descclassname"><span class="pre">naps.soc.pydriver.drivermethod.</span></code><code class="sig-name descname"><span class="pre">driver_method</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.drivermethod.driver_method" title="Permalink to this definition">¶</a></dt>
+<dt id="naps.soc.pydriver.driver_items.driver_init">
+<code class="sig-prename descclassname"><span class="pre">naps.soc.pydriver.driver_items.</span></code><code class="sig-name descname"><span class="pre">driver_init</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.driver_items.driver_init" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="naps.soc.pydriver.drivermethod.driver_property">
-<code class="sig-prename descclassname"><span class="pre">naps.soc.pydriver.drivermethod.</span></code><code class="sig-name descname"><span class="pre">driver_property</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.drivermethod.driver_property" title="Permalink to this definition">¶</a></dt>
+<dt id="naps.soc.pydriver.driver_items.driver_method">
+<code class="sig-prename descclassname"><span class="pre">naps.soc.pydriver.driver_items.</span></code><code class="sig-name descname"><span class="pre">driver_method</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.driver_items.driver_method" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="naps.soc.pydriver.driver_items.driver_property">
+<code class="sig-prename descclassname"><span class="pre">naps.soc.pydriver.driver_items.</span></code><code class="sig-name descname"><span class="pre">driver_property</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.driver_items.driver_property" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -230,7 +241,7 @@
 <dl class="py class">
 <dt id="naps.soc.pydriver.hardware_proxy.Blob">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.soc.pydriver.hardware_proxy.</span></code><code class="sig-name descname"><span class="pre">Blob</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">address</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bit_start</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">bit_len</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">int</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.pydriver.hardware_proxy.Blob" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#naps.soc.pydriver.hardware_proxy.Value" title="naps.soc.pydriver.hardware_proxy.Value"><code class="xref py py-class docutils literal notranslate"><span class="pre">naps.soc.pydriver.hardware_proxy.Value</span></code></a></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Represents bigger address chunks that are not useful to express as BitwiseAccessibleInteger</p>
 <dl class="py attribute">
 <dt id="naps.soc.pydriver.hardware_proxy.Blob.address">

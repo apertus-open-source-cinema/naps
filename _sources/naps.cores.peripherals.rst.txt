@@ -52,6 +52,14 @@ naps.cores.peripherals.soc\_memory module
    :undoc-members:
    :show-inheritance:
 
+naps.cores.peripherals.soc\_memory\_test module
+-----------------------------------------------
+
+.. automodule:: naps.cores.peripherals.soc_memory_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

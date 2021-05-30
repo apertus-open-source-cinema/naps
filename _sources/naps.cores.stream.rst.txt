@@ -100,6 +100,22 @@ naps.cores.stream.repacking module
    :undoc-members:
    :show-inheritance:
 
+naps.cores.stream.stream \_memory\_test module
+----------------------------------------------
+
+.. automodule:: naps.cores.stream.stream _memory_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.stream.stream\_memory module
+---------------------------------------
+
+.. automodule:: naps.cores.stream.stream_memory
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.cores.stream.tee module
 ----------------------------
 

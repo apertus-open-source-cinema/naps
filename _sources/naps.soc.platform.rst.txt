@@ -8,6 +8,7 @@ Subpackages
    :maxdepth: 4
 
    naps.soc.platform.jtag
+   naps.soc.platform.sim
    naps.soc.platform.zynq
 
 Module contents

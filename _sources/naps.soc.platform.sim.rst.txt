@@ -1,0 +1,21 @@
+naps.soc.platform.sim package
+=============================
+
+Submodules
+----------
+
+naps.soc.platform.sim.sim\_soc\_platform module
+-----------------------------------------------
+
+.. automodule:: naps.soc.platform.sim.sim_soc_platform
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.soc.platform.sim
+   :members:
+   :undoc-members:
+   :show-inheritance:

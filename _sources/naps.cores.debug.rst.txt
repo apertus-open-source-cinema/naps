@@ -20,6 +20,46 @@ naps.cores.debug.clocking\_debug module
    :undoc-members:
    :show-inheritance:
 
+naps.cores.debug.ila module
+---------------------------
+
+.. automodule:: naps.cores.debug.ila
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.debug.ila\_test module
+---------------------------------
+
+.. automodule:: naps.cores.debug.ila_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.debug.packet\_console module
+---------------------------------------
+
+.. automodule:: naps.cores.debug.packet_console
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.debug.packet\_console\_test module
+---------------------------------------------
+
+.. automodule:: naps.cores.debug.packet_console_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.debug.tracer module
+------------------------------
+
+.. automodule:: naps.cores.debug.tracer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

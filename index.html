@@ -210,6 +210,11 @@ Mostly a place to experiment and figure out how to build things.</p>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.debug.html#submodules">Submodules</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.debug.html#module-naps.cores.debug.blink_debug">naps.cores.debug.blink_debug module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.debug.html#module-naps.cores.debug.clocking_debug">naps.cores.debug.clocking_debug module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.debug.html#module-naps.cores.debug.ila">naps.cores.debug.ila module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.debug.html#module-naps.cores.debug.ila_test">naps.cores.debug.ila_test module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.debug.html#module-naps.cores.debug.packet_console">naps.cores.debug.packet_console module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.debug.html#module-naps.cores.debug.packet_console_test">naps.cores.debug.packet_console_test module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.debug.html#module-naps.cores.debug.tracer">naps.cores.debug.tracer module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.debug.html#module-naps.cores.debug">Module contents</a></li>
 </ul>
 </li>
@@ -253,13 +258,6 @@ Mostly a place to experiment and figure out how to build things.</p>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.hispi.html#module-naps.cores.hispi">Module contents</a></li>
 </ul>
 </li>
-<li class="toctree-l6"><a class="reference internal" href="naps.cores.ila.html">naps.cores.ila package</a><ul>
-<li class="toctree-l7"><a class="reference internal" href="naps.cores.ila.html#submodules">Submodules</a></li>
-<li class="toctree-l7"><a class="reference internal" href="naps.cores.ila.html#module-naps.cores.ila.ila">naps.cores.ila.ila module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="naps.cores.ila.html#module-naps.cores.ila.ila_platform">naps.cores.ila.ila_platform module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="naps.cores.ila.html#module-naps.cores.ila">Module contents</a></li>
-</ul>
-</li>
 <li class="toctree-l6"><a class="reference internal" href="naps.cores.jtag.html">naps.cores.jtag package</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.jtag.html#submodules">Submodules</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.jtag.html#module-naps.cores.jtag.jtag_peripheral_connector">naps.cores.jtag.jtag_peripheral_connector module</a></li>
@@ -271,9 +269,13 @@ Mostly a place to experiment and figure out how to build things.</p>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#submodules">Submodules</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi.aligner">naps.cores.mipi.aligner module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi.combiner">naps.cores.mipi.combiner module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi.d_phy">naps.cores.mipi.d_phy module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi.d_phy_lane">naps.cores.mipi.d_phy_lane module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi.d_phy_lane_test">naps.cores.mipi.d_phy_lane_test module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#naps-cores-mipi-dsi-protocol-module">naps.cores.mipi.dsi_protocol module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi.mipi_test">naps.cores.mipi.mipi_test module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi.packet">naps.cores.mipi.packet module</a></li>
-<li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi.py_dsi_generator">naps.cores.mipi.py_dsi_generator module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#naps-cores-mipi-py-dsi-generator-module">naps.cores.mipi.py_dsi_generator module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi.s7_rx_phy">naps.cores.mipi.s7_rx_phy module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi.s7_tx_phy">naps.cores.mipi.s7_tx_phy module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.mipi.html#module-naps.cores.mipi">Module contents</a></li>
@@ -287,6 +289,7 @@ Mostly a place to experiment and figure out how to build things.</p>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.peripherals.html#module-naps.cores.peripherals.drp_bridge">naps.cores.peripherals.drp_bridge module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.peripherals.html#module-naps.cores.peripherals.mmio_gpio">naps.cores.peripherals.mmio_gpio module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.peripherals.html#module-naps.cores.peripherals.soc_memory">naps.cores.peripherals.soc_memory module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.peripherals.html#module-naps.cores.peripherals.soc_memory_test">naps.cores.peripherals.soc_memory_test module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.peripherals.html#module-naps.cores.peripherals">Module contents</a></li>
 </ul>
 </li>
@@ -311,6 +314,8 @@ Mostly a place to experiment and figure out how to build things.</p>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.stream.html#module-naps.cores.stream.metadata_wrapper">naps.cores.stream.metadata_wrapper module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.stream.html#module-naps.cores.stream.metadata_wrapper_test">naps.cores.stream.metadata_wrapper_test module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.stream.html#module-naps.cores.stream.repacking">naps.cores.stream.repacking module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.stream.html#naps-cores-stream-stream-memory-test-module">naps.cores.stream.stream _memory_test module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.stream.html#module-naps.cores.stream.stream_memory">naps.cores.stream.stream_memory module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.stream.html#module-naps.cores.stream.tee">naps.cores.stream.tee module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.stream.html#module-naps.cores.stream.tee_test">naps.cores.stream.tee_test module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.stream.html#module-naps.cores.stream">Module contents</a></li>
@@ -341,6 +346,8 @@ Mostly a place to experiment and figure out how to build things.</p>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.video.html#module-naps.cores.video.debayer_test">naps.cores.video.debayer_test module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.video.html#module-naps.cores.video.demo_source">naps.cores.video.demo_source module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.video.html#module-naps.cores.video.focus_peeking">naps.cores.video.focus_peeking module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.video.html#module-naps.cores.video.gamma_corrector">naps.cores.video.gamma_corrector module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.cores.video.html#module-naps.cores.video.gamma_corrector_test">naps.cores.video.gamma_corrector_test module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.video.html#module-naps.cores.video.image_convoluter">naps.cores.video.image_convoluter module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.video.html#module-naps.cores.video.image_convoluter_test">naps.cores.video.image_convoluter_test module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.cores.video.html#module-naps.cores.video.image_stream">naps.cores.video.image_stream module</a></li>
@@ -396,6 +403,12 @@ Mostly a place to experiment and figure out how to build things.</p>
 <li class="toctree-l9"><a class="reference internal" href="naps.soc.platform.jtag.html#module-naps.soc.platform.jtag">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l8"><a class="reference internal" href="naps.soc.platform.sim.html">naps.soc.platform.sim package</a><ul>
+<li class="toctree-l9"><a class="reference internal" href="naps.soc.platform.sim.html#submodules">Submodules</a></li>
+<li class="toctree-l9"><a class="reference internal" href="naps.soc.platform.sim.html#module-naps.soc.platform.sim.sim_soc_platform">naps.soc.platform.sim.sim_soc_platform module</a></li>
+<li class="toctree-l9"><a class="reference internal" href="naps.soc.platform.sim.html#module-naps.soc.platform.sim">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l8"><a class="reference internal" href="naps.soc.platform.zynq.html">naps.soc.platform.zynq package</a><ul>
 <li class="toctree-l9"><a class="reference internal" href="naps.soc.platform.zynq.html#submodules">Submodules</a></li>
 <li class="toctree-l9"><a class="reference internal" href="naps.soc.platform.zynq.html#module-naps.soc.platform.zynq.memory_accessor_devmem">naps.soc.platform.zynq.memory_accessor_devmem module</a></li>
@@ -411,7 +424,7 @@ Mostly a place to experiment and figure out how to build things.</p>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="naps.soc.pydriver.html">naps.soc.pydriver package</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="naps.soc.pydriver.html#submodules">Submodules</a></li>
-<li class="toctree-l7"><a class="reference internal" href="naps.soc.pydriver.html#module-naps.soc.pydriver.drivermethod">naps.soc.pydriver.drivermethod module</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.soc.pydriver.html#module-naps.soc.pydriver.driver_items">naps.soc.pydriver.driver_items module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.soc.pydriver.html#module-naps.soc.pydriver.generate">naps.soc.pydriver.generate module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.soc.pydriver.html#module-naps.soc.pydriver.hardware_proxy">naps.soc.pydriver.hardware_proxy module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.soc.pydriver.html#module-naps.soc.pydriver.hardware_proxy_test">naps.soc.pydriver.hardware_proxy_test module</a></li>
@@ -457,7 +470,11 @@ Mostly a place to experiment and figure out how to build things.</p>
 <li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.formal">naps.util.formal module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.nmigen_misc">naps.util.nmigen_misc module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.nmigen_misc_test">naps.util.nmigen_misc_test module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.past">naps.util.past module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.plot_util">naps.util.plot_util module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.process">naps.util.process module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.process_test">naps.util.process_test module</a></li>
+<li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.py_serialize">naps.util.py_serialize module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.python_misc">naps.util.python_misc module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.sim">naps.util.sim module</a></li>
 <li class="toctree-l5"><a class="reference internal" href="naps.util.html#module-naps.util.size_estimation">naps.util.size_estimation module</a></li>
@@ -475,6 +492,7 @@ Mostly a place to experiment and figure out how to build things.</p>
 </li>
 <li class="toctree-l6"><a class="reference internal" href="naps.vendor.lattice_ecp5.html">naps.vendor.lattice_ecp5 package</a><ul>
 <li class="toctree-l7"><a class="reference internal" href="naps.vendor.lattice_ecp5.html#submodules">Submodules</a></li>
+<li class="toctree-l7"><a class="reference internal" href="naps.vendor.lattice_ecp5.html#module-naps.vendor.lattice_ecp5.clocking">naps.vendor.lattice_ecp5.clocking module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.vendor.lattice_ecp5.html#module-naps.vendor.lattice_ecp5.jtag">naps.vendor.lattice_ecp5.jtag module</a></li>
 <li class="toctree-l7"><a class="reference internal" href="naps.vendor.lattice_ecp5.html#module-naps.vendor.lattice_ecp5">Module contents</a></li>
 </ul>

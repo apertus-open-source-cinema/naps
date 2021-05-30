@@ -292,13 +292,42 @@
 <dd></dd></dl>
 
 <dl class="py method">
+<dt id="naps.cores.peripherals.soc_memory.SocMemory.handle_read">
+<code class="sig-name descname"><span class="pre">handle_read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_done</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.peripherals.soc_memory.SocMemory.handle_read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.cores.peripherals.soc_memory.SocMemory.handle_write">
+<code class="sig-name descname"><span class="pre">handle_write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_done</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.peripherals.soc_memory.SocMemory.handle_write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt id="naps.cores.peripherals.soc_memory.SocMemory.read_port">
-<code class="sig-name descname"><span class="pre">read_port</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.peripherals.soc_memory.SocMemory.read_port" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">read_port</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sync'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.peripherals.soc_memory.SocMemory.read_port" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
 <dt id="naps.cores.peripherals.soc_memory.SocMemory.write_port">
-<code class="sig-name descname"><span class="pre">write_port</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.peripherals.soc_memory.SocMemory.write_port" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">write_port</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sync'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.peripherals.soc_memory.SocMemory.write_port" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-naps.cores.peripherals.soc_memory_test">
+<span id="naps-cores-peripherals-soc-memory-test-module"></span><h2>naps.cores.peripherals.soc_memory_test module<a class="headerlink" href="#module-naps.cores.peripherals.soc_memory_test" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="naps.cores.peripherals.soc_memory_test.SocMemoryTest">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.peripherals.soc_memory_test.</span></code><code class="sig-name descname"><span class="pre">SocMemoryTest</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.peripherals.soc_memory_test.SocMemoryTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt id="naps.cores.peripherals.soc_memory_test.SocMemoryTest.test_smoke">
+<code class="sig-name descname"><span class="pre">test_smoke</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.peripherals.soc_memory_test.SocMemoryTest.test_smoke" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.cores.peripherals.soc_memory_test.SocMemoryTest.test_with_driver">
+<code class="sig-name descname"><span class="pre">test_with_driver</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.peripherals.soc_memory_test.SocMemoryTest.test_with_driver" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

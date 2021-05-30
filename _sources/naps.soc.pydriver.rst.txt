@@ -4,10 +4,10 @@ naps.soc.pydriver package
 Submodules
 ----------
 
-naps.soc.pydriver.drivermethod module
--------------------------------------
+naps.soc.pydriver.driver\_items module
+--------------------------------------
 
-.. automodule:: naps.soc.pydriver.drivermethod
+.. automodule:: naps.soc.pydriver.driver_items
    :members:
    :undoc-members:
    :show-inheritance:

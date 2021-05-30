@@ -36,10 +36,42 @@ naps.util.nmigen\_misc\_test module
    :undoc-members:
    :show-inheritance:
 
+naps.util.past module
+---------------------
+
+.. automodule:: naps.util.past
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.util.plot\_util module
 ---------------------------
 
 .. automodule:: naps.util.plot_util
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.util.process module
+------------------------
+
+.. automodule:: naps.util.process
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.util.process\_test module
+------------------------------
+
+.. automodule:: naps.util.process_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.util.py\_serialize module
+------------------------------
+
+.. automodule:: naps.util.py_serialize
    :members:
    :undoc-members:
    :show-inheritance:

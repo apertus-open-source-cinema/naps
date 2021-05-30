@@ -4,6 +4,14 @@ naps.vendor.lattice\_ecp5 package
 Submodules
 ----------
 
+naps.vendor.lattice\_ecp5.clocking module
+-----------------------------------------
+
+.. automodule:: naps.vendor.lattice_ecp5.clocking
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.vendor.lattice\_ecp5.jtag module
 -------------------------------------
 

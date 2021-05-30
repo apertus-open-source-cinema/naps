@@ -20,6 +20,38 @@ naps.cores.mipi.combiner module
    :undoc-members:
    :show-inheritance:
 
+naps.cores.mipi.d\_phy module
+-----------------------------
+
+.. automodule:: naps.cores.mipi.d_phy
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.mipi.d\_phy\_lane module
+-----------------------------------
+
+.. automodule:: naps.cores.mipi.d_phy_lane
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.mipi.d\_phy\_lane\_test module
+-----------------------------------------
+
+.. automodule:: naps.cores.mipi.d_phy_lane_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.mipi.dsi\_protocol module
+------------------------------------
+
+.. automodule:: naps.cores.mipi.dsi_protocol
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.cores.mipi.mipi\_test module
 ---------------------------------
 

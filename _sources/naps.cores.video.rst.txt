@@ -60,6 +60,22 @@ naps.cores.video.focus\_peeking module
    :undoc-members:
    :show-inheritance:
 
+naps.cores.video.gamma\_corrector module
+----------------------------------------
+
+.. automodule:: naps.cores.video.gamma_corrector
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.video.gamma\_corrector\_test module
+----------------------------------------------
+
+.. automodule:: naps.cores.video.gamma_corrector_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.cores.video.image\_convoluter module
 -----------------------------------------
 

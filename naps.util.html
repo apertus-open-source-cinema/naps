@@ -191,6 +191,12 @@
 </div>
 <div class="section" id="module-naps.util.formal">
 <span id="naps-util-formal-module"></span><h2>naps.util.formal module<a class="headerlink" href="#module-naps.util.formal" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="naps.util.formal.FormalPlatform">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.util.formal.</span></code><code class="sig-name descname"><span class="pre">FormalPlatform</span></code><a class="headerlink" href="#naps.util.formal.FormalPlatform" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
 <dl class="py function">
 <dt id="naps.util.formal.assert_formal">
 <code class="sig-prename descclassname"><span class="pre">naps.util.formal.</span></code><code class="sig-name descname"><span class="pre">assert_formal</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">spec</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">mode</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'bmc'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">depth</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.formal.assert_formal" title="Permalink to this definition">¶</a></dt>
@@ -280,6 +286,11 @@
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.util.nmigen_misc_test.</span></code><code class="sig-name descname"><span class="pre">TestNMigenMisc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.nmigen_misc_test.TestNMigenMisc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
 <dl class="py method">
+<dt id="naps.util.nmigen_misc_test.TestNMigenMisc.test_bit_reversed">
+<code class="sig-name descname"><span class="pre">test_bit_reversed</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.nmigen_misc_test.TestNMigenMisc.test_bit_reversed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt id="naps.util.nmigen_misc_test.TestNMigenMisc.test_ends_with">
 <code class="sig-name descname"><span class="pre">test_ends_with</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.nmigen_misc_test.TestNMigenMisc.test_ends_with" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -322,6 +333,34 @@
 </dd></dl>
 
 </div>
+<div class="section" id="module-naps.util.past">
+<span id="naps-util-past-module"></span><h2>naps.util.past module<a class="headerlink" href="#module-naps.util.past" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="naps.util.past.Changed">
+<code class="sig-prename descclassname"><span class="pre">naps.util.past.</span></code><code class="sig-name descname"><span class="pre">Changed</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.ast.Signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sync'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.past.Changed" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="naps.util.past.Fell">
+<code class="sig-prename descclassname"><span class="pre">naps.util.past.</span></code><code class="sig-name descname"><span class="pre">Fell</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.ast.Signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sync'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.past.Fell" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="naps.util.past.NewHere">
+<code class="sig-prename descclassname"><span class="pre">naps.util.past.</span></code><code class="sig-name descname"><span class="pre">NewHere</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.past.NewHere" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="naps.util.past.Rose">
+<code class="sig-prename descclassname"><span class="pre">naps.util.past.</span></code><code class="sig-name descname"><span class="pre">Rose</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">expr</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.ast.Signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sync'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.past.Rose" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="naps.util.past.Sample">
+<code class="sig-prename descclassname"><span class="pre">naps.util.past.</span></code><code class="sig-name descname"><span class="pre">Sample</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.ast.Signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">clocks</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">1</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">domain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'sync'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.past.Sample" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
 <div class="section" id="module-naps.util.plot_util">
 <span id="naps-util-plot-util-module"></span><h2>naps.util.plot_util module<a class="headerlink" href="#module-naps.util.plot_util" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
@@ -342,6 +381,66 @@
 <dl class="py function">
 <dt id="naps.util.plot_util.plt_show">
 <code class="sig-prename descclassname"><span class="pre">naps.util.plot_util.</span></code><code class="sig-name descname"><span class="pre">plt_show</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.plot_util.plt_show" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-naps.util.process">
+<span id="naps-util-process-module"></span><h2>naps.util.process module<a class="headerlink" href="#module-naps.util.process" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="naps.util.process.Process">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.util.process.</span></code><code class="sig-name descname"><span class="pre">Process</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.dsl.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'process'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.process.Process" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Processes are a list of sequential stages that are seperated by “locks”. Each lock takes at least
+one cycle to complete and may be time or event driven. The code between the locks is run in parallel.</p>
+<dl class="py method">
+<dt id="naps.util.process.Process.reset">
+<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.process.Process.reset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py function">
+<dt id="naps.util.process.process_block">
+<code class="sig-prename descclassname"><span class="pre">naps.util.process.</span></code><code class="sig-name descname"><span class="pre">process_block</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">function</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.process.process_block" title="Permalink to this definition">¶</a></dt>
+<dd><p>A decorator that helps writing blocks that are parts of processes.
+See <cite>delay()</cite> for a minimal example of how to use this</p>
+</dd></dl>
+
+<dl class="py function">
+<dt id="naps.util.process.process_delay">
+<code class="sig-prename descclassname"><span class="pre">naps.util.process.</span></code><code class="sig-name descname"><span class="pre">process_delay</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.process.process_delay" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="naps.util.process.process_write_to_stream">
+<code class="sig-prename descclassname"><span class="pre">naps.util.process.</span></code><code class="sig-name descname"><span class="pre">process_write_to_stream</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.process.process_write_to_stream" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-naps.util.process_test">
+<span id="naps-util-process-test-module"></span><h2>naps.util.process_test module<a class="headerlink" href="#module-naps.util.process_test" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="naps.util.process_test.TestProcess">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.util.process_test.</span></code><code class="sig-name descname"><span class="pre">TestProcess</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.process_test.TestProcess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt id="naps.util.process_test.TestProcess.test_basic">
+<code class="sig-name descname"><span class="pre">test_basic</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.process_test.TestProcess.test_basic" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-naps.util.py_serialize">
+<span id="naps-util-py-serialize-module"></span><h2>naps.util.py_serialize module<a class="headerlink" href="#module-naps.util.py_serialize" title="Permalink to this headline">¶</a></h2>
+<dl class="py function">
+<dt id="naps.util.py_serialize.is_py_serializable">
+<code class="sig-prename descclassname"><span class="pre">naps.util.py_serialize.</span></code><code class="sig-name descname"><span class="pre">is_py_serializable</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.py_serialize.is_py_serializable" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
+<dt id="naps.util.py_serialize.py_serialize">
+<code class="sig-prename descclassname"><span class="pre">naps.util.py_serialize.</span></code><code class="sig-name descname"><span class="pre">py_serialize</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.py_serialize.py_serialize" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -373,6 +472,17 @@
 </dd></dl>
 
 <dl class="py class">
+<dt id="naps.util.sim.SimDdr">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.util.sim.</span></code><code class="sig-name descname"><span class="pre">SimDdr</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.sim.SimDdr" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<dl class="py method">
+<dt id="naps.util.sim.SimDdr.elaborate">
+<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.sim.SimDdr.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="naps.util.sim.SimPlatform">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.util.sim.</span></code><code class="sig-name descname"><span class="pre">SimPlatform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">filename</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.sim.SimPlatform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -388,7 +498,7 @@
 
 <dl class="py method">
 <dt id="naps.util.sim.SimPlatform.add_sim_clock">
-<code class="sig-name descname"><span class="pre">add_sim_clock</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.sim.SimPlatform.add_sim_clock" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname"><span class="pre">add_sim_clock</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">domain_name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">frequency</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">phase</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.sim.SimPlatform.add_sim_clock" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">
@@ -406,6 +516,12 @@
 <code class="sig-name descname"><span class="pre">sim</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">dut</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">testbench</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">traces</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">()</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">engine</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'pysim'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.sim.SimPlatform.sim" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt id="naps.util.sim.TristateDdrIo">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.util.sim.</span></code><code class="sig-name descname"><span class="pre">TristateDdrIo</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">shape</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.sim.TristateDdrIo" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 </dd></dl>
 
 <dl class="py class">

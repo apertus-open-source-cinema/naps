@@ -191,6 +191,12 @@
 <li class="toctree-l4"><a class="reference internal" href="naps.soc.platform.jtag.html#module-naps.soc.platform.jtag">Module contents</a></li>
 </ul>
 </li>
+<li class="toctree-l3"><a class="reference internal" href="naps.soc.platform.sim.html">naps.soc.platform.sim package</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="naps.soc.platform.sim.html#submodules">Submodules</a></li>
+<li class="toctree-l4"><a class="reference internal" href="naps.soc.platform.sim.html#module-naps.soc.platform.sim.sim_soc_platform">naps.soc.platform.sim.sim_soc_platform module</a></li>
+<li class="toctree-l4"><a class="reference internal" href="naps.soc.platform.sim.html#module-naps.soc.platform.sim">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l3"><a class="reference internal" href="naps.soc.platform.zynq.html">naps.soc.platform.zynq package</a><ul>
 <li class="toctree-l4"><a class="reference internal" href="naps.soc.platform.zynq.html#submodules">Submodules</a></li>
 <li class="toctree-l4"><a class="reference internal" href="naps.soc.platform.zynq.html#module-naps.soc.platform.zynq.memory_accessor_devmem">naps.soc.platform.zynq.memory_accessor_devmem module</a></li>
@@ -206,7 +212,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="naps.soc.pydriver.html">naps.soc.pydriver package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="naps.soc.pydriver.html#submodules">Submodules</a></li>
-<li class="toctree-l2"><a class="reference internal" href="naps.soc.pydriver.html#module-naps.soc.pydriver.drivermethod">naps.soc.pydriver.drivermethod module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="naps.soc.pydriver.html#module-naps.soc.pydriver.driver_items">naps.soc.pydriver.driver_items module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="naps.soc.pydriver.html#module-naps.soc.pydriver.generate">naps.soc.pydriver.generate module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="naps.soc.pydriver.html#module-naps.soc.pydriver.hardware_proxy">naps.soc.pydriver.hardware_proxy module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="naps.soc.pydriver.html#module-naps.soc.pydriver.hardware_proxy_test">naps.soc.pydriver.hardware_proxy_test module</a></li>
@@ -301,8 +307,8 @@ Yields the commands that are to be executed during build time.</p>
 <dd></dd></dl>
 
 <dl class="py function">
-<dt id="naps.soc.hooks.csr_and_driver_method_hook">
-<code class="sig-prename descclassname"><span class="pre">naps.soc.hooks.</span></code><code class="sig-name descname"><span class="pre">csr_and_driver_method_hook</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_fragment</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.ir.Fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sames</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#naps.soc.tracing_elaborate.ElaboratableSames" title="naps.soc.tracing_elaborate.ElaboratableSames"><span class="pre">naps.soc.tracing_elaborate.ElaboratableSames</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.hooks.csr_and_driver_method_hook" title="Permalink to this definition">¶</a></dt>
+<dt id="naps.soc.hooks.csr_and_driver_item_hook">
+<code class="sig-prename descclassname"><span class="pre">naps.soc.hooks.</span></code><code class="sig-name descname"><span class="pre">csr_and_driver_item_hook</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">top_fragment</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.ir.Fragment</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sames</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><a class="reference internal" href="#naps.soc.tracing_elaborate.ElaboratableSames" title="naps.soc.tracing_elaborate.ElaboratableSames"><span class="pre">naps.soc.tracing_elaborate.ElaboratableSames</span></a></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.hooks.csr_and_driver_item_hook" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -375,8 +381,8 @@ need only the base address.
 </dd></dl>
 
 <dl class="py method">
-<dt id="naps.soc.memorymap.MemoryMap.add_driver_method">
-<code class="sig-name descname"><span class="pre">add_driver_method</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">drivermethod</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.memorymap.MemoryMap.add_driver_method" title="Permalink to this definition">¶</a></dt>
+<dt id="naps.soc.memorymap.MemoryMap.add_driver_item">
+<code class="sig-name descname"><span class="pre">add_driver_item</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">driver_item</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.memorymap.MemoryMap.add_driver_item" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">

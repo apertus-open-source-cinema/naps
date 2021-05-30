@@ -15,7 +15,6 @@ Subpackages
    naps.cores.ft601
    naps.cores.hdmi
    naps.cores.hispi
-   naps.cores.ila
    naps.cores.jtag
    naps.cores.mipi
    naps.cores.peripherals

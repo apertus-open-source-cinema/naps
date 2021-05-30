@@ -325,6 +325,50 @@
 </dd></dl>
 
 </div>
+<div class="section" id="module-naps.cores.video.gamma_corrector">
+<span id="naps-cores-video-gamma-corrector-module"></span><h2>naps.cores.video.gamma_corrector module<a class="headerlink" href="#module-naps.cores.video.gamma_corrector" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="naps.cores.video.gamma_corrector.TableGammaCorrector">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.video.gamma_corrector.</span></code><code class="sig-name descname"><span class="pre">TableGammaCorrector</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.video.gamma_corrector.TableGammaCorrector" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<p>Apply gamma correction to a monochrome image using a pre-computed lookup table</p>
+<dl class="py method">
+<dt id="naps.cores.video.gamma_corrector.TableGammaCorrector.elaborate">
+<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.video.gamma_corrector.TableGammaCorrector.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-naps.cores.video.gamma_corrector_test">
+<span id="naps-cores-video-gamma-corrector-test-module"></span><h2>naps.cores.video.gamma_corrector_test module<a class="headerlink" href="#module-naps.cores.video.gamma_corrector_test" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="naps.cores.video.gamma_corrector_test.GammaCorrectorTest">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.video.gamma_corrector_test.</span></code><code class="sig-name descname"><span class="pre">GammaCorrectorTest</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.video.gamma_corrector_test.GammaCorrectorTest" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
+<dl class="py method">
+<dt id="naps.cores.video.gamma_corrector_test.GammaCorrectorTest.check_output">
+<code class="sig-name descname"><span class="pre">check_output</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">corrector_gen</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">gamma</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.video.gamma_corrector_test.GammaCorrectorTest.check_output" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.cores.video.gamma_corrector_test.GammaCorrectorTest.test_output_table_gamma_corrector_decode">
+<code class="sig-name descname"><span class="pre">test_output_table_gamma_corrector_decode</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.video.gamma_corrector_test.GammaCorrectorTest.test_output_table_gamma_corrector_decode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.cores.video.gamma_corrector_test.GammaCorrectorTest.test_output_table_gamma_corrector_encode">
+<code class="sig-name descname"><span class="pre">test_output_table_gamma_corrector_encode</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.video.gamma_corrector_test.GammaCorrectorTest.test_output_table_gamma_corrector_encode" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.cores.video.gamma_corrector_test.GammaCorrectorTest.test_output_table_gamma_corrector_nop">
+<code class="sig-name descname"><span class="pre">test_output_table_gamma_corrector_nop</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.video.gamma_corrector_test.GammaCorrectorTest.test_output_table_gamma_corrector_nop" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-naps.cores.video.image_convoluter">
 <span id="naps-cores-video-image-convoluter-module"></span><h2>naps.cores.video.image_convoluter module<a class="headerlink" href="#module-naps.cores.video.image_convoluter" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">

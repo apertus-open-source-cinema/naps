@@ -39,11 +39,11 @@ class StreamFIFO(Elaboratable):
 
 
 def BufferedSyncStreamFIFO(input: Stream, depth, **kwargs):
-    return StreamFIFO(input, SyncFIFO, depth=depth, **kwargs)
+    return StreamFIFO(input, SyncFIFOBuffered, depth=depth, **kwargs)
 
 
 def UnbufferedSyncStreamFIFO(input: Stream, depth, **kwargs):
-    return StreamFIFO(input, SyncFIFOBuffered, depth=depth, **kwargs)
+    return StreamFIFO(input, SyncFIFO, depth=depth, **kwargs)
 
 
 def BufferedAsyncStreamFIFO(input, depth, i_domain="sync", o_domain="sync", exact_depth=False, **kwargs):

@@ -54,6 +54,7 @@ class TestFifo(unittest.TestCase):
         input = BasicStream(32)
         verify_stream_output_contract(BufferedAsyncStreamFIFO(input, 10, o_domain="sync", i_domain="sync"))
 
+    @pytest.mark.skip("this can not be proven at the moment nmigen emits code that triggers a yosys assertion")
     def test_sync_stream_fifo_output_properties(self):
         input = BasicStream(32)
         verify_stream_output_contract(UnbufferedSyncStreamFIFO(input, 10))

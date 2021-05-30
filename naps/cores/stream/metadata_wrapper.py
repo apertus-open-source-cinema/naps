@@ -10,7 +10,7 @@ class LastWrapper(Elaboratable):
 
     # TODO: if we have a last_fifo_depth of 2 we cant do formal anymore because of this yosys bug:
     #       https://github.com/YosysHQ/yosys/issues/2577
-    def __init__(self, input: PacketizedStream, core_producer, last_fifo_depth=2, last_rle_bits=10):
+    def __init__(self, input: PacketizedStream, core_producer, last_fifo_depth=3, last_rle_bits=10):
         self.last_fifo_depth = last_fifo_depth
         self.last_rle_bits = last_rle_bits
         assert hasattr(input, "last")

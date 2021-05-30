@@ -3,7 +3,7 @@ import unittest
 from nmigen import *
 from nmigen.sim import Passive
 
-from naps import TristateIo, SimPlatform, write_packet_to_stream, read_packet_from_stream, TristateDdrIo, SimDdr
+from naps import TristateIo, SimPlatform, write_packet_to_stream, read_packet_from_stream, TristateDdrIo, SimDdr, do_nothing
 from naps.cores.mipi.d_phy_lane import MipiDPhyDataLane
 
 
@@ -54,22 +54,22 @@ class DPhyDataLaneTest(unittest.TestCase):
         platform = SimPlatform()
         m = Module()
 
-        dut = m.submodules.dut = MipiDPhyDataLane(TristateIo(2), TristateDdrIo(2), initial_driving=True)
+        dut = m.submodules.dut = MipiDPhyDataLane(TristateIo(2), TristateDdrIo(2), initial_driving=True, ddr_domain="hs")
         ddr = m.submodules.ddr = SimDdr(dut.hs_pins, domain="ddr")
 
         packets = [
-            [0xaa, 0xbb, 0xcc]
+            [0x13, 0x00]
         ]
 
         def writer():
             for packet in packets:
                 yield from write_packet_to_stream(dut.hs_input, packet, timeout=400)
-                yield from write_packet_to_stream(dut.hs_input, packet, timeout=400)
-            yield Passive()
-            while True:
-                yield
+                yield from do_nothing(400)
         platform.add_process(writer, "sync")
 
+        # TODO: actual testing
+
         platform.add_sim_clock("sync", 30e6)
-        platform.add_sim_clock("ddr", 60e6)
+        platform.add_sim_clock("hs", 15e6)
+        platform.add_sim_clock("ddr", 30e6)
         platform.sim(m)

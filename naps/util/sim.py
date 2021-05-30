@@ -69,15 +69,15 @@ class SimPlatform:
     def add_process(self, generator, domain=None):
         self.processes.append((generator, domain))
 
-    def add_sim_clock(self, domain_name, frequency):
-        self.clocks[domain_name] = frequency
+    def add_sim_clock(self, domain_name, frequency, phase=0):
+        self.clocks[domain_name] = (frequency, phase)
 
     def sim(self, dut, testbench=None, traces=(), engine="pysim"):
         dut = self.prepare(dut)
         self.fragment = dut
         simulator = Simulator(dut, engine=engine)
-        for name, frequency in self.clocks.items():
-            simulator.add_clock(1 / frequency, domain=name)
+        for name, (frequency, phase) in self.clocks.items():
+            simulator.add_clock(1 / frequency, domain=name, phase=phase)
 
         if isinstance(testbench, tuple):
             generator, domain = testbench

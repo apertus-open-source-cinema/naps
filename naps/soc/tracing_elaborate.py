@@ -85,6 +85,9 @@ def inject_elaborate_wrapper(obj, sames):
         for i in range(len(obj._transforms_)):
 
             def generate_transform_wrapper(real_transform):
+                if hasattr(real_transform, "wrapped"):
+                    real_transform = real_transform.wrapped
+
                 def transform_wrapper(self, value, *, src_loc_at=0):
                     output = real_transform(self, value, src_loc_at=src_loc_at)
                     sames.insert(value, output)
@@ -93,6 +96,7 @@ def inject_elaborate_wrapper(obj, sames):
                     #     output.__class__.__name__, output
                     # ))
                     return output
+                transform_wrapper.wrapped = real_transform
                 return transform_wrapper
 
             obj._transforms_[i].__class__.__call__ = generate_transform_wrapper(obj._transforms_[i].__class__.__call__)

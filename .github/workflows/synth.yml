@@ -3,12 +3,12 @@ name: Vivado Builds
 on: [push]
 
 jobs:
-  hdmi_test:
+  build_applet:
     strategy:
       fail-fast: false
       matrix:
-        device: [MicroR2, Beta, Zybo]
-        soc_platform: [Zynq]
+        applet:
+        - applets/camera.py -b -d MicroR2 -s Zynq
     runs-on: vivado
     steps:
     - uses: actions/checkout@v2
@@ -20,7 +20,7 @@ jobs:
         NMIGEN_USE_YOSYS: system
         YOSYS: yowasp-yosys
       run:
-        python3 applets/hdmi_demo.py -b -d ${{ matrix.device }} -s ${{ matrix.soc_platform }}
+        python3 ${{ matrix.applet }}
     - name: upload
       uses: actions/upload-artifact@v2
       with:

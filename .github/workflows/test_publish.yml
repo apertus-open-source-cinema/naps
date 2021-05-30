@@ -60,7 +60,7 @@ jobs:
 
   publish_docs:
     if: github.ref == 'refs/heads/main'
-    needs: run_testsuite
+#    needs: run_testsuite
     runs-on: ubuntu-latest
     outputs:
       doc_sha: ${{ steps.pages.outputs.dst_sha }}

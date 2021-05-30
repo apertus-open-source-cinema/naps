@@ -65,7 +65,7 @@ setup(
             'matplotlib',
         ],
         'doc': [
-            'sphinx',
+            'sphinx<4',
             'sphinx_rtd_theme',
         ]
     }

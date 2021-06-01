@@ -84,6 +84,22 @@ naps.cores.hdmi.tmds2 module
    :undoc-members:
    :show-inheritance:
 
+naps.cores.hdmi.tmds\_decoder module
+------------------------------------
+
+.. automodule:: naps.cores.hdmi.tmds_decoder
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.hdmi.tmds\_test module
+---------------------------------
+
+.. automodule:: naps.cores.hdmi.tmds_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

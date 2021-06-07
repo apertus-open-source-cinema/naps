@@ -1,3 +1,4 @@
+from math import floor
 from pprint import pprint
 from nmigen import *
 from naps import StatusSignal
@@ -71,8 +72,15 @@ class Pll(Elaboratable):
             "CLKOP": clkop,
         }
 
-    def output_domain(self, domain_name, divisor):
+    def output_domain(self, domain_name, divisor, phase=0.0):
         m = self.m
+
+        freq = self.vco_freq / divisor
+
+        ns_shift = 1 / freq * 1e6 * phase / 360.0
+        phase_count = ns_shift * self.vco_freq
+        cphase = floor(phase_count)
+        fphase = floor((phase_count - cphase) * 8)
 
         cd = ClockDomain(domain_name)
         m.domains += cd
@@ -81,9 +89,11 @@ class Pll(Elaboratable):
 
         output_name = self.output_port_names.pop(0)
         self.outputs[output_name] = ClockSignal(domain_name)
-        self.params["{}_DIV".format(output_name)] = divisor
-        self.params["{}_ENABLE".format(output_name)] = "ENABLED"
-        self.attributes["FREQUENCY_PIN_{}".format(output_name)] = str(self.vco_freq / divisor / 1e6)
+        self.params[f"{output_name}_DIV"] = divisor
+        self.params[f"{output_name}_ENABLE"] = "ENABLED"
+        self.params[f"{output_name}_CPHASE"] = cphase
+        self.params[f"{output_name}_FPHASE"] = fphase
+        self.attributes[f"FREQUENCY_PIN_{output_name}"] = str(freq / 1e6)
 
     def elaborate(self, platform):
         m = self.m

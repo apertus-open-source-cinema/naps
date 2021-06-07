@@ -24,7 +24,7 @@ class Top(Elaboratable):
         m.d.comb += sensor.reset.eq(~self.sensor_reset_n)
         # TODO: find more idiomatic way to do this
         os.environ["NMIGEN_add_constraints"] = \
-            "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/hispi_sensor_0__lvds_clk__i]"
+            "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/input_hispi_rx_sensor_0__lvds_clk__i]"
 
         p = Pipeline(m)
         p += HispiRx(sensor, hispi_domain="hispi")

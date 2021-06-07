@@ -1,11 +1,13 @@
 from nmigen import *
 
-from naps import ImageStream, PacketizedStream, process_write_to_stream, ControlSignal, StreamGearbox, Process, process_delay, StatusSignal
+from naps import ImageStream, PacketizedStream, process_write_to_stream, ControlSignal, StreamGearbox, Process, process_delay, StatusSignal, NewHere
 from .py_dsi_generator import assemble, short_packet, ShortPacketDataType, LongPacketDataType, blanking
+from ..debug.ila import probe, fsm_probe, trigger
 
 
 class ImageStream2MipiDsiVideoBurstMode(Elaboratable):
     def __init__(self, input: ImageStream, num_lanes: int, image_width=480):
+        assert len(input.payload) == 24
         self.input = input
         self.num_lanes = num_lanes
         self.line_width = ControlSignal(16, reset=image_width * 3)
@@ -14,9 +16,11 @@ class ImageStream2MipiDsiVideoBurstMode(Elaboratable):
 
         self.vbp = ControlSignal(16, reset=18)
         self.vfp = ControlSignal(16, reset=4)
-        self.hbp = ControlSignal(16, reset=100)
-        self.hfp = ControlSignal(16, reset=100)
-        self.v_dummy_line = ControlSignal(32, reset=10000)
+        self.vsync_width = ControlSignal(16)
+        self.hbp = 68
+        self.hfp = 20
+        self.hsync_width = ControlSignal(16)
+        self.v_dummy_line = ControlSignal(32, reset=480 * 2)
 
         self.output = PacketizedStream(num_lanes * 8)
 
@@ -43,56 +47,84 @@ class ImageStream2MipiDsiVideoBurstMode(Elaboratable):
         def short_packet_words(type, payload=Const(0, 16)):
             return repack_to_lanes(assemble(short_packet(type, payload)))
 
+        def send_short_packet(p, type, payload=Const(0, 16), lp_after=False):
+            for value, last in short_packet_words(type, payload):
+                p += process_write_to_stream(m, self.output, payload=value, last=last & lp_after)
+
+        def end_of_transmisson(p):
+            send_short_packet(p, ShortPacketDataType.END_OF_TRANSMISSION_PACKET, lp_after=True)
+
+        def blanking(p, length, omit_footer=False):
+            send_short_packet(p, LongPacketDataType.BLANKING_PACKET_NO_DATA, Const(length, 16))
+            for i in range((length // 2)):
+                p += process_write_to_stream(m, self.output, payload=0x0)
+            if not omit_footer:
+                p += process_write_to_stream(m, self.output, payload=0x0)  # checksum
+
+
         frame_last = Signal()
         v_porch_counter = Signal(16)
 
-        def v_porch(name, to, length):
-            with Process(m, name, to=None) as p:
+        def v_porch(name, to, length, skip_first_hsync=False):
+            if not skip_first_hsync:
+                first_name = name
+                second_process_name = f"{name}_OVERHEAD"
+            else:
+                first_name = f"{name}_HSYNC"
+                second_process_name = name
+
+            with Process(m, first_name, to=second_process_name) as p:
+                send_short_packet(p, ShortPacketDataType.H_SYNC_START)
+                end_of_transmisson(p)
+
+            with Process(m, second_process_name, to=None) as p:
                 p += process_delay(m, self.hbp)
-                for value, last in short_packet_words(ShortPacketDataType.H_SYNC_START):
-                    p += process_write_to_stream(m, self.output, payload=value, last=last)
                 p += process_delay(m, self.v_dummy_line)
                 p += process_delay(m, self.hfp)
                 with m.If(v_porch_counter < length):
                     m.d.sync += v_porch_counter.eq(v_porch_counter + 1)
-                    m.next = name
+                    m.next = first_name
                 with m.Else():
                     m.d.sync += v_porch_counter.eq(0)
                     m.next = to
 
-        with m.FSM():
+        probe(m, self.output.valid)
+        probe(m, self.output.ready)
+        probe(m, self.output.payload)
+        
+        trig = Signal()
+        trigger(m, trig)
+
+        with m.FSM() as fsm:
+            fsm_probe(m, fsm)
+
             with Process(m, "VSYNC", to="VBP") as p:
-                for value, last in short_packet_words(ShortPacketDataType.V_SYNC_START):
-                    p += process_write_to_stream(m, self.output, payload=value, last=last)
-
-            v_porch("VBP", "HSYNC", self.vbp)
-
-            with Process(m, "HSYNC", to="LINE_HEADER") as p:
-                p += process_delay(m, self.hbp)
-                for value, last in short_packet_words(ShortPacketDataType.H_SYNC_START):
-                    p += process_write_to_stream(m, self.output, payload=value, last=last)
-
-            with Process(m, "LINE_HEADER", to="LINE_DATA") as p:
                 p += m.If(gearbox.output.valid)
-                for value, last in short_packet_words(LongPacketDataType.PACKED_PIXEL_STREAM_24_BIT_RGB_8_8_8, self.line_width):
-                    p += process_write_to_stream(m, self.output, payload=value)
+                send_short_packet(p, ShortPacketDataType.V_SYNC_START)
+                end_of_transmisson(p)
+
+            v_porch("VBP", "LINE_START", self.vbp, skip_first_hsync=True)
+
+            with Process(m, "LINE_START", to="LINE_DATA") as p:
+                m.d.comb += trig.eq(1)
+                send_short_packet(p, ShortPacketDataType.H_SYNC_START)
+                blanking(p, self.hbp * 3)
+                send_short_packet(p, LongPacketDataType.PACKED_PIXEL_STREAM_24_BIT_RGB_8_8_8, self.line_width)
             with m.State("LINE_DATA"):
                 with m.If(gearbox.output.line_last & gearbox.output.valid & gearbox.output.ready):
-                    m.next = "LINE_FOOTER"
+                    m.next = "LINE_END"
                     m.d.sync += frame_last.eq(gearbox.output.frame_last)
                 with m.If(~gearbox.output.valid):
                     m.d.sync += self.gearbox_not_ready.eq(self.gearbox_not_ready + 1)
                 m.d.comb += self.output.connect_upstream(gearbox.output, allow_partial=True)
-            with Process(m, "LINE_FOOTER", to="LINE_END") as p:
-                for value, last in repack_to_lanes([0x0, 0x0]):
-                    p += process_write_to_stream(m, self.output, payload=value, last=last)
-
-            with m.State("LINE_END"):
-                with m.If(frame_last):
-                    m.next = "VFP"
-                with m.Else():
-                    with process_delay(m, self.hfp):
-                        m.next = "HSYNC"
+            with Process(m, "LINE_END", to=None) as p:
+                p += process_write_to_stream(m, self.output, payload=0x0)  # TODO: handle the non 2 lane case
+                blanking(p, self.hfp * 3, omit_footer=True)  # we omit the footer to be able to do dispatch the next state with zero cycle delay
+                with process_write_to_stream(m, self.output, payload=0x0):
+                    with m.If(frame_last):
+                        m.next = "VFP"
+                    with m.Else():
+                        m.next = "LINE_START"
 
             v_porch("VFP", "VSYNC", self.vfp)
 

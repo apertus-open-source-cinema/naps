@@ -73,3 +73,12 @@ def SolidColorDemoVideoSource(r=0, g=0, b=0, *args, **kwargs):
         return RGB24(r=self.r, g=self.g, b=self.b)
 
     return DemoVideoSource(generator_function, 24, *args, **kwargs)
+
+
+def GradientDemoVideoSource(direction_y=True, divider=2, *args, **kwargs):
+    def generator_function(m, self, x, y, frame_ctr):
+        v = Signal(8)
+        m.d.comb += v.eq((y if direction_y else x) // divider)
+        return RGB24(r=v, g=v, b=v)
+
+    return DemoVideoSource(generator_function, 24, *args, **kwargs)

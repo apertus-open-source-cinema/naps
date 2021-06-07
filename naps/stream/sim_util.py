@@ -39,10 +39,12 @@ def write_packet_to_stream(stream: PacketizedStream, payload_array, timeout=100)
             yield from write_to_stream(stream, timeout, payload=p, last=1)
 
 
-def read_packet_from_stream(stream: PacketizedStream, timeout=100):
+def read_packet_from_stream(stream: PacketizedStream, timeout=100, allow_pause=True):
     packet = []
+    first = True
     while True:
-        payload, last = yield from read_from_stream(stream, extract=("payload", "last"), timeout=timeout)
+        payload, last = yield from read_from_stream(stream, extract=("payload", "last"), timeout=timeout if (first or allow_pause) else 1)
+        first = False
         packet.append(payload)
         if last:
             return packet

@@ -74,7 +74,7 @@ class MipiErrorResponse:
     CONTENTION_DETECTED: unsigned(1)
     ECC_ERROR_SINGLE_BIT_CORRECTED: unsigned(1)
     ECC_ERROR_MULTI_BIT_NOT_CORRECTED: unsigned(1)
-    CHECKSUM_ERROR__LONG_PACKET_ONLY_: unsigned(1)
+    CHECKSUM_ERROR: unsigned(1)
     DSI_DATA_TYPE_NOT_RECOGNIZED: unsigned(1)
     DSI_VC_ID_INVALID: unsigned(1)
     INVALID_TRANSMISSION_LENGTH: unsigned(1)

@@ -1,8 +1,7 @@
 from nmigen import *
 from nmigen.lib.cdc import FFSynchronizer
 
-from naps import StatusSignal, PacketizedStream, TristateIo, StreamBuffer, trigger, probe, process_delay, process_block, Process, TristateDdrIo, BasicStream, process_write_to_stream, BufferedAsyncStreamFIFO
-from naps.cores.debug.ila import fsm_probe
+from naps import StatusSignal, PacketizedStream, TristateIo, StreamBuffer, process_delay, process_block, Process, TristateDdrIo, process_write_to_stream
 from naps.cores.serdes.serializer import fake_differential, Serializer
 from naps.util.nmigen_misc import bit_reversed
 from naps.util.past import NewHere
@@ -65,30 +64,15 @@ class MipiDPhyDataLane(Elaboratable):
         def send_hs(data):
             return process_write_to_stream(m, serializer.input, payload=data)
 
-        if self.is_lane_0:
-            io = platform.request("io", 0)
-            m.d.comb += io.oe.eq(1)
-            trig = io.o[13]
-
-            trigger(m, trig)
-            probe(m, self.hs_pins.oe)
-            probe(m, self.lp_pins.oe)
-            probe(m, self.lp_pins.o)
-            probe(m, self.hs_pins.o0)
-            probe(m, self.hs_pins.o1)
-            m.d.comb += trig.eq(self.hs_pins.oe)
-
         bta_timeout_counter = Signal(range(self.bta_timeout))
         bta_timeout_possible = Signal()
 
         with m.If(self.is_driving):
             lp = bit_reversed(self.lp_pins.o)
             with m.FSM(name="tx_fsm") as fsm:
-                if self.is_lane_0:
-                    fsm_probe(m, fsm)
                 with m.State("IDLE"):
                     m.d.comb += lp.eq(STOP)
-                    with delay_lp(1):
+                    with delay_lp(100):
                         with m.If(self.control_input.valid & (self.control_input.payload == 0x00) & self.control_input.last):
                             m.d.comb += self.control_input.ready.eq(1)
                             m.next = "TURNAROUND_LP_REQUEST"
@@ -193,9 +177,6 @@ class MipiDPhyDataLane(Elaboratable):
             m.submodules += FFSynchronizer(bit_reversed(self.lp_pins.i), lp)
 
             with m.FSM(name="rx_fsm") as fsm:
-                if self.is_lane_0:
-                    fsm_probe(m, fsm)
-
                 def maybe_next(condition, next_state):
                     with m.If(condition):
                         m.next = next_state

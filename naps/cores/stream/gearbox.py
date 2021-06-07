@@ -41,7 +41,7 @@ class StreamGearbox(Elaboratable):
         input_width = len(self.input.payload)
         output_width = len(self.output.payload)
 
-        shift_register = Signal(input_width + output_width)
+        shift_register = Signal(input_width + output_width + min(input_width, output_width))
         input_read = (self.input.ready & self.input.valid)
         output_write = (self.output.ready & self.output.valid)
         current_bits_in_shift_register = Signal(range(len(shift_register)))

@@ -81,7 +81,10 @@ class Ila(Elaboratable):
 
         probe_bits = sum(length for name, (length, decoder) in self.probes)
         print(f"ila: using {probe_bits} probe bits")
-        self.mem = m.submodules.mem = SocMemory(width=ceil(probe_bits / 32) * 32, depth=self.trace_length, soc_write=False)
+        self.mem = m.submodules.mem = SocMemory(
+            width=ceil(probe_bits / 32) * 32, depth=self.trace_length,
+            soc_write=False, attrs=dict(syn_ramstyle="block_ram")
+        )
         write_port = m.submodules.write_port = self.mem.write_port(domain="sync")
 
         with m.If(self.running):

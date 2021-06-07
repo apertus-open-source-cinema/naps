@@ -14,10 +14,15 @@ class PackedStructBaseClass(ValueCastable):
         self.name = name or tracer.get_var_name(depth=2 + src_loc_at, default=camel_to_snake(self.__class__.__name__))
 
         if backing_signal is not None:
-            assert isinstance(backing_signal, Value)
-            assert len(kwargs) == 0
-            assert len(backing_signal) == self._PACKED_LEN
-            self._backing_signal = backing_signal
+            if isinstance(backing_signal, Value):
+                assert len(kwargs) == 0
+                assert len(backing_signal) == self._PACKED_LEN
+                self._backing_signal = backing_signal
+            elif isinstance(backing_signal, int):
+                from naps.soc.pydriver.hardware_proxy import BitwiseAccessibleInteger
+                self._backing_signal = BitwiseAccessibleInteger(backing_signal)
+            else:
+                assert False, "unsupported type for backing signal"
         else:
             # we do not create a single backing signal but instead cat multiple signals together for better
             # introspection in the generated code and vcd files
@@ -60,6 +65,9 @@ class PackedStructBaseClass(ValueCastable):
 
     def __len__(self):
         return self._PACKED_LEN
+
+    def fields(self):
+        return list(self._PACKED_SLICES.keys())
 
     @ValueCastable.lowermethod
     def as_value(self):

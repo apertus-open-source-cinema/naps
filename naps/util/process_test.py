@@ -11,13 +11,17 @@ class TestProcess(unittest.TestCase):
         stage1 = Signal()
         stage2 = Signal()
         stage3 = Signal()
+        end = Signal()
         stage3_barrier = Signal()
-        with Process(m) as p:
-            m.d.comb += stage1.eq(1)
-            p += process_delay(m, 10)
-            m.d.comb += stage2.eq(1)
-            p += m.If(stage3_barrier)
-            m.d.comb += stage3.eq(1)
+        with m.FSM():
+            with Process(m, "INITIAL", to="END") as p:
+                m.d.comb += stage1.eq(1)
+                p += process_delay(m, 10)
+                m.d.comb += stage2.eq(1)
+                p += m.If(stage3_barrier)
+                m.d.comb += stage3.eq(1)
+            with m.State("END"):
+                m.d.comb += end.eq(1)
 
         def testbench():
             self.assertEqual(1, (yield stage1))
@@ -28,6 +32,8 @@ class TestProcess(unittest.TestCase):
             self.assertEqual(0, (yield stage1))
             self.assertEqual(1, (yield stage2))
             yield
+            self.assertEqual(1, (yield end))
+
 
 
         platform.add_sim_clock("sync", 100e6)

@@ -55,7 +55,7 @@ class ConsolePacketSource(Elaboratable):
 
     @driver_method
     def write_packet(self, packet):
-        assert self.done == True
+        assert self.done
         for i, word in enumerate(packet):
             self.memory[i] = word
         self.packet_length = len(packet) - 1
@@ -110,10 +110,3 @@ class ConsolePacketSink(Elaboratable):
         self.reset = not self.reset
         return to_return
 
-    @driver_method
-    def print_packet(self):
-        packet = self.read_packet()
-        if packet is None:
-            print("None")
-        else:
-            print(f"[{', '.join(['0x{:02x}'.format(x) for x in packet])}]")

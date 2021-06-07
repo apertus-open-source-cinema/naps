@@ -7,7 +7,7 @@ from naps.cores.debug.packet_console import ConsolePacketSource, ConsolePacketSi
 
 
 class PacketConsoleTest(unittest.TestCase):
-    def test_roundtrip_complex(self):
+    def check_roundtrip_complex(self, test_packet):
         platform = SimSocPlatform(SimPlatform())
 
         m = Module()
@@ -23,7 +23,7 @@ class PacketConsoleTest(unittest.TestCase):
         m.d.comb += write_.eq(write)
 
         def driver(design):
-            test_packet = [10, 20, 30, 40, 0]
+
             design.source.write_packet(test_packet)
             yield from do_nothing(20)
             design.source.write_packet(test_packet)
@@ -35,6 +35,12 @@ class PacketConsoleTest(unittest.TestCase):
 
         platform.add_sim_clock("sync", 100e6)
         platform.sim(m)
+
+    def test_roundtrip_complex(self):
+        self.check_roundtrip_complex(test_packet=[10, 20, 30, 40, 0])
+
+    def test_roundtrip_one_byte(self):
+        self.check_roundtrip_complex(test_packet=[0x42])
 
     def test_source_output_stream_contract(self):
         dut = ConsolePacketSource()

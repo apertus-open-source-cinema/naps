@@ -24,15 +24,16 @@ class DPhyDataLaneTest(unittest.TestCase):
             m.d.comb += a.lp_pins.i.eq(b.lp_pins.o)
 
         packets = [
-            [1, 37, 254]
+            [1, 37, 254],
+            [1, 37, 254],
         ]
 
         def writer():
             for packet in packets:
                 yield from write_packet_to_stream(a.control_input, packet, timeout=400)
+                yield from write_packet_to_stream(a.control_input, [0x0], timeout=400)
                 yield from write_packet_to_stream(b.control_input, packet, timeout=400)
-                yield from write_packet_to_stream(a.control_input, packet, timeout=400)
-                yield from write_packet_to_stream(b.control_input, packet, timeout=400)
+                yield from write_packet_to_stream(b.control_input, [0x0], timeout=400)
             yield Passive()
             while True:
                 yield
@@ -40,8 +41,6 @@ class DPhyDataLaneTest(unittest.TestCase):
 
         def reader():
             for packet in packets:
-                self.assertEqual(packet, (yield from read_packet_from_stream(b.control_output, timeout=400)))
-                self.assertEqual(packet, (yield from read_packet_from_stream(a.control_output, timeout=400)))
                 self.assertEqual(packet, (yield from read_packet_from_stream(b.control_output, timeout=400)))
                 self.assertEqual(packet, (yield from read_packet_from_stream(a.control_output, timeout=400)))
         platform.add_process(reader, "sync")

@@ -62,7 +62,7 @@ class MipiDPhy(Elaboratable):
         for lane, hs_input in zip(lanes, splitter.outputs):
             m.d.comb += lane.hs_input.connect_upstream(hs_input)
 
-        lane_ck = m.submodules.lane_ck = MipiDPhyClockLane(resource.lp_ck, resource.hs_ck, ddr_domain=self.ddr_domain)
+        lane_ck = m.submodules.lane_ck = MipiDPhyClockLane(resource.lp_ck, resource.hs_ck, ddr_domain=self.ddr_domain + "_90")
         m.d.comb += lane_ck.request_hs.eq(self.request_hs)
 
         return m

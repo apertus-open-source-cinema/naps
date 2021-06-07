@@ -40,7 +40,7 @@ class LongPacketDataType(DataType):
     NULL_PACKET_NO_DATA = 0x09
     BLANKING_PACKET_NO_DATA = 0x19
     GENERIC_LONG_WRITE = 0x29
-    DCS_LONG_WRITE_WRITE_LUT_COMMAND_PACKET = 0x39
+    DCS_LONG_WRITE = 0x39
     LOOSELY_PACKET_PIXEL_STREAM_20_BIT_YCBCR_4_2_2 = 0x0C
     PACKED_PIXEL_STREAM_24_BIT_YCBCR_4_2_2 = 0x1C
     PACKED_PIXEL_STREAM_16_BIT_YCBCR_4_2_2 = 0x2C
@@ -60,6 +60,26 @@ class DataIdentifier:
 
     def is_long_packet(self):
         return self.data_type <= 0x0F
+
+
+@packed_struct
+class MipiErrorResponse:
+    SOT_ERROR: unsigned(1)
+    SOT_SYNC_ERROR: unsigned(1)
+    EOT_SYNC_ERROR: unsigned(1)
+    ESCAPE_MODE_ENTRY_COMMAND_ERROR: unsigned(1)
+    LOW_POWER_TRANSMIT_SYNC_ERROR: unsigned(1)
+    PERIPHERAL_TIMEOUT_ERROR: unsigned(1)
+    FALSE_CONTROL_ERROR: unsigned(1)
+    CONTENTION_DETECTED: unsigned(1)
+    ECC_ERROR_SINGLE_BIT_CORRECTED: unsigned(1)
+    ECC_ERROR_MULTI_BIT_NOT_CORRECTED: unsigned(1)
+    CHECKSUM_ERROR__LONG_PACKET_ONLY_: unsigned(1)
+    DSI_DATA_TYPE_NOT_RECOGNIZED: unsigned(1)
+    DSI_VC_ID_INVALID: unsigned(1)
+    INVALID_TRANSMISSION_LENGTH: unsigned(1)
+    RESERVED: unsigned(1)
+    DSI_PROTOCOL_VIOLATION: unsigned(1)
 
 
 def calculate_ecc(bytes):
@@ -83,6 +103,7 @@ def packet_header(data_type, payload=Const(0, 16)):
     to_return.append(payload[8:16])
     to_return.append(calculate_ecc(Cat(*to_return)))
     return to_return
+
 
 short_packet = packet_header
 
@@ -159,5 +180,5 @@ def assemble(generator):
 
 if __name__ == "__main__":
     modeline = parse_modeline(generate_modeline(480, 480, 30))
-    bytes = assemble(packet_header(ShortPacketDataType.GENERIC_READ_1_PARAMETER, Const(0x45, 16)))
-    print(f"design.rw_console([0x87, {', '.join(['0x{:02x}'.format(x) for x in bytes])}])")
+    bytes = assemble(color_line(255, 255, 0, 480))
+    print(f"design.rw_console([{', '.join(['0x{:02x}'.format(x) for x in bytes])}])")

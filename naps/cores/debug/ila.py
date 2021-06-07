@@ -1,5 +1,5 @@
 import sys
-
+from math import ceil
 from nmigen import *
 from nmigen.hdl.dsl import FSM
 from nmigen.lib.cdc import FFSynchronizer
@@ -79,7 +79,9 @@ class Ila(Elaboratable):
             m.submodules += FFSynchronizer(i, o)
         self.probes = [(k, (len(signal), decoder)) for k, (signal, decoder) in platform_probes]
 
-        self.mem = m.submodules.mem = SocMemory(width=sum(length for name, (length, decoder) in self.probes), depth=self.trace_length, soc_write=False)
+        probe_bits = sum(length for name, (length, decoder) in self.probes)
+        print(f"ila: using {probe_bits} probe bits")
+        self.mem = m.submodules.mem = SocMemory(width=ceil(probe_bits / 32) * 32, depth=self.trace_length, soc_write=False)
         write_port = m.submodules.write_port = self.mem.write_port(domain="sync")
 
         with m.If(self.running):

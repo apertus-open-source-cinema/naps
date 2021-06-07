@@ -1,4 +1,7 @@
+from math import ceil
 from nmigen import *
+
+from naps import iterator_with_if_elif
 from naps.soc import SocPlatform, MemoryMap, Peripheral, Response, driver_method
 
 __all__ = ["SocMemory"]
@@ -15,6 +18,7 @@ class SocMemory(Elaboratable):
         self.soc_write = soc_write
         self.depth = depth
         self.width = width
+        self.split_stages = ceil(self.width / 32)
         self.ports = []
 
 
@@ -23,29 +27,33 @@ class SocMemory(Elaboratable):
         if self.soc_read:
             read_port = self.memory.read_port(domain="sync", transparent=False)
             m.submodules += read_port
-            with m.If(addr > self.depth - 1):
+            with m.If(addr > (self.depth * self.split_stages) - 1):
                 read_done(Response.ERR)
             with m.Else():
                 is_read = Signal()
                 m.d.comb += is_read.eq(1)
                 with m.If(Rose(m, is_read)):
-                    m.d.comb += read_port.addr.eq(addr)
+                    m.d.comb += read_port.addr.eq(addr // self.split_stages)
                 with m.Else():
-                    m.d.sync += data.eq(read_port.data)
+                    for cond, i in iterator_with_if_elif(range(self.split_stages), m):
+                        with cond((addr % self.split_stages) == i):
+                            m.d.sync += data.eq(read_port.data[32 * i:])
                     read_done(Response.OK)
         else:
             read_done(Response.ERR)
 
     def handle_write(self, m, addr, data, write_done):
         if self.soc_write:
-            write_port = self.memory.write_port(domain="sync")
+            write_port = self.memory.write_port(domain="sync", granularity=self.width if self.split_stages == 1 else 32)
             m.submodules += write_port
-            with m.If(addr > self.depth - 1):
+            with m.If(addr > (self.depth * self.split_stages) - 1):
                 write_done(Response.ERR)
             with m.Else():
-                m.d.comb += write_port.addr.eq(addr)
-                m.d.comb += write_port.data.eq(data)
-                m.d.comb += write_port.en.eq(1)
+                m.d.comb += write_port.addr.eq(addr // self.split_stages)
+                for cond, i in iterator_with_if_elif(range(self.split_stages), m):
+                    with cond((addr % self.split_stages) == i):
+                        m.d.comb += write_port.data.eq(data << (i * 32))
+                        m.d.comb += write_port.en.eq(1 << i)
                 write_done(Response.OK)
 
         else:
@@ -127,8 +135,18 @@ class SocMemory(Elaboratable):
 
     @driver_method
     def __getitem__(self, item):
-        return self._memory_accessor.read(self.memory.address + item)
+        base_address = item * self.split_stages
+        value = 0
+        for i in range(self.split_stages):
+            read = self._memory_accessor.read(self.memory.address + base_address + i)
+            print("read", item, read)
+            value |= read << (32 * i)
+        return value
 
     @driver_method
     def __setitem__(self, item, value):
-        self._memory_accessor.write(self.memory.address + item, value)
+        base_address = item * self.split_stages
+        for i in range(self.split_stages):
+            write = (value >> (32 * i)) & 0xFFFFFFFF
+            print("write", item, write)
+            self._memory_accessor.write(self.memory.address + base_address + i, write)

@@ -22,14 +22,14 @@ class SocMemoryTest(unittest.TestCase):
     def test_with_driver(self):
         platform = SimSocPlatform(SimPlatform())
 
-        dut = SocMemory(width=32, depth=128)
+        dut = SocMemory(width=64, depth=128)
 
         def driver(design):
             for i in range(128):
-                design[i] = i * i
+                design[i] = i * i << 30
                 yield from do_nothing(10)
             for i in reversed(range(128)):
-                assert design[i] == i * i
+                self.assertEqual(design[i], i * i << 30)
                 yield from do_nothing(10)
         platform.add_driver(driver)
 

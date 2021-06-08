@@ -16,6 +16,7 @@ class VariableWidthStream(PacketizedStream):
 
 class BitStuffer(Elaboratable):
     """stuffs bits from a VariableWidthStream into a dense Stream"""
+
     def __init__(self, input: VariableWidthStream, output_width):
         self.input = input
         self.output = PacketizedStream(output_width, name="bit_stuffer_output")

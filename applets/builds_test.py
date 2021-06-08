@@ -29,6 +29,7 @@ for file in glob("{}/*.py".format(dirname(__file__))):
         for soc in socs:
             def make_test_builds(file, device):
                 soc_local = str(soc)
+
                 def test_builds(self):
                     command = ['python', file, '-e', '-d', device, '-s', soc_local]
                     print("running '{}'".format(' '.join(command)))

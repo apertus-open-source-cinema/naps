@@ -1,8 +1,9 @@
 from nmigen import *
 from nmigen.lib.cdc import FFSynchronizer
+from naps import BasicStream
+from ..stream import BufferedAsyncStreamFIFO
 
-from naps import BasicStream, BufferedAsyncStreamFIFO
-
+__all__ = ["fake_differential", "Serializer"]
 
 
 def fake_differential(v):

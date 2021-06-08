@@ -5,6 +5,7 @@ from naps import StatusSignal
 
 __all__ = ["Pll"]
 
+
 class Pll(Elaboratable):
     vco_multipliers = list(range(2, 128))
     vco_dividers = list(range(1, 128))

@@ -2,10 +2,10 @@ from nmigen import *
 from nmigen.build import Platform
 
 from naps import PacketizedStream, StreamSplitter, ControlSignal
-from .d_phy_lane import MipiDPhyDataLane, MipiDPhyClockLane
+from .d_phy_lane import DPhyDataLane, DPhyClockLane
 
 
-class MipiDPhy(Elaboratable):
+class DsiPhy(Elaboratable):
     def __init__(self, resource, num_lanes, ddr_domain):
         self.resource = resource
         self.num_lanes = num_lanes
@@ -21,31 +21,10 @@ class MipiDPhy(Elaboratable):
         resource = platform.request(*self.resource, xdr={"hs_ck": 2, **{f"hs_d{i}": 2 for i in range(self.num_lanes)}})
 
         m = Module()
-        #
-        # counter = Signal(4)
-        # m.d.sync += counter.eq(counter + 1)
-        # m.d.comb += resource.lp_d3.o.eq(counter[2:4])
-        # m.d.comb += resource.lp_d3.oe.eq(1)
-        #
-        # m.d.comb += resource.lp_d2.o.eq(counter[2:4])
-        # m.d.comb += resource.lp_d2.oe.eq(1)
-        #
-        #
-        # m.d.comb += resource.lp_d1.o.eq(counter[2:4])
-        # m.d.comb += resource.lp_d1.oe.eq(1)
-        #
-        #
-        # m.d.comb += resource.lp_d0.o.eq(counter[2:4])
-        # m.d.comb += resource.lp_d0.oe.eq(1)
-        #
-        #
-        #
-        # m.d.comb += resource.lp_ck.o.eq(counter[2:4])
-        # m.d.comb += resource.lp_ck.oe.eq(1)
 
         lanes = []
         for i in range(2):
-            lane = MipiDPhyDataLane(
+            lane = DPhyDataLane(
                 lp_pins=getattr(resource, f"lp_d{i}"),
                 hs_pins=getattr(resource, f"hs_d{i}"),
                 is_lane_0=(i == 0),
@@ -62,7 +41,7 @@ class MipiDPhy(Elaboratable):
         for lane, hs_input in zip(lanes, splitter.outputs):
             m.d.comb += lane.hs_input.connect_upstream(hs_input)
 
-        lane_ck = m.submodules.lane_ck = MipiDPhyClockLane(resource.lp_ck, resource.hs_ck, ddr_domain=self.ddr_domain + "_90")
+        lane_ck = m.submodules.lane_ck = DPhyClockLane(resource.lp_ck, resource.hs_ck, ddr_domain=self.ddr_domain + "_90")
         m.d.comb += lane_ck.request_hs.eq(self.request_hs)
 
         return m

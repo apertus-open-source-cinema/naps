@@ -7,7 +7,7 @@ from nmigen.lib.cdc import FFSynchronizer
 from naps import StatusSignal, ControlSignal, driver_method, Changed, SocPlatform
 from ..peripherals import SocMemory
 
-__all__ = ["probe", "trigger", "add_ila"]
+__all__ = ["probe", "fsm_probe", "trigger", "add_ila"]
 
 
 def fsm_probe(m, fsm: FSM):

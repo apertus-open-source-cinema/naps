@@ -1,11 +1,17 @@
 from nmigen import *
 
-from naps import ImageStream, PacketizedStream, process_write_to_stream, ControlSignal, StreamGearbox, Process, process_delay, StatusSignal, NewHere
-from .py_dsi_generator import assemble, short_packet, ShortPacketDataType, LongPacketDataType, blanking
-from ..debug.ila import probe, fsm_probe, trigger
+from naps import ImageStream, PacketizedStream, process_write_to_stream, ControlSignal, StreamGearbox, Process, process_delay, StatusSignal, probe, fsm_probe, trigger
+from .py_dsi_generator import assemble, short_packet
+from .types import DsiShortPacketDataType, DsiLongPacketDataType
+
+__all__ = ["ImageStream2Dsi"]
 
 
-class ImageStream2MipiDsiVideoBurstMode(Elaboratable):
+class ImageStream2Dsi(Elaboratable):
+    """
+    Conoverts an ImageStream to a Packetized stream that can be fed into a DSI phy.
+    Uses Non Burst Mode with Sync Events.
+    """
     def __init__(self, input: ImageStream, num_lanes: int, image_width=480):
         assert len(input.payload) == 24
         self.input = input
@@ -52,10 +58,10 @@ class ImageStream2MipiDsiVideoBurstMode(Elaboratable):
                 p += process_write_to_stream(m, self.output, payload=value, last=last & lp_after)
 
         def end_of_transmisson(p):
-            send_short_packet(p, ShortPacketDataType.END_OF_TRANSMISSION_PACKET, lp_after=True)
+            send_short_packet(p, DsiShortPacketDataType.END_OF_TRANSMISSION_PACKET, lp_after=True)
 
         def blanking(p, length, omit_footer=False):
-            send_short_packet(p, LongPacketDataType.BLANKING_PACKET_NO_DATA, Const(length, 16))
+            send_short_packet(p, DsiLongPacketDataType.BLANKING_PACKET_NO_DATA, Const(length, 16))
             for i in range((length // 2)):
                 p += process_write_to_stream(m, self.output, payload=0x0)
             if not omit_footer:
@@ -74,7 +80,7 @@ class ImageStream2MipiDsiVideoBurstMode(Elaboratable):
                 second_process_name = name
 
             with Process(m, first_name, to=second_process_name) as p:
-                send_short_packet(p, ShortPacketDataType.H_SYNC_START)
+                send_short_packet(p, DsiShortPacketDataType.H_SYNC_START)
                 end_of_transmisson(p)
 
             with Process(m, second_process_name, to=None) as p:
@@ -100,16 +106,16 @@ class ImageStream2MipiDsiVideoBurstMode(Elaboratable):
 
             with Process(m, "VSYNC", to="VBP") as p:
                 p += m.If(gearbox.output.valid)
-                send_short_packet(p, ShortPacketDataType.V_SYNC_START)
+                send_short_packet(p, DsiShortPacketDataType.V_SYNC_START)
                 end_of_transmisson(p)
 
             v_porch("VBP", "LINE_START", self.vbp, skip_first_hsync=True)
 
             with Process(m, "LINE_START", to="LINE_DATA") as p:
                 m.d.comb += trig.eq(1)
-                send_short_packet(p, ShortPacketDataType.H_SYNC_START)
+                send_short_packet(p, DsiShortPacketDataType.H_SYNC_START)
                 blanking(p, self.hbp * 3)
-                send_short_packet(p, LongPacketDataType.PACKED_PIXEL_STREAM_24_BIT_RGB_8_8_8, self.line_width)
+                send_short_packet(p, DsiLongPacketDataType.PACKED_PIXEL_STREAM_24_BIT_RGB_8_8_8, self.line_width)
             with m.State("LINE_DATA"):
                 with m.If(gearbox.output.line_last & gearbox.output.valid & gearbox.output.ready):
                     m.next = "LINE_END"

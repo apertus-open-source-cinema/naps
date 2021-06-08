@@ -105,8 +105,3 @@ def nAvrg(*values):
 
 def nAbsDifference(a, b):
     return Mux(a > b, a - b, b - a)
-
-
-def bit_reversed(s: Value):
-    assert isinstance(s, Value)
-    return Cat(reversed([s[i] for i in range(s.shape().width)]))

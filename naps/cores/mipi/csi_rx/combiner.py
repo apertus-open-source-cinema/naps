@@ -2,11 +2,14 @@ from typing import List
 from nmigen import *
 from nmigen.lib.io import Pin
 from naps import PacketizedFirstStream, StreamGearbox, nAny, nAll
+
 from .s7_rx_phy import MipiClockRxPhy
-from .aligner import LaneWordAligner
+from .aligner import CsiWordAligner
+
+__all__ = ["CsiLaneCombiner"]
 
 
-class MipiLaneCombiner(Elaboratable):
+class CsiLaneCombiner(Elaboratable):
     """
     Combines 1 to 4 lanes to a 32 bit word that can be used for parsing the packet header.
     Also assists with the training of multiple lanes.
@@ -27,7 +30,7 @@ class MipiLaneCombiner(Elaboratable):
         ddr_domain = f'{self.domain_prefix}_ddr'
 
         clock_phy = m.submodules.clock_phy = MipiClockRxPhy(self.clock_pin, ddr_domain)
-        lane_phys = [LaneWordAligner(pin, ddr_domain, self.in_packet) for pin in self.data_pins]
+        lane_phys = [CsiWordAligner(pin, ddr_domain, self.in_packet) for pin in self.data_pins]
         for i, phy in enumerate(lane_phys):
             m.submodules[f'lane_{i + 1}_phy'] = phy
 

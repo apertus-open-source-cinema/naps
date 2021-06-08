@@ -4,7 +4,7 @@ from nmigen import *
 from nmigen.sim import Passive
 
 from naps import TristateIo, SimPlatform, write_packet_to_stream, read_packet_from_stream, TristateDdrIo, SimDdr, do_nothing
-from naps.cores.mipi.d_phy_lane import MipiDPhyDataLane
+from .d_phy_lane import DPhyDataLane
 
 
 class DPhyDataLaneTest(unittest.TestCase):
@@ -15,8 +15,8 @@ class DPhyDataLaneTest(unittest.TestCase):
         platform = SimPlatform()
         m = Module()
 
-        a = m.submodules.a = MipiDPhyDataLane(TristateIo(2), TristateDdrIo(2), initial_driving=True)
-        b = m.submodules.b = MipiDPhyDataLane(TristateIo(2), TristateDdrIo(2), initial_driving=False)
+        a = m.submodules.a = DPhyDataLane(TristateIo(2), TristateDdrIo(2), initial_driving=True)
+        b = m.submodules.b = DPhyDataLane(TristateIo(2), TristateDdrIo(2), initial_driving=False)
 
         with m.If(a.lp_pins.oe):
             m.d.comb += b.lp_pins.i.eq(a.lp_pins.o)
@@ -53,7 +53,7 @@ class DPhyDataLaneTest(unittest.TestCase):
         platform = SimPlatform()
         m = Module()
 
-        dut = m.submodules.dut = MipiDPhyDataLane(TristateIo(2), TristateDdrIo(2), initial_driving=True, ddr_domain="hs")
+        dut = m.submodules.dut = DPhyDataLane(TristateIo(2), TristateDdrIo(2), initial_driving=True, ddr_domain="hs")
         ddr = m.submodules.ddr = SimDdr(dut.hs_pins, domain="ddr")
 
         packets = [

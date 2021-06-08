@@ -3,7 +3,7 @@ from nmigen import *
 from naps import ControlSignal, StatusSignal
 from . import ImageStream, RGB24
 
-__all__ = ["BlinkDemoVideoSource", "BertlDemoVideoSource", "SolidColorDemoVideoSource"]
+__all__ = ["BlinkDemoVideoSource", "BertlDemoVideoSource", "SolidColorDemoVideoSource", "GradientDemoVideoSource"]
 
 
 class DemoVideoSource(Elaboratable):

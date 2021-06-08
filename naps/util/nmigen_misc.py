@@ -4,11 +4,12 @@ from itertools import count
 from typing import Iterator, Iterable
 
 from nmigen import *
+from nmigen import Mux
 from nmigen.build import ResourceError
 
 __all__ = ["iterator_with_if_elif", "assert_is_pot", "log2", "nMin", "nMax", "nAny", "nAll",
            "max_error_freq", "delay_by", "ends_with", "connect_leds", "with_reset", "nAvrg",
-           "nAbsDifference"]
+           "nAbsDifference", "fake_differential"]
 
 
 def iterator_with_if_elif(iterator: Iterable, module: Module) -> Iterator:
@@ -107,6 +108,5 @@ def nAbsDifference(a, b):
     return Mux(a > b, a - b, b - a)
 
 
-def bit_reversed(s: Value):
-    assert isinstance(s, Value)
-    return Cat(reversed([s[i] for i in range(s.shape().width)]))
+def fake_differential(v):
+    return Mux(v, 0b01, 0b10)

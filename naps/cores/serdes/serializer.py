@@ -1,12 +1,10 @@
 from nmigen import *
 from nmigen.lib.cdc import FFSynchronizer
+from naps import BasicStream
+from ...util.nmigen_misc import fake_differential
+from ..stream import BufferedAsyncStreamFIFO
 
-from naps import BasicStream, BufferedAsyncStreamFIFO
-
-
-
-def fake_differential(v):
-    return Mux(v, 0b01, 0b10)
+__all__ = ["Serializer"]
 
 
 class Serializer(Elaboratable):

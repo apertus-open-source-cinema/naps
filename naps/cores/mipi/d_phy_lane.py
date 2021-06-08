@@ -72,7 +72,7 @@ class MipiDPhyDataLane(Elaboratable):
             with m.FSM(name="tx_fsm") as fsm:
                 with m.State("IDLE"):
                     m.d.comb += lp.eq(STOP)
-                    with delay_lp(100):
+                    with delay_lp(10):  # TODO: reduce this delay
                         with m.If(self.control_input.valid & (self.control_input.payload == 0x00) & self.control_input.last):
                             m.d.comb += self.control_input.ready.eq(1)
                             m.next = "TURNAROUND_LP_REQUEST"

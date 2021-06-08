@@ -21,24 +21,26 @@ class SocPlatform(ABC):
         return getattr(self._wrapped_platform, item)
 
     def __init__(self, platform):
-        self._wrapped_platform = platform
+        class WrappedPlatform(platform.__class__):
+            # store a reference in the platform that is wrapped to be able to retrieve it during e.g. fatbitstream
+            # generation
+            _soc_platform = self
+
+            # inject fatbitstream generation into the platform templates
+            extra_command_templates = []
+
+            @property
+            def command_templates(self):
+                return super().command_templates + self.extra_command_templates
+
+        wrapped_platform = WrappedPlatform()
+        wrapped_platform.__dict__ = platform.__dict__
+
+        self._wrapped_platform = wrapped_platform
 
         # inject our prepare method into the platform as a starting point for all our hooks
         self.real_prepare = self._wrapped_platform.prepare
         self._wrapped_platform.prepare = self.prepare
-
-        # inject fatbitstream generation into the platform templates
-        # we it this way because command_templates might be a property object that cant be written to directly
-        original_command_templates = self._wrapped_platform.command_templates
-        self._wrapped_platform.extra_command_templates = []
-        self._wrapped_platform.__class__.command_templates = property(lambda plat: [
-            *original_command_templates,
-            *plat.extra_command_templates
-        ])
-
-        # store a reference in the platform that is wrapped to be able to retrieve it during e.g. fatbitstream
-        # generation
-        self._wrapped_platform._soc_platform = self
 
         self.prepare_hooks = []
         self.to_inject_subfragments = []

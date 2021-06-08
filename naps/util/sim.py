@@ -11,9 +11,9 @@ __all__ = ["SimPlatform", "FakeResource", "TristateIo", "TristateDdrIo", "SimDdr
 
 
 class SimPlatform:
-    def __init__(self, filename=None):
-        self.command_templates = []
+    command_templates = []
 
+    def __init__(self, filename=None):
         self.clocks = {}
         self.is_sim = True
         self.processes = []

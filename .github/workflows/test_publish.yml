@@ -1,5 +1,5 @@
 name: python testsuite and deploy
-on: [push]
+on: [push, pull_request]
 jobs:
   run_testsuite:
     runs-on: ubuntu-latest

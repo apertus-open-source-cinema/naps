@@ -33,7 +33,8 @@ class SocPlatform(ABC):
             def command_templates(self):
                 return super().command_templates + self.extra_command_templates
 
-        wrapped_platform = WrappedPlatform()
+        # directly constructing a WrappedPlatform() here would break when platform.__class__.__init__ as non-optional arguments
+        wrapped_platform = WrappedPlatform.__new__(WrappedPlatform)
         wrapped_platform.__dict__ = platform.__dict__
 
         self._wrapped_platform = wrapped_platform

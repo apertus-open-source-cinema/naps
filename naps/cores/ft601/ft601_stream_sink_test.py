@@ -62,4 +62,6 @@ class TestFt601StreamSink(TestCase):
                 assert v == last
                 last += 1
 
+        import sys
+        sys.setrecursionlimit(1500)  # this test compiles a rather large memory and fails with the standard recursion limit
         platform.sim(m, (testbench, "ft601"))

@@ -44,7 +44,6 @@ setup(
     extras_require={
         'test': [
             'pytest',
-            'pytest-forked',
             'pytest-xdist',
             'psutil',
 

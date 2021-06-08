@@ -44,7 +44,7 @@ class StreamGearbox(Elaboratable):
         shift_register = Signal(input_width + output_width + min(input_width, output_width))
         input_read = (self.input.ready & self.input.valid)
         output_write = (self.output.ready & self.output.valid)
-        current_bits_in_shift_register = Signal(range(len(shift_register)))
+        current_bits_in_shift_register = Signal(range(len(shift_register) + 1))
 
         for k, v in self.input.out_of_band_signals.items():
             if not (k == "payload" or (k.endswith("last") and len(v) == 1) or (k.endswith("first") and len(v) == 1)):
@@ -64,7 +64,7 @@ class StreamGearbox(Elaboratable):
         with m.Elif(~input_read & output_write):
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register - output_width)
             for reg, payload in shift_registers:
-                m.d.sync += reg.eq(reg[output_width:])
+                m.d.sync += reg.eq(reg >> output_width)
         with m.Elif(input_read & output_write):
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register + input_width - output_width)
             for reg, payload in shift_registers:

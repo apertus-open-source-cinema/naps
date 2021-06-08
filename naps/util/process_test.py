@@ -19,7 +19,7 @@ class TestProcess(unittest.TestCase):
                 p += process_delay(m, 10)
                 m.d.comb += stage2.eq(1)
                 p += m.If(stage3_barrier)
-                m.d.comb += stage3.eq(1)
+                m.d.comb += stage3.eq(1)  # this will be ignored because we jump directly to the END state
             with m.State("END"):
                 m.d.comb += end.eq(1)
 
@@ -29,8 +29,7 @@ class TestProcess(unittest.TestCase):
             self.assertEqual(0, (yield stage1))
             self.assertEqual(1, (yield stage2))
             yield stage3_barrier.eq(1)
-            self.assertEqual(0, (yield stage1))
-            self.assertEqual(1, (yield stage2))
+            yield
             yield
             self.assertEqual(1, (yield end))
 

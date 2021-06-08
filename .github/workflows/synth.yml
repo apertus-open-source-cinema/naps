@@ -1,6 +1,6 @@
 name: Vivado Builds
 
-on: [push]
+on: [push, pull_request]
 
 jobs:
   build_applet:
@@ -9,6 +9,9 @@ jobs:
       matrix:
         applet:
         - applets/camera.py -b -d MicroR2 -s Zynq
+        - applets/hdmi_framebuffer.py -b -d MicroR2 -s Zynq
+        - applets/hdmi_framebuffer.py -b -d Beta -s Zynq
+        - applets/hdmi_framebuffer.py -b -d Zybo -s Zynq
     runs-on: vivado
     steps:
     - uses: actions/checkout@v2

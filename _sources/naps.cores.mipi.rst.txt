@@ -1,93 +1,22 @@
 naps.cores.mipi package
 =======================
 
+Subpackages
+-----------
+
+.. toctree::
+   :maxdepth: 4
+
+   naps.cores.mipi.csi_rx
+   naps.cores.mipi.dsi_tx
+
 Submodules
 ----------
 
-naps.cores.mipi.aligner module
-------------------------------
-
-.. automodule:: naps.cores.mipi.aligner
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-naps.cores.mipi.combiner module
--------------------------------
-
-.. automodule:: naps.cores.mipi.combiner
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-naps.cores.mipi.d\_phy module
+naps.cores.mipi.common module
 -----------------------------
 
-.. automodule:: naps.cores.mipi.d_phy
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-naps.cores.mipi.d\_phy\_lane module
------------------------------------
-
-.. automodule:: naps.cores.mipi.d_phy_lane
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-naps.cores.mipi.d\_phy\_lane\_test module
------------------------------------------
-
-.. automodule:: naps.cores.mipi.d_phy_lane_test
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-naps.cores.mipi.dsi\_protocol module
-------------------------------------
-
-.. automodule:: naps.cores.mipi.dsi_protocol
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-naps.cores.mipi.mipi\_test module
----------------------------------
-
-.. automodule:: naps.cores.mipi.mipi_test
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-naps.cores.mipi.packet module
------------------------------
-
-.. automodule:: naps.cores.mipi.packet
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-naps.cores.mipi.py\_dsi\_generator module
------------------------------------------
-
-.. automodule:: naps.cores.mipi.py_dsi_generator
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-naps.cores.mipi.s7\_rx\_phy module
-----------------------------------
-
-.. automodule:: naps.cores.mipi.s7_rx_phy
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-naps.cores.mipi.s7\_tx\_phy module
-----------------------------------
-
-.. automodule:: naps.cores.mipi.s7_tx_phy
+.. automodule:: naps.cores.mipi.common
    :members:
    :undoc-members:
    :show-inheritance:

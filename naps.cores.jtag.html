@@ -200,6 +200,32 @@
 <div class="section" id="module-naps.cores.jtag.jtag_peripheral_connector_test">
 <span id="naps-cores-jtag-jtag-peripheral-connector-test-module"></span><h2>naps.cores.jtag.jtag_peripheral_connector_test module<a class="headerlink" href="#module-naps.cores.jtag.jtag_peripheral_connector_test" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
+<dt id="naps.cores.jtag.jtag_peripheral_connector_test.DummyPeripheral">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.jtag.jtag_peripheral_connector_test.</span></code><code class="sig-name descname"><span class="pre">DummyPeripheral</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.DummyPeripheral" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<dl class="py method">
+<dt id="naps.cores.jtag.jtag_peripheral_connector_test.DummyPeripheral.elaborate">
+<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.DummyPeripheral.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.cores.jtag.jtag_peripheral_connector_test.DummyPeripheral.handle_read">
+<code class="sig-name descname"><span class="pre">handle_read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_done</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.DummyPeripheral.handle_read" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.cores.jtag.jtag_peripheral_connector_test.DummyPeripheral.handle_write">
+<code class="sig-name descname"><span class="pre">handle_write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_done</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.DummyPeripheral.handle_write" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.cores.jtag.jtag_peripheral_connector_test.DummyPeripheral.range">
+<code class="sig-name descname"><span class="pre">range</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.DummyPeripheral.range" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="naps.cores.jtag.jtag_peripheral_connector_test.TestJTAGPeripheralConnectorFSM">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.jtag.jtag_peripheral_connector_test.</span></code><code class="sig-name descname"><span class="pre">TestJTAGPeripheralConnectorFSM</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.TestJTAGPeripheralConnectorFSM" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
@@ -226,32 +252,6 @@
 <dl class="py method">
 <dt id="naps.cores.jtag.jtag_peripheral_connector_test.TestJTAGPeripheralConnectorFSM.test_read_transaction_tdo_delay">
 <code class="sig-name descname"><span class="pre">test_read_transaction_tdo_delay</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.TestJTAGPeripheralConnectorFSM.test_read_transaction_tdo_delay" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="naps.cores.jtag.jtag_peripheral_connector_test.TestPeripheral">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.jtag.jtag_peripheral_connector_test.</span></code><code class="sig-name descname"><span class="pre">TestPeripheral</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.TestPeripheral" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.jtag.jtag_peripheral_connector_test.TestPeripheral.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.TestPeripheral.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="naps.cores.jtag.jtag_peripheral_connector_test.TestPeripheral.handle_read">
-<code class="sig-name descname"><span class="pre">handle_read</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">read_done</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.TestPeripheral.handle_read" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="naps.cores.jtag.jtag_peripheral_connector_test.TestPeripheral.handle_write">
-<code class="sig-name descname"><span class="pre">handle_write</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">addr</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">data</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">write_done</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.TestPeripheral.handle_write" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="naps.cores.jtag.jtag_peripheral_connector_test.TestPeripheral.range">
-<code class="sig-name descname"><span class="pre">range</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.jtag.jtag_peripheral_connector_test.TestPeripheral.range" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

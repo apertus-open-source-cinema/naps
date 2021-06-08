@@ -235,6 +235,11 @@
 <dd></dd></dl>
 
 <dl class="py function">
+<dt id="naps.cores.debug.ila.fsm_probe">
+<code class="sig-prename descclassname"><span class="pre">naps.cores.debug.ila.</span></code><code class="sig-name descname"><span class="pre">fsm_probe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">fsm</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.dsl.FSM</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.debug.ila.fsm_probe" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="naps.cores.debug.ila.probe">
 <code class="sig-prename descclassname"><span class="pre">naps.cores.debug.ila.</span></code><code class="sig-name descname"><span class="pre">probe</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">signal</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">decoder</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">None</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.debug.ila.probe" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -271,11 +276,6 @@
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="naps.cores.debug.packet_console.ConsolePacketSink.print_packet">
-<code class="sig-name descname"><span class="pre">print_packet</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.debug.packet_console.ConsolePacketSink.print_packet" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py attribute">
 <dt id="naps.cores.debug.packet_console.ConsolePacketSink.read_packet">
 <code class="sig-name descname"><span class="pre">read_packet</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.debug.packet_console.ConsolePacketSink.read_packet" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -306,8 +306,18 @@
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.debug.packet_console_test.</span></code><code class="sig-name descname"><span class="pre">PacketConsoleTest</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.debug.packet_console_test.PacketConsoleTest" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
 <dl class="py method">
+<dt id="naps.cores.debug.packet_console_test.PacketConsoleTest.check_roundtrip_complex">
+<code class="sig-name descname"><span class="pre">check_roundtrip_complex</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">test_packet</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.debug.packet_console_test.PacketConsoleTest.check_roundtrip_complex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
 <dt id="naps.cores.debug.packet_console_test.PacketConsoleTest.test_roundtrip_complex">
 <code class="sig-name descname"><span class="pre">test_roundtrip_complex</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.debug.packet_console_test.PacketConsoleTest.test_roundtrip_complex" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.cores.debug.packet_console_test.PacketConsoleTest.test_roundtrip_one_byte">
+<code class="sig-name descname"><span class="pre">test_roundtrip_one_byte</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.debug.packet_console_test.PacketConsoleTest.test_roundtrip_one_byte" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py method">

@@ -19,6 +19,7 @@ Subpackages
    naps.cores.mipi
    naps.cores.peripherals
    naps.cores.plugin_module_streamer
+   naps.cores.serdes
    naps.cores.stream
    naps.cores.video
 

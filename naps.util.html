@@ -226,6 +226,11 @@
 <dd></dd></dl>
 
 <dl class="py function">
+<dt id="naps.util.nmigen_misc.fake_differential">
+<code class="sig-prename descclassname"><span class="pre">naps.util.nmigen_misc.</span></code><code class="sig-name descname"><span class="pre">fake_differential</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">v</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.nmigen_misc.fake_differential" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py function">
 <dt id="naps.util.nmigen_misc.iterator_with_if_elif">
 <code class="sig-prename descclassname"><span class="pre">naps.util.nmigen_misc.</span></code><code class="sig-name descname"><span class="pre">iterator_with_if_elif</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">iterator</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">Iterable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">module</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.dsl.Module</span></span></em><span class="sig-paren">)</span> &#x2192; <span class="pre">Iterator</span><a class="headerlink" href="#naps.util.nmigen_misc.iterator_with_if_elif" title="Permalink to this definition">¶</a></dt>
 <dd><p>A helper to build a priority encoder using If / Elif constructs
@@ -285,11 +290,6 @@
 <dt id="naps.util.nmigen_misc_test.TestNMigenMisc">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.util.nmigen_misc_test.</span></code><code class="sig-name descname"><span class="pre">TestNMigenMisc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.nmigen_misc_test.TestNMigenMisc" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
-<dl class="py method">
-<dt id="naps.util.nmigen_misc_test.TestNMigenMisc.test_bit_reversed">
-<code class="sig-name descname"><span class="pre">test_bit_reversed</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.nmigen_misc_test.TestNMigenMisc.test_bit_reversed" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="py method">
 <dt id="naps.util.nmigen_misc_test.TestNMigenMisc.test_ends_with">
 <code class="sig-name descname"><span class="pre">test_ends_with</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.nmigen_misc_test.TestNMigenMisc.test_ends_with" title="Permalink to this definition">¶</a></dt>
@@ -388,15 +388,10 @@
 <span id="naps-util-process-module"></span><h2>naps.util.process module<a class="headerlink" href="#module-naps.util.process" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="naps.util.process.Process">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.util.process.</span></code><code class="sig-name descname"><span class="pre">Process</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.dsl.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'process'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.process.Process" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.util.process.</span></code><code class="sig-name descname"><span class="pre">Process</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">m</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.hdl.dsl.Module</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">to</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.process.Process" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Processes are a list of sequential stages that are seperated by “locks”. Each lock takes at least
+<p>Processes are a utility to ease the writing of sequential steps in a FSM that are seperated by “locks”. Each lock takes at least
 one cycle to complete and may be time or event driven. The code between the locks is run in parallel.</p>
-<dl class="py method">
-<dt id="naps.util.process.Process.reset">
-<code class="sig-name descname"><span class="pre">reset</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.util.process.Process.reset" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </dd></dl>
 
 <dl class="py function">

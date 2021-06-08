@@ -20,6 +20,14 @@ naps.data\_structure.packed\_struct module
    :undoc-members:
    :show-inheritance:
 
+naps.data\_structure.packed\_struct\_test module
+------------------------------------------------
+
+.. automodule:: naps.data_structure.packed_struct_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Module contents
 ---------------
 

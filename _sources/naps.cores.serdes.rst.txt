@@ -1,0 +1,21 @@
+naps.cores.serdes package
+=========================
+
+Submodules
+----------
+
+naps.cores.serdes.serializer module
+-----------------------------------
+
+.. automodule:: naps.cores.serdes.serializer
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.cores.serdes
+   :members:
+   :undoc-members:
+   :show-inheritance:

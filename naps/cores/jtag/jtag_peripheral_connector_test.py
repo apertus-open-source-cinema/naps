@@ -5,7 +5,7 @@ from naps.vendor import JTAG
 from .jtag_peripheral_connector import JTAGPeripheralConnector
 
 
-class TestPeripheral(Elaboratable):
+class DummyPeripheral(Elaboratable):
     def range(self):
         return range(0, 1024)
 
@@ -56,7 +56,7 @@ class TestJTAGPeripheralConnectorFSM(unittest.TestCase):
 
         jtag_device = JTAG()
         m = Module()
-        test_peripheral = m.submodules.test_peripheral = TestPeripheral()
+        test_peripheral = m.submodules.test_peripheral = DummyPeripheral()
         m.submodules.jtag = JTAGPeripheralConnector(test_peripheral, jtag_device, jtag_domain="sync")
 
         jtag_testbench = JTAG()

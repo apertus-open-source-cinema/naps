@@ -1,10 +1,10 @@
 from nmigen import *
 from nmigen.lib.cdc import FFSynchronizer
 
-from naps import StatusSignal, PacketizedStream, TristateIo, StreamBuffer, process_delay, process_block, Process, TristateDdrIo, process_write_to_stream
-from naps.cores.serdes.serializer import fake_differential, Serializer
-from naps.util.nmigen_misc import bit_reversed
-from naps.util.past import NewHere
+from naps import StatusSignal, PacketizedStream, TristateIo, process_delay, process_block, Process, TristateDdrIo, process_write_to_stream, NewHere, fake_differential
+from naps.cores import StreamBuffer, Serializer
+
+__all__ = ["DPhyDataLane", "DPhyClockLane"]
 
 
 # control mode lp symbols
@@ -21,7 +21,7 @@ MARK_0 = 0b01
 MARK_1 = 0b10
 
 
-class MipiDPhyDataLane(Elaboratable):
+class DPhyDataLane(Elaboratable):
     """ A mipi D-Phy Data lane that can handle bidirectional lp data transfer and unidirectional hs transfer.
 
     The `sync` domain of this module should run at 2x the LP Hold period. Eg if the hold period is 66ns, the sync domain should run at 30 Mhz
@@ -68,7 +68,7 @@ class MipiDPhyDataLane(Elaboratable):
         bta_timeout_possible = Signal()
 
         with m.If(self.is_driving):
-            lp = bit_reversed(self.lp_pins.o)
+            lp = self.lp_pins.o[::-1]
             with m.FSM(name="tx_fsm") as fsm:
                 with m.State("IDLE"):
                     m.d.comb += lp.eq(STOP)
@@ -174,7 +174,7 @@ class MipiDPhyDataLane(Elaboratable):
 
         with m.If(~self.is_driving):
             lp = Signal(2)
-            m.submodules += FFSynchronizer(bit_reversed(self.lp_pins.i), lp)
+            m.submodules += FFSynchronizer(self.lp_pins.i[::-1], lp)
 
             with m.FSM(name="rx_fsm") as fsm:
                 def maybe_next(condition, next_state):
@@ -256,7 +256,7 @@ class MipiDPhyDataLane(Elaboratable):
         return m
 
 
-class MipiDPhyClockLane(Elaboratable):
+class DPhyClockLane(Elaboratable):
     def __init__(self, lp_pins: TristateIo, hs_pins: TristateDdrIo, ddr_domain="sync"):
         self.lp_pins = lp_pins
         self.hs_pins = hs_pins
@@ -271,7 +271,7 @@ class MipiDPhyClockLane(Elaboratable):
         m.d.comb += self.lp_pins.oe.eq(1)
         m.d.comb += self.hs_pins.oe.eq(self.is_hs)
         m.d.comb += self.hs_pins.o_clk.eq(ClockSignal(self.ddr_domain))
-        lp = bit_reversed(self.lp_pins.o)
+        lp = self.lp_pins.o[::-1]
 
         with m.FSM():
             with m.State("LP"):

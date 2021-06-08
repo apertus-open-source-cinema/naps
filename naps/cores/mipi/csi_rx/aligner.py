@@ -2,8 +2,10 @@ from nmigen import *
 
 from .s7_rx_phy import MipiLaneRxPhy
 
+__all__ = ["CsiWordAligner"]
 
-class LaneWordAligner(Elaboratable):
+
+class CsiWordAligner(Elaboratable):
     """A timeout based word aligner. Issues a bitslip request to the PHY if for a specified time no valid packet (as indicated by a upper layer) was received."""
 
     def __init__(self, pin, ddr_domain, in_packet, timeout=100_000, timeouts_to_retrain=1_000):

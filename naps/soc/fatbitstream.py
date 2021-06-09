@@ -15,7 +15,7 @@ class FatbitstreamContext:
         Implements a singleton-like pattern here to have exactly one FatbitstreamContext per Platform instance
         :rtype: FatbitstreamContext
         """
-        if hasattr(platform, "_wrapped_platform"):  # we cant check directly for isinstance SocPlatform here because of cyclic imports
+        while hasattr(platform, "_wrapped_platform"):  # we cant check directly for isinstance SocPlatform here because of cyclic imports
             platform = platform._wrapped_platform
 
         if platform not in cls.platform_to_context_dict:

@@ -21,10 +21,13 @@ class SocPlatform(ABC):
         return getattr(self._wrapped_platform, item)
 
     def __init__(self, platform):
+        platform._soc_platform = self
+
         class WrappedPlatform(platform.__class__):
             # store a reference in the platform that is wrapped to be able to retrieve it during e.g. fatbitstream
             # generation
             _soc_platform = self
+            _wrapped_platform = platform
 
             # inject fatbitstream generation into the platform templates
             extra_command_templates = []

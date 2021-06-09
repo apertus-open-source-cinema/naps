@@ -36,7 +36,7 @@ class SocMemory(Elaboratable):
                     m.d.comb += read_port.addr.eq(addr // self.split_stages)
                 with m.Else():
                     for cond, i in iterator_with_if_elif(range(self.split_stages), m):
-                        with cond((addr % self.split_stages) == i):
+                        with cond(((addr % self.split_stages) == i) if self.split_stages != 1 else True):  # yosys seems to be unable to optimize n % 1 == 0 to 1
                             m.d.sync += data.eq(read_port.data[32 * i:])
                     read_done(Response.OK)
         else:
@@ -51,7 +51,7 @@ class SocMemory(Elaboratable):
             with m.Else():
                 m.d.comb += write_port.addr.eq(addr // self.split_stages)
                 for cond, i in iterator_with_if_elif(range(self.split_stages), m):
-                    with cond((addr % self.split_stages) == i):
+                    with cond(((addr % self.split_stages) == i) if self.split_stages != 1 else True):  # yosys seems to be unable to optimize n % 1 == 0 to 1
                         m.d.comb += write_port.data.eq(data << (i * 32))
                         m.d.comb += write_port.en.eq(1 << i)
                 write_done(Response.OK)
@@ -139,7 +139,6 @@ class SocMemory(Elaboratable):
         value = 0
         for i in range(self.split_stages):
             read = self._memory_accessor.read(self.memory.address + base_address + i)
-            print("read", item, read)
             value |= read << (32 * i)
         return value
 
@@ -148,5 +147,4 @@ class SocMemory(Elaboratable):
         base_address = item * self.split_stages
         for i in range(self.split_stages):
             write = (value >> (32 * i)) & 0xFFFFFFFF
-            print("write", item, write)
             self._memory_accessor.write(self.memory.address + base_address + i, write)

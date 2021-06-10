@@ -54,7 +54,12 @@ class ConsolePacketSource(Elaboratable):
         return m
 
     @driver_method
-    def write_packet(self, packet):
+    def write_packet(self, packet, timeout=0):
+        from time import sleep
+        for i in range(int(timeout * 10)):
+            if self.done:
+                break
+            sleep(0.1)
         assert self.done
         for i, word in enumerate(packet):
             self.memory[i] = word
@@ -102,7 +107,12 @@ class ConsolePacketSink(Elaboratable):
         return m
 
     @driver_method
-    def read_packet(self):
+    def read_packet(self, timeout=0):
+        from time import sleep
+        for i in range(int(timeout * 10)):
+            if self.packet_done:
+                break
+            sleep(0.1)
         if not self.packet_done:
             return None
 

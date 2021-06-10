@@ -45,7 +45,7 @@ class SimPlatform:
     def add_file(self, name, contents):
         pass
 
-    def request(self, name, number=0):
+    def request(self, name, number=0, *args, **kwargs):
         string = "{}#{}".format(name, number)
         if string not in self.handed_out_resources:
             self.handed_out_resources[string] = FakeResource(string, self.handed_out_resources)
@@ -114,6 +114,8 @@ class FakeResource(UserValue):
         return self.handed_out_resources[string]
 
     def __getitem__(self, item):
+        if isinstance(item, slice):
+            item = "slice"
         string = "{}.{}".format(self.name, item)
         if string not in self.handed_out_resources:
             self.handed_out_resources[string] = FakeResource(string, self.handed_out_resources)

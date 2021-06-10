@@ -59,6 +59,7 @@ class Value:
     address: int
     bit_start: int
     bit_len: int
+    decoder: dict
 
 
 @dataclass
@@ -92,7 +93,10 @@ class HardwareProxy:
                 for i in range(read_bytes):
                     val = BitwiseAccessibleInteger(self._memory_accessor.read(obj.address - self._memory_accessor.base + (i * 4)))
                     to_return[i * 32:(i + 1) * 32] = val[obj.bit_start:32 + obj.bit_start - (0 if i != read_bytes - 1 else obj.bit_len % 32)]
-                return int(to_return)
+                to_return = int(to_return)
+                if obj.decoder is not None:
+                    to_return = obj.decoder[to_return]
+                return to_return
             else:
                 return obj
         raise AttributeError("{} has no attribute {}".format(self.__class__.__name__, name))

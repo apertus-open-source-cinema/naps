@@ -1,4 +1,5 @@
 import re
+from enum import Enum
 from inspect import getsource
 from pathlib import Path
 from textwrap import indent, dedent
@@ -19,8 +20,26 @@ def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass=""
     to_return = "class {}({}):\n".format(class_name, superclass)
     for row in mmap.direct_children:
         address = mmap.own_offset.translate(row.address)
+        if isinstance(row.obj, Signal):
+            if isinstance(row.obj.decoder, type) and issubclass(row.obj.decoder, Enum):
+                decoder = {entry.name: entry.value for entry in row.obj.decoder}
+            elif callable(row.obj.decoder):
+                decoder = {}
+                r = range(0, 2**row.obj.width) if not row.obj.signed else range(-2**(row.obj.width - 1), 2**(row.obj.width - 1))
+                for i in r:
+                    try:
+                        decoder[i] = row.obj.decoder(i)
+                    except KeyError:
+                        pass
+            elif row.obj.decoder is None:
+                decoder = None
+            else:
+                raise TypeError(f"unknown decoder type {row.obj.decoder.__class__}")
+            rhs = f"Value(0x{address.address:02x}, {address.bit_offset}, {address.bit_len}, {decoder})"
+        else:
+            rhs = f"Blob(0x{address.address:02x}, {address.bit_offset}, {address.bit_len})"
         to_return += indent(
-            f"{row.name} = {'Value' if isinstance(row.obj, Signal) else 'Blob'}(0x{address.address:02x}, {address.bit_offset}, {address.bit_len})\n",
+            f"{row.name} = {rhs}\n",
             "    "
         )
     init_function_seen = False

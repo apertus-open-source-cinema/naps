@@ -29,11 +29,13 @@ class PackedStructBaseClass(ValueCastable):
             def get_signal(name, type):
                 if name in kwargs:
                     signal = kwargs[name]
-                    if not isinstance(signal, Value):
-                        signal = Const(signal, type)
                     if hasattr(type, "_PACKED_FIELDS"):
                         assert isinstance(signal, type)
-                    assert needed_bits(type) == len(signal)
+                    if isinstance(signal, ValueCastable):
+                        signal = signal.as_value()
+                    elif not isinstance(signal, Value):
+                        signal = Const(signal, type)
+                    assert needed_bits(type) == len(signal), f"field {name} of type {type} needs {needed_bits(type)} bits but got {len(signal)} bits"
                     signal.name = f'{self.name}__{name}'
                     return signal
                 elif hasattr(type, "_PACKED_FIELDS"):
@@ -41,11 +43,11 @@ class PackedStructBaseClass(ValueCastable):
                 else:
                     return Signal(type, name=f'{self.name}__{name}')
 
-            self._backing_signals = {
+            self.backing_signals = {
                 name: get_signal(name, type)
                 for name, type in self._PACKED_FIELDS.items()
             }
-            self._backing_signal = Cat(self._backing_signals.values())
+            self._backing_signal = Cat(self.backing_signals.values())
 
     def __getattribute__(self, item):
         if item in object.__getattribute__(self, "_PACKED_FIELDS"):

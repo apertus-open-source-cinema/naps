@@ -2,7 +2,7 @@ from nmigen import *
 from nmigen.lib.cdc import FFSynchronizer
 
 from naps import StatusSignal, PacketizedStream, TristateIo, process_delay, process_block, Process, TristateDdrIo, process_write_to_stream, NewHere, fake_differential
-from naps.cores import StreamBuffer, Serializer
+from naps.cores import StreamBuffer, Serializer, fsm_status_reg, fsm_probe
 
 __all__ = ["DPhyDataLane", "DPhyClockLane"]
 
@@ -70,16 +70,18 @@ class DPhyDataLane(Elaboratable):
         with m.If(self.is_driving):
             lp = self.lp_pins.o[::-1]
             with m.FSM(name="tx_fsm") as fsm:
+                fsm_status_reg(platform, m, fsm)
+                if self.is_lane_0:
+                    fsm_probe(m, fsm)
                 with m.State("IDLE"):
                     m.d.comb += lp.eq(STOP)
-                    with delay_lp(10):  # TODO: reduce this delay
-                        with m.If(self.control_input.valid & (self.control_input.payload == 0x00) & self.control_input.last):
-                            m.d.comb += self.control_input.ready.eq(1)
-                            m.next = "TURNAROUND_LP_REQUEST"
-                        with m.Elif(self.control_input.valid):
-                            m.next = "LP_REQUEST"
-                        with m.Elif(self.hs_input.valid):
-                            m.next = "HS_REQUEST"
+                    with m.If(self.control_input.valid & (self.control_input.payload == 0x00) & self.control_input.last):
+                        m.d.comb += self.control_input.ready.eq(1)
+                        m.next = "TURNAROUND_LP_REQUEST"
+                    with m.Elif(self.control_input.valid):
+                        m.next = "LP_REQUEST"
+                    with m.Elif(self.hs_input.valid):
+                        m.next = "HS_REQUEST"
 
                 with Process(m, name="HS_REQUEST", to="HS_SEND") as p:
                     m.d.comb += lp.eq(HS_REQUEST)
@@ -152,7 +154,7 @@ class DPhyDataLane(Elaboratable):
                     m.d.comb += lp.eq(STOP)
                     p += delay_lp(10)  # TODO: reduce the delay; it is here to ease debugging :)
 
-                with Process(m, name="TURNAROUND_LP_REQUEST", to="IDLE") as p:
+                with Process(m, name="TURNAROUND_LP_REQUEST", to="TURNAROUND_RETURN") as p:
                     m.d.comb += lp.eq(LP_REQUEST)
                     p += delay_lp(1)
                     m.d.comb += lp.eq(BRIDGE)
@@ -165,6 +167,9 @@ class DPhyDataLane(Elaboratable):
                     m.d.sync += bta_timeout_counter.eq(0)
                     m.d.sync += bta_timeout_possible.eq(1)
                     p += process_delay(m, 1)
+
+                with Process(m, name="TURNAROUND_RETURN", to="IDLE") as p:
+                    p += delay_lp(10)
 
 
         # we buffer the control output to be able to meet the stream contract
@@ -257,10 +262,10 @@ class DPhyDataLane(Elaboratable):
 
 
 class DPhyClockLane(Elaboratable):
-    def __init__(self, lp_pins: TristateIo, hs_pins: TristateDdrIo, ddr_domain="sync"):
+    def __init__(self, lp_pins: TristateIo, hs_pins: TristateDdrIo, ck_domain):
         self.lp_pins = lp_pins
         self.hs_pins = hs_pins
-        self.ddr_domain = ddr_domain
+        self.ck_domain = ck_domain
 
         self.request_hs = Signal()
         self.is_hs = StatusSignal()
@@ -270,7 +275,7 @@ class DPhyClockLane(Elaboratable):
 
         m.d.comb += self.lp_pins.oe.eq(1)
         m.d.comb += self.hs_pins.oe.eq(self.is_hs)
-        m.d.comb += self.hs_pins.o_clk.eq(ClockSignal(self.ddr_domain))
+        m.d.comb += self.hs_pins.o_clk.eq(ClockSignal(self.ck_domain))
         lp = self.lp_pins.o[::-1]
 
         with m.FSM():
@@ -288,8 +293,8 @@ class DPhyClockLane(Elaboratable):
             with m.State("HS"):
                 m.d.comb += lp.eq(0)
                 m.d.comb += self.is_hs.eq(1)
-                m.d.comb += self.hs_pins.o0.eq(fake_differential(0))
-                m.d.comb += self.hs_pins.o1.eq(fake_differential(1))
+                m.d.comb += self.hs_pins.o0.eq(fake_differential(1))
+                m.d.comb += self.hs_pins.o1.eq(fake_differential(0))
                 with m.If(~self.request_hs):
                     m.next = "HS_END"
             with Process(m, name="HS_END", to="LP") as p:

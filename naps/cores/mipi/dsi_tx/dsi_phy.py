@@ -2,15 +2,15 @@ from nmigen import *
 from nmigen.build import Platform
 
 from naps import PacketizedStream, ControlSignal
-from naps.cores import StreamSplitter
 from .d_phy_lane import DPhyDataLane, DPhyClockLane
 
 
 class DsiPhy(Elaboratable):
-    def __init__(self, resource, num_lanes, ddr_domain):
+    def __init__(self, resource, num_lanes, ddr_domain, ck_domain):
         self.resource = resource
         self.num_lanes = num_lanes
         self.ddr_domain = ddr_domain
+        self.ck_domain = ck_domain
 
         self.control_input = PacketizedStream(8)
         self.control_output = PacketizedStream(8)
@@ -38,11 +38,13 @@ class DsiPhy(Elaboratable):
         m.d.comb += lane0.control_input.connect_upstream(self.control_input)
         m.d.comb += self.control_output.connect_upstream(lane0.control_output)
 
-        splitter = m.submodules.splitter = StreamSplitter(self.hs_input, self.num_lanes)
-        for lane, hs_input in zip(lanes, splitter.outputs):
-            m.d.comb += lane.hs_input.connect_upstream(hs_input)
+        m.d.comb += self.hs_input.ready.eq(lane0.hs_input.ready)
+        for i, lane in enumerate(lanes):
+            m.d.comb += lane.hs_input.payload.eq(self.hs_input.payload[i * 8: (i+1) * 8])
+            m.d.comb += lane.hs_input.valid.eq(self.hs_input.valid)
+            m.d.comb += lane.hs_input.last.eq(self.hs_input.last)
 
-        lane_ck = m.submodules.lane_ck = DPhyClockLane(resource.lp_ck, resource.hs_ck, ddr_domain=self.ddr_domain + "_90")
+        lane_ck = m.submodules.lane_ck = DPhyClockLane(resource.lp_ck, resource.hs_ck, ck_domain=self.ck_domain)
         m.d.comb += lane_ck.request_hs.eq(self.request_hs)
 
         return m

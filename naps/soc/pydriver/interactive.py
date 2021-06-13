@@ -25,6 +25,7 @@ if __name__ == "__main__":
 
     # setup the design variable
     design = Design(MemoryAccessor())
+    self = design  # this is a hack to be able to copy & paste driver code directly
 
     print("welcome to the python shell to interact with the fpga")
     print("interact with it over the `design` variable and tab completion")

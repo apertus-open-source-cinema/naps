@@ -44,20 +44,25 @@ class Pll(Elaboratable):
 
         self.output_port_names = ["CLKOS", "CLKOS2", "CLKOS3"]
 
+        op_phase = 1 / input_freq * 0.5
+        self.primary_cphase = int(op_phase * self.vco_freq)
+
         self.params = {
             "CLKI_DIV": vco_div,
 
             # we use OLKOP as our feedback path
-            "CLKFB_DIV": vco_mul,
+            "CLKFB_DIV": 1,
             "FEEDBK_PATH": "USERCLOCK",
-            "CLKOP_DIV": 1,
+            "CLKOP_DIV": vco_mul,
             "CLKOP_ENABLE": "ENABLED",
+            "DPHASE_SOURCE": "DISABLED",
+            "CLKOP_CPHASE": self.primary_cphase,
 
             **{"{}_ENABLE".format(output): "DISABLED" for output in self.output_port_names}
         }
         self.attributes = {
             "FREQUENCY_PIN_CLKI": str(input_freq / 1e6),
-            "FREQUENCY_PIN_CLKOP": str(self.vco_freq / 1e6),
+            "FREQUENCY_PIN_CLKOP": str(input_freq / 1e6),
         }
 
         self.clocks = []  # (signal, frequency, domain)
@@ -78,10 +83,13 @@ class Pll(Elaboratable):
 
         freq = self.vco_freq / divisor
 
-        ns_shift = 1 / freq * 1e6 * phase / 360.0
+        ns_shift = 1 / freq * phase / 360.0
         phase_count = ns_shift * self.vco_freq
-        cphase = floor(phase_count)
-        fphase = floor((phase_count - cphase) * 8)
+        cphase = int(phase_count)
+        fphase = int((phase_count - cphase) * 8)
+
+        shift_actual = 1 / self.vco_freq * (cphase + fphase / 8.0)
+        phase_actual = 360 * shift_actual / (1 / freq)
 
         cd = ClockDomain(domain_name)
         m.domains += cd
@@ -92,7 +100,7 @@ class Pll(Elaboratable):
         self.outputs[output_name] = ClockSignal(domain_name)
         self.params[f"{output_name}_DIV"] = divisor
         self.params[f"{output_name}_ENABLE"] = "ENABLED"
-        self.params[f"{output_name}_CPHASE"] = cphase
+        self.params[f"{output_name}_CPHASE"] = cphase + self.primary_cphase
         self.params[f"{output_name}_FPHASE"] = fphase
         self.attributes[f"FREQUENCY_PIN_{output_name}"] = str(freq / 1e6)
 

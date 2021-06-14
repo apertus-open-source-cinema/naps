@@ -40,7 +40,7 @@ class TestDsiProtocol(unittest.TestCase):
 
         source = m.submodules.source = GradientDemoVideoSource(direction_y=False, divider=2, width=10, height=10)
         dsi_protocol = m.submodules.dsi_protocol = ImageStream2Dsi(source.output, num_lanes=2, image_width=10)
-        dsi_phy = m.submodules.dsi_phy = DsiPhy(("mipi", 0), num_lanes=2, ddr_domain="ddr")
+        dsi_phy = m.submodules.dsi_phy = DsiPhy(("mipi", 0), num_lanes=2, ddr_domain="ddr", ck_domain="ddr")
         m.d.comb += dsi_phy.hs_input.connect_upstream(dsi_protocol.output)
 
         def testbench():

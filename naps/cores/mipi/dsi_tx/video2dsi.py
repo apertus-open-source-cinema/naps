@@ -23,10 +23,10 @@ class ImageStream2Dsi(Elaboratable):
 
         self.vbp = ControlSignal(16, reset=18)
         self.vfp = ControlSignal(16, reset=4)
-        self.vsync_width = ControlSignal(16, reset=8)
         self.hbp = ControlSignal(16, reset=68 * 3)
         self.hfp = ControlSignal(16, reset=20 * 3)
-        self.hsync_width = ControlSignal(16, reset=12 * 3)
+
+        self.dummy_line = ControlSignal(16, reset=480 * 2)
 
         self.output = PacketizedStream(num_lanes * 8)
 
@@ -69,10 +69,10 @@ class ImageStream2Dsi(Elaboratable):
         blanking_counter = Signal(16)
         is_ready = Signal()
 
-        def blanking(p, length, omit_footer=False):
+        def blanking(p, length, omit_footer=False, type=DsiLongPacketDataType.BLANKING_PACKET_NO_DATA):
             length_without_overhead = length - 6
             m.d.sync += blanking_counter.eq(0)
-            send_short_packet(p, DsiLongPacketDataType.NULL_PACKET_NO_DATA, length_without_overhead[0:16])
+            send_short_packet(p, type, length_without_overhead[0:16])
             with process_write_to_stream(m, self.output, payload=0x0):
                 m.d.sync += blanking_counter.eq(blanking_counter + 1)
                 m.d.comb += is_ready.eq(1)
@@ -96,11 +96,7 @@ class ImageStream2Dsi(Elaboratable):
                 send_short_packet(p, DsiShortPacketDataType.H_SYNC_START)
 
             with Process(m, second_process_name, to=None) as p:
-                blanking(p, self.hsync_width)
-                send_short_packet(p, DsiShortPacketDataType.H_SYNC_END)
-                blanking(p, self.hbp)
-                blanking(p, self.image_width)
-                blanking(p, self.hfp, omit_footer=True)
+                blanking(p, self.hfp + self.image_width + self.hbp, type=DsiLongPacketDataType.NULL_PACKET_NO_DATA, omit_footer=True)
                 with process_write_to_stream(m, self.output, payload=0x0):
                     with m.If(v_porch_counter < length):
                         m.d.sync += v_porch_counter.eq(v_porch_counter + 1)
@@ -129,22 +125,15 @@ class ImageStream2Dsi(Elaboratable):
             fsm_status_reg(platform, m, fsm)
             fsm_probe(m, fsm)
 
-            with Process(m, "VSYNC_START", to="VSYNC") as p:
+            with Process(m, "VSYNC_START", to="VBP") as p:
                 p += m.If(gearbox.output.valid)
                 send_short_packet(p, DsiShortPacketDataType.V_SYNC_START)
-
-            v_porch("VSYNC", "VSYNC_END", self.vsync_width, skip_first_hsync=True)
-
-            with Process(m, "VSYNC_END", to="VBP") as p:
-                send_short_packet(p, DsiShortPacketDataType.V_SYNC_END)
 
             v_porch("VBP", "LINE_START", self.vbp, skip_first_hsync=True)
 
             with Process(m, "LINE_START", to="LINE_DATA") as p:
                 m.d.comb += trig.eq(1)
                 send_short_packet(p, DsiShortPacketDataType.H_SYNC_START)
-                blanking(p, self.hsync_width)
-                send_short_packet(p, DsiShortPacketDataType.H_SYNC_END)
                 blanking(p, self.hbp)
                 send_short_packet(p, DsiLongPacketDataType.PACKED_PIXEL_STREAM_24_BIT_RGB_8_8_8, self.image_width)
             with m.State("LINE_DATA"):

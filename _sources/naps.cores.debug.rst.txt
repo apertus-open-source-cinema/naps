@@ -20,6 +20,14 @@ naps.cores.debug.clocking\_debug module
    :undoc-members:
    :show-inheritance:
 
+naps.cores.debug.fsm\_status\_reg module
+----------------------------------------
+
+.. automodule:: naps.cores.debug.fsm_status_reg
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.cores.debug.ila module
 ---------------------------
 

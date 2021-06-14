@@ -133,6 +133,8 @@ class HardwareProxy:
             for name, child in real_children:
                 if type(child) == Value:
                     to_return += "{}: {}\n".format(name, getattr(self, name))
+                if type(getattr(self.__class__, name, None)) == property:
+                    to_return += "{}: {}\n".format(name, getattr(self, name))
             for name, child in proxy_children:
                 to_return += "{}: \n{}\n".format(name, indent(child.__repr__(allow_recursive=True), "    "))
             return to_return.strip()

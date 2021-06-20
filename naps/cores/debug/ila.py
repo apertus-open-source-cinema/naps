@@ -87,6 +87,7 @@ class Ila(Elaboratable):
         )
         write_port = m.submodules.write_port = self.mem.write_port(domain="sync")
 
+        since_reset = Signal(range(self.trace_length + 1))
         with m.If(self.running):
             with m.If(self.write_ptr < (self.trace_length - 1)):
                 m.d.sync += self.write_ptr.eq(self.write_ptr + 1)
@@ -96,8 +97,13 @@ class Ila(Elaboratable):
             m.d.comb += write_port.en.eq(1)
             m.d.comb += write_port.data.eq(Cat([s for _, s in probes]))
 
+            # we wait trace_length cycles to be sure to overwrite the whole buffer at least once
+            # and avoid confusing results
+            with m.If(since_reset < self.trace_length):
+                m.d.sync += since_reset.eq(since_reset + 1)
+
             with m.If(self.trigger_since == 0):
-                with m.If(trigger):
+                with m.If(trigger & (since_reset > self.trace_length - 1)):
                     m.d.sync += self.trigger_since.eq(1)
             with m.Else():
                 with m.If(self.trigger_since < (self.after_trigger - 1)):
@@ -112,6 +118,7 @@ class Ila(Elaboratable):
                 m.d.sync += self.running.eq(1)
                 m.d.sync += self.trigger_since.eq(0)
                 m.d.sync += self.write_ptr.eq(0)
+                m.d.sync += since_reset.eq(0)
 
         return m
 

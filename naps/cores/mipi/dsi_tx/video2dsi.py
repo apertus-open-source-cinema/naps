@@ -13,20 +13,19 @@ class ImageStream2Dsi(Elaboratable):
     Converts an ImageStream to a Packetized stream that can be fed into a DSI phy.
     Uses Non Burst Mode with Sync Events.
     """
-    def __init__(self, input: ImageStream, num_lanes: int, image_width=480):
+    def __init__(self, input: ImageStream, num_lanes: int, image_width=480, debug=False):
         assert len(input.payload) == 24
         self.input = input
         self.num_lanes = num_lanes
-        self.image_width = ControlSignal(16, reset=image_width * 3)
+        self.image_width = image_width * 3
+        self.debug = debug
+
+        self.vbp = 18
+        self.vfp = 4
+        self.hbp = 68 * 3
+        self.hfp = 20 * 3
 
         self.gearbox_not_ready = StatusSignal(32)
-
-        self.vbp = ControlSignal(16, reset=18)
-        self.vfp = ControlSignal(16, reset=4)
-        self.hbp = ControlSignal(16, reset=68 * 3)
-        self.hfp = ControlSignal(16, reset=20 * 3)
-
-        self.dummy_line = ControlSignal(16, reset=480 * 2)
 
         self.output = PacketizedStream(num_lanes * 8)
 
@@ -34,8 +33,6 @@ class ImageStream2Dsi(Elaboratable):
         m = Module()
 
         gearbox = m.submodules.gearbox = StreamGearbox(self.input, target_width=len(self.output.payload))
-
-        m.submodules.stream_info_gearbox = StreamInfo(gearbox.output)
 
         def repack_to_lanes(packet):
             values = [packet[i*8: (i+1)*8] for i in range(len(packet) // 8)]
@@ -72,6 +69,8 @@ class ImageStream2Dsi(Elaboratable):
         def blanking(p, length, omit_footer=False, type=DsiLongPacketDataType.BLANKING_PACKET_NO_DATA):
             length_without_overhead = length - 6
             m.d.sync += blanking_counter.eq(0)
+            if not isinstance(length_without_overhead, Value):
+                length_without_overhead = Const(length_without_overhead, 16)
             send_short_packet(p, type, length_without_overhead[0:16])
             with process_write_to_stream(m, self.output, payload=0x0):
                 m.d.sync += blanking_counter.eq(blanking_counter + 1)
@@ -105,28 +104,26 @@ class ImageStream2Dsi(Elaboratable):
                         m.d.sync += v_porch_counter.eq(0)
                         m.next = to
 
-        probe(m, self.output.valid)
-        probe(m, self.output.ready)
-        probe(m, self.output.last)
-        probe(m, self.output.payload)
-        probe(m, gearbox.output.ready)
-        probe(m, gearbox.output.valid)
-        probe(m, gearbox.output.frame_last)
-        probe(m, gearbox.output.line_last)
-        probe(m, gearbox.output.payload)
-
         trig = Signal()
-        io = platform.request("io", 0)
-        m.d.comb += io.o[13].eq(trig)
-        m.d.comb += io.oe.eq(1)
-        trigger(m, trig)
+        if self.debug:
+            probe(m, self.output.valid)
+            probe(m, self.output.ready)
+            probe(m, self.output.last)
+            probe(m, self.output.payload)
+            probe(m, gearbox.output.ready)
+            probe(m, gearbox.output.valid)
+            probe(m, gearbox.output.frame_last)
+            probe(m, gearbox.output.line_last)
+            probe(m, gearbox.output.payload)
+
+            trigger(m, trig)
 
         with m.FSM() as fsm:
             fsm_status_reg(platform, m, fsm)
-            fsm_probe(m, fsm)
+            if self.debug:
+                fsm_probe(m, fsm)
 
             with Process(m, "VSYNC_START", to="VBP") as p:
-                p += m.If(gearbox.output.valid)
                 send_short_packet(p, DsiShortPacketDataType.V_SYNC_START)
 
             v_porch("VBP", "LINE_START", self.vbp, skip_first_hsync=True)
@@ -135,6 +132,8 @@ class ImageStream2Dsi(Elaboratable):
                 m.d.comb += trig.eq(1)
                 send_short_packet(p, DsiShortPacketDataType.H_SYNC_START)
                 blanking(p, self.hbp)
+                end_of_transmission(p)
+                p += m.If(gearbox.output.valid)
                 send_short_packet(p, DsiLongPacketDataType.PACKED_PIXEL_STREAM_24_BIT_RGB_8_8_8, self.image_width)
             with m.State("LINE_DATA"):
                 with m.If(gearbox.output.line_last & gearbox.output.valid & gearbox.output.ready):

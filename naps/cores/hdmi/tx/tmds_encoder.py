@@ -1,7 +1,6 @@
 from nmigen import *
 
-control_tokens = [0b1101010100, 0b0010101011, 0b0101010100, 0b1010101011]
-
+from ..tmds import tmds_control_tokens
 
 class TmdsEncoder(Elaboratable):
     def __init__(self, data, control, data_enable):
@@ -90,7 +89,7 @@ class TmdsEncoder(Elaboratable):
                     ]
         with m.Else():
             m.d.sync += [
-                self.out.eq(Array(control_tokens)[control]),
+                self.out.eq(Array(tmds_control_tokens)[control]),
                 disparity.eq(0)
             ]
 

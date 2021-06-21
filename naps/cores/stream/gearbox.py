@@ -96,9 +96,6 @@ class SimpleStreamGearbox(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules.input_stream_info = StreamInfo(self.input)
-        m.submodules.output_stream_info = StreamInfo(self.output)
-
         input_read = (self.input.ready & self.input.valid)
         output_write = (self.output.ready & self.output.valid)
 

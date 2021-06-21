@@ -1,4 +1,5 @@
 from functools import reduce
+from textwrap import indent
 
 from nmigen import *
 from nmigen.hdl.ast import SignalSet
@@ -96,6 +97,23 @@ def address_assignment_hook(platform, top_fragment: Fragment, sames: Elaboratabl
 
     print("memorymap:\n" + "\n".join(
         "    {}: {!r}".format(".".join(k), v) for k, v in top_memorymap.flattened.items()))
+
+    def print_reg_stats(memorymap: MemoryMap, name="top", indent_size=0):
+        def get_child_bits(memorymap: MemoryMap):
+            bits = 0
+            for row in memorymap.direct_children:
+                if isinstance(row.obj, Signal):
+                    bits += row.address.bit_len
+            for row in memorymap.subranges:
+                bits += get_child_bits(row.obj)
+            return bits
+        print(indent(f"{name}: {get_child_bits(memorymap)}", " " * (indent_size * 4)))
+        for row in memorymap.subranges:
+            print_reg_stats(row.obj, row.name, indent_size + 1)
+
+    print("\n\nregister bit stats:")
+    print_reg_stats(top_memorymap)
+
     platform.memorymap = top_memorymap
 
 

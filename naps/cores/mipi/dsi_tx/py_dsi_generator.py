@@ -3,8 +3,8 @@
 from nmigen import *
 from naps import resolve
 from naps.cores.hdmi import parse_modeline, generate_modeline
-from .types import DsiShortPacketDataType, DsiLongPacketDataType
-from .. import DataIdentifier, calculate_ecc
+from naps.cores.mipi.dsi_tx import DsiShortPacketDataType, DsiLongPacketDataType
+from naps.cores.mipi import DataIdentifier, calculate_ecc
 
 __all__ = ["packet_header", "short_packet", "long_packet", "assemble"]
 
@@ -90,5 +90,5 @@ def assemble(generator):
 
 if __name__ == "__main__":
     modeline = parse_modeline(generate_modeline(480, 480, 30))
-    bytes = assemble(color_line(255, 255, 0, 480))
+    bytes = assemble(short_packet(DsiShortPacketDataType.DCS_READ_0_PARAMETER, Const(0xDA, 16)))
     print(f"design.rw_console([{', '.join(['0x{:02x}'.format(x) for x in bytes])}])")

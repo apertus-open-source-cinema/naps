@@ -1,7 +1,8 @@
 import unittest
 from nmigen.build import Clock
 from naps import SimPlatform
-from . import generate_modeline, parse_modeline, HdmiClocking, HdmiTimingGenerator
+from .. import generate_modeline, parse_modeline
+from . import HdmiClocking, HdmiTimingGenerator
 
 
 class TestHdmi(unittest.TestCase):

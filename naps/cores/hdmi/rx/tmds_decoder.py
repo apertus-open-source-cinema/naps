@@ -1,6 +1,7 @@
 from nmigen import *
-from .tmds import control_tokens
-from ... import iterator_with_if_elif
+from naps import iterator_with_if_elif
+from ..tmds import tmds_control_tokens
+
 
 
 class TmdsDecoder(Elaboratable):
@@ -17,7 +18,7 @@ class TmdsDecoder(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        for cond, (i, token) in iterator_with_if_elif(enumerate(control_tokens), m):
+        for cond, (i, token) in iterator_with_if_elif(enumerate(tmds_control_tokens), m):
             with cond(self.input == token):
                 m.d.comb += self.data_enable.eq(0)
                 m.d.comb += self.control.eq(i)
@@ -37,5 +38,6 @@ class TmdsDecoder(Elaboratable):
                 m.d.comb += self.data.eq(xored)
             with m.Else():  # XNOR encoding
                 m.d.comb += self.data.eq(Cat(xored[0], ~xored[1:]))
+            m.d.comb += self.data_enable.eq(1)
 
         return m

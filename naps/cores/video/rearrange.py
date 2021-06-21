@@ -1,8 +1,8 @@
 from nmigen import *
-from naps import nAny, iterator_with_if_elif
+from naps import nAny, iterator_with_if_elif, StatusSignal
 from . import ImageStream
 
-__all__ = ["ImageSplitter", "ImageCombiner", "BlackLineGenerator"]
+__all__ = ["ImageSplitter", "ImageSplitter2", "ImageCombiner", "BlackLineGenerator"]
 
 
 class ImageSplitter(Elaboratable):
@@ -49,6 +49,42 @@ class ImageSplitter(Elaboratable):
                 # the last signals are used as first signals here and are later converted
                 m.d.comb += output.line_last.eq((x // 2) == (self.width - 1) // 2)
                 m.d.comb += output.frame_last.eq(((y // 2) == (self.height - 1) // 2) & output.line_last)
+
+        return m
+
+
+class ImageSplitter2(Elaboratable):
+    """Splits an Image into n chunks horizontally"""
+    def __init__(self, input: ImageStream, chunk_width, n_chunks, height):
+        self.chunk_width = chunk_width
+        self.height = height
+        self.n_chunks = n_chunks
+        self.input = input
+
+        self.x_ctr = StatusSignal(16)
+        self.y_ctr = StatusSignal(16)
+
+        self.outputs = [self.input.clone(f'splitter_output_{i}') for i in range(n_chunks)]
+
+    def elaborate(self, platform):
+        m = Module()
+
+        with m.If(self.input.ready & self.input.valid):
+            m.d.sync += self.x_ctr.eq(self.x_ctr + 1)
+            with m.If(self.input.line_last):
+                m.d.sync += self.x_ctr.eq(0)
+                m.d.sync += self.y_ctr.eq(self.y_ctr + 1)
+            with m.If(self.input.frame_last):
+                m.d.sync += self.y_ctr.eq(0)
+
+        for i, output in enumerate(self.outputs):
+            start, end = i * self.chunk_width, (i + 1) * self.chunk_width
+            m.d.comb += self.input.ready.eq(1)  # if noone is responsible, we dont hang everything
+            with m.If((self.x_ctr >= start) & (self.x_ctr < end)):
+                m.d.comb += output.connect_upstream(self.input, exclude=['frame_last', 'line_last'])
+                m.d.comb += output.line_last.eq(self.x_ctr == end - 1)
+                m.d.comb += output.frame_last.eq((self.x_ctr == end - 1) & (self.y_ctr == self.height - 1))
+            
 
         return m
 

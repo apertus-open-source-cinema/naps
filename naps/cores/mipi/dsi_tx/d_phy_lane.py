@@ -28,25 +28,26 @@ class DPhyDataLane(Elaboratable):
     (these are reasonable values btw). This is needed to be able to sample the incoming data during bus turnaround since there is no fixed phase relation (nyquist).
     """
 
-    def __init__(self, lp_pins: TristateIo, hs_pins: TristateDdrIo, initial_driving=True, is_lane_0=False, ddr_domain="sync"):
+    def __init__(self, lp_pins: TristateIo, hs_pins: TristateDdrIo, initial_driving=True, can_lp=False, ddr_domain="sync"):
         self.lp_pins = lp_pins
         self.hs_pins = hs_pins
-        self.is_lane_0 = is_lane_0
+        self.can_lp = can_lp
         self.ddr_domain = ddr_domain
 
-        # The control rx and control tx signals carry the raw escape mode packets.
-        # A packet with length 1 and payload 0x0 indicates that we request a bus turnaround.
-        # This in Not a valid MIPI Escape Entry Code so we simply repurpose that here.
-        self.control_input = PacketizedStream(8)
-        self.control_output = PacketizedStream(8)
+        if self.can_lp:
+            # The control rx and control tx signals carry the raw escape mode packets.
+            # A packet with length 1 and payload 0x0 indicates that we request a bus turnaround.
+            # This in Not a valid MIPI Escape Entry Code so we simply repurpose that here.
+            self.control_input = PacketizedStream(8)
+            self.control_output = PacketizedStream(8)
 
         # the hs_input stream carries is polled to
         self.hs_input = PacketizedStream(8)
 
         self.is_hs = StatusSignal()
-        self.is_driving = StatusSignal(reset=initial_driving)
+        self.is_driving = StatusSignal(reset=initial_driving) if can_lp else True
         self.bta_timeout = 1023
-        self.bta_timeouts = StatusSignal(32)
+        self.bta_timeouts = StatusSignal(16)
 
     def elaborate(self, platform):
         m = Module()
@@ -71,17 +72,19 @@ class DPhyDataLane(Elaboratable):
             lp = self.lp_pins.o[::-1]
             with m.FSM(name="tx_fsm") as fsm:
                 fsm_status_reg(platform, m, fsm)
-                if self.is_lane_0:
-                    fsm_probe(m, fsm)
                 with m.State("IDLE"):
                     m.d.comb += lp.eq(STOP)
-                    with m.If(self.control_input.valid & (self.control_input.payload == 0x00) & self.control_input.last):
-                        m.d.comb += self.control_input.ready.eq(1)
-                        m.next = "TURNAROUND_LP_REQUEST"
-                    with m.Elif(self.control_input.valid):
-                        m.next = "LP_REQUEST"
-                    with m.Elif(self.hs_input.valid):
-                        m.next = "HS_REQUEST"
+                    if self.can_lp:
+                        with m.If(self.control_input.valid & (self.control_input.payload == 0x00) & self.control_input.last):
+                            m.d.comb += self.control_input.ready.eq(1)
+                            m.next = "TURNAROUND_LP_REQUEST"
+                        with m.Elif(self.control_input.valid):
+                            m.next = "LP_REQUEST"
+                        with m.Elif(self.hs_input.valid):
+                            m.next = "HS_REQUEST"
+                    else:
+                        with m.If(self.hs_input.valid):
+                            m.next = "HS_REQUEST"
 
                 with Process(m, name="HS_REQUEST", to="HS_SEND") as p:
                     m.d.comb += lp.eq(HS_REQUEST)
@@ -114,149 +117,151 @@ class DPhyDataLane(Elaboratable):
                     m.d.comb += lp.eq(STOP)
                     p += delay_lp(10)
 
-                with Process(m, name="LP_REQUEST", to="ESCAPE_0") as p:
-                    m.d.comb += lp.eq(LP_REQUEST)
-                    p += delay_lp(1)
-                    m.d.comb += lp.eq(BRIDGE)
-                    p += delay_lp(1)
-                    m.d.comb += lp.eq(ESCAPE_REQUEST)
-                    p += delay_lp(1)
-                    m.d.comb += lp.eq(BRIDGE)
-                    p += delay_lp(1)
+                if self.can_lp:
+                    with Process(m, name="LP_REQUEST", to="ESCAPE_0") as p:
+                        m.d.comb += lp.eq(LP_REQUEST)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(BRIDGE)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(ESCAPE_REQUEST)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(BRIDGE)
+                        p += delay_lp(1)
 
-                for bit in range(8):
-                    with m.State(f"ESCAPE_{bit}"):
-                        with m.If(self.control_input.valid):  # after transmitting the first byte, this can be false. the mipi spec allows us to wait here (in space state)
-                            with m.If(self.control_input.payload[bit]):
-                                m.d.comb += lp.eq(MARK_1)
-                            with m.Else():
-                                m.d.comb += lp.eq(MARK_0)
-                            with delay_lp(1):
-                                m.next = f"ESCAPE_{bit}_SPACE"
-                    with m.State(f"ESCAPE_{bit}_SPACE"):
-                        m.d.comb += lp.eq(SPACE)
-                        if bit < 7:
-                            with delay_lp(1):
-                                m.next = f"ESCAPE_{bit + 1}"
-                        else:
-                            with m.If(self.control_input.last):  # according to the stream contract, this may not change, until we assert ready :)
+                    for bit in range(8):
+                        with m.State(f"ESCAPE_{bit}"):
+                            with m.If(self.control_input.valid):  # after transmitting the first byte, this can be false. the mipi spec allows us to wait here (in space state)
+                                with m.If(self.control_input.payload[bit]):
+                                    m.d.comb += lp.eq(MARK_1)
+                                with m.Else():
+                                    m.d.comb += lp.eq(MARK_0)
                                 with delay_lp(1):
-                                    m.next = "ESCAPE_FINISH"
-                                    m.d.comb += self.control_input.ready.eq(1)
-                            with m.Else():
+                                    m.next = f"ESCAPE_{bit}_SPACE"
+                        with m.State(f"ESCAPE_{bit}_SPACE"):
+                            m.d.comb += lp.eq(SPACE)
+                            if bit < 7:
                                 with delay_lp(1):
-                                    m.next = "ESCAPE_0"
-                                    m.d.comb += self.control_input.ready.eq(1)
+                                    m.next = f"ESCAPE_{bit + 1}"
+                            else:
+                                with m.If(self.control_input.last):  # according to the stream contract, this may not change, until we assert ready :)
+                                    with delay_lp(1):
+                                        m.next = "ESCAPE_FINISH"
+                                        m.d.comb += self.control_input.ready.eq(1)
+                                with m.Else():
+                                    with delay_lp(1):
+                                        m.next = "ESCAPE_0"
+                                        m.d.comb += self.control_input.ready.eq(1)
 
-                with Process(m, "ESCAPE_FINISH", to="IDLE") as p:
-                    m.d.comb += lp.eq(MARK_1)
-                    p += delay_lp(1)
-                    m.d.comb += lp.eq(STOP)
-                    p += delay_lp(10)  # TODO: reduce the delay; it is here to ease debugging :)
+                    with Process(m, "ESCAPE_FINISH", to="IDLE") as p:
+                        m.d.comb += lp.eq(MARK_1)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(STOP)
+                        p += delay_lp(10)  # TODO: reduce the delay; it is here to ease debugging :)
 
-                with Process(m, name="TURNAROUND_LP_REQUEST", to="TURNAROUND_RETURN") as p:
-                    m.d.comb += lp.eq(LP_REQUEST)
-                    p += delay_lp(1)
-                    m.d.comb += lp.eq(BRIDGE)
-                    p += delay_lp(1)
-                    m.d.comb += lp.eq(TURNAROUND_REQUEST)
-                    p += delay_lp(1)
-                    m.d.comb += lp.eq(BRIDGE)
-                    p += delay_lp(4)
-                    m.d.sync += self.is_driving.eq(0)  # this makes us leave this FSM and enter the one below
-                    m.d.sync += bta_timeout_counter.eq(0)
-                    m.d.sync += bta_timeout_possible.eq(1)
-                    p += process_delay(m, 1)
+                    with Process(m, name="TURNAROUND_LP_REQUEST", to="TURNAROUND_RETURN") as p:
+                        m.d.comb += lp.eq(LP_REQUEST)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(BRIDGE)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(TURNAROUND_REQUEST)
+                        p += delay_lp(1)
+                        m.d.comb += lp.eq(BRIDGE)
+                        p += delay_lp(4)
+                        m.d.sync += self.is_driving.eq(0)  # this makes us leave this FSM and enter the one below
+                        m.d.sync += bta_timeout_counter.eq(0)
+                        m.d.sync += bta_timeout_possible.eq(1)
+                        p += process_delay(m, 1)
 
-                with Process(m, name="TURNAROUND_RETURN", to="IDLE") as p:
-                    p += delay_lp(10)
+                    with Process(m, name="TURNAROUND_RETURN", to="IDLE") as p:
+                        p += delay_lp(10)
 
+        if self.can_lp:
 
-        # we buffer the control output to be able to meet the stream contract
-        control_output_unbuffered = PacketizedStream(8)
-        control_output_buffer = m.submodules.control_output_buffer = StreamBuffer(control_output_unbuffered)
-        m.d.comb += self.control_output.connect_upstream(control_output_buffer.output)
+            # we buffer the control output to be able to meet the stream contract
+            control_output_unbuffered = PacketizedStream(8)
+            control_output_buffer = m.submodules.control_output_buffer = StreamBuffer(control_output_unbuffered)
+            m.d.comb += self.control_output.connect_upstream(control_output_buffer.output)
 
-        with m.If(~self.is_driving):
-            lp = Signal(2)
-            m.submodules += FFSynchronizer(self.lp_pins.i[::-1], lp)
+            with m.If(~self.is_driving):
+                lp = Signal(2)
+                m.submodules += FFSynchronizer(self.lp_pins.i[::-1], lp)
 
-            with m.FSM(name="rx_fsm") as fsm:
-                def maybe_next(condition, next_state):
-                    with m.If(condition):
-                        m.next = next_state
+                with m.FSM(name="rx_fsm") as fsm:
+                    def maybe_next(condition, next_state):
+                        with m.If(condition):
+                            m.next = next_state
 
-                def maybe_stop():
-                    maybe_next(lp == STOP, "STOP")
+                    def maybe_stop():
+                        maybe_next(lp == STOP, "STOP")
 
-                with m.State("STOP"):
-                    with m.If(bta_timeout_possible):
-                        with m.If(bta_timeout_counter < self.bta_timeout):
-                            m.d.sync += bta_timeout_counter.eq(bta_timeout_counter + 1)
-                        with m.Else():
-                            m.d.sync += self.bta_timeouts.eq(self.bta_timeouts + 1)
-                            m.d.sync += self.is_driving.eq(1)
-                            m.d.sync += bta_timeout_counter.eq(0)
-                            m.d.sync += bta_timeout_possible.eq(0)
-                    maybe_next(lp == LP_REQUEST, "AFTER-LP-REQUEST")
-                    maybe_stop()
+                    with m.State("STOP"):
+                        with m.If(bta_timeout_possible):
+                            with m.If(bta_timeout_counter < self.bta_timeout):
+                                m.d.sync += bta_timeout_counter.eq(bta_timeout_counter + 1)
+                            with m.Else():
+                                m.d.sync += self.bta_timeouts.eq(self.bta_timeouts + 1)
+                                m.d.sync += self.is_driving.eq(1)
+                                m.d.sync += bta_timeout_counter.eq(0)
+                                m.d.sync += bta_timeout_possible.eq(0)
+                        maybe_next(lp == LP_REQUEST, "AFTER-LP-REQUEST")
+                        maybe_stop()
 
-                with m.State("AFTER-LP-REQUEST"):
-                    m.d.sync += bta_timeout_possible.eq(0)
-                    with m.If(lp == BRIDGE):
-                        m.next = "AFTER-LP-REQUEST-BRIDGE"
-                    maybe_stop()
-                with m.State("AFTER-LP-REQUEST-BRIDGE"):
-                    with m.If(lp == ESCAPE_REQUEST):
-                        m.next = "AFTER-ESCAPE-REQUEST"
-                    with m.Elif(lp == TURNAROUND_REQUEST):
-                        m.next = "AFTER-TURNAROUND-REQUEST"
-                    maybe_stop()
+                    with m.State("AFTER-LP-REQUEST"):
+                        m.d.sync += bta_timeout_possible.eq(0)
+                        with m.If(lp == BRIDGE):
+                            m.next = "AFTER-LP-REQUEST-BRIDGE"
+                        maybe_stop()
+                    with m.State("AFTER-LP-REQUEST-BRIDGE"):
+                        with m.If(lp == ESCAPE_REQUEST):
+                            m.next = "AFTER-ESCAPE-REQUEST"
+                        with m.Elif(lp == TURNAROUND_REQUEST):
+                            m.next = "AFTER-TURNAROUND-REQUEST"
+                        maybe_stop()
 
-                with m.State("AFTER-TURNAROUND-REQUEST"):
-                    with m.If(lp == BRIDGE):
-                        with delay_lp(4):
+                    with m.State("AFTER-TURNAROUND-REQUEST"):
+                        with m.If(lp == BRIDGE):
+                            with delay_lp(4):
+                                m.next = "STOP"
+                                m.d.sync += self.is_driving.eq(1)
+                        maybe_stop()
+
+                    with m.State("AFTER-ESCAPE-REQUEST"):
+                        with m.If(lp == BRIDGE):
+                            m.next = "ESCAPE_0"
+
+                    # we keep track if we have already sent the currently or last received bit over our output stream.
+                    # we send it either on the first bit of the next word or during the stop condition
+                    outboxed = Signal(reset=1)
+
+                    def maybe_finish_escape():
+                        with m.If(lp == STOP):
                             m.next = "STOP"
-                            m.d.sync += self.is_driving.eq(1)
-                    maybe_stop()
+                            m.d.sync += outboxed.eq(1)
+                            with m.If(~outboxed):
+                                m.d.comb += control_output_unbuffered.last.eq(1)
+                                m.d.comb += control_output_unbuffered.valid.eq(1)
 
-                with m.State("AFTER-ESCAPE-REQUEST"):
-                    with m.If(lp == BRIDGE):
-                        m.next = "ESCAPE_0"
+                    bit_value = Signal()
+                    for bit in range(8):
+                        with m.State(f"ESCAPE_{bit}"):
+                            with m.If(lp == MARK_0):
+                                m.d.sync += bit_value.eq(0)
+                                m.next = f"ESCAPE_{bit}_SPACE"
+                            with m.If(lp == MARK_1):
+                                m.d.sync += bit_value.eq(1)
+                                m.next = f"ESCAPE_{bit}_SPACE"
+                            maybe_finish_escape()
+                        with m.State(f"ESCAPE_{bit}_SPACE"):
+                            with m.If(lp == SPACE):
+                                if bit == 0:
+                                    with m.If(~outboxed):
+                                        m.d.comb += control_output_unbuffered.valid.eq(1)
+                                        m.d.sync += outboxed.eq(1)
 
-                # we keep track if we have already sent the currently or last received bit over our output stream.
-                # we send it either on the first bit of the next word or during the stop condition
-                outboxed = Signal(reset=1)
-
-                def maybe_finish_escape():
-                    with m.If(lp == STOP):
-                        m.next = "STOP"
-                        m.d.sync += outboxed.eq(1)
-                        with m.If(~outboxed):
-                            m.d.comb += control_output_unbuffered.last.eq(1)
-                            m.d.comb += control_output_unbuffered.valid.eq(1)
-
-                bit_value = Signal()
-                for bit in range(8):
-                    with m.State(f"ESCAPE_{bit}"):
-                        with m.If(lp == MARK_0):
-                            m.d.sync += bit_value.eq(0)
-                            m.next = f"ESCAPE_{bit}_SPACE"
-                        with m.If(lp == MARK_1):
-                            m.d.sync += bit_value.eq(1)
-                            m.next = f"ESCAPE_{bit}_SPACE"
-                        maybe_finish_escape()
-                    with m.State(f"ESCAPE_{bit}_SPACE"):
-                        with m.If(lp == SPACE):
-                            if bit == 0:
-                                with m.If(~outboxed):
-                                    m.d.comb += control_output_unbuffered.valid.eq(1)
-                                    m.d.sync += outboxed.eq(1)
-
-                            m.d.sync += control_output_unbuffered.payload[bit].eq(bit_value)
-                            m.d.sync += outboxed.eq(0)
-                            m.next = f"ESCAPE_{(bit + 1) % 8}"
-                        maybe_finish_escape()
+                                m.d.sync += control_output_unbuffered.payload[bit].eq(bit_value)
+                                m.d.sync += outboxed.eq(0)
+                                m.next = f"ESCAPE_{(bit + 1) % 8}"
+                            maybe_finish_escape()
 
         return m
 

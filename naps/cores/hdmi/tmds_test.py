@@ -2,8 +2,8 @@ import unittest
 import random
 from nmigen import *
 from naps import SimPlatform
-from naps.cores.hdmi.tmds import TmdsEncoder
-from naps.cores.hdmi.tmds_decoder import TmdsDecoder
+from naps.cores.hdmi.tx.tmds_encoder import TmdsEncoder
+from naps.cores.hdmi.rx.tmds_decoder import TmdsDecoder
 
 
 class TestTmds(unittest.TestCase):

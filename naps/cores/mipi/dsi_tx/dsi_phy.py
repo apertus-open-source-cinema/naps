@@ -28,7 +28,7 @@ class DsiPhy(Elaboratable):
             lane = DPhyDataLane(
                 lp_pins=getattr(resource, f"lp_d{i}"),
                 hs_pins=getattr(resource, f"hs_d{i}"),
-                is_lane_0=(i == 0),
+                can_lp=(i == 0),
                 ddr_domain=self.ddr_domain
             )
             m.submodules[f"lane_d{i}"] = lane

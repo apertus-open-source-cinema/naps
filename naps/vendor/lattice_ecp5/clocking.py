@@ -3,7 +3,7 @@ from pprint import pprint
 from nmigen import *
 from naps import StatusSignal
 
-__all__ = ["Pll"]
+__all__ = ["Pll", "EclkSyncB", "ClkDivF"]
 
 
 class Pll(Elaboratable):
@@ -119,5 +119,51 @@ class Pll(Elaboratable):
                 platform.add_clock_constraint(signal, frequency)
             elif domain is not None:
                 platform.add_sim_clock(domain, frequency)
+
+        return m
+
+
+class ClkDivF(Elaboratable):
+    def __init__(self, div_domain, div=2):
+        self.div_domain = div_domain
+        self.div = div
+
+    def elaborate(self, platform):
+        m = Module()
+
+        m.domains += ClockDomain(self.div_domain)
+        m.d.comb += ResetSignal(self.div_domain).eq(ResetSignal())
+
+        m.submodules.instance = Instance(
+            "CLKDIVF",
+
+            p_DIV=str(float(self.div)),
+
+            i_CLKI=ClockSignal(),
+            i_RST=ResetSignal(),
+
+            o_CDIVX=ClockSignal(self.div_domain),
+        )
+
+        return m
+
+
+
+class EclkSyncB(Elaboratable):
+    def __init__(self, o_domain):
+        self.o_domain = o_domain
+
+    def elaborate(self, platform):
+        m = Module()
+
+        m.domains += ClockDomain(self.o_domain)
+        m.d.comb += ResetSignal(self.o_domain).eq(ResetSignal())
+
+        m.submodules.instance = Instance(
+            "ECLKSYNCB",
+
+            i_ECLKI=ClockSignal(),
+            o_ECLKO=ClockSignal(self.o_domain),
+        )
 
         return m

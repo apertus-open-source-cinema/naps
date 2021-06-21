@@ -4,8 +4,8 @@ from nmigen.build import Clock
 from naps import ControlSignal, StatusSignal, max_error_freq
 from naps.cores import RGB24
 from naps.vendor.xilinx_s7 import Mmcm, OSerdes10, PS7
-from .parse_modeline import parse_modeline
-from .tmds import TmdsEncoder
+from ..parse_modeline import parse_modeline
+from .tmds_encoder import TmdsEncoder
 
 __all__ = ["HdmiTx", "HdmiClocking", "HdmiTimingGenerator", "HdmiPluginLowspeedController"]
 

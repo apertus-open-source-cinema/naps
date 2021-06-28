@@ -35,7 +35,7 @@ class BitbangSPI(Elaboratable):
                     reg = <0>;      
                     #address-cells = <1>;
                     #size-cells = <0>;
-                    spi-max-frequency = <1000000>;
+                    spi-max-frequency = <30000000>;
                 };
             };
         """

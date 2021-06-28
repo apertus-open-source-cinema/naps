@@ -17,7 +17,7 @@ class Top(Elaboratable):
         platform.ps7.fck_domain(requested_frequency=100e6)
 
         sensor = platform.request("sensor")
-        platform.ps7.fck_domain(500e6, "sensor_clk")
+        platform.ps7.fck_domain(250e6, "sensor_clk")
         m.d.comb += sensor.lvds_clk.eq(ClockSignal("sensor_clk"))
         m.d.comb += sensor.reset.eq(~self.sensor_reset_n)
 
@@ -28,7 +28,7 @@ class Top(Elaboratable):
         p.cipo = spi_pads.cipo
         pcs = Co()
         pcs.o = Signal()
-        m.d.comb += spi_pads.cs.eq(pcs.o)
+        m.d.comb += spi_pads.cs.eq(~pcs.o)
         p.cs = pcs
 
         m.d.sync += self.actual_cs.eq(spi_pads.cs)

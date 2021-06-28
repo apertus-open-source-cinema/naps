@@ -36,8 +36,8 @@ class MmioGpio(Elaboratable):
         devicetree_overlay(platform, self.devicetree_name, overlay_content, {"set": self.set, "dat": self.dat, "dirout": self.dirout})
 
         for i, pad in enumerate(self._pads):
-            m.d.comb += self.dat[i].eq(pad.i)
-            m.d.comb += pad.oe.eq(self.dirout[i])
-            m.d.comb += pad.o.eq(self.set[i])
+            if hasattr(pad, "i"): m.d.comb += self.dat[i].eq(pad.i)
+            if hasattr(pad, "oe"): m.d.comb += pad.oe.eq(self.dirout[i])
+            if hasattr(pad, "o"): m.d.comb += pad.o.eq(self.set[i])
 
         return m

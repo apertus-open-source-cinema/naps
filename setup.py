@@ -62,6 +62,8 @@ setup(
 
             'scipy',  # only needed for vifp calculation
             'matplotlib',
+
+            'spidev',
         ],
         'doc': [
             'sphinx<4',

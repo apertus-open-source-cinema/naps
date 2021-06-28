@@ -5,7 +5,7 @@ from naps import *
 
 class Top(Elaboratable):
     def __init__(self):
-        self.sensor_reset_n = ControlSignal(name='sensor_reset', reset=1)
+        self.sensor_reset = ControlSignal()
 
     def elaborate(self, platform: BetaPlatform):
         m = Module()
@@ -15,7 +15,7 @@ class Top(Elaboratable):
         sensor = platform.request("sensor")
         platform.ps7.fck_domain(250e6, "sensor_clk")
         m.d.comb += sensor.lvds_clk.eq(ClockSignal("sensor_clk"))
-        m.d.comb += sensor.reset.eq(~self.sensor_reset_n)
+        m.d.comb += sensor.reset.eq(self.sensor_reset)
 
         spi_pads = platform.request("sensor_spi")
         m.submodules.spi = BitbangSPI(spi_pads)

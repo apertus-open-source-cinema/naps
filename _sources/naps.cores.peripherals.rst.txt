@@ -12,6 +12,14 @@ naps.cores.peripherals.bitbang\_i2c module
    :undoc-members:
    :show-inheritance:
 
+naps.cores.peripherals.bitbang\_spi module
+------------------------------------------
+
+.. automodule:: naps.cores.peripherals.bitbang_spi
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.cores.peripherals.csr\_bank module
 ---------------------------------------
 

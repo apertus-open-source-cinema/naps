@@ -3,8 +3,6 @@
 from nmigen import *
 from naps import *
 
-class Co: pass
-
 class Top(Elaboratable):
     def __init__(self):
         self.spi_clks = StatusSignal(32)
@@ -22,18 +20,8 @@ class Top(Elaboratable):
         m.d.comb += sensor.reset.eq(~self.sensor_reset_n)
 
         spi_pads = platform.request("sensor_spi")
-        p = Co()
-        p.clk = spi_pads.clk
-        p.copi = spi_pads.copi
-        p.cipo = spi_pads.cipo
-        pcs = Co()
-        pcs.o = Signal()
-        m.d.comb += spi_pads.cs.eq(~pcs.o)
-        p.cs = pcs
-
         m.d.sync += self.actual_cs.eq(spi_pads.cs)
-
-        m.submodules.spi = BitbangSPI(p)
+        m.submodules.spi = BitbangSPI(spi_pads)
 
         last_clk = Signal()
         m.d.sync += last_clk.eq(spi_pads.clk)

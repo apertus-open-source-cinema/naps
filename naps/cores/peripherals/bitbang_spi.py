@@ -10,10 +10,21 @@ __all__ = ["BitbangSPI"]
 class BitbangSPI(Elaboratable):
     def __init__(self, pins, name_suffix=""):
         self.devicetree_name = "bitbang_spi" + name_suffix
-        self.mmio_gpio = MmioGpio(pads=(pins.clk, pins.copi, pins.cipo, pins.cs), name_suffix="_" + self.devicetree_name)
+        self.pins = pins
 
     def elaborate(self, platform: SocPlatform):
         m = Module()
+
+        # for some reason, despite CS being specified as active high in the
+        # device tree, linux and/or the python spidev module treat it as active
+        # low. thus we invert CS here to make the pin active high as defined
+        pins = Record.like(self.pins)
+        m.d.comb += self.pins.clk.eq(pins.clk)
+        m.d.comb += self.pins.copi.eq(pins.copi)
+        m.d.comb += pins.cipo.eq(self.pins.cipo)
+        m.d.comb += self.pins.cs.eq(~pins.cs)
+
+        self.mmio_gpio = MmioGpio(pads=(pins.clk, pins.copi, pins.cipo, pins.cs), name_suffix="_" + self.devicetree_name)
         m.submodules.mmio_gpio = self.mmio_gpio
 
         overlay_content = """

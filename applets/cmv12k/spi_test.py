@@ -5,8 +5,6 @@ from naps import *
 
 class Top(Elaboratable):
     def __init__(self):
-        self.spi_clks = StatusSignal(32)
-        self.actual_cs = StatusSignal(1)
         self.sensor_reset_n = ControlSignal(name='sensor_reset', reset=1)
 
     def elaborate(self, platform: BetaPlatform):
@@ -20,15 +18,7 @@ class Top(Elaboratable):
         m.d.comb += sensor.reset.eq(~self.sensor_reset_n)
 
         spi_pads = platform.request("sensor_spi")
-        m.d.sync += self.actual_cs.eq(spi_pads.cs)
         m.submodules.spi = BitbangSPI(spi_pads)
-
-        last_clk = Signal()
-        m.d.sync += last_clk.eq(spi_pads.clk)
-        with m.If(~last_clk & spi_pads.clk):
-            m.d.sync += self.spi_clks.eq(self.spi_clks + 1)
-
-        clocking_debug = m.submodules.clocking_debug = ClockingDebug("sync")
 
         return m
 

@@ -11,6 +11,7 @@ from .driver_items import DriverMethod, DriverData
 from ..fatbitstream import FatbitstreamContext, File
 from ..memorymap import MemoryMap
 from ..tracing_elaborate import ElaboratableSames
+from ..csr_types import EventReg
 from ...util.py_serialize import py_serialize
 
 
@@ -36,6 +37,8 @@ def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass=""
             else:
                 raise TypeError(f"unknown decoder type {row.obj.decoder.__class__}")
             rhs = f"Value(0x{address.address:02x}, {address.bit_offset}, {address.bit_len}, {decoder})"
+        elif isinstance(row.obj, EventReg):
+            rhs = f"Value(0x{address.address:02x}, {address.bit_offset}, {address.bit_len}, None)"
         else:
             rhs = f"Blob(0x{address.address:02x}, {address.bit_offset}, {address.bit_len})"
         to_return += indent(

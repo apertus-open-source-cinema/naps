@@ -55,6 +55,8 @@ class EventReg(_Csr):  # TODO: bikeshed name
     def __init__(self, bits=None, address=None):
         super().__init__()
         assert address is not None or bits is not None
+        if bits is not None:
+            assert bits <= 32, "EventReg access would not be atomic!"
         self._bits = bits
         self._address = Address.parse(address)
 

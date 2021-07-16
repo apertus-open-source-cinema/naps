@@ -26,7 +26,7 @@ class PokeReg(EventReg, Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        m.d.sync += self.poke.eq(self._write_val)
+        m.d[platform.csr_domain] += self.poke.eq(self._write_val)
 
         return m
 

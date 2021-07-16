@@ -70,7 +70,7 @@ class BetaPlatform(MicroZedZ020Platform):
                      Subsignal("frame_req", Pins("9", dir='o', conn=("JX1", 0)), Attrs(IOSTANDARD="LVCMOS25")),
                      Subsignal("t_exp1", Pins("10", dir='o', conn=("JX1", 0)), Attrs(IOSTANDARD="LVCMOS25")),
                      Subsignal("t_exp2", Pins("100", dir='o', conn=("JX2", 0)), Attrs(IOSTANDARD="LVCMOS25")),
-                     Subsignal("lvds_clk", DiffPairs("81", "83", dir='o', conn=("JX1", 0)), Attrs(IOSTANDARD="LVDS_25", SLEW="SLOW")),
+                     Subsignal("lvds_clk", DiffPairs("81", "83", dir='o', conn=("JX1", 0)), Attrs(IOSTANDARD="LVDS_25")),
                      *lvds_lanes,
                      Subsignal("lvds_ctrl", DiffPairs("82", "84", dir='i', conn=("JX2", 0)), Attrs(IOSTANDARD="LVDS_25", DIFF_TERM="TRUE", IBUF_LOW_PWR="TRUE")),
                      Subsignal("lvds_outclk", DiffPairsN("48", "50", dir='i', conn=("JX1", 0)), Attrs(IOSTANDARD="LVDS_25", DIFF_TERM="TRUE", IBUF_LOW_PWR="TRUE")),

@@ -32,6 +32,7 @@ class PokeReg(EventReg, Elaboratable):
 
 class HostTrainer(Elaboratable):
     def __init__(self, num_lanes):
+        assert num_lanes <= 32 # the poke registers cannot be made wider
         self.lane_pattern = ControlSignal(12)
 
         # registers accessed by host

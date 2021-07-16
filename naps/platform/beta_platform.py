@@ -6,41 +6,41 @@ from .plugins import add_plugin_connector
 
 __all__ = ["BetaPlatform", "BetaRFWPlatform"]
 
-CMV_LVDS_LANES = (
+CMV_LVDS_LANES = { # the 32 odd lanes are hooked up, numbered as on the sensor
     # positive    negative
-    ("JX2_0:74", "JX2_0:76"), # 0
-    ("JX2_0:88", "JX2_0:90"),
-    ("JX2_0:68", "JX2_0:70"),
-    ("JX2_0:67", "JX2_0:69"),
-    ("JX2_0:62", "JX2_0:64"),
-    ("JX2_0:61", "JX2_0:63"),
-    ("JX2_0:54", "JX2_0:56"),
-    ("JX2_0:48", "JX2_0:50"),
-    ("JX2_0:47", "JX2_0:49"),
-    ("JX2_0:42", "JX2_0:44"),
-    ("JX2_0:41", "JX2_0:43"),
-    ("JX2_0:36", "JX2_0:38"),
-    ("JX2_0:35", "JX2_0:37"),
-    ("JX2_0:18", "JX2_0:20"),
-    ("JX2_0:30", "JX2_0:32"),
-    ("JX2_0:24", "JX2_0:26"),
-    ("JX1_0:62", "JX1_0:64"),
-    ("JX1_0:54", "JX1_0:56"),
-    ("JX2_0:53", "JX2_0:55"), # lane 18 inverted to simplify routing
-    ("JX1_0:73", "JX1_0:75"),
-    ("JX1_0:67", "JX1_0:69"),
-    ("JX1_0:61", "JX1_0:63"),
-    ("JX1_0:53", "JX1_0:55"),
-    ("JX1_0:47", "JX1_0:49"),
-    ("JX1_0:41", "JX1_0:43"),
-    ("JX1_0:35", "JX1_0:37"),
-    ("JX1_0:42", "JX1_0:44"),
-    ("JX1_0:36", "JX1_0:38"),
-    ("JX1_0:31", "JX1_0:32"),
-    ("JX1_0:11", "JX1_0:13"),
-    ("JX1_0:29", "JX1_0:30"),
-    ("JX1_0:23", "JX1_0:25"), # 31
-)
+     1: ("JX2_0:74", "JX2_0:76"),
+     3: ("JX2_0:88", "JX2_0:90"),
+     5: ("JX2_0:68", "JX2_0:70"),
+     7: ("JX2_0:67", "JX2_0:69"),
+     9: ("JX2_0:62", "JX2_0:64"),
+    11: ("JX2_0:61", "JX2_0:63"),
+    13: ("JX2_0:54", "JX2_0:56"),
+    15: ("JX2_0:48", "JX2_0:50"),
+    17: ("JX2_0:47", "JX2_0:49"),
+    19: ("JX2_0:42", "JX2_0:44"),
+    21: ("JX2_0:41", "JX2_0:43"),
+    23: ("JX2_0:36", "JX2_0:38"),
+    25: ("JX2_0:35", "JX2_0:37"),
+    27: ("JX2_0:18", "JX2_0:20"),
+    29: ("JX2_0:30", "JX2_0:32"),
+    31: ("JX2_0:24", "JX2_0:26"),
+    33: ("JX1_0:62", "JX1_0:64"),
+    35: ("JX1_0:54", "JX1_0:56"),
+    37: ("JX2_0:53", "JX2_0:55"), # lane 37 inverted to simplify routing
+    39: ("JX1_0:73", "JX1_0:75"),
+    41: ("JX1_0:67", "JX1_0:69"),
+    43: ("JX1_0:61", "JX1_0:63"),
+    45: ("JX1_0:53", "JX1_0:55"),
+    47: ("JX1_0:47", "JX1_0:49"),
+    49: ("JX1_0:41", "JX1_0:43"),
+    51: ("JX1_0:35", "JX1_0:37"),
+    53: ("JX1_0:42", "JX1_0:44"),
+    55: ("JX1_0:36", "JX1_0:38"),
+    57: ("JX1_0:31", "JX1_0:32"),
+    59: ("JX1_0:11", "JX1_0:13"),
+    61: ("JX1_0:29", "JX1_0:30"),
+    63: ("JX1_0:23", "JX1_0:25"),
+}
 
 class BetaPlatform(MicroZedZ020Platform):
     def __init__(self):
@@ -58,9 +58,9 @@ class BetaPlatform(MicroZedZ020Platform):
         )
 
         lvds_lanes = []
-        for i, lane in enumerate(CMV_LVDS_LANES):
-            lvds_lanes.append(Subsignal(f"lvds_{i}",
-                DiffPairs(*lane, dir='i', invert=(i == 18)), # lane 18 inverted to simplify routing
+        for lane, pins in CMV_LVDS_LANES.items():
+            lvds_lanes.append(Subsignal(f"lvds_{lane}",
+                DiffPairs(*pins, dir='i', invert=(lane == 37)), # lane 37 inverted to simplify routing
                 Attrs(IOSTANDARD="LVDS_25", DIFF_TERM="TRUE", IBUF_LOW_PWR="TRUE")))
 
         self.add_resources([

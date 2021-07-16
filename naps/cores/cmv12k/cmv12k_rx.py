@@ -7,7 +7,11 @@ class Cmv12kRx(Elaboratable):
     def __init__(self, sensor, num_lanes=32, bits=12, domain="cmv12k"):
         self.domain = domain
         self.lvds_outclk = sensor.lvds_outclk
-        self.lanes = Cat(getattr(sensor, f"lvds_{l}") for l in range(num_lanes))
+        # NOTE: only two sided readout mode is supported
+        assert num_lanes in (2, 4, 8, 16, 32, 64)
+        # 32 lane mode uses every 2nd lane, 16 lane mode uses every 4th, etc...
+        lane_nums = range(1, 65, 2**(7-num_lanes.bit_length()))
+        self.lanes = Cat(getattr(sensor, f"lvds_{l}") for l in lane_nums)
         self.lane_ctrl = sensor.lvds_ctrl
         self.bits = bits
 

@@ -275,7 +275,9 @@ class HostTrainer(Elaboratable):
 
 
 class IDelayIncremental(Elaboratable):
-    def __init__(self):
+    def __init__(self, signal_pattern="data"):
+        self.signal_pattern = signal_pattern # "data" or "clock"
+
         self.input = Signal()
 
         # synchronous to "sync" domain
@@ -290,7 +292,7 @@ class IDelayIncremental(Elaboratable):
 
         idelay = m.submodules.idelay = _IDelay(
             delay_src="iDataIn",
-            signal_pattern="data",
+            signal_pattern=self.signal_pattern,
             cinvctrl_sel=False,
             high_performance_mode=True,
             refclk_frequency=200.0,
@@ -410,7 +412,7 @@ class Cmv12kPhy(Elaboratable):
         # set up the delay module for the input clock
         m.submodules.delay_ctrl = IDelayCtrl("cmv12k_delay_ref")
 
-        delay_clk = m.submodules.delay_clk = DomainRenamer(dom_ctrl)(IDelayIncremental())
+        delay_clk = m.submodules.delay_clk = DomainRenamer(dom_ctrl)(IDelayIncremental("clock"))
         m.domains += ClockDomain(self.domain+"_in")
         m.d.comb += [
             delay_clk.reset.eq(self.outclk_delay_reset),

@@ -6,6 +6,8 @@ from . import FatbitstreamContext
 
 __all__ = ["devicetree_overlay"]
 
+from . import File
+
 
 def devicetree_overlay(platform, overlay_name, overlay_content, placeholder_substitutions_dict=None):
     if placeholder_substitutions_dict is None:
@@ -45,12 +47,9 @@ def devicetree_overlay(platform, overlay_name, overlay_content, placeholder_subs
                 print(overlay_text)
 
                 fc = FatbitstreamContext.get(platform)
-                fc.self_extracting_blobs["{}_overlay.dts".format(overlay_name)] = overlay_text
-                fc.init_commands.append("mkdir -p /sys/kernel/config/device-tree/overlays/{}\n".format(overlay_name))
-                fc.init_commands.append(
-                    "dtc -O dtb -@ {0}_overlay.dts -o - > /sys/kernel/config/device-tree/overlays/{0}/dtbo\n\n"
-                        .format(overlay_name)
-                )
+                fc += File(f"{overlay_name}_overlay.dts", overlay_text)
+                fc += "mkdir -p /sys/kernel/config/device-tree/overlays/{}\n".format(overlay_name)
+                fc += f"dtc -O dtb -@ {overlay_name}_overlay.dts -o - > /sys/kernel/config/device-tree/overlays/{overlay_name}/dtbo\n\n"
         platform.prepare_hooks.append(overlay_hook)
 
     assert overlay_name not in platform.devicetree_overlays.keys()

@@ -9,6 +9,7 @@ from nmigen_boards.resources import *
 __all__ = ['Colorlight5a75b70Platform']
 
 from naps import FatbitstreamContext, program_fatbitstream_local
+from naps.soc.fatbitstream import File
 
 
 class Colorlight5a75b70Platform(LatticeECP5Platform, ABC):
@@ -106,19 +107,16 @@ class Colorlight5a75b70Platform(LatticeECP5Platform, ABC):
         Connector('j', 8, 'A15 F16 A14 - E13 B14 A13 F15 L2 K1 J5 K2 B16 J14 F12 -'),
     ]
 
-    def __init__(self):
-        super().__init__()
-        fc = FatbitstreamContext.get(self)
-        fc.self_extracting_blobs["openocd.cfg"] = dedent(r"""
+    def generate_openocd_conf(self):
+        yield File("openocd.cfg", dedent(r"""
             source [find interface/jlink.cfg]
             adapter_khz 25000
-
             bindto 0.0.0.0
             transport select jtag
             jtag newtap dut tap -expected-id 0x41111043 -irlen 8 -irmask 0xFF -ircapture 0x5
             init
             scan_chain
-        """)
+        """))
 
-    def toolchain_program(self, *args, **kwargs):
-        program_fatbitstream_local(self, *args, **kwargs)
+    def program_fatbitstream(self, *args, **kwargs):
+        program_fatbitstream_local(*args, **kwargs)

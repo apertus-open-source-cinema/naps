@@ -36,8 +36,10 @@ class SimSocPlatform(SocPlatform):
                 platform.to_inject_subfragments.append((m, self.csr_domain))
         self.prepare_hooks.append(peripherals_connect_hook)
 
-    def pack_bitstream_fatbitstream(self, builder):
-        self.driver = builder.context.self_extracting_blobs['pydriver.py']
+    def prepare_soc(self, fragment):
+        to_return = super().prepare_soc(fragment)
+        self.driver = FatbitstreamContext.get(self)._files["pydriver.py"]
+        return to_return
 
     def add_driver(self, driver):
         def driver_process(conn):

@@ -171,25 +171,21 @@ class PS7(Elaboratable):
                 platform.add_sim_clock(domain_name, frequency)
 
         fc = FatbitstreamContext.get(platform)
-        fc.init_commands.insert(
+        fc._init_commands.insert(
             0,  # we insert this code at the beginning of the init sequence because otherwise the zynq might hang
                 # (e.g. when the clock is not setup but we try to access something via axi)
             "\n".join(
-                "# clockdomain '{name}':\n"
-                "echo 1 > /sys/class/fclk/fclk{i}/enable\n"
-                "echo {freq} > /sys/class/fclk/fclk{i}/set_rate\n"
-                    .format(freq=int(freq), i=i, name=domain_name)
+                f"# clockdomain '{domain_name}':\n"
+                f"echo 1 > /sys/class/fclk/fclk{i}/enable\n"
+                f"echo {int(freq)} > /sys/class/fclk/fclk{i}/set_rate\n"
                 for i, (clock_signal, bufg_out, freq, domain_name) in self.clock_constraints.items()
             )
         )
-        fc.init_commands.append("# set the bit width of all axi hp slaves to 64 bits")
+        fc += "# set the bit width of all axi hp slaves to 64 bits"
         for base in [0xF8008000, 0xF8009000, 0xF800A000, 0xF800B000]:
-            fc.init_commands.append("devmem2 0x{:x} w 0".format(base))
-            fc.init_commands.append("devmem2 0x{:x} w 0xF00".format(base + 0x14))
-        fc.init_commands.append("# set urgent to all axi hp slaves")
-        fc.init_commands.append("devmem2 0xF8000600 w 0xcc")
-
-
-        fc.init_commands.append("\n")
+            fc += f"devmem2 0x{base:x} w 0"
+            fc += f"devmem2 0x{(base + 0x14):x} w 0xF00"
+        fc += "# set urgent to all axi hp slaves"
+        fc += "devmem2 0xF8000600 w 0xcc"
 
         return m

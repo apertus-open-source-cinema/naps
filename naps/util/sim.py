@@ -52,6 +52,9 @@ class SimPlatform:
         return self.handed_out_resources[string]
 
     def prepare(self, top_fragment, name="top", *args, **kwargs):
+        if hasattr(self, '_soc_platform'):
+            top_fragment = self._soc_platform.prepare_soc(top_fragment)
+
         # we filter all the instances out, because they give wired behaviour; TODO: this doesnt work :(
         top_fragment: Fragment = Fragment.get(top_fragment, self)
 

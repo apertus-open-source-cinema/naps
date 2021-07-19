@@ -1,11 +1,10 @@
 import os
-
-from nmigen.build.run import BuildProducts
+from pathlib import Path
 
 __all__ = ["program_fatbitstream_local"]
 
 
-def program_fatbitstream_local(platform, build_products: BuildProducts, name, run=False, **kwargs):
-    fatbitstream_name = "{}.fatbitstream.sh".format(name)
-    with build_products.extract(fatbitstream_name) as fatbitstream_file:
-        os.system(f"bash {fatbitstream_file} {'--run' if run else ''}")
+def program_fatbitstream_local(fatbitstream, run=False):
+    os.chdir(Path(fatbitstream).parent)
+    os.system(f"chmod +x {fatbitstream}")
+    os.system(f"{fatbitstream} {'--run' if run else ''}")

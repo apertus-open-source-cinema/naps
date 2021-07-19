@@ -1,6 +1,5 @@
 from abc import ABC
 
-from .fatbitstream import FatbitstreamContext
 from .hooks import csr_and_driver_item_hook, address_assignment_hook, peripherals_collect_hook
 from .pydriver.generate import pydriver_hook
 from .tracing_elaborate import fragment_get_with_elaboratable_trace
@@ -23,28 +22,7 @@ class SocPlatform(ABC):
     def __init__(self, platform):
         platform._soc_platform = self
 
-        class WrappedPlatform(platform.__class__):
-            # store a reference in the platform that is wrapped to be able to retrieve it during e.g. fatbitstream
-            # generation
-            _soc_platform = self
-            _wrapped_platform = platform
-
-            # inject fatbitstream generation into the platform templates
-            extra_command_templates = []
-
-            @property
-            def command_templates(self):
-                return super().command_templates + self.extra_command_templates
-
-        # directly constructing a WrappedPlatform() here would break when platform.__class__.__init__ as non-optional arguments
-        wrapped_platform = WrappedPlatform.__new__(WrappedPlatform)
-        wrapped_platform.__dict__ = platform.__dict__
-
-        self._wrapped_platform = wrapped_platform
-
-        # inject our prepare method into the platform as a starting point for all our hooks
-        self.real_prepare = self._wrapped_platform.prepare
-        self._wrapped_platform.prepare = self.prepare
+        self._wrapped_platform = platform
 
         self.prepare_hooks = []
         self.to_inject_subfragments = []
@@ -56,7 +34,7 @@ class SocPlatform(ABC):
         self.prepare_hooks.append(pydriver_hook)
 
     # we override the prepare method of the real platform to be able to inject stuff into the design
-    def prepare(self, elaboratable, name="top", *args, **kwargs):
+    def prepare_soc(self, elaboratable):
         print("# ELABORATING MAIN DESIGN")
         top_fragment, sames = fragment_get_with_elaboratable_trace(elaboratable, self)
 
@@ -77,10 +55,4 @@ class SocPlatform(ABC):
         print("\ninjecting final fragments")
         inject_subfragments(top_fragment, sames, self.final_to_inject_subfragments)
 
-        print("\ninjecting fatbitstream generation code")
-        fc = FatbitstreamContext.get(self)
-        self._wrapped_platform.extra_command_templates.extend(fc.generate_fatbitstream_generator(name))
-
-        print("\n\nexiting soc code\n")
-
-        return self.real_prepare(top_fragment, name, *args, **kwargs)
+        return top_fragment

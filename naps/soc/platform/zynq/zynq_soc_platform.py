@@ -1,8 +1,12 @@
 from os.path import join, dirname
 from nmigen import Fragment, Module, ClockSignal, DomainRenamer
+from nmigen.build.run import BuildProducts
+
 from ... import *
 
 __all__ = ["ZynqSocPlatform"]
+
+from ...fatbitstream import File
 
 
 class ZynqSocPlatform(SocPlatform):
@@ -51,11 +55,12 @@ class ZynqSocPlatform(SocPlatform):
                 platform.to_inject_subfragments.append((m, self.csr_domain))
         self.prepare_hooks.append(peripherals_connect_hook)
 
-    def pack_bitstream_fatbitstream(self, builder):
-        self.add_file("to_raw_bitstream.py", open(join(dirname(__file__), "to_raw_bitstream.py")).read())
-        builder.append_host("python3 to_raw_bitstream.py {{name}}.bit > {{name}}.bin")
-        builder.append_self_extracting_blob_from_file("{{name}}.bin", "/usr/lib/firmware/{{name}}.bin")
-        builder.append_command("echo {{name}}.bin > /sys/class/fpga_manager/fpga0/firmware\n")
+    def pack_bitstream_fatbitstream(self, name: str, build_products: BuildProducts):
+        from to_raw_bitstream import bit2bin
+        bitstream = bit2bin(build_products.get(f"{name}.bit"))
+        yield File("bitstream.bin", bitstream)
+        yield f"cp bitstream.bin /usr/lib/firmware/{name}.bin"
+        yield f"echo {name}.bin > /sys/class/fpga_manager/fpga0/firmware"
 
-    def toolchain_program(self, *args, **kwargs):
+    def program_fatbitstream(self, *args, **kwargs):
         program_fatbitstream_ssh(self, *args, **kwargs)

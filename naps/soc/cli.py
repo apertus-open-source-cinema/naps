@@ -1,41 +1,43 @@
 import argparse
 import inspect
-import os
-import pickle
 import sys
-from collections import OrderedDict
-from datetime import datetime
-from glob import glob
-from hashlib import sha256
-from json import dumps
-from os import stat, path
-from os.path import exists, isdir
-from warnings import warn
+from pathlib import Path
+from shutil import rmtree
+from textwrap import indent
 
-from nmigen.build.run import LocalBuildProducts
+from nmigen import Fragment
+from nmigen.build.run import LocalBuildProducts, BuildPlan
 
 __all__ = ["cli"]
 
-
-def hash_build_plan(build_plan_files):
-    build_plan_files = {k: v.decode("utf-8") if isinstance(v, bytes) else v for k, v in build_plan_files.items()}
-    json_repr = dumps(build_plan_files)
-    return sha256(json_repr.encode("utf-8")).hexdigest()
+from . import FatbitstreamContext
+from ..util import timer
 
 
-def get_previous_build_dir(basename):
-    build_files = glob("build/{}*".format(basename))
-    build_files = [path for path in build_files if isdir(path)]
-    if not build_files:
-        return None
-    sorted_build_files = sorted(build_files, key=lambda x: stat(x).st_mtime, reverse=True)
-    return sorted_build_files[0].replace('build/build_', '').replace('.sh', '')
+def fragment_repr(original: Fragment):
+    attrs_str = "\n"
+    for attr in ['ports', 'drivers', 'statements', 'attrs', 'generated', 'flatten']:
+        attrs_str += f"{attr}={repr(getattr(original, attr))},\n"
+
+    domains_str = "\n"
+    for name, domain in original.domains.items():
+        # TODO: this is not really sound because domains could be non local
+        domains_str += f"{name}: {domain.name}\n"
+    attrs_str += f"domains={{{indent(domains_str, '  ')}}},\n"
+
+    children_str = "\n"
+    for child, name in original.subfragments:
+        children_str += f"[{name}, {fragment_repr(child)}]\n"
+    attrs_str += f"children=[{indent(children_str, '  ')}],\n"
+
+    return f"Fragment({indent(attrs_str, '  ')})"
 
 
 def cli(top_class, runs_on, possible_socs=(None,)):
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--elaborate', help='Elaborates the experiment', action="store_true")
-    parser.add_argument('-b', '--build', help='builds the experiment with the vendor tools if the elaboration result changed; implies -e', action="store_true")
+    parser.add_argument('-b', '--build', help='builds the gateware & assembles a fatbitstream; implies -e', action="store_true")
+    parser.add_argument('--force_cache', help='forces caching of the gateware even if it changed', action="store_true")
     parser.add_argument('-p', '--program', help='programs the board; programs the last build if used without -b', action="store_true")
     parser.add_argument('-r', '--run', help='run the pydriver shell after programming', action="store_true")
 
@@ -59,53 +61,80 @@ def cli(top_class, runs_on, possible_socs=(None,)):
         platform = hardware_platform()
     top_class = top_class
 
-    name = inspect.stack()[1].filename.split("/")[-1].replace(".py", "")
-    dir_basename = "{}_{}_{}".format(name, args.device, args.soc)
+    caller_file = Path(inspect.stack()[1].filename)
+    name = caller_file.stem
+    build_dir = caller_file.parent / "build" / Path(f"{name}_{args.device}_{args.soc}")
+    gateware_build_dir = build_dir / "gateware"
+    cache_key_path = build_dir / "cache_key.txt"
+    cache_key_old_path = build_dir / "cache_key_old.txt"
+    fatbitstream_name = build_dir / f"{name}.zip"
 
-    if not (args.program or args.build or args.elaborate):
+    if not (args.program or args.build or args.elaborate or args.run):
         print("no action specified")
         parser.print_help(sys.stderr)
         exit(-1)
 
     if args.elaborate or args.build:
-        build_plan = platform.build(
-            top_class(),
-            name=name,
-            do_build=False,
-        )
+        timer.start_task("elaboration")
+        if args.soc != 'None':
+            elaborated = platform.prepare_soc(top_class())
+        else:
+            elaborated = Fragment.get(top_class(), platform)
+
+    timer.end_task()
 
     if args.build:
+        print()
         needs_rebuild = True
-        build_plan_hash = hash_build_plan(build_plan.files)
-        previous_build_dir = get_previous_build_dir(dir_basename)
-        if previous_build_dir:
-            try:
-                old_build_plan_files = OrderedDict(
-                    (k, open(path.join(previous_build_dir, k)).read())
-                    for k, v in build_plan.files.items()
-                )
-                old_build_plan_hash = hash_build_plan(old_build_plan_files)
-                if old_build_plan_hash == build_plan_hash and exists(
-                        path.join(previous_build_dir, 'extra_files.pickle')):
+        elaborated_repr = fragment_repr(elaborated)
+        if cache_key_path.exists():
+            old_repr = cache_key_path.read_text()
+            if args.force_cache:
+                print("not rebuilding gateware because of --force_cache")
+                needs_rebuild = False
+            else:
+                if old_repr == elaborated_repr:
+                    print("gateware build is up to date")
                     needs_rebuild = False
-            except FileNotFoundError as e:
-                warn("something went wrong while determining if a rebuild is nescessary :(. "
-                     "Rebuilding unconditionally ...\n" + str(e))
+                else:
+                    print("gateware changed. rebuilding...")
+        else:
+            print("no previous build. rebuilding...")
 
         if needs_rebuild:
-            build_subdir = dir_basename + datetime.now().strftime("__%d_%b_%Y__%H_%M_%S")
-            build_path = path.join("build", build_subdir)
-            build_plan.execute_local(build_path)
-            with open(path.join(build_path, 'extra_files.pickle'), 'wb') as f:
-                pickle.dump(platform.extra_files, f)
+            if gateware_build_dir.exists():
+                rmtree(gateware_build_dir)
+
+            timer.start_task("platform.prepare (including rtlil generation & yosys verilog generation)")
+            build_plan: BuildPlan = platform.build(
+                elaborated,
+                name=name,
+                do_build=False,
+            )
+
+            # build the gateware
+            timer.start_task("vendor toolchain build")
+            build_products = build_plan.execute_local(gateware_build_dir)
+
+            # we write the pickle file in the end also as a marking that the build was successful
+            if cache_key_path.exists():
+                cache_key_old_path.write_text(old_repr)
+            cache_key_path.write_text(elaborated_repr)
+        else:
+            build_products = LocalBuildProducts(gateware_build_dir)
+
+        # we always rebuild the fatbitstream
+        with open(fatbitstream_name, "wb") as f:
+            fc = FatbitstreamContext.get(platform)
+            fc.generate_fatbitstream(f, name, build_products)
+
+    timer.end_task()
 
     if args.program or args.run:
-        previous_build_dir = get_previous_build_dir(dir_basename)
-        with open(path.join(previous_build_dir, 'extra_files.pickle'), 'rb') as f:
-            platform.extra_files = pickle.load(f)
-        cwd = os.getcwd()
-        try:
-            os.chdir(previous_build_dir)
-            platform.toolchain_program(LocalBuildProducts(os.getcwd()), name=name, run=args.run)
-        finally:
-            os.chdir(cwd)
+        if not args.run:
+            timer.start_task("program")
+        else:
+            print("\n### programming & running design")
+        platform.program_fatbitstream(fatbitstream_name, run=args.run)
+
+    timer.end_task()

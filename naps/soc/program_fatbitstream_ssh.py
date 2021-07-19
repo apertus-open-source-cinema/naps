@@ -1,8 +1,7 @@
 import subprocess
+from pathlib import Path
 from shlex import quote
 import os
-
-from nmigen.build.run import BuildProducts
 
 __all__ = ["run_ssh", "copy_ssh", "program_fatbitstream_ssh"]
 
@@ -14,25 +13,25 @@ default_password = os.getenv("SSH_PASSWORD", "axiom")
 
 def run_ssh(cmd, host=default_host, user=default_user, password=default_password, sudo=False, sshpass=True):
     if sudo:
-        cmd = "echo {} | sudo -S bash -c {}".format(password, quote(cmd))
-    ssh_cmd = "ssh {}@{} {}".format(user, host, quote(cmd))
+        cmd = f"echo {password} | sudo -S bash -c {quote(cmd)}"
+    ssh_cmd = f"ssh {user}@{host} {quote(cmd)}"
     if sshpass:
-        ssh_cmd = "sshpass -p{} {}".format(password, ssh_cmd)
+        ssh_cmd = f"sshpass -p{password} {ssh_cmd}"
     print("\nexecuting: ", ssh_cmd)
     return subprocess.check_output(ssh_cmd, shell=True)
 
 
 def copy_ssh(source, destination, host=default_host, user=default_user, password=default_password, sshpass=True):
-    scp_cmd = "scp {} {}".format(quote(source), quote("{}@{}:{}".format(user, host, destination)))
+    dst_string = f"{user}@{host}:{destination}"
+    scp_cmd = f"scp {quote(source)} {quote(dst_string)}"
     if sshpass:
-        scp_cmd = "sshpass -p{} {}".format(password, scp_cmd)
+        scp_cmd = f"sshpass -p{password} {scp_cmd}"
     print("\nexecuting: ", scp_cmd)
     return subprocess.check_output(scp_cmd, shell=True)
 
 
-def program_fatbitstream_ssh(platform, build_products: BuildProducts, name, run=False, **kwargs):
-    fatbitstream_name = "{}.fatbitstream.sh".format(name)
-    with build_products.extract(fatbitstream_name) as fatbitstream_file:
-        copy_ssh(fatbitstream_file, "~/{}".format(fatbitstream_name))
-    run_ssh("chmod +x {}".format(fatbitstream_name))
-    run_ssh(f"./{fatbitstream_name}  {'--run' if run else ''}", sudo=True)
+def program_fatbitstream_ssh(fatbitstream_file, run=False, **kwargs):
+    name = Path(fatbitstream_file).name
+    copy_ssh(fatbitstream_file, f"~/{name}")
+    run_ssh(f"chmod +x ./{name}")
+    run_ssh(f"./{name}  {'--run' if run else ''}", sudo=True)

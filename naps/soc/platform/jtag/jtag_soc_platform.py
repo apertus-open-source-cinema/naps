@@ -1,9 +1,13 @@
 from os.path import join, dirname
 from nmigen import Fragment, Signal
+from nmigen.build.run import BuildProducts
 from nmigen.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
+
 from ... import SocPlatform, Address, PeripheralsAggregator
 
 __all__ = ["JTAGSocPlatform"]
+
+from ...fatbitstream import File
 
 
 class JTAGSocPlatform(SocPlatform):
@@ -29,9 +33,10 @@ class JTAGSocPlatform(SocPlatform):
 
         self.prepare_hooks.append(peripherals_connect_hook)
 
-    def pack_bitstream_fatbitstream(self, builder):
+    def pack_bitstream_fatbitstream(self, name: str, build_products: BuildProducts):
         if isinstance(self, LatticeMachXO2Platform):
-            builder.append_self_extracting_blob_from_file("{{name}}_sram.svf", "bitstream_jtag.svf")
+            yield File("bitstream_jtag.svf", build_products.get(f"{name}_sram.svf"))
         else:
-            builder.append_self_extracting_blob_from_file("{{name}}.svf", "bitstream_jtag.svf")
-        builder.append_command("openocd -f openocd.cfg -c 'svf -tap dut.tap -quiet -progress bitstream_jtag.svf; shutdown'\n")
+            yield File("bitstream_jtag.svf", build_products.get(f"{name}.svf"))
+        yield from self._wrapped_platform.generate_openocd_conf()
+        yield "openocd -f openocd.cfg -c 'svf -tap dut.tap -quiet -progress bitstream_jtag.svf; shutdown'"

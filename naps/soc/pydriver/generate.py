@@ -8,7 +8,7 @@ from nmigen import Signal
 from nmigen.build import Platform
 
 from .driver_items import DriverMethod, DriverData
-from ..fatbitstream import FatbitstreamContext
+from ..fatbitstream import FatbitstreamContext, File
 from ..memorymap import MemoryMap
 from ..tracing_elaborate import ElaboratableSames
 from ...util.py_serialize import py_serialize
@@ -83,4 +83,4 @@ def pydriver_hook(platform: Platform, top_fragment, sames: ElaboratableSames):
         memorymap = top_fragment.memorymap
         pydriver = generate_pydriver(memorymap, platform.pydriver_memory_accessor)
         fc = FatbitstreamContext.get(platform)
-        fc.self_extracting_blobs["pydriver.py"] = pydriver
+        fc += File("pydriver.py", pydriver)

@@ -3,9 +3,11 @@ from textwrap import dedent
 from nmigen.build import *
 from nmigen.vendor.lattice_machxo_2_3l import *
 
-from naps import FatbitstreamContext, program_fatbitstream_ssh
+from naps import program_fatbitstream_ssh
 
 __all__ = ["Usb3PluginPlatform"]
+
+from naps.soc.fatbitstream import File
 
 
 class Usb3PluginPlatform(LatticeMachXO2Platform):
@@ -49,10 +51,8 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
     ]
     connectors = []
 
-    def __init__(self):
-        super().__init__()
-        fc = FatbitstreamContext.get(self)
-        fc.self_extracting_blobs["openocd_micro.cfg"] = dedent(r"""
+    def generate_openocd_conf(self):
+        yield File("openocd_micro.cfg", dedent(r"""
             adapter driver sysfsgpio
     
             sysfsgpio_tms_num 898
@@ -65,9 +65,8 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
             jtag newtap dut tap -expected-id 0x012bb043 -irlen 8 -irmask 0xFF
             init
             scan_chain
-        """)
-
-        fc.self_extracting_blobs["openocd_beta.cfg"] = dedent(r"""
+        """))
+        yield File("openoc_beta.cfg", dedent(r"""
             adapter driver rfdev_jtag
             rfdev_set_device /dev/rfjtag1 
     
@@ -76,9 +75,8 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
             jtag newtap dut tap -expected-id 0x012bb043 -irlen 8 -irmask 0xFF
             init
             scan_chain
-        """)
+        """))
+        yield "[ $(cat /etc/hostname) == 'beta' ] && cp openocd_beta.cfg openocd.cfg || cp openocd_micro.cfg openocd.cfg"
 
-        fc.pre_init_commands.append("[ $(cat /etc/hostname) == 'beta' ] && cp openocd_beta.cfg openocd.cfg || cp openocd_micro.cfg openocd.cfg")
-
-    def toolchain_program(self, *args, **kwargs):
-        program_fatbitstream_ssh(self, *args, **kwargs)
+    def program_fatbitstream(self, *args, **kwargs):
+        program_fatbitstream_ssh(*args, **kwargs)

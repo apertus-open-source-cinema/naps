@@ -6,9 +6,6 @@ __all__ = ["MicroR2Platform"]
 
 
 class MicroR2Platform(ZTurnLiteZ010Platform):
-    def toolchain_program(self, products, name, **kwargs):
-        pass
-
     def __init__(self):
         super().__init__()
         self.add_resources([

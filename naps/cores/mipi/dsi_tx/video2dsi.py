@@ -17,13 +17,13 @@ class ImageStream2Dsi(Elaboratable):
         assert len(input.payload) == 24
         self.input = input
         self.num_lanes = num_lanes
-        self.image_width = image_width * 3
+        self.image_width = ControlSignal(16, reset=image_width * 3)
         self.debug = debug
 
-        self.vbp = 18
-        self.vfp = 4
-        self.hbp = 68 * 3
-        self.hfp = 20 * 3
+        self.vbp = ControlSignal(16, reset=18)
+        self.vfp = ControlSignal(16, reset=4)
+        self.hbp = ControlSignal(16, reset=68 * 3)
+        self.hfp = ControlSignal(16, reset=20 * 3)
 
         self.gearbox_not_ready = StatusSignal(32)
 
@@ -105,7 +105,7 @@ class ImageStream2Dsi(Elaboratable):
                         m.next = to
 
         trig = Signal()
-        if self.debug:
+        if self.debug and False:
             probe(m, self.output.valid)
             probe(m, self.output.ready)
             probe(m, self.output.last)
@@ -116,12 +116,13 @@ class ImageStream2Dsi(Elaboratable):
             probe(m, gearbox.output.line_last)
             probe(m, gearbox.output.payload)
 
-            trigger(m, trig)
+            # trigger(m, trig)
 
         with m.FSM() as fsm:
             fsm_status_reg(platform, m, fsm)
             if self.debug:
-                fsm_probe(m, fsm)
+                ...
+                #fsm_probe(m, fsm)
 
             with Process(m, "VSYNC_START", to="VBP") as p:
                 send_short_packet(p, DsiShortPacketDataType.V_SYNC_START)
@@ -129,11 +130,11 @@ class ImageStream2Dsi(Elaboratable):
             v_porch("VBP", "LINE_START", self.vbp, skip_first_hsync=True)
 
             with Process(m, "LINE_START", to="LINE_DATA") as p:
+                end_of_transmission(p)
+                p += m.If(gearbox.output.valid)
                 m.d.comb += trig.eq(1)
                 send_short_packet(p, DsiShortPacketDataType.H_SYNC_START)
                 blanking(p, self.hbp)
-                end_of_transmission(p)
-                p += m.If(gearbox.output.valid)
                 send_short_packet(p, DsiLongPacketDataType.PACKED_PIXEL_STREAM_24_BIT_RGB_8_8_8, self.image_width)
             with m.State("LINE_DATA"):
                 with m.If(gearbox.output.line_last & gearbox.output.valid & gearbox.output.ready):

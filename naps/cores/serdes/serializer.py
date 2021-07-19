@@ -23,7 +23,7 @@ class Serializer(Elaboratable):
         m.submodules += FFSynchronizer(self.reset, ddr_reset, o_domain=self.ddr_domain)
 
         m.d.comb += self.pins.o_clk.eq(ClockSignal(self.ddr_domain))
-        m.d.comb += self.pins.oe.eq(~ddr_reset)
+        m.d.comb += self.pins.oe.eq(~self.reset)
 
         hs_fifo = m.submodules.hs_fifo = BufferedAsyncStreamFIFO(self.input, 8, o_domain=self.ddr_domain)
         hs_payload = Signal(8)

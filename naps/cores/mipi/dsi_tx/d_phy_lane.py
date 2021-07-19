@@ -55,7 +55,7 @@ class DPhyDataLane(Elaboratable):
         m.d.comb += self.lp_pins.oe.eq(self.is_driving)
 
         def delay_lp(cycles):
-            return process_delay(m, cycles * 6)
+            return process_delay(m, cycles * 4)
 
         serializer_reset = Signal()
         m.d.comb += serializer_reset.eq(~(self.is_hs & self.is_driving))
@@ -108,14 +108,13 @@ class DPhyDataLane(Elaboratable):
                 with Process(m, name="HS_END", to="IDLE") as p:
                     p += send_hs(Repl(~self.hs_input.payload[7], 8))
                     p += send_hs(Repl(~self.hs_input.payload[7], 8))
-                    p += send_hs(Repl(~self.hs_input.payload[7], 8))
                     with m.If(NewHere(m)):
                         m.d.comb += self.hs_input.ready.eq(1)
                     p += m.If(serializer.is_idle)
                     m.d.sync += self.is_hs.eq(0)
-                    p += process_delay(m, 1)  # TODO: this is currently tied to the way we do ddr
+                    p += process_delay(m, 1)  # TODO: this is currently tied to the way we do ddr (beaks when we change clock frequencies)
                     m.d.comb += lp.eq(STOP)
-                    p += delay_lp(10)
+                    p += delay_lp(2)
 
                 if self.can_lp:
                     with Process(m, name="LP_REQUEST", to="ESCAPE_0") as p:
@@ -173,6 +172,7 @@ class DPhyDataLane(Elaboratable):
                         p += process_delay(m, 1)
 
                     with Process(m, name="TURNAROUND_RETURN", to="IDLE") as p:
+                        m.d.comb += lp.eq(STOP)
                         p += delay_lp(10)
 
         if self.can_lp:

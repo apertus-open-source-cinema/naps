@@ -1,7 +1,7 @@
 from math import floor
 from pprint import pprint
 from nmigen import *
-from naps import StatusSignal
+from naps import StatusSignal, ControlSignal, driver_method
 
 __all__ = ["Pll", "EclkSyncB", "ClkDivF"]
 
@@ -32,7 +32,9 @@ class Pll(Elaboratable):
             return False
         return True
 
-    def __init__(self, input_freq, vco_mul, vco_div, input_domain="sync", reset_less_input=False):
+    def __init__(self, input_freq, vco_mul, vco_div, input_domain="sync", reset_less_input=False, attributes=None):
+        if attributes is None:
+            attributes = {}
         Pll.is_valid_vco_conf(input_freq, vco_mul, vco_div, exception=True)
         self.vco_freq = input_freq * vco_mul / vco_div
 
@@ -55,7 +57,7 @@ class Pll(Elaboratable):
             "FEEDBK_PATH": "USERCLOCK",
             "CLKOP_DIV": vco_mul,
             "CLKOP_ENABLE": "ENABLED",
-            "DPHASE_SOURCE": "DISABLED",
+            "DPHASE_SOURCE": "ENABLED",
             "CLKOP_CPHASE": self.primary_cphase,
 
             **{"{}_ENABLE".format(output): "DISABLED" for output in self.output_port_names}
@@ -63,15 +65,26 @@ class Pll(Elaboratable):
         self.attributes = {
             "FREQUENCY_PIN_CLKI": str(input_freq / 1e6),
             "FREQUENCY_PIN_CLKOP": str(input_freq / 1e6),
+            **attributes,
         }
 
         self.clocks = []  # (signal, frequency, domain)
 
         self.clocks.append((clkop, self.vco_freq, None))
+
+        self.phase_dir = ControlSignal()
+        self.phase_sel = ControlSignal(2)
+        self.phase_step = ControlSignal()
+        self.phase_loadreg = ControlSignal()
         self.inputs = {
             "CLKI": ClockSignal(input_domain),
             "RST": Const(0) if reset_less_input else ResetSignal(input_domain),
             "CLKFB": clkop,
+            "PHASEDIR": self.phase_dir,
+            "PHASESEL0": self.phase_sel[0],
+            "PHASESEL1": self.phase_sel[1],
+            "PHASESTEP": self.phase_step,
+            "PHASELOADREG": self.phase_loadreg,
         }
         self.outputs = {
             "LOCK": self.locked,
@@ -90,6 +103,8 @@ class Pll(Elaboratable):
 
         shift_actual = 1 / self.vco_freq * (cphase + fphase / 8.0)
         phase_actual = 360 * shift_actual / (1 / freq)
+        if phase != 0.0:
+            print(f"requested phase: {phase}; actual phase: {phase_actual}")
 
         cd = ClockDomain(domain_name)
         m.domains += cd
@@ -121,6 +136,19 @@ class Pll(Elaboratable):
                 platform.add_sim_clock(domain, frequency)
 
         return m
+
+    @driver_method
+    def toggle_phase_sel(self, n=1):
+        for i in range(n):
+            self.phase_sel = 1
+            self.phase_sel = 0
+
+    @driver_method
+    def toggle_phase_loadreg(self, n=1):
+        for i in range(n):
+            self.phase_loadreg = 1
+            self.phase_loadreg = 0
+
 
 
 class ClkDivF(Elaboratable):

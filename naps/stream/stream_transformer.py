@@ -1,6 +1,4 @@
 from nmigen import *
-from ordered_set import OrderedSet
-
 from naps.stream import BasicStream
 
 __all__ = ["stream_transformer"]
@@ -27,7 +25,8 @@ def stream_transformer(input_stream: BasicStream, output_stream: BasicStream, m:
             if not allow_partial_out_of_band:
                 assert list(input_stream.out_of_band_signals.keys()) == list(output_stream.out_of_band_signals.keys())
             for k in input_stream.out_of_band_signals.keys():
-                m.d.comb += output_stream[k].eq(input_stream[k])
+                if k in output_stream.out_of_band_signals():
+                    m.d.comb += output_stream[k].eq(input_stream[k])
 
     elif latency == 1:
         input_transaction = input_stream.ready & input_stream.valid
@@ -37,8 +36,9 @@ def stream_transformer(input_stream: BasicStream, output_stream: BasicStream, m:
             if handle_out_of_band:
                 if not allow_partial_out_of_band:
                     assert list(input_stream.out_of_band_signals.keys()) == list(output_stream.out_of_band_signals.keys())
-                for k in OrderedSet(input_stream.out_of_band_signals.keys()).intersection(output_stream.out_of_band_signals.keys()):
-                    m.d.sync += output_stream[k].eq(input_stream[k])
+                for k in input_stream.out_of_band_signals.keys():
+                    if k in output_stream.out_of_band_signals():
+                        m.d.sync += output_stream[k].eq(input_stream[k])
 
         output_produce = Signal()
         m.d.sync += output_produce.eq(input_transaction)

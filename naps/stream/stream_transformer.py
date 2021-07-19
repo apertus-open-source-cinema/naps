@@ -1,4 +1,5 @@
 from nmigen import *
+from ordered_set import OrderedSet
 
 from naps.stream import BasicStream
 
@@ -36,7 +37,7 @@ def stream_transformer(input_stream: BasicStream, output_stream: BasicStream, m:
             if handle_out_of_band:
                 if not allow_partial_out_of_band:
                     assert list(input_stream.out_of_band_signals.keys()) == list(output_stream.out_of_band_signals.keys())
-                for k in set(input_stream.out_of_band_signals.keys()).intersection(output_stream.out_of_band_signals.keys()):
+                for k in OrderedSet(input_stream.out_of_band_signals.keys()).intersection(output_stream.out_of_band_signals.keys()):
                     m.d.sync += output_stream[k].eq(input_stream[k])
 
         output_produce = Signal()

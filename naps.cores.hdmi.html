@@ -38,7 +38,7 @@
     
     <link rel="index" title="Index" href="genindex.html" />
     <link rel="search" title="Search" href="search.html" />
-    <link rel="next" title="naps.cores.hispi package" href="naps.cores.hispi.html" />
+    <link rel="next" title="naps.cores.hdmi.rx package" href="naps.cores.hdmi.rx.html" />
     <link rel="prev" title="naps.cores.ft601 package" href="naps.cores.ft601.html" /> 
 </head>
 
@@ -180,6 +180,30 @@
             
   <div class="section" id="naps-cores-hdmi-package">
 <h1>naps.cores.hdmi package<a class="headerlink" href="#naps-cores-hdmi-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="naps.cores.hdmi.rx.html">naps.cores.hdmi.rx package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.rx.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.rx.html#module-naps.cores.hdmi.rx.hdmi_rx">naps.cores.hdmi.rx.hdmi_rx module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.rx.html#module-naps.cores.hdmi.rx.tmds_decoder">naps.cores.hdmi.rx.tmds_decoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.rx.html#module-naps.cores.hdmi.rx">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="naps.cores.hdmi.tx.html">naps.cores.hdmi.tx package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.tx.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.tx.html#module-naps.cores.hdmi.tx.hdmi_stream_sink">naps.cores.hdmi.tx.hdmi_stream_sink module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.tx.html#module-naps.cores.hdmi.tx.hdmi_test">naps.cores.hdmi.tx.hdmi_test module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.tx.html#module-naps.cores.hdmi.tx.hdmi_tx">naps.cores.hdmi.tx.hdmi_tx module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.tx.html#module-naps.cores.hdmi.tx.pattern_generator">naps.cores.hdmi.tx.pattern_generator module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.tx.html#module-naps.cores.hdmi.tx.tmds_encoder">naps.cores.hdmi.tx.tmds_encoder module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="naps.cores.hdmi.tx.html#module-naps.cores.hdmi.tx">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -560,104 +584,6 @@
 <dd></dd></dl>
 
 </div>
-<div class="section" id="module-naps.cores.hdmi.hdmi_stream_sink">
-<span id="naps-cores-hdmi-hdmi-stream-sink-module"></span><h2>naps.cores.hdmi.hdmi_stream_sink module<a class="headerlink" href="#module-naps.cores.hdmi.hdmi_stream_sink" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="naps.cores.hdmi.hdmi_stream_sink.HdmiStreamAligner">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.hdmi_stream_sink.</span></code><code class="sig-name descname"><span class="pre">HdmiStreamAligner</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_stream_sink.HdmiStreamAligner" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<p>Aligns the HDMI output to the Image stream by ‘slipping’ data during the blanking periods until the frame is
-aligned.</p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.hdmi_stream_sink.HdmiStreamAligner.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_stream_sink.HdmiStreamAligner.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="naps.cores.hdmi.hdmi_stream_sink.HdmiStreamSink">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.hdmi_stream_sink.</span></code><code class="sig-name descname"><span class="pre">HdmiStreamSink</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_stream_sink.HdmiStreamSink" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.hdmi_stream_sink.HdmiStreamSink.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_stream_sink.HdmiStreamSink.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-naps.cores.hdmi.hdmi_test">
-<span id="naps-cores-hdmi-hdmi-test-module"></span><h2>naps.cores.hdmi.hdmi_test module<a class="headerlink" href="#module-naps.cores.hdmi.hdmi_test" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="naps.cores.hdmi.hdmi_test.TestHdmi">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.hdmi_test.</span></code><code class="sig-name descname"><span class="pre">TestHdmi</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">methodName</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'runTest'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_test.TestHdmi" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">unittest.case.TestCase</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.hdmi_test.TestHdmi.test_mmcm_calculation">
-<code class="sig-name descname"><span class="pre">test_mmcm_calculation</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_test.TestHdmi.test_mmcm_calculation" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="naps.cores.hdmi.hdmi_test.TestHdmi.test_timing_generator">
-<code class="sig-name descname"><span class="pre">test_timing_generator</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_test.TestHdmi.test_timing_generator" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-naps.cores.hdmi.hdmi_tx">
-<span id="naps-cores-hdmi-hdmi-tx-module"></span><h2>naps.cores.hdmi.hdmi_tx module<a class="headerlink" href="#module-naps.cores.hdmi.hdmi_tx" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="naps.cores.hdmi.hdmi_tx.HdmiClocking">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.hdmi_tx.</span></code><code class="sig-name descname"><span class="pre">HdmiClocking</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_tx.HdmiClocking" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.hdmi_tx.HdmiClocking.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_tx.HdmiClocking.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py method">
-<dt id="naps.cores.hdmi.hdmi_tx.HdmiClocking.find_valid_config">
-<code class="sig-name descname"><span class="pre">find_valid_config</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_tx.HdmiClocking.find_valid_config" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="naps.cores.hdmi.hdmi_tx.HdmiPluginLowspeedController">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.hdmi_tx.</span></code><code class="sig-name descname"><span class="pre">HdmiPluginLowspeedController</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_tx.HdmiPluginLowspeedController" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.hdmi_tx.HdmiPluginLowspeedController.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_tx.HdmiPluginLowspeedController.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="naps.cores.hdmi.hdmi_tx.HdmiTimingGenerator">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.hdmi_tx.</span></code><code class="sig-name descname"><span class="pre">HdmiTimingGenerator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_tx.HdmiTimingGenerator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.hdmi_tx.HdmiTimingGenerator.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">plat</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_tx.HdmiTimingGenerator.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="naps.cores.hdmi.hdmi_tx.HdmiTx">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.hdmi_tx.</span></code><code class="sig-name descname"><span class="pre">HdmiTx</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_tx.HdmiTx" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.hdmi_tx.HdmiTx.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.hdmi_tx.HdmiTx.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
 <div class="section" id="module-naps.cores.hdmi.parse_modeline">
 <span id="naps-cores-hdmi-parse-modeline-module"></span><h2>naps.cores.hdmi.parse_modeline module<a class="headerlink" href="#module-naps.cores.hdmi.parse_modeline" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
@@ -717,84 +643,8 @@ aligned.</p>
 <dd></dd></dl>
 
 </div>
-<div class="section" id="module-naps.cores.hdmi.pattern_generator">
-<span id="naps-cores-hdmi-pattern-generator-module"></span><h2>naps.cores.hdmi.pattern_generator module<a class="headerlink" href="#module-naps.cores.hdmi.pattern_generator" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="naps.cores.hdmi.pattern_generator.BertlPatternGenerator">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.pattern_generator.</span></code><code class="sig-name descname"><span class="pre">BertlPatternGenerator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.pattern_generator.BertlPatternGenerator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.pattern_generator.BertlPatternGenerator.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.pattern_generator.BertlPatternGenerator.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="naps.cores.hdmi.pattern_generator.DimmingPatternGenerator">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.pattern_generator.</span></code><code class="sig-name descname"><span class="pre">DimmingPatternGenerator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.pattern_generator.DimmingPatternGenerator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.pattern_generator.DimmingPatternGenerator.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.pattern_generator.DimmingPatternGenerator.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
 <div class="section" id="module-naps.cores.hdmi.tmds">
 <span id="naps-cores-hdmi-tmds-module"></span><h2>naps.cores.hdmi.tmds module<a class="headerlink" href="#module-naps.cores.hdmi.tmds" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="naps.cores.hdmi.tmds.TmdsEncoder">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.tmds.</span></code><code class="sig-name descname"><span class="pre">TmdsEncoder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.tmds.TmdsEncoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.tmds.TmdsEncoder.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.tmds.TmdsEncoder.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-naps.cores.hdmi.tmds2">
-<span id="naps-cores-hdmi-tmds2-module"></span><h2>naps.cores.hdmi.tmds2 module<a class="headerlink" href="#module-naps.cores.hdmi.tmds2" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="naps.cores.hdmi.tmds2.Decoder">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.tmds2.</span></code><code class="sig-name descname"><span class="pre">Decoder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.tmds2.Decoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.tmds2.Decoder.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.tmds2.Decoder.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="py class">
-<dt id="naps.cores.hdmi.tmds2.TmdsEncoder">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.tmds2.</span></code><code class="sig-name descname"><span class="pre">TmdsEncoder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.tmds2.TmdsEncoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.tmds2.TmdsEncoder.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.tmds2.TmdsEncoder.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-</div>
-<div class="section" id="module-naps.cores.hdmi.tmds_decoder">
-<span id="naps-cores-hdmi-tmds-decoder-module"></span><h2>naps.cores.hdmi.tmds_decoder module<a class="headerlink" href="#module-naps.cores.hdmi.tmds_decoder" title="Permalink to this headline">¶</a></h2>
-<dl class="py class">
-<dt id="naps.cores.hdmi.tmds_decoder.TmdsDecoder">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.hdmi.tmds_decoder.</span></code><code class="sig-name descname"><span class="pre">TmdsDecoder</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.tmds_decoder.TmdsDecoder" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<p>Decodes tmds signals.</p>
-<dl class="py method">
-<dt id="naps.cores.hdmi.tmds_decoder.TmdsDecoder.elaborate">
-<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.hdmi.tmds_decoder.TmdsDecoder.elaborate" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
 </div>
 <div class="section" id="module-naps.cores.hdmi.tmds_test">
 <span id="naps-cores-hdmi-tmds-test-module"></span><h2>naps.cores.hdmi.tmds_test module<a class="headerlink" href="#module-naps.cores.hdmi.tmds_test" title="Permalink to this headline">¶</a></h2>
@@ -821,7 +671,7 @@ aligned.</p>
           </div>
           <footer>
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
-        <a href="naps.cores.hispi.html" class="btn btn-neutral float-right" title="naps.cores.hispi package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
+        <a href="naps.cores.hdmi.rx.html" class="btn btn-neutral float-right" title="naps.cores.hdmi.rx package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right" aria-hidden="true"></span></a>
         <a href="naps.cores.ft601.html" class="btn btn-neutral float-left" title="naps.cores.ft601 package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left" aria-hidden="true"></span> Previous</a>
     </div>
 

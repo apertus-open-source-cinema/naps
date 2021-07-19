@@ -108,6 +108,14 @@ naps.cores.video.rearrange module
    :undoc-members:
    :show-inheritance:
 
+naps.cores.video.rearrange\_test module
+---------------------------------------
+
+.. automodule:: naps.cores.video.rearrange_test
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.cores.video.resizer module
 -------------------------------
 

@@ -277,12 +277,9 @@ Is mapped as a CSR in case the design is build with a SocPlatform.</p>
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.soc.fatbitstream.</span></code><code class="sig-name descname"><span class="pre">FatbitstreamContext</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">called_by_get_classmethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.fatbitstream.FatbitstreamContext" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="py method">
-<dt id="naps.soc.fatbitstream.FatbitstreamContext.generate_fatbitstream_generator">
-<code class="sig-name descname"><span class="pre">generate_fatbitstream_generator</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">build_name</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.fatbitstream.FatbitstreamContext.generate_fatbitstream_generator" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generates shell code that is inserted into the nmigen build file that generates the bash file.
-BEWARE: this has kind of a double indirection because we write bash that generates bash that is then executed.
-Yields the commands that are to be executed during build time.</p>
-</dd></dl>
+<dt id="naps.soc.fatbitstream.FatbitstreamContext.generate_fatbitstream">
+<code class="sig-name descname"><span class="pre">generate_fatbitstream</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BinaryIO</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_products</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.build.run.BuildProducts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.fatbitstream.FatbitstreamContext.generate_fatbitstream" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="py method">
 <dt id="naps.soc.fatbitstream.FatbitstreamContext.get">
@@ -296,6 +293,12 @@ Yields the commands that are to be executed during build time.</p>
 <code class="sig-name descname"><span class="pre">platform_to_context_dict</span></code><em class="property"> <span class="pre">=</span> <span class="pre">{}</span></em><a class="headerlink" href="#naps.soc.fatbitstream.FatbitstreamContext.platform_to_context_dict" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+</dd></dl>
+
+<dl class="py class">
+<dt id="naps.soc.fatbitstream.File">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.soc.fatbitstream.</span></code><code class="sig-name descname"><span class="pre">File</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">contents</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.fatbitstream.File" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 </dd></dl>
 
 </div>
@@ -558,7 +561,7 @@ If the object is not found, None is returned
 <span id="naps-soc-program-fatbitstream-local-module"></span><h2>naps.soc.program_fatbitstream_local module<a class="headerlink" href="#module-naps.soc.program_fatbitstream_local" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
 <dt id="naps.soc.program_fatbitstream_local.program_fatbitstream_local">
-<code class="sig-prename descclassname"><span class="pre">naps.soc.program_fatbitstream_local.</span></code><code class="sig-name descname"><span class="pre">program_fatbitstream_local</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_products</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.build.run.BuildProducts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.program_fatbitstream_local.program_fatbitstream_local" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">naps.soc.program_fatbitstream_local.</span></code><code class="sig-name descname"><span class="pre">program_fatbitstream_local</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fatbitstream</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.program_fatbitstream_local.program_fatbitstream_local" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -571,7 +574,7 @@ If the object is not found, None is returned
 
 <dl class="py function">
 <dt id="naps.soc.program_fatbitstream_ssh.program_fatbitstream_ssh">
-<code class="sig-prename descclassname"><span class="pre">naps.soc.program_fatbitstream_ssh.</span></code><code class="sig-name descname"><span class="pre">program_fatbitstream_ssh</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_products</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.build.run.BuildProducts</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.program_fatbitstream_ssh.program_fatbitstream_ssh" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">naps.soc.program_fatbitstream_ssh.</span></code><code class="sig-name descname"><span class="pre">program_fatbitstream_ssh</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fatbitstream_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.program_fatbitstream_ssh.program_fatbitstream_ssh" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py function">
@@ -606,8 +609,8 @@ If the object is not found, None is returned
 <dd></dd></dl>
 
 <dl class="py method">
-<dt id="naps.soc.soc_platform.SocPlatform.prepare">
-<code class="sig-name descname"><span class="pre">prepare</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elaboratable</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'top'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.soc_platform.SocPlatform.prepare" title="Permalink to this definition">¶</a></dt>
+<dt id="naps.soc.soc_platform.SocPlatform.prepare_soc">
+<code class="sig-name descname"><span class="pre">prepare_soc</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">elaboratable</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.soc_platform.SocPlatform.prepare_soc" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>

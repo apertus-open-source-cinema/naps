@@ -1,0 +1,29 @@
+naps.cores.hdmi.rx package
+==========================
+
+Submodules
+----------
+
+naps.cores.hdmi.rx.hdmi\_rx module
+----------------------------------
+
+.. automodule:: naps.cores.hdmi.rx.hdmi_rx
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+naps.cores.hdmi.rx.tmds\_decoder module
+---------------------------------------
+
+.. automodule:: naps.cores.hdmi.rx.tmds_decoder
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+Module contents
+---------------
+
+.. automodule:: naps.cores.hdmi.rx
+   :members:
+   :undoc-members:
+   :show-inheritance:

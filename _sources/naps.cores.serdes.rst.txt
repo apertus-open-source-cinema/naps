@@ -4,6 +4,14 @@ naps.cores.serdes package
 Submodules
 ----------
 
+naps.cores.serdes.inputgearbox module
+-------------------------------------
+
+.. automodule:: naps.cores.serdes.inputgearbox
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.cores.serdes.serializer module
 -----------------------------------
 

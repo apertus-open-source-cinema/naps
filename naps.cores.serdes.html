@@ -183,6 +183,44 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
+<div class="section" id="module-naps.cores.serdes.inputgearbox">
+<span id="naps-cores-serdes-inputgearbox-module"></span><h2>naps.cores.serdes.inputgearbox module<a class="headerlink" href="#module-naps.cores.serdes.inputgearbox" title="Permalink to this headline">¶</a></h2>
+<dl class="py class">
+<dt id="naps.cores.serdes.inputgearbox.InputGearbox">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.serdes.inputgearbox.</span></code><code class="sig-name descname"><span class="pre">InputGearbox</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.serdes.inputgearbox.InputGearbox" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<dl class="py method">
+<dt id="naps.cores.serdes.inputgearbox.InputGearbox.elaborate">
+<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.serdes.inputgearbox.InputGearbox.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="naps.cores.serdes.inputgearbox.StreamSelect">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.serdes.inputgearbox.</span></code><code class="sig-name descname"><span class="pre">StreamSelect</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.serdes.inputgearbox.StreamSelect" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<p>Transforms a Stream of width n to a stream of width m by selecting m bits starting at a variable offset</p>
+<dl class="py method">
+<dt id="naps.cores.serdes.inputgearbox.StreamSelect.elaborate">
+<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.serdes.inputgearbox.StreamSelect.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
+<dt id="naps.cores.serdes.inputgearbox.StreamWindow">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.serdes.inputgearbox.</span></code><code class="sig-name descname"><span class="pre">StreamWindow</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.serdes.inputgearbox.StreamWindow" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<p>Transforms a stream of n bits into a stream of n*m bits with the m last words appended to the current word.</p>
+<dl class="py method">
+<dt id="naps.cores.serdes.inputgearbox.StreamWindow.elaborate">
+<code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.serdes.inputgearbox.StreamWindow.elaborate" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-naps.cores.serdes.serializer">
 <span id="naps-cores-serdes-serializer-module"></span><h2>naps.cores.serdes.serializer module<a class="headerlink" href="#module-naps.cores.serdes.serializer" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">

@@ -12,6 +12,14 @@ naps.vendor.lattice\_ecp5.clocking module
    :undoc-members:
    :show-inheritance:
 
+naps.vendor.lattice\_ecp5.io module
+-----------------------------------
+
+.. automodule:: naps.vendor.lattice_ecp5.io
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.vendor.lattice\_ecp5.jtag module
 -------------------------------------
 

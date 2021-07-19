@@ -245,7 +245,7 @@
 <span id="naps-platform-colorlight-5a-75b-7-0-module"></span><h2>naps.platform.colorlight_5a_75b_7_0 module<a class="headerlink" href="#module-naps.platform.colorlight_5a_75b_7_0" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
 <dt id="naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform">
-<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.platform.colorlight_5a_75b_7_0.</span></code><code class="sig-name descname"><span class="pre">Colorlight5a75b70Platform</span></code><a class="headerlink" href="#naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform" title="Permalink to this definition">¶</a></dt>
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.platform.colorlight_5a_75b_7_0.</span></code><code class="sig-name descname"><span class="pre">Colorlight5a75b70Platform</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">toolchain</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'Trellis'</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.vendor.lattice_ecp5.LatticeECP5Platform</span></code>, <code class="xref py py-class docutils literal notranslate"><span class="pre">abc.ABC</span></code></p>
 <dl class="py attribute">
 <dt id="naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.connectors">
@@ -262,9 +262,19 @@
 <code class="sig-name descname"><span class="pre">device</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'LFE5U-25F'</span></em><a class="headerlink" href="#naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.device" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt id="naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.generate_openocd_conf">
+<code class="sig-name descname"><span class="pre">generate_openocd_conf</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.generate_openocd_conf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt id="naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.package">
 <code class="sig-name descname"><span class="pre">package</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'BG256'</span></em><a class="headerlink" href="#naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.package" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.program_fatbitstream">
+<code class="sig-name descname"><span class="pre">program_fatbitstream</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.program_fatbitstream" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -276,12 +286,6 @@
 <dt id="naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.speed">
 <code class="sig-name descname"><span class="pre">speed</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'8'</span></em><a class="headerlink" href="#naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.speed" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="py method">
-<dt id="naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.toolchain_program">
-<code class="sig-name descname"><span class="pre">toolchain_program</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.platform.colorlight_5a_75b_7_0.Colorlight5a75b70Platform.toolchain_program" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract bitstream for fragment <code class="docutils literal notranslate"><span class="pre">name</span></code> from <code class="docutils literal notranslate"><span class="pre">products</span></code> and download it to a target.</p>
-</dd></dl>
 
 </dd></dl>
 
@@ -301,12 +305,6 @@
 <dt id="naps.platform.micro_r2_platform.MicroR2Platform">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.platform.micro_r2_platform.</span></code><code class="sig-name descname"><span class="pre">MicroR2Platform</span></code><a class="headerlink" href="#naps.platform.micro_r2_platform.MicroR2Platform" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen_boards.zturn_lite_z010.ZTurnLiteZ010Platform</span></code></p>
-<dl class="py method">
-<dt id="naps.platform.micro_r2_platform.MicroR2Platform.toolchain_program">
-<code class="sig-name descname"><span class="pre">toolchain_program</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">products</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">name</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.platform.micro_r2_platform.MicroR2Platform.toolchain_program" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract bitstream for fragment <code class="docutils literal notranslate"><span class="pre">name</span></code> from <code class="docutils literal notranslate"><span class="pre">products</span></code> and download it to a target.</p>
-</dd></dl>
-
 </dd></dl>
 
 </div>
@@ -326,9 +324,19 @@
 <code class="sig-name descname"><span class="pre">device</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'LCMXO2-2000HC'</span></em><a class="headerlink" href="#naps.platform.usb3_plugin_platform.Usb3PluginPlatform.device" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="py method">
+<dt id="naps.platform.usb3_plugin_platform.Usb3PluginPlatform.generate_openocd_conf">
+<code class="sig-name descname"><span class="pre">generate_openocd_conf</span></code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#naps.platform.usb3_plugin_platform.Usb3PluginPlatform.generate_openocd_conf" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py attribute">
 <dt id="naps.platform.usb3_plugin_platform.Usb3PluginPlatform.package">
 <code class="sig-name descname"><span class="pre">package</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'TG100'</span></em><a class="headerlink" href="#naps.platform.usb3_plugin_platform.Usb3PluginPlatform.package" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.platform.usb3_plugin_platform.Usb3PluginPlatform.program_fatbitstream">
+<code class="sig-name descname"><span class="pre">program_fatbitstream</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.platform.usb3_plugin_platform.Usb3PluginPlatform.program_fatbitstream" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -340,12 +348,6 @@
 <dt id="naps.platform.usb3_plugin_platform.Usb3PluginPlatform.speed">
 <code class="sig-name descname"><span class="pre">speed</span></code><em class="property"> <span class="pre">=</span> <span class="pre">'6'</span></em><a class="headerlink" href="#naps.platform.usb3_plugin_platform.Usb3PluginPlatform.speed" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
-
-<dl class="py method">
-<dt id="naps.platform.usb3_plugin_platform.Usb3PluginPlatform.toolchain_program">
-<code class="sig-name descname"><span class="pre">toolchain_program</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.platform.usb3_plugin_platform.Usb3PluginPlatform.toolchain_program" title="Permalink to this definition">¶</a></dt>
-<dd><p>Extract bitstream for fragment <code class="docutils literal notranslate"><span class="pre">name</span></code> from <code class="docutils literal notranslate"><span class="pre">products</span></code> and download it to a target.</p>
-</dd></dl>
 
 </dd></dl>
 

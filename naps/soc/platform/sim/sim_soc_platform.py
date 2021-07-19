@@ -41,30 +41,33 @@ class SimSocPlatform(SocPlatform):
 
     def add_driver(self, driver):
         def driver_process(conn):
-            class SimMemAccessor:
-                base = 0
+            try:
+                class SimMemAccessor:
+                    base = 0
 
-                def read(self, offset):
-                    conn.send(('read', offset))
-                    return conn.recv()
+                    def read(self, offset):
+                        conn.send(('read', offset))
+                        return conn.recv()
 
-                def write(self, offset, to_write):
-                    conn.send(('write', offset, to_write))
+                    def write(self, offset, to_write):
+                        conn.send(('write', offset, to_write))
 
-            g = {}
-            exec(self.driver, g, g)
-            Design = g["Design"]
-            design = Design(SimMemAccessor())
-            d = driver(design)
-            response = None
-            while True:
-                try:
-                    cmd = d.send(response)
-                    conn.send(('nmigen', cmd))
-                    response = conn.recv()
-                except StopIteration:
-                    break
-            conn.send(("exit", ))
+                g = {}
+                exec(self.driver, g, g)
+                Design = g["Design"]
+                design = Design(SimMemAccessor())
+                d = driver(design)
+                response = None
+                while True:
+                    try:
+                        cmd = d.send(response)
+                        conn.send(('nmigen', cmd))
+                        response = conn.recv()
+                    except StopIteration:
+                        break
+                conn.send(("exit", ))
+            except Exception as e:
+                conn.send(("exception", e))
             conn.close()
 
 
@@ -93,6 +96,9 @@ class SimSocPlatform(SocPlatform):
                     elif cmd == 'nmigen':
                         payload, = rest
                         conn.send((yield payload))
+                    elif cmd == 'exception':
+                        exception, = rest
+                        raise exception
                     else:
                         raise TypeError(f"unsupported command: {cmd}")
                 else:

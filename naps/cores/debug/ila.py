@@ -22,7 +22,7 @@ def probe(m, signal, name=None, decoder=None):
             if not hasattr(platform, "probes"):
                 platform.probes = {}
             if name in platform.probes:
-                platform.ila_error = KeyError(f"probe witH name '{name}' more than once in design")
+                platform.ila_error = KeyError(f"probe with name '{name}' more than once in design")
             platform.probes[name] = (signal, None if decoder is None else dict(decoder))
             return Module()
 

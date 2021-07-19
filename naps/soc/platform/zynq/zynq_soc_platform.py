@@ -56,7 +56,7 @@ class ZynqSocPlatform(SocPlatform):
         self.prepare_hooks.append(peripherals_connect_hook)
 
     def pack_bitstream_fatbitstream(self, name: str, build_products: BuildProducts):
-        from to_raw_bitstream import bit2bin
+        from .to_raw_bitstream import bit2bin
         bitstream = bit2bin(build_products.get(f"{name}.bit"))
         yield File("bitstream.bin", bitstream)
         yield f"cp bitstream.bin /usr/lib/firmware/{name}.bin"

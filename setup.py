@@ -50,7 +50,7 @@ setup(
             'pytest-pycharm',
             'pytest-github-actions-annotate-failures',
 
-            'pydng @ git+https://github.com/schoolpost/PyDNG.git#subdirectory=src',
+            'PiDNG',
             'imageio',
             'rawpy',
 

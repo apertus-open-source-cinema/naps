@@ -1,6 +1,6 @@
 import rawpy
 import numpy as np
-from pydng.core import RAW2DNG, DNGTags, Tag
+from pidng.core import RAW2DNG, DNGTags, Tag
 from .py_wavelet import ty
 
 positions = [(0, 0), (0, 1), (1, 0), (1, 1)]

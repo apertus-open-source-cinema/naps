@@ -127,6 +127,7 @@ def cli(top_class, runs_on, possible_socs=(None,)):
         with open(fatbitstream_name, "wb") as f:
             fc = FatbitstreamContext.get(platform)
             fc.generate_fatbitstream(f, name, build_products)
+        Path(fatbitstream_name).chmod(0o700)
 
     timer.end_task()
 

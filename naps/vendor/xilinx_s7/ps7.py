@@ -171,16 +171,14 @@ class PS7(Elaboratable):
                 platform.add_sim_clock(domain_name, frequency)
 
         fc = FatbitstreamContext.get(platform)
-        fc._init_commands.insert(
-            0,  # we insert this code at the beginning of the init sequence because otherwise the zynq might hang
-                # (e.g. when the clock is not setup but we try to access something via axi)
-            "\n".join(
-                f"# clockdomain '{domain_name}':\n"
-                f"echo 1 > /sys/class/fclk/fclk{i}/enable\n"
-                f"echo {int(freq)} > /sys/class/fclk/fclk{i}/set_rate\n"
-                for i, (clock_signal, bufg_out, freq, domain_name) in self.clock_constraints.items()
-            )
-        )
+        # we insert this code at the beginning of the init sequence because otherwise the zynq might hang
+        # (e.g. when the clock is not setup but we try to access something via axi)
+        fc._init_commands[0:0] = [
+            f"# clockdomain '{domain_name}':\n"
+            f"echo 1 > /sys/class/fclk/fclk{i}/enable\n"
+            f"echo {int(freq)} > /sys/class/fclk/fclk{i}/set_rate\n"
+            for i, (clock_signal, bufg_out, freq, domain_name) in self.clock_constraints.items()
+        ]
         fc += "# set the bit width of all axi hp slaves to 64 bits"
         for base in [0xF8008000, 0xF8009000, 0xF800A000, 0xF800B000]:
             fc += f"devmem2 0x{base:x} w 0"

@@ -83,14 +83,14 @@ class FatbitstreamContext:
         """)
 
         def py_quote(str):
-            return str.replace("'", "\\'")
+            return str.replace("'''", "\\'\\'\\'")
 
         for element in self._platform._soc_platform.pack_bitstream_fatbitstream(build_name, build_products):
             if isinstance(element, str):
-                main_script += f"system('{py_quote(element)}')\n"
+                main_script += f"system('''{py_quote(element)}''')\n"
             else:
                 self.__iadd__(element)
-        main_script += "\n".join(f"system('{py_quote(cmd)}')" for cmd in self._init_commands) + "\n"
+        main_script += "\n".join(f"system('''{py_quote(cmd)}''')" for cmd in self._init_commands) + "\n"
         main_script += dedent("""
             if '--run' in sys.argv:
                 os.system('/usr/bin/env python3 pydriver.py')

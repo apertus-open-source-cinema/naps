@@ -33,6 +33,7 @@ class PokeReg(EventReg, Elaboratable):
 class HostTrainer(Elaboratable):
     def __init__(self, num_lanes):
         assert num_lanes <= 32 # the poke registers cannot be made wider
+        self.num_lanes = 32
         self.lane_pattern = ControlSignal(12)
 
         # registers accessed by host
@@ -106,18 +107,10 @@ class HostTrainer(Elaboratable):
             delay -= 1
 
     @driver_method
-    def data_matching(self, lane):
-        mask = 1 << lane
-        match = True if self.data_lane_match & mask else False
-        mismatch = True if self.data_lane_mismatch & mask else False
-
-        return match and not mismatch
-
-    @driver_method
     def configure_sensor(self, sensor):
         # set default train pattern
-        sensor.write_reg(89, 0xA95)
-        self.lane_pattern = 0xA95
+        sensor.write_reg(89, 0b101010_010101)
+        self.lane_pattern = 0b101010_010101
         # switch (only) sensor sequencer to 12 bit mode
         sensor.write_reg(118, 0)
 
@@ -140,7 +133,7 @@ class HostTrainer(Elaboratable):
 
     @driver_method
     def clock_alignment(self):
-        num_lanes = 32
+        num_lanes = self.num_lanes
         self.set_ctrl_delay(1, 0) # zero clock delay
 
         best_clock_delay = 0
@@ -179,7 +172,7 @@ class HostTrainer(Elaboratable):
 
     @driver_method
     def data_alignment(self):
-        num_lanes = 32
+        num_lanes = self.num_lanes
 
         # determine the best bitslip as the one which matches over the most delays
         best_bitslip = [0]*(num_lanes+1)
@@ -346,7 +339,7 @@ class ISerdes(Elaboratable):
 
         return m
 
-class MatchMonitor:
+class MatchMonitor(Elaboratable):
     def __init__(self, bits):
         self.input = Signal(bits)
         self.input_valid = Signal()

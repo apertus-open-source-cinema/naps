@@ -33,16 +33,16 @@ class Cmv12kRx(Elaboratable):
             phy.outclk.eq(self.lvds_outclk),
             phy.lanes.eq(Cat(self.lanes, self.lane_ctrl)),
 
-            phy.lane_pattern.eq(self.trainer.lane_pattern),
-            phy.lane_delay_reset.eq(self.trainer.lane_delay_reset),
-            phy.lane_delay_inc.eq(self.trainer.lane_delay_inc),
-            phy.lane_bitslip.eq(self.trainer.lane_bitslip),
-            phy.outclk_delay_reset.eq(self.trainer.outclk_delay_reset),
-            phy.outclk_delay_inc.eq(self.trainer.outclk_delay_inc),
-            phy.halfswap.eq(self.trainer.halfswap),
+            phy.lane_pattern.eq(trainer.lane_pattern),
+            phy.lane_delay_reset.eq(trainer.lane_delay_reset),
+            phy.lane_delay_inc.eq(trainer.lane_delay_inc),
+            phy.lane_bitslip.eq(trainer.lane_bitslip),
+            phy.outclk_delay_reset.eq(trainer.outclk_delay_reset),
+            phy.outclk_delay_inc.eq(trainer.outclk_delay_inc),
+            phy.halfswap.eq(trainer.halfswap),
 
-            self.trainer.lane_match.eq(phy.lane_match),
-            self.trainer.lane_mismatch.eq(phy.lane_mismatch),
+            trainer.lane_match.eq(phy.lane_match),
+            trainer.lane_mismatch.eq(phy.lane_mismatch),
         ]
 
         return m

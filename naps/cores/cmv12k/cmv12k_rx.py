@@ -39,7 +39,7 @@ class Cmv12kRx(Elaboratable):
             phy.lane_bitslip.eq(trainer.lane_bitslip),
             phy.outclk_delay_reset.eq(trainer.outclk_delay_reset),
             phy.outclk_delay_inc.eq(trainer.outclk_delay_inc),
-            phy.halfswap.eq(trainer.halfswap),
+            phy.halfslip.eq(trainer.halfslip),
 
             trainer.lane_match.eq(phy.lane_match),
             trainer.lane_mismatch.eq(phy.lane_mismatch),

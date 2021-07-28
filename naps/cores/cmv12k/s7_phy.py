@@ -56,7 +56,7 @@ class HostTrainer(Elaboratable):
 
         self.outclk_delay_reset = Signal()
         self.outclk_delay_inc = Signal()
-        self.halfswap = Signal()
+        self.halfslip = Signal()
 
         self.lane_match = Signal(num_lanes+1)
         self.lane_mismatch = Signal(num_lanes+1)
@@ -80,7 +80,7 @@ class HostTrainer(Elaboratable):
 
             self.outclk_delay_reset.eq(self.ctrl_lane_delay_reset.poke[1]),
             self.outclk_delay_inc.eq(self.ctrl_lane_delay_inc.poke[1]),
-            self.halfswap.eq(self.ctrl_lane_bitslip.poke[1]),
+            self.halfslip.eq(self.ctrl_lane_bitslip.poke[1]),
 
             self.data_lane_match.eq(self.lane_match[:-1]),
             self.ctrl_lane_match.eq(self.lane_match[-1]),
@@ -154,7 +154,7 @@ class HostTrainer(Elaboratable):
                         return True
                     self.ctrl_lane_delay_inc = 1 # bump control lane delay
                 self.ctrl_lane_bitslip = 1 # slip control lane by one bit
-            self.ctrl_lane_bitslip = 2 # swap data half words
+            self.ctrl_lane_bitslip = 2 # slip data half words
 
         return False
 
@@ -394,7 +394,7 @@ class Cmv12kPhy(Elaboratable):
 
         self.outclk_delay_reset = Signal()
         self.outclk_delay_inc = Signal()
-        self.halfswap = Signal() # swap order of half-words
+        self.halfslip = Signal() # slip serdes by one half-word
 
         # control outputs
         self.lane_match = Signal(num_lanes+1)
@@ -426,13 +426,12 @@ class Cmv12kPhy(Elaboratable):
         pll.output_domain(dom_bit, 3)
         pll.output_domain(dom_hword, 18)
 
-        halfswap_sync = m.submodules.halfswap_sync = PulseSynchronizer(dom_ctrl, dom_hword)
-        curr_halfswap = Signal()
-        m.d.comb += halfswap_sync.i.eq(self.halfswap)
-        m.d[dom_hword] += [
-            self.output_valid.eq(~self.output_valid),
-            curr_halfswap.eq(curr_halfswap ^ halfswap_sync.o),
-        ]
+        halfslip_sync = m.submodules.halfslip_sync = PulseSynchronizer(dom_ctrl, dom_hword)
+        m.d.comb += halfslip_sync.i.eq(self.halfslip)
+        with m.If(~halfslip_sync.o):
+            # output is valid every other half-word. if slipping, write to the
+            # same half-word position as last cycle
+            m.d[dom_hword] += self.output_valid.eq(~self.output_valid)
 
         for lane in range(len(self.lanes)):
             delay_lane = m.submodules["delay_lane_"+str(lane)] = DomainRenamer(dom_ctrl)(IDelayIncremental())
@@ -452,7 +451,7 @@ class Cmv12kPhy(Elaboratable):
                 iserdes.bitslip.eq(bitslip_sync.o),
             ]
 
-            with m.If(self.output_valid ^ curr_halfswap):
+            with m.If(self.output_valid): # low bits come in first
                 m.d[dom_hword] += self.output[lane][0:6].eq(iserdes.output)
             with m.Else():
                 m.d[dom_hword] += self.output[lane][6:12].eq(iserdes.output)

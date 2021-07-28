@@ -57,28 +57,7 @@ class Top(Elaboratable):
 
     @driver_method
     def train(self):
-        self.sensor_rx.trainer.configure_sensor(self)
-
-        print("control lane initial alignment...")
-        if self.sensor_rx.trainer.initial_alignment():
-            print("success!")
-        else:
-            print("failure!")
-            return False
-
-        print("clock alignment...")
-        clock_delay, clock_match = self.sensor_rx.trainer.clock_alignment()
-        print("maximum of", clock_delay)
-
-        print("data alignment...")
-        self.sensor_rx.trainer.data_alignment()
-
-        print("validation...")
-        valid_channels = self.sensor_rx.trainer.validate(self)
-        print("working channel mask: 0x{:08X}".format(valid_channels))
-
-        return valid_channels == 0xFFFFFFFF
-
+        self.sensor_rx.trainer.train(self)
 
 if __name__ == "__main__":
     cli(Top, runs_on=(BetaPlatform, ), possible_socs=(ZynqSocPlatform, ))

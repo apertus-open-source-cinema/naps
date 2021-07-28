@@ -91,19 +91,47 @@ class HostTrainer(Elaboratable):
         return m
 
     @driver_method
-    def set_data_delay(self, lane, delay):
-        mask = 1 << lane
-        self.data_lane_delay_reset = mask
-        while delay > 0:
-            self.data_lane_delay_inc = mask
-            delay -= 1
+    def train(self, sensor):
+        self.configure_sensor(sensor)
+
+        self.set_clock_delay(16) # set clock delay to middle position
+
+        print("control lane initial alignment...")
+        if self.initial_alignment():
+            print("success!")
+        else:
+            print("failure!")
+            return False
+
+        # align all the lanes with the clock delay set to the middle
+        print("initial data alignment...")
+        mean_delay = self.data_alignment()
+        print(f"mean delay is {mean_delay}")
+
+        # clock delay goes in the opposite direction of the data delay, so set
+        # the clock delay to a value that moves the average data delay to the
+        # middle to ensure we get the best delay values for the most lanes
+        clock_delay = max(0, min(31, 32-mean_delay))
+        print(f"configure clock delay to {clock_delay}")
+        self.set_clock_delay(clock_delay)
+
+        # now realign all the lanes with the optimal clock delay
+        print("data realignment...")
+        mean_delay = self.data_alignment()
+        print(f"mean delay is now {mean_delay}")
+
+        # make sure a variety of values can be received
+        print("validation...")
+        valid_channels = self.validate(sensor)
+        print(f"working channel mask: 0x{valid_channels:08X}")
+
+        return valid_channels == 0xFFFFFFFF
 
     @driver_method
-    def set_ctrl_delay(self, lane, delay):
-        mask = 1 << lane
-        self.ctrl_lane_delay_reset = mask
+    def set_clock_delay(self, delay):
+        self.ctrl_lane_delay_reset = 2 # zero clock delay
         while delay > 0:
-            self.ctrl_lane_delay_inc = mask
+            self.ctrl_lane_delay_inc = 2 # increment clock delay
             delay -= 1
 
     @driver_method
@@ -116,12 +144,11 @@ class HostTrainer(Elaboratable):
 
     @driver_method
     def initial_alignment(self):
-        # try to align just the control lane
-        self.set_ctrl_delay(1, 16) # set clock delay to middle position
+        # try all possible options to align the control lane
 
         for half in range(2):
             for slip in range(6):
-                self.set_ctrl_delay(0, 0) # zero control lane delay
+                self.ctrl_lane_delay_reset = 1 # zero control lane delay
                 for delay in range(32):
                     if self.ctrl_lane_match:
                         return True
@@ -132,46 +159,8 @@ class HostTrainer(Elaboratable):
         return False
 
     @driver_method
-    def clock_alignment(self):
-        num_lanes = self.num_lanes
-        self.set_ctrl_delay(1, 0) # zero clock delay
-
-        best_clock_delay = 0
-        best_clock_match = 0
-        # try out all the possible clock delays
-        for clock_delay in range(32):
-            # we want the clock delay for which the lanes match the "most" in
-            # order to give us the widest latitude for adjustment.
-
-            # first, we evaluate each lane by choosing the bitslip value for
-            # which the lane matches over the maximum number of delays
-            best_match_count = [0]*num_lanes
-            for bitslip in range(6):
-                match_count = [0]*num_lanes
-                self.data_lane_delay_reset = (1<<num_lanes)-1 # zero all lane delays
-                for lane_delay in range(32):
-                    all_matches = self.data_lane_match
-                    for lane in range(num_lanes):
-                        match_count[lane] += 1 if all_matches & (1 << lane) else 0
-                    self.data_lane_delay_inc = (1<<num_lanes)-1 # increment all delays
-                for lane in range(num_lanes):
-                    if best_match_count[lane] < match_count[lane]:
-                        best_match_count[lane] = match_count[lane]
-                self.data_lane_bitslip = (1<<num_lanes)-1 # slip all bits
-            # then we measure the "most"ness for this clock delay as which lane matched the fewest times
-            clock_match = min(best_match_count)
-            if best_clock_match < clock_match:
-                best_clock_match = clock_match
-                best_clock_delay = clock_delay
-
-            print("[{:02d}] = {:02d}".format(clock_delay, clock_match))
-            self.ctrl_lane_delay_inc = 2
-
-        self.set_ctrl_delay(1, best_clock_delay)
-        return best_clock_delay, best_clock_match
-
-    @driver_method
     def data_alignment(self):
+        import bitarray.util
         num_lanes = self.num_lanes
 
         # determine the best bitslip as the one which matches over the most delays
@@ -206,33 +195,44 @@ class HostTrainer(Elaboratable):
                 self.ctrl_lane_bitslip = 1
                 best_bitslip[num_lanes] -= 1
 
-        # measure the delay window for all the channels to determine the final delay
-        delay_window = [0]*(num_lanes+1)
+        # measure the delay window for all the channels to determine the final delay.
+        # the window has a 1 bit for each delay tap value which matches properly
+        delay_window = list(bitarray.util.zeros(32) for _ in range(num_lanes+1))
         self.data_lane_delay_reset = (1<<num_lanes)-1 # zero all lane delays
         self.ctrl_lane_delay_reset = 1
         for delay in range(32):
             all_matches = self.data_lane_match | (self.ctrl_lane_match << num_lanes)
             for lane in range(num_lanes+1):
-                delay_window[lane] |= (1 << delay) if all_matches & (1 << lane) else 0
+                delay_window[lane][delay] = bool(all_matches & (1 << lane))
             self.data_lane_delay_inc = (1<<num_lanes)-1 # increment all delays
             self.ctrl_lane_delay_inc = 1
 
-        best_delay = [0]*(num_lanes+1)
+        best_delay = [None]*(num_lanes+1)
+        applied_delay = [0]*(num_lanes+1)
+        print("lane 0                             31 delay")
         for lane, window in enumerate(delay_window):
-            if window == 0xFFFFFFFF: # all delays work
+            # the bit period is about 51 delay tap times, and we assume the
+            # window of delays that work is 32 taps wide. we thus want to select
+            # the delay which is closest to the middle of the window. of course
+            # we cannot necessarily see the whole window because we can only
+            # delay a maximum of 32 taps
+            if window.all(): # all delays work
                 best_delay[lane] = 16 # so pick the middle
-            elif window & 0x80000000: # large delays work but small ones don't
-                # take the first delay value that works, then delay 16 more to hit the middle
-                lsb = 0
-                while not (window & (1 << lsb)): lsb += 1
-                best_delay[lane] = min(31, lsb+16)
-            elif window != 0: # small delays work but large ones don't
-                # take the last delay value that works, then delay 16 less to hit the middle
-                msb = 31
-                while not (window & (1 << msb)): msb -= 1
-                best_delay[lane] = max(0, msb-16)
+            elif window.any(): # at least one delay works
+                min_border = window.index(window[0]^1) # edges of the window
+                max_border = 32-window[::-1].index(window[-1]^1)
+                if window[0] and not window[-1]: # e.g. 0x000003FF -> -6
+                    best_delay[lane] = min_border - 16
+                elif window[-1] and not window[0]: # e.g. 0xFFFC0000 -> 34
+                    best_delay[lane] = max_border + 16
+                elif not (window[0] or window[-1]): # e.g. 0x007FFFC0 -> 14
+                    best_delay[lane] = (max_border + min_border)//2
+                else: # e.g. 0xFFFC0003 -> 34
+                    best_delay[lane] = min_border - 16 if min_border > (32-max_border) else max_border + 16
 
-            print("[{:02d}] 0x{:08X} => {:02d}".format(lane, window, best_delay[lane], best_bitslip[lane]))
+            # choose tap closest to a delay that actually exists
+            applied_delay[lane] = max(0, min(31, best_delay[lane] or 0))
+            print(f"[{lane:02d}] {window.to01()} => {applied_delay[lane]:02d}")
 
         # apply all the delays
         self.data_lane_delay_reset = (1<<num_lanes)-1 # zero all lane delays
@@ -240,24 +240,30 @@ class HostTrainer(Elaboratable):
         for delay in range(32):
             apply_mask = 0
             for lane in range(num_lanes):
-                if best_delay[lane] > 0:
+                if applied_delay[lane] > 0:
                     apply_mask |= (1 << lane)
-                    best_delay[lane] -= 1
+                    applied_delay[lane] -= 1
             self.data_lane_delay_inc = apply_mask
-            if best_delay[num_lanes] > 0:
+            if applied_delay[num_lanes] > 0:
                 self.ctrl_lane_delay_inc = 1
-                best_delay[num_lanes] -= 1
+                applied_delay[num_lanes] -= 1
+
+        # return mean of valid delays, used for determining optimal clock delay
+        valid_delays = list(delay for delay in best_delay if delay is not None)
+        if len(valid_delays) == 0: return 16
+        return int(sum(valid_delays)/len(valid_delays))
 
     @driver_method
     def validate(self, sensor):
-        num_lanes = 32
+        num_lanes = self.num_lanes
 
         if not self.ctrl_lane_match: return 0
 
+        # try all patterns with each bit exclusively set and clear
         valid_channels = (1<<num_lanes)-1
         for bit in range(12):
-            sensor.write_reg(89, 1 << bit)
-            self.lane_pattern = 1 << bit
+            sensor.write_reg(89, 1 << bit) # set sensor to transmit pattern
+            self.lane_pattern = 1 << bit # set matcher to expect pattern
             valid_channels &= self.data_lane_match
 
             sensor.write_reg(89, (1 << bit)^0xFFF)

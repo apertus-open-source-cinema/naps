@@ -91,8 +91,8 @@ class HostTrainer(Elaboratable):
         return m
 
     @driver_method
-    def train(self, sensor):
-        self.configure_sensor(sensor)
+    def train(self, sensor_spi):
+        self.configure_sensor(sensor_spi)
 
         self.set_clock_delay(16) # set clock delay to middle position
 
@@ -122,7 +122,7 @@ class HostTrainer(Elaboratable):
 
         # make sure a variety of values can be received
         print("validation...")
-        valid_channels = self.validate(sensor)
+        valid_channels = self.validate(sensor_spi)
         print(f"working channel mask: 0x{valid_channels:08X}")
 
         return valid_channels == 0xFFFFFFFF
@@ -135,12 +135,12 @@ class HostTrainer(Elaboratable):
             delay -= 1
 
     @driver_method
-    def configure_sensor(self, sensor):
+    def configure_sensor(self, sensor_spi):
         # set default train pattern
-        sensor.write_reg(89, 0b101010_010101)
+        sensor_spi.set_train_pattern(0b101010_010101)
         self.lane_pattern = 0b101010_010101
         # switch (only) sensor sequencer to 12 bit mode
-        sensor.write_reg(118, 0)
+        sensor_spi.set_bit_mode(12)
 
     @driver_method
     def initial_alignment(self):
@@ -254,7 +254,7 @@ class HostTrainer(Elaboratable):
         return int(sum(valid_delays)/len(valid_delays))
 
     @driver_method
-    def validate(self, sensor):
+    def validate(self, sensor_spi):
         num_lanes = self.num_lanes
 
         if not self.ctrl_lane_match: return 0
@@ -262,11 +262,11 @@ class HostTrainer(Elaboratable):
         # try all patterns with each bit exclusively set and clear
         valid_channels = (1<<num_lanes)-1
         for bit in range(12):
-            sensor.write_reg(89, 1 << bit) # set sensor to transmit pattern
+            sensor_spi.set_train_pattern(1 << bit) # tell sensor to transmit pattern
             self.lane_pattern = 1 << bit # set matcher to expect pattern
             valid_channels &= self.data_lane_match
 
-            sensor.write_reg(89, (1 << bit)^0xFFF)
+            sensor_spi.set_train_pattern((1 << bit)^0xFFF)
             self.lane_pattern = (1 << bit)^0xFFF
             valid_channels &= self.data_lane_match
 

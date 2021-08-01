@@ -4,7 +4,7 @@ from nmigen._unused import MustUse
 from naps.soc.memorymap import Address
 from naps.soc.peripheral import Response
 
-__all__ = ["ControlSignal", "StatusSignal", "EventReg"]
+__all__ = ["ControlSignal", "StatusSignal", "EventReg", "PulseReg"]
 
 
 class UncollectedCsrWarning(Warning):
@@ -74,3 +74,32 @@ class EventReg(_Csr):  # TODO: bikeshed name
         if self._address is not None:
             return self._address.bit_len
         return self._bits
+
+class PulseReg(EventReg, Elaboratable):  # TODO: replace with _write_strobe?
+    """A register that generates one cycle wide pulses when ones are written. The pulses happen in the CSR domain.
+    Use a PulseSynchronizer to get one cycle wide pulses in another domain, so long as its clock speed is not slower than the CSR domain.
+    """
+
+    def __init__(self, bits):
+        super().__init__(bits=bits)
+
+        self.pulse = Signal(bits)
+        self._write_val = Signal(bits)
+
+        def handle_read(m, data, read_done):
+            m.d.sync += data.eq(0)
+            read_done(Response.OK)
+
+        def handle_write(m, data, write_done):
+            m.d.comb += self._write_val.eq(data)
+            write_done(Response.OK)
+
+        self.handle_read = handle_read
+        self.handle_write = handle_write
+
+    def elaborate(self, platform):
+        m = Module()
+
+        m.d[platform.csr_domain] += self.pulse.eq(self._write_val)
+
+        return m

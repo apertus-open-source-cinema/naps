@@ -8,7 +8,7 @@ from naps.vendor.xilinx_s7.io import IDelayCtrl, _IDelay, _ISerdes
 class HostTrainer(Elaboratable):
     def __init__(self, num_lanes):
         assert num_lanes <= 32 # the pulse registers cannot be made wider
-        self.num_lanes = 32
+        self.num_lanes = num_lanes
         self.lane_pattern = ControlSignal(12)
 
         # registers accessed by host
@@ -172,7 +172,7 @@ class HostTrainer(Elaboratable):
 
         # measure the delay window for all the channels to determine the final delay.
         # the window has a 1 bit for each delay tap value which matches properly
-        delay_window = list(bitarray.util.zeros(32) for _ in range(num_lanes+1))
+        delay_window = [bitarray.util.zeros(32) for _ in range(num_lanes+1)]
         self.data_lane_delay_reset = (1<<num_lanes)-1 # zero all lane delays
         self.ctrl_lane_delay_reset = 1
         for delay in range(32):
@@ -224,7 +224,7 @@ class HostTrainer(Elaboratable):
                 applied_delay[num_lanes] -= 1
 
         # return mean of valid delays, used for determining optimal clock delay
-        valid_delays = list(delay for delay in best_delay if delay is not None)
+        valid_delays = [delay for delay in best_delay if delay is not None]
         if len(valid_delays) == 0: return 16
         return int(sum(valid_delays)/len(valid_delays))
 
@@ -232,7 +232,7 @@ class HostTrainer(Elaboratable):
     def validate(self, sensor_spi):
         num_lanes = self.num_lanes
 
-        if not self.ctrl_lane_match: return 0
+        if not self.ctrl_lane_match: return 0 # control lane has fixed pattern
 
         # try all patterns with each bit exclusively set and clear
         valid_channels = (1<<num_lanes)-1

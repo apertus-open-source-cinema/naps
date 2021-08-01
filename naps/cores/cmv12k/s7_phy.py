@@ -1,51 +1,26 @@
 from nmigen import *
 from nmigen.lib.cdc import PulseSynchronizer
 
-from naps import StatusSignal, ControlSignal, EventReg, Response, driver_method
+from naps import PulseReg, StatusSignal, ControlSignal, driver_method
 from naps.vendor.xilinx_s7 import Mmcm
 from naps.vendor.xilinx_s7.io import IDelayCtrl, _IDelay, _ISerdes
 
-class PokeReg(EventReg, Elaboratable):
-    def __init__(self, bits):
-        super().__init__(bits=bits)
-
-        self.poke = Signal(bits)
-        self._write_val = Signal(bits)
-
-        def handle_read(m, data, read_done):
-            m.d.sync += data.eq(0)
-            read_done(Response.OK)
-
-        def handle_write(m, data, write_done):
-            m.d.comb += self._write_val.eq(data)
-            write_done(Response.OK)
-
-        self.handle_read = handle_read
-        self.handle_write = handle_write
-
-    def elaborate(self, platform):
-        m = Module()
-
-        m.d[platform.csr_domain] += self.poke.eq(self._write_val)
-
-        return m
-
 class HostTrainer(Elaboratable):
     def __init__(self, num_lanes):
-        assert num_lanes <= 32 # the poke registers cannot be made wider
+        assert num_lanes <= 32 # the pulse registers cannot be made wider
         self.num_lanes = 32
         self.lane_pattern = ControlSignal(12)
 
         # registers accessed by host
-        self.data_lane_delay_reset = PokeReg(num_lanes)
-        self.data_lane_delay_inc = PokeReg(num_lanes)
-        self.data_lane_bitslip = PokeReg(num_lanes)
+        self.data_lane_delay_reset = PulseReg(num_lanes)
+        self.data_lane_delay_inc = PulseReg(num_lanes)
+        self.data_lane_bitslip = PulseReg(num_lanes)
         self.data_lane_match = StatusSignal(num_lanes)
         self.data_lane_mismatch = StatusSignal(num_lanes)
 
-        self.ctrl_lane_delay_reset = PokeReg(2) # control and clock
-        self.ctrl_lane_delay_inc = PokeReg(2)
-        self.ctrl_lane_bitslip = PokeReg(2)
+        self.ctrl_lane_delay_reset = PulseReg(2) # control and clock
+        self.ctrl_lane_delay_inc = PulseReg(2)
+        self.ctrl_lane_bitslip = PulseReg(2)
         self.ctrl_lane_match = StatusSignal(1)
         self.ctrl_lane_mismatch = StatusSignal(1)
 
@@ -74,13 +49,13 @@ class HostTrainer(Elaboratable):
         ]
 
         m.d.comb += [
-            self.lane_delay_reset.eq(Cat(self.data_lane_delay_reset.poke, self.ctrl_lane_delay_reset.poke[0])),
-            self.lane_delay_inc.eq(Cat(self.data_lane_delay_inc.poke, self.ctrl_lane_delay_inc.poke[0])),
-            self.lane_bitslip.eq(Cat(self.data_lane_bitslip.poke, self.ctrl_lane_bitslip.poke[0])),
+            self.lane_delay_reset.eq(Cat(self.data_lane_delay_reset.pulse, self.ctrl_lane_delay_reset.pulse[0])),
+            self.lane_delay_inc.eq(Cat(self.data_lane_delay_inc.pulse, self.ctrl_lane_delay_inc.pulse[0])),
+            self.lane_bitslip.eq(Cat(self.data_lane_bitslip.pulse, self.ctrl_lane_bitslip.pulse[0])),
 
-            self.outclk_delay_reset.eq(self.ctrl_lane_delay_reset.poke[1]),
-            self.outclk_delay_inc.eq(self.ctrl_lane_delay_inc.poke[1]),
-            self.halfslip.eq(self.ctrl_lane_bitslip.poke[1]),
+            self.outclk_delay_reset.eq(self.ctrl_lane_delay_reset.pulse[1]),
+            self.outclk_delay_inc.eq(self.ctrl_lane_delay_inc.pulse[1]),
+            self.halfslip.eq(self.ctrl_lane_bitslip.pulse[1]),
 
             self.data_lane_match.eq(self.lane_match[:-1]),
             self.ctrl_lane_match.eq(self.lane_match[-1]),

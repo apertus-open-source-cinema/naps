@@ -1,5 +1,14 @@
 # set up and demonstrate training of CMV12k
 
+# DEMO PROCEDURE:
+# 1. build the fatbitstream with `python3 applets/cmv12k/train_test.py -b`
+# 2. copy the resulting build/train_test_*/train_test.fatbitstream.sh file to the Beta
+# 3. log into the Beta and get root access with e.g. `sudo su`
+# 4. power up the sensor with `axiom_power_init.sh && axiom_power_on.sh`
+# 5. load the fatbitstream with `./train_test.fatbitstream.sh --run`
+# 6. run the `design.train()` function at the prompt
+# 7. if everything worked, you will see "working channel mask: 0xFFFFFFFF"
+
 from nmigen import *
 from naps import *
 

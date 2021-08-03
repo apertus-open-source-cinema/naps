@@ -11,7 +11,7 @@ from nmigen.build.run import LocalBuildProducts, BuildPlan
 __all__ = ["cli"]
 
 from . import FatbitstreamContext
-from ..soc.soc_platform import soc_platform_name
+from .soc_platform import soc_platform_name
 from ..util import timer
 
 

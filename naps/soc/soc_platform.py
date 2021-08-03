@@ -62,4 +62,6 @@ def soc_platform_name(obj):
     if obj is None:
         return "None"
     else:
+        if not isinstance(obj, type):
+            obj = obj.__class__
         return obj.__name__.replace("SocPlatform", "")

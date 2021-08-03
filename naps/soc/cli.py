@@ -48,8 +48,16 @@ def cli(top_class, runs_on, possible_socs=(None,)):
 
     soc_choices = {plat.soc_name(): plat for plat in possible_socs if plat is not None}
 
-    default = possible_socs[0] if len(possible_socs) == 1 else None
-    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=chain(soc_choices.keys(), ["None"] if None in possible_socs else []), default=default, required=default is None)
+    default = None
+    if len(possible_socs) == 1:
+        the_soc = possible_socs[0]
+        if the_soc is None:
+            default = "None"
+        else:
+            default = the_soc.soc_name()
+
+    soc_name_choices = chain(soc_choices.keys(), ["None"] if None in possible_socs else [])
+    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=soc_name_choices, default=default, required=default is None)
 
     args = parser.parse_args()
 

@@ -4,6 +4,7 @@ import sys
 from pathlib import Path
 from shutil import rmtree
 from textwrap import indent
+from itertools import chain
 
 from nmigen import Fragment
 from nmigen.build.run import LocalBuildProducts, BuildPlan
@@ -43,21 +44,20 @@ def cli(top_class, runs_on, possible_socs=(None,)):
 
     platform_choices = {plat.__name__.replace("Platform", ""): plat for plat in runs_on}
     default = list(platform_choices.keys())[0] if len(platform_choices) == 1 else None
-    parser.add_argument('-d', '--device', help='specify the device to build for', choices=list(platform_choices.keys()), required=default is None, default=default)
+    parser.add_argument('-d', '--device', help='specify the device to build for', choices=platform_choices.keys(), default=default, required=default is None)
 
-    soc_choices = [plat.__name__.replace("SocPlatform", "") if plat is not None else "None" for plat in possible_socs]
-    default = soc_choices[0] if len(soc_choices) == 1 else None
-    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=soc_choices, default=default, required=default is None)
-    parser = parser
+    soc_choices = {plat.soc_name(): plat for plat in possible_socs if plat is not None}
+
+    default = possible_socs[0] if len(possible_socs) == 1 else None
+    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=chain(soc_choices.keys(), ["None"] if None in possible_socs else []), default=default, required=default is None)
+
     args = parser.parse_args()
 
     hardware_platform = platform_choices[args.device]
     if args.soc != 'None':
-        soc_platform = getattr(__import__('naps.soc.platform'), "{}SocPlatform".format(args.soc))
-        assert soc_platform in possible_socs
+        soc_platform = soc_choices[args.soc]
         platform = soc_platform(hardware_platform())
     else:
-        assert None in possible_socs
         platform = hardware_platform()
     top_class = top_class
 

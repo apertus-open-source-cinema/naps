@@ -33,6 +33,9 @@ class SocPlatform(ABC):
         self.prepare_hooks.append(peripherals_collect_hook)
         self.prepare_hooks.append(pydriver_hook)
 
+    def soc_name(self):
+        return self.__name__.replace("SocPlatform", "")
+
     # we override the prepare method of the real platform to be able to inject stuff into the design
     def prepare_soc(self, elaboratable):
         print("# ELABORATING MAIN DESIGN")

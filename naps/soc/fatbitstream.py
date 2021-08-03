@@ -75,10 +75,8 @@ class FatbitstreamContext:
                 dir_name = __dir__.stem
                 with ZipFile(sys.argv[0], "r") as f:
                     f.extractall(dir_name)
-                system(f"/usr/bin/env python3 '{dir_name}'", print_error=False)
-                sys.exit(0)
-                
-            os.chdir(__dir__)
+
+            os.chdir(__dir__.with_suffix(""))
             
         """)
 

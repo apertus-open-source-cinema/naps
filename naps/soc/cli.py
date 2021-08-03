@@ -63,7 +63,7 @@ def cli(top_class, runs_on, possible_socs=(None,)):
 
     caller_file = Path(inspect.stack()[1].filename)
     name = caller_file.stem
-    build_dir = caller_file.parent / "build" / Path(f"{name}_{args.device}_{args.soc}")
+    build_dir = "build" / Path(f"{name}_{args.device}_{args.soc}")
     gateware_build_dir = build_dir / "gateware"
     cache_key_path = build_dir / "cache_key.txt"
     cache_key_old_path = build_dir / "cache_key_old.txt"

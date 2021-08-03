@@ -4,7 +4,7 @@ from .hooks import csr_and_driver_item_hook, address_assignment_hook, peripheral
 from .pydriver.generate import pydriver_hook
 from .tracing_elaborate import fragment_get_with_elaboratable_trace
 
-__all__ = ["SocPlatform"]
+__all__ = ["SocPlatform", "soc_platform_name"]
 
 
 class SocPlatform(ABC):
@@ -56,3 +56,12 @@ class SocPlatform(ABC):
         inject_subfragments(top_fragment, sames, self.final_to_inject_subfragments)
 
         return top_fragment
+
+
+def soc_platform_name(obj):
+    if obj is None:
+        return "None"
+    else:
+        if not isinstance(obj, type):
+            obj = obj.__class__
+        return obj.__name__.replace("SocPlatform", "")

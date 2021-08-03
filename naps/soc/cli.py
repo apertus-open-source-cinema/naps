@@ -11,6 +11,7 @@ from nmigen.build.run import LocalBuildProducts, BuildPlan
 __all__ = ["cli"]
 
 from . import FatbitstreamContext
+from .soc_platform import soc_platform_name
 from ..util import timer
 
 
@@ -43,21 +44,24 @@ def cli(top_class, runs_on, possible_socs=(None,)):
 
     platform_choices = {plat.__name__.replace("Platform", ""): plat for plat in runs_on}
     default = list(platform_choices.keys())[0] if len(platform_choices) == 1 else None
-    parser.add_argument('-d', '--device', help='specify the device to build for', choices=list(platform_choices.keys()), required=default is None, default=default)
+    parser.add_argument('-d', '--device', help='specify the device to build for', choices=platform_choices.keys(), default=default, required=default is None)
 
-    soc_choices = [plat.__name__.replace("SocPlatform", "") if plat is not None else "None" for plat in possible_socs]
-    default = soc_choices[0] if len(soc_choices) == 1 else None
-    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=soc_choices, default=default, required=default is None)
-    parser = parser
+    default = None
+    if len(possible_socs) == 1:
+        default = soc_platform_name(possible_socs[0])
+
+    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=list(map(soc_platform_name, possible_socs)), default=default, required=default is None)
+
     args = parser.parse_args()
 
     hardware_platform = platform_choices[args.device]
     if args.soc != 'None':
-        soc_platform = getattr(__import__('naps.soc.platform'), "{}SocPlatform".format(args.soc))
-        assert soc_platform in possible_socs
+        for soc in possible_socs:
+            if soc_platform_name(soc) == args.soc:
+                soc_platform = soc
+                break
         platform = soc_platform(hardware_platform())
     else:
-        assert None in possible_socs
         platform = hardware_platform()
     top_class = top_class
 

@@ -4,7 +4,7 @@ from .hooks import csr_and_driver_item_hook, address_assignment_hook, peripheral
 from .pydriver.generate import pydriver_hook
 from .tracing_elaborate import fragment_get_with_elaboratable_trace
 
-__all__ = ["SocPlatform"]
+__all__ = ["SocPlatform", "soc_platform_name"]
 
 
 class SocPlatform(ABC):
@@ -33,10 +33,6 @@ class SocPlatform(ABC):
         self.prepare_hooks.append(peripherals_collect_hook)
         self.prepare_hooks.append(pydriver_hook)
 
-    @classmethod
-    def soc_name(cls):
-        return cls.__name__.replace("SocPlatform", "")
-
     # we override the prepare method of the real platform to be able to inject stuff into the design
     def prepare_soc(self, elaboratable):
         print("# ELABORATING MAIN DESIGN")
@@ -60,3 +56,10 @@ class SocPlatform(ABC):
         inject_subfragments(top_fragment, sames, self.final_to_inject_subfragments)
 
         return top_fragment
+
+
+def soc_platform_name(obj):
+    if obj is None:
+        return "None"
+    else:
+        return obj.__name__.replace("SocPlatform", "")

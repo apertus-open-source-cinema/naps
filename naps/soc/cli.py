@@ -12,6 +12,7 @@ from nmigen.build.run import LocalBuildProducts, BuildPlan
 __all__ = ["cli"]
 
 from . import FatbitstreamContext
+from .. import soc_platform_name
 from ..util import timer
 
 
@@ -50,14 +51,9 @@ def cli(top_class, runs_on, possible_socs=(None,)):
 
     default = None
     if len(possible_socs) == 1:
-        the_soc = possible_socs[0]
-        if the_soc is None:
-            default = "None"
-        else:
-            default = the_soc.soc_name()
+        default = soc_platform_name(possible_socs[0])
 
-    soc_name_choices = chain(soc_choices.keys(), ["None"] if None in possible_socs else [])
-    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=soc_name_choices, default=default, required=default is None)
+    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=map(soc_platform_name, soc_choices), default=default, required=default is None)
 
     args = parser.parse_args()
 

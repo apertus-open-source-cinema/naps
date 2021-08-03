@@ -4,7 +4,6 @@ import sys
 from pathlib import Path
 from shutil import rmtree
 from textwrap import indent
-from itertools import chain
 
 from nmigen import Fragment
 from nmigen.build.run import LocalBuildProducts, BuildPlan
@@ -12,7 +11,7 @@ from nmigen.build.run import LocalBuildProducts, BuildPlan
 __all__ = ["cli"]
 
 from . import FatbitstreamContext
-from .. import soc_platform_name
+from ..soc.soc_platform import soc_platform_name
 from ..util import timer
 
 
@@ -47,19 +46,20 @@ def cli(top_class, runs_on, possible_socs=(None,)):
     default = list(platform_choices.keys())[0] if len(platform_choices) == 1 else None
     parser.add_argument('-d', '--device', help='specify the device to build for', choices=platform_choices.keys(), default=default, required=default is None)
 
-    soc_choices = {plat.soc_name(): plat for plat in possible_socs if plat is not None}
-
     default = None
     if len(possible_socs) == 1:
         default = soc_platform_name(possible_socs[0])
 
-    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=map(soc_platform_name, soc_choices), default=default, required=default is None)
+    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for', choices=map(soc_platform_name, possible_socs), default=default, required=default is None)
 
     args = parser.parse_args()
 
     hardware_platform = platform_choices[args.device]
     if args.soc != 'None':
-        soc_platform = soc_choices[args.soc]
+        for soc in possible_socs:
+            if soc_platform_name(soc) == args.soc:
+                soc_platform = soc
+                break
         platform = soc_platform(hardware_platform())
     else:
         platform = hardware_platform()

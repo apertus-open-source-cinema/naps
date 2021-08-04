@@ -2,11 +2,12 @@
 from textwrap import dedent, indent
 
 from nmigen import Fragment
-from . import FatbitstreamContext
+from . import FatbitstreamContext, CommandPosition
 
 __all__ = ["devicetree_overlay"]
 
 from . import File
+from .soc_platform import soc_platform_name
 
 
 def devicetree_overlay(platform, overlay_name, overlay_content, placeholder_substitutions_dict=None):
@@ -46,10 +47,14 @@ def devicetree_overlay(platform, overlay_name, overlay_content, placeholder_subs
                 """ % indent(formatted_overlay_text, "                                "))
                 print(overlay_text)
 
+                overlay_dir_base = f"fatbitstream_{soc_platform_name(platform)}_"
+                overlay_dir_name = overlay_dir_base + overlay_name
+
                 fc = FatbitstreamContext.get(platform)
+                fc.add_cmd_unique(f"rmdir -v /sys/kernel/config/device-tree/overlays/{overlay_dir_base}* 2>/dev/null || true", CommandPosition.Front)
                 fc += File(f"{overlay_name}_overlay.dts", overlay_text)
-                fc += "mkdir -p /sys/kernel/config/device-tree/overlays/{}\n".format(overlay_name)
-                fc += f"dtc -O dtb -@ {overlay_name}_overlay.dts -o - > /sys/kernel/config/device-tree/overlays/{overlay_name}/dtbo\n\n"
+                fc += f"mkdir -p /sys/kernel/config/device-tree/overlays/{overlay_dir_name}"
+                fc += f"dtc -O dtb -@ {overlay_name}_overlay.dts -o - > /sys/kernel/config/device-tree/overlays/{overlay_dir_name}/dtbo"
         platform.prepare_hooks.append(overlay_hook)
 
     assert overlay_name not in platform.devicetree_overlays.keys()

@@ -117,7 +117,7 @@ class FatbitstreamContext:
         main_script += "\n".join(f"system('''{py_quote(cmd)}''')" for cmd in self._init_commands) + "\n"
         main_script += dedent("""
             if '--run' in sys.argv:
-                os.system('/usr/bin/env python3 pydriver.py')
+                system('/usr/bin/env python3 pydriver.py')
         """)
 
         with ZipFile(file, 'w', ZIP_DEFLATED) as f:

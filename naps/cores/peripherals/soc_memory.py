@@ -23,6 +23,7 @@ class SocMemory(Elaboratable):
 
 
     def handle_read(self, m, addr, data, read_done):
+        addr = addr[2:]
         m.submodules += self.ports
         if self.soc_read:
             read_port = self.memory.read_port(domain="sync", transparent=False)
@@ -43,6 +44,7 @@ class SocMemory(Elaboratable):
             read_done(Response.ERR)
 
     def handle_write(self, m, addr, data, write_done):
+        addr = addr[2:]
         if self.soc_write:
             write_port = self.memory.write_port(domain="sync", granularity=self.width if self.split_stages == 1 else 32)
             m.submodules += write_port
@@ -136,16 +138,16 @@ class SocMemory(Elaboratable):
 
     @driver_method
     def __getitem__(self, item):
-        base_address = self.memory.address - self._memory_accessor.base + item * self.split_stages
+        base_address = self.memory.address - self._memory_accessor.base + 4*item * self.split_stages
         value = 0
         for i in range(self.split_stages):
-            read = self._memory_accessor.read(base_address + i)
+            read = self._memory_accessor.read(base_address + 4*i)
             value |= read << (32 * i)
         return value
 
     @driver_method
     def __setitem__(self, item, value):
-        base_address = self.memory.address - self._memory_accessor.base + item * self.split_stages
+        base_address = self.memory.address - self._memory_accessor.base + 4*item * self.split_stages
         for i in range(self.split_stages):
             write = (value >> (32 * i)) & 0xFFFFFFFF
-            self._memory_accessor.write(base_address + i, write)
+            self._memory_accessor.write(base_address + 4*i, write)

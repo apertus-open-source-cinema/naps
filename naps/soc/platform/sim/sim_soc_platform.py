@@ -10,7 +10,6 @@ __all__ = ["SimSocPlatform"]
 
 class SimSocPlatform(SocPlatform):
     base_address = Address(0, 0, 0xFFFF_FFFF * 8)
-    pydriver_memory_accessor = ""  # we have the real memory accessor down in the add_driver method
     csr_domain = "axi_lite"
 
     def __init__(self, platform):
@@ -106,3 +105,7 @@ class SimSocPlatform(SocPlatform):
                 else:
                     yield
         self.add_process(driver_coroutine, "axi_lite")
+
+    # we have the real memory accessor up in the add_driver method
+    def pydriver_memory_accessor(self, _memorymap):
+        return ""

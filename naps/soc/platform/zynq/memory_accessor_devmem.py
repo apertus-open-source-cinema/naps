@@ -14,7 +14,7 @@ class DevMemAccessor:
 
         assert (base_addr % mmap.PAGESIZE) == 0
 
-        bytes = int(ceil(bytes / mmap.PAGESIZE) * mmap.PAGESIZE)
+        bytes = ((bytes + mmap.PAGESIZE - 1) // mmap.PAGESIZE) * mmap.PAGESIZE
 
         self.base = base_addr
 
@@ -31,6 +31,3 @@ class DevMemAccessor:
     def write(self, offset, to_write):
         self.mem.seek(offset)
         return self.mem.write(struct.pack('I', to_write))
-
-
-MemoryAccessor = DevMemAccessor

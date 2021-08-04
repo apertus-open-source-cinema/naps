@@ -66,7 +66,8 @@ class SocMemory(Elaboratable):
             return m
 
         memorymap = MemoryMap()
-        memorymap.allocate("memory", writable=True, bits=self.depth * memorymap.bus_word_width)
+        assert memorymap.bus_word_width == 32
+        memorymap.allocate("memory", writable=True, bits=self.depth * self.split_stages * memorymap.bus_word_width)
         m.submodules += Peripheral(
             self.handle_read,
             self.handle_write,

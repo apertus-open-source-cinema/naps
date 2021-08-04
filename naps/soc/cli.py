@@ -88,7 +88,6 @@ def cli(top_class, runs_on, possible_socs=(None,)):
     timer.end_task()
 
     if args.build:
-        print()
         needs_rebuild = True
         elaborated_repr = fragment_repr(elaborated)
         if cache_key_path.exists():

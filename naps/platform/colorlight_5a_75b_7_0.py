@@ -118,5 +118,5 @@ class Colorlight5a75b70Platform(LatticeECP5Platform, ABC):
             scan_chain
         """))
 
-    def program_fatbitstream(self, *args, **kwargs):
-        program_fatbitstream_local(*args, **kwargs)
+    def program_fatbitstream(self, name, **kwargs):
+        program_fatbitstream_local(name, **kwargs)

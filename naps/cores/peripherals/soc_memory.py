@@ -136,16 +136,16 @@ class SocMemory(Elaboratable):
 
     @driver_method
     def __getitem__(self, item):
-        base_address = item * self.split_stages
+        base_address = self.memory.address - self._memory_accessor.base + item * self.split_stages
         value = 0
         for i in range(self.split_stages):
-            read = self._memory_accessor.read(self.memory.address + base_address + i)
+            read = self._memory_accessor.read(base_address + i)
             value |= read << (32 * i)
         return value
 
     @driver_method
     def __setitem__(self, item, value):
-        base_address = item * self.split_stages
+        base_address = self.memory.address - self._memory_accessor.base + item * self.split_stages
         for i in range(self.split_stages):
             write = (value >> (32 * i)) & 0xFFFFFFFF
-            self._memory_accessor.write(self.memory.address + base_address + i, write)
+            self._memory_accessor.write(base_address + i, write)

@@ -1,11 +1,18 @@
 # Utils for generating "fatbitstreams" (files that contain loading-logic, a bitstream, initialization and maybe drivers)
+import enum
 import textwrap
-from typing import BinaryIO
+from enum import Enum
+from typing import BinaryIO, Union, Iterable
 from zipfile import ZipFile, ZIP_DEFLATED
 
-__all__ = ["FatbitstreamContext", "File"]
+__all__ = ["FatbitstreamContext", "File", "CommandPosition"]
 
 from nmigen.build.run import BuildProducts
+
+
+class CommandPosition(Enum):
+    Front = enum.auto()
+    Back = enum.auto()
 
 
 class File:
@@ -42,10 +49,28 @@ class FatbitstreamContext:
         if isinstance(other, File):
             self._files[other.name] = other.contents
         elif isinstance(other, str):
-            self._init_commands.append(other)
+            self.add_cmds(other, CommandPosition.Back)
         else:
             raise TypeError("only Files or shell commands can be added to the fatbitstream")
         return self
+
+    def add_cmds(self, new_cmds: Union[str, Iterable[str]], new_pos=CommandPosition.Back):
+        if isinstance(new_cmds, str):
+            new_cmds = [new_cmds]
+
+        if new_pos == CommandPosition.Back:
+            self._init_commands.extend(new_cmds)
+        else:
+            self._init_commands[0:0] = new_cmds
+
+    def add_cmd_unique(self, new_cmd: str, new_pos=CommandPosition.Back):
+        assert isinstance(new_cmd, str)
+
+        for cmd in self._init_commands:
+            if new_cmd == cmd:
+                break
+        else:
+            self.add_cmds(new_cmd, new_pos)
 
     def generate_fatbitstream(self, file: BinaryIO, build_name: str, build_products: BuildProducts):
         file.write(b'#!/usr/bin/env -S python3\n')

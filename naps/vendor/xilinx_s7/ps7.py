@@ -3,7 +3,7 @@ from functools import lru_cache
 from os.path import join, dirname
 from nmigen import *
 from nmigen.build import Clock
-from naps import DOWNWARDS, FatbitstreamContext, max_error_freq
+from naps import DOWNWARDS, FatbitstreamContext, max_error_freq, CommandPosition
 from naps.cores import AxiEndpoint
 from ..instance_helper import InstanceHelper
 from .clocking import BufG
@@ -173,12 +173,12 @@ class PS7(Elaboratable):
         fc = FatbitstreamContext.get(platform)
         # we insert this code at the beginning of the init sequence because otherwise the zynq might hang
         # (e.g. when the clock is not setup but we try to access something via axi)
-        fc._init_commands[0:0] = [
-            f"# clockdomain '{domain_name}':\n"
-            f"echo 1 > /sys/class/fclk/fclk{i}/enable\n"
-            f"echo {int(freq)} > /sys/class/fclk/fclk{i}/set_rate\n"
-            for i, (clock_signal, bufg_out, freq, domain_name) in self.clock_constraints.items()
-        ]
+        for i, (clock_signal, bufg_out, freq, domain_name) in reversed(self.clock_constraints.items()):
+            fc.add_cmds([
+                f"# clockdomain '{domain_name}':",
+                f"echo 1 > /sys/class/fclk/fclk{i}/enable",
+                f"echo {int(freq)} > /sys/class/fclk/fclk{i}/set_rate"
+            ], CommandPosition.Front)
         fc += "# set the bit width of all axi hp slaves to 64 bits"
         for base in [0xF8008000, 0xF8009000, 0xF800A000, 0xF800B000]:
             fc += f"devmem2 0x{base:x} w 0"

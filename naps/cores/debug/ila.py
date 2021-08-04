@@ -70,6 +70,9 @@ class Ila(Elaboratable):
         if hasattr(platform, "ila_error"):
             raise platform.ila_error
 
+        after_trigger = Signal.like(self.after_trigger)
+        m.submodules += FFSynchronizer(self.after_trigger, after_trigger)
+
         assert hasattr(platform, "trigger"), "No trigger in Design"
         trigger = Signal()
         m.submodules += FFSynchronizer(platform.trigger, trigger)
@@ -107,7 +110,7 @@ class Ila(Elaboratable):
                 with m.If(trigger & (since_reset > self.trace_length - 1)):
                     m.d.sync += self.trigger_since.eq(1)
             with m.Else():
-                with m.If(self.trigger_since < (self.after_trigger - 1)):
+                with m.If(self.trigger_since < (after_trigger - 1)):
                     m.d.sync += self.trigger_since.eq(self.trigger_since + 1)
                 with m.Else():
                     m.d.sync += self.running.eq(0)

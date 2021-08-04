@@ -32,6 +32,7 @@ setup(
     setup_requires=["wheel", "setuptools", "setuptools_scm"],
     install_requires=[
         'huffman',
+        'paramiko',
         'nmigen @ git+https://github.com/nmigen/nmigen.git',
         'nmigen-boards @ git+https://github.com/nmigen/nmigen-boards.git',
     ],

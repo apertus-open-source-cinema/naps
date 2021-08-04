@@ -56,7 +56,8 @@ class Ila(Elaboratable):
         self.after_trigger = ControlSignal(range(trace_length), reset=(trace_length // 2 if after_trigger is None else after_trigger))
         self.reset = ControlSignal()
 
-        self.initial = StatusSignal(reset=1)
+        # Yosys cannot handle a signal named `initial` (bug #2914)
+        self.initial_ = StatusSignal(reset=1)
         self.running = StatusSignal()
         self.write_ptr = StatusSignal(range(trace_length))
         self.trigger_since = StatusSignal(range(trace_length + 1))
@@ -110,7 +111,7 @@ class Ila(Elaboratable):
                     m.d.sync += self.trigger_since.eq(self.trigger_since + 1)
                 with m.Else():
                     m.d.sync += self.running.eq(0)
-                    m.d.sync += self.initial.eq(0)
+                    m.d.sync += self.initial_.eq(0)
         with m.Else():
             reset = Signal()
             m.submodules += FFSynchronizer(self.reset, reset)
@@ -129,7 +130,7 @@ class Ila(Elaboratable):
 
     @driver_method
     def get_values(self):
-        assert (not self.running) and (not self.initial), "ila didnt trigger yet"
+        assert (not self.running) and (not self.initial_), "ila didnt trigger yet"
         r = list(range(self.trace_length))
         addresses = r[self.write_ptr:] + r[:self.write_ptr]
         for address in addresses:

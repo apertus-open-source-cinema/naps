@@ -87,6 +87,7 @@ class FatbitstreamContext:
 
 
             def system(cmd, print_error=True):
+                print(f"\\033[1;31m$ {cmd}\\033[0m")
                 exit_code = os.waitstatus_to_exitcode(os.system(cmd))
                 if exit_code != 0:
                     if print_error:

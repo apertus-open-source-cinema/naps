@@ -84,6 +84,6 @@ def generate_pydriver(top_memorymap, memory_accessor):
 def pydriver_hook(platform: Platform, top_fragment, sames: ElaboratableSames):
     if hasattr(platform, "pydriver_memory_accessor"):
         memorymap = top_fragment.memorymap
-        pydriver = generate_pydriver(memorymap, platform.pydriver_memory_accessor)
+        pydriver = generate_pydriver(memorymap, platform.pydriver_memory_accessor(memorymap))
         fc = FatbitstreamContext.get(platform)
         fc += File("pydriver.py", pydriver)

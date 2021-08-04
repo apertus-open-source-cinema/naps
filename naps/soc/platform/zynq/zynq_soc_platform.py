@@ -1,4 +1,4 @@
-from os.path import join, dirname
+from pathlib import Path
 from nmigen import Fragment, Module, ClockSignal, DomainRenamer
 from nmigen.build.run import BuildProducts
 
@@ -11,7 +11,6 @@ from ...fatbitstream import File
 
 class ZynqSocPlatform(SocPlatform):
     base_address = Address(0x4000_0000, 0, (0x7FFF_FFFF - 0x4000_0000) * 8)
-    pydriver_memory_accessor = open(join(dirname(__file__), "memory_accessor_devmem.py")).read()
     csr_domain = "axi_lite"
 
     def __init__(self, platform, use_axi_interconnect=False):
@@ -64,3 +63,7 @@ class ZynqSocPlatform(SocPlatform):
 
     def program_fatbitstream(self, name, **kwargs):
         program_fatbitstream_ssh(name, **kwargs)
+
+    def pydriver_memory_accessor(self, memorymap):
+        contents = (Path(__file__).parent / "memory_accessor_devmem.py").read_text()
+        return contents + f"\nMemoryAccessor = lambda: DevMemAccessor(bytes={memorymap.byte_len})\n"

@@ -1,4 +1,4 @@
-from os.path import join, dirname
+from pathlib import Path
 from nmigen import Fragment, Signal
 from nmigen.build.run import BuildProducts
 from nmigen.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
@@ -12,7 +12,6 @@ from ...fatbitstream import File
 
 class JTAGSocPlatform(SocPlatform):
     base_address = Address(address=0x0000_0000, bit_offset=0, bit_len=0xFFFF_FFFF * 8)
-    pydriver_memory_accessor = open(join(dirname(__file__), "memory_accessor_openocd.py")).read()
     csr_domain = "jtag"
 
     def __init__(self, platform):
@@ -40,3 +39,6 @@ class JTAGSocPlatform(SocPlatform):
             yield File("bitstream_jtag.svf", build_products.get(f"{name}.svf"))
         yield from self._wrapped_platform.generate_openocd_conf()
         yield "openocd -f openocd.cfg -c 'svf -tap dut.tap -quiet -progress bitstream_jtag.svf; shutdown'"
+
+    def pydriver_memory_accessor(self, _memorymap):
+        return (Path(__file__).parent / "memory_accessor_openocd.py").read_text()

@@ -6,5 +6,4 @@ __all__ = ["program_fatbitstream_local"]
 
 def program_fatbitstream_local(fatbitstream, run=False):
     os.chdir(Path(fatbitstream).parent)
-    os.system(f"chmod +x {fatbitstream}")
     os.system(f"{fatbitstream} {'--run' if run else ''}")

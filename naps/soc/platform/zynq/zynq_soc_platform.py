@@ -62,5 +62,5 @@ class ZynqSocPlatform(SocPlatform):
         yield f"cp bitstream.bin /usr/lib/firmware/{name}.bin"
         yield f"echo {name}.bin > /sys/class/fpga_manager/fpga0/firmware"
 
-    def program_fatbitstream(self, *args, **kwargs):
-        program_fatbitstream_ssh(self, *args, **kwargs)
+    def program_fatbitstream(self, name, **kwargs):
+        program_fatbitstream_ssh(name, **kwargs)

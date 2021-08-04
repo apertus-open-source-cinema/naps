@@ -78,5 +78,5 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
         """))
         yield "[ $(cat /etc/hostname) == 'beta' ] && cp openocd_beta.cfg openocd.cfg || cp openocd_micro.cfg openocd.cfg"
 
-    def program_fatbitstream(self, *args, **kwargs):
-        program_fatbitstream_ssh(*args, **kwargs)
+    def program_fatbitstream(self, name, **kwargs):
+        program_fatbitstream_ssh(name, **kwargs)

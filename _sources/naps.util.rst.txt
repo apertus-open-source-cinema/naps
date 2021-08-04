@@ -12,6 +12,14 @@ naps.util.draw\_hierarchy module
    :undoc-members:
    :show-inheritance:
 
+naps.util.env module
+--------------------
+
+.. automodule:: naps.util.env
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 naps.util.formal module
 -----------------------
 

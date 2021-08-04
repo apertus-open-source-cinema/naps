@@ -286,9 +286,36 @@ Is mapped as a CSR in case the design is build with a SocPlatform.</p>
 <div class="section" id="module-naps.soc.fatbitstream">
 <span id="naps-soc-fatbitstream-module"></span><h2>naps.soc.fatbitstream module<a class="headerlink" href="#module-naps.soc.fatbitstream" title="Permalink to this headline">¶</a></h2>
 <dl class="py class">
+<dt id="naps.soc.fatbitstream.CommandPosition">
+<em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.soc.fatbitstream.</span></code><code class="sig-name descname"><span class="pre">CommandPosition</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">value</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.fatbitstream.CommandPosition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">enum.Enum</span></code></p>
+<p>An enumeration.</p>
+<dl class="py attribute">
+<dt id="naps.soc.fatbitstream.CommandPosition.Back">
+<code class="sig-name descname"><span class="pre">Back</span></code><em class="property"> <span class="pre">=</span> <span class="pre">2</span></em><a class="headerlink" href="#naps.soc.fatbitstream.CommandPosition.Back" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.soc.fatbitstream.CommandPosition.Front">
+<code class="sig-name descname"><span class="pre">Front</span></code><em class="property"> <span class="pre">=</span> <span class="pre">1</span></em><a class="headerlink" href="#naps.soc.fatbitstream.CommandPosition.Front" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="py class">
 <dt id="naps.soc.fatbitstream.FatbitstreamContext">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.soc.fatbitstream.</span></code><code class="sig-name descname"><span class="pre">FatbitstreamContext</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">called_by_get_classmethod</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.fatbitstream.FatbitstreamContext" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="py method">
+<dt id="naps.soc.fatbitstream.FatbitstreamContext.add_cmd_unique">
+<code class="sig-name descname"><span class="pre">add_cmd_unique</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">new_cmd:</span> <span class="pre">str</span></em>, <em class="sig-param"><span class="pre">new_pos=&lt;CommandPosition.Back:</span> <span class="pre">2&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.fatbitstream.FatbitstreamContext.add_cmd_unique" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py method">
+<dt id="naps.soc.fatbitstream.FatbitstreamContext.add_cmds">
+<code class="sig-name descname"><span class="pre">add_cmds</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="pre">new_cmds:</span> <span class="pre">Union[str,</span> <span class="pre">Iterable[str]],</span> <span class="pre">new_pos=&lt;CommandPosition.Back:</span> <span class="pre">2&gt;</span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.fatbitstream.FatbitstreamContext.add_cmds" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="naps.soc.fatbitstream.FatbitstreamContext.generate_fatbitstream">
 <code class="sig-name descname"><span class="pre">generate_fatbitstream</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">BinaryIO</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_name</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">str</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">build_products</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">nmigen.build.run.BuildProducts</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.fatbitstream.FatbitstreamContext.generate_fatbitstream" title="Permalink to this definition">¶</a></dt>
@@ -581,18 +608,8 @@ If the object is not found, None is returned
 <div class="section" id="module-naps.soc.program_fatbitstream_ssh">
 <span id="naps-soc-program-fatbitstream-ssh-module"></span><h2>naps.soc.program_fatbitstream_ssh module<a class="headerlink" href="#module-naps.soc.program_fatbitstream_ssh" title="Permalink to this headline">¶</a></h2>
 <dl class="py function">
-<dt id="naps.soc.program_fatbitstream_ssh.copy_ssh">
-<code class="sig-prename descclassname"><span class="pre">naps.soc.program_fatbitstream_ssh.</span></code><code class="sig-name descname"><span class="pre">copy_ssh</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">source</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">destination</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'10.42.0.1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'operator'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'axiom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sshpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.program_fatbitstream_ssh.copy_ssh" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
 <dt id="naps.soc.program_fatbitstream_ssh.program_fatbitstream_ssh">
-<code class="sig-prename descclassname"><span class="pre">naps.soc.program_fatbitstream_ssh.</span></code><code class="sig-name descname"><span class="pre">program_fatbitstream_ssh</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fatbitstream_file</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.program_fatbitstream_ssh.program_fatbitstream_ssh" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="py function">
-<dt id="naps.soc.program_fatbitstream_ssh.run_ssh">
-<code class="sig-prename descclassname"><span class="pre">naps.soc.program_fatbitstream_ssh.</span></code><code class="sig-name descname"><span class="pre">run_ssh</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">cmd</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">host</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'10.42.0.1'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">user</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'operator'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">password</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'axiom'</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sudo</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">sshpass</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">True</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.program_fatbitstream_ssh.run_ssh" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname"><span class="pre">naps.soc.program_fatbitstream_ssh.</span></code><code class="sig-name descname"><span class="pre">program_fatbitstream_ssh</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">fatbitstream_file</span></span><span class="p"><span class="pre">:</span></span> <span class="n"><span class="pre">pathlib.Path</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">*</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">run</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">False</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">dir</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">'fatbitstreams'</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.program_fatbitstream_ssh.program_fatbitstream_ssh" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -627,6 +644,11 @@ If the object is not found, None is returned
 <dd></dd></dl>
 
 </dd></dl>
+
+<dl class="py function">
+<dt id="naps.soc.soc_platform.soc_platform_name">
+<code class="sig-prename descclassname"><span class="pre">naps.soc.soc_platform.</span></code><code class="sig-name descname"><span class="pre">soc_platform_name</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">obj</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.soc.soc_platform.soc_platform_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-naps.soc.soc_platform_test">

@@ -27,6 +27,8 @@ class HostTrainer(Elaboratable):
         self.ctrl_lane_match = StatusSignal(1)
         self.ctrl_lane_mismatch = StatusSignal(1)
 
+        self.trained = ControlSignal(1)
+
         # signals to/from PHY
         self.lane_delay_reset = Signal(num_lanes+1)
         self.lane_delay_inc = Signal(num_lanes+1)
@@ -70,6 +72,7 @@ class HostTrainer(Elaboratable):
 
     @driver_method
     def train(self, sensor_spi):
+        self.trained = False
         # set default train pattern
         sensor_spi.set_train_pattern(0b101010_010101)
         self.lane_pattern = 0b101010_010101
@@ -105,7 +108,9 @@ class HostTrainer(Elaboratable):
         valid_channels = self.validate(sensor_spi)
         print(f"working channel mask: 0x{valid_channels:08X}")
 
-        return valid_channels == 0xFFFFFFFF
+        trained = valid_channels == 0xFFFFFFFF
+        self.trained = trained
+        return trained
 
     @driver_method
     def set_clock_delay(self, delay):
@@ -351,6 +356,7 @@ class Cmv12kPhy(Elaboratable):
         # derived domains:
         # cmv12k_in: sensor's 125MHz DDR bit clock, synchronous to lane input, from delay
         # cmv12k_bit: 250MHz bit clock, from PLL
+        # cmv12k: 125MHz final stream output clock, from PLL (100% utilized!)
         # cmv12k_hword: 41.7MHz half-word clock, synchronous to output, from PLL
         # cmv12k_ctrl: 10MHz or so AXI clock, synchronous to control input, externally provided
         # cmv12k_delay_ref: 200MHz delay module reference, externally provided
@@ -401,6 +407,7 @@ class Cmv12kPhy(Elaboratable):
         # generate the derived clocks with a PLL
         pll = m.submodules.pll = Mmcm(125e6, 6, 1, input_domain=self.domain+"_in")
         pll.output_domain(dom_bit, 3)
+        pll.output_domain(self.domain, 6)
         pll.output_domain(dom_hword, 18)
 
         halfslip_sync = m.submodules.halfslip_sync = PulseSynchronizer(dom_ctrl, dom_hword)

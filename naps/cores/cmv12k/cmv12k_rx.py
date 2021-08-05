@@ -2,6 +2,7 @@ from nmigen import *
 from nmigen.lib.cdc import FFSynchronizer, PulseSynchronizer
 from naps import driver_method, Rose, Fell
 from naps.cores import StreamBuffer, ImageStream
+from .s7_phy import HostTrainer, Cmv12kPhy
 
 __all__ = ["Cmv12kRx"]
 

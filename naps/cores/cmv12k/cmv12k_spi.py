@@ -7,6 +7,7 @@ __all__ = ["Cmv12kSpi"]
 class Cmv12kSpi(Elaboratable):
     def __init__(self, sensor_spi):
         self.sensor_spi = sensor_spi
+        self.spiobj = None
 
     def elaborate(self, platform):
         m = Module()
@@ -26,25 +27,34 @@ class Cmv12kSpi(Elaboratable):
 
     @driver_method
     def write_reg(self, reg, value):
-        import spidev
-        spi = spidev.SpiDev()
-        spi.open(3, 0)
-
         reg = int(reg) & 0x7F
         value = int(value) & 0xFFFF
-        spi.xfer2([reg | 0x80, (value & 0xFF00) >> 8, value & 0xFF])
+        self.get_spi().xfer2([reg | 0x80, (value & 0xFF00) >> 8, value & 0xFF])
 
-        spi.close()
+    @driver_method
+    def write_regs(self, regs):
+        xfer = []
+        for reg, value in regs:
+            reg = int(reg) & 0x7F
+            value = int(value) & 0xFFFF
+            xfer.extend((reg | 0x80, (value & 0xFF00) >> 8, value & 0xFF))
+
+        self.get_spi().xfer2(xfer)
 
     @driver_method
     def read_reg(self, reg):
-        import spidev
-        spi = spidev.SpiDev()
-        spi.open(3, 0)
-
         reg = int(reg) & 0x7F
-        response = spi.xfer2([reg, 0, 0])
+        response = self.get_spi().xfer2([reg, 0, 0])
         value = (response[1] << 8) | response[2]
 
-        spi.close()
         return value
+
+    @driver_method
+    def get_spi(self):
+        spi = self.spiobj
+        if spi is None:
+            import spidev
+            spi = spidev.SpiDev()
+            spi.open(3, 0)
+            self.spiobj = spi
+        return spi

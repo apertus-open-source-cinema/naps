@@ -1,4 +1,5 @@
 from nmigen import *
+from naps import driver_method
 from .s7_phy import HostTrainer, Cmv12kPhy
 
 __all__ = ["Cmv12kRx"]
@@ -77,3 +78,11 @@ class Cmv12kRx(Elaboratable):
         ]
 
         return m
+
+    @driver_method
+    def configure_sensor_defaults(self, sensor_spi):
+        """configure sensor readout modes and default settings"""
+        sensor_spi.set_readout_configuration(self.num_lanes, self.bits, self.freq, self.mode)
+        sensor_spi.enable_test_pattern(False)
+        sensor_spi.set_number_frames(1)
+        sensor_spi.set_exposure_value(1536)

@@ -70,7 +70,9 @@ class HostTrainer(Elaboratable):
 
     @driver_method
     def train(self, sensor_spi):
-        self.configure_sensor(sensor_spi)
+        # set default train pattern
+        sensor_spi.set_train_pattern(0b101010_010101)
+        self.lane_pattern = 0b101010_010101
 
         self.set_clock_delay(16) # set clock delay to middle position
 
@@ -111,14 +113,6 @@ class HostTrainer(Elaboratable):
         while delay > 0:
             self.ctrl_lane_delay_inc = 2 # increment clock delay
             delay -= 1
-
-    @driver_method
-    def configure_sensor(self, sensor_spi):
-        # set default train pattern
-        sensor_spi.set_train_pattern(0b101010_010101)
-        self.lane_pattern = 0b101010_010101
-        # switch (only) sensor sequencer to 12 bit mode
-        sensor_spi.set_bit_mode(12)
 
     @driver_method
     def initial_alignment(self):

@@ -6,10 +6,13 @@ from naps.vendor.xilinx_s7 import Mmcm
 from naps.vendor.xilinx_s7.io import IDelayCtrl, _IDelay, _ISerdes
 
 class HostTrainer(Elaboratable):
-    def __init__(self, num_lanes):
+    def __init__(self, num_lanes, bits):
         assert num_lanes <= 32 # the pulse registers cannot be made wider
+        assert bits == 12 # patterns, bitslip counts, and validation need adjusting
         self.num_lanes = num_lanes
-        self.lane_pattern = ControlSignal(12)
+        self.bits = bits
+
+        self.lane_pattern = ControlSignal(bits)
 
         # registers accessed by host
         self.data_lane_delay_reset = PulseReg(num_lanes)
@@ -343,8 +346,13 @@ class MatchMonitor(Elaboratable):
         return m
 
 class Cmv12kPhy(Elaboratable):
-    def __init__(self, num_lanes=32, bits=12, domain="cmv12k"):
-        assert bits == 12
+    def __init__(self, num_lanes, bits, freq, mode, domain="cmv12k"):
+        assert bits == 12 # SERDESes need adjusting
+        assert freq == 250e6 # PLL configuration needs adjusting
+        assert mode == "normal" # do other modes need adjusting...?
+        self.bits = bits
+        self.freq = freq
+        self.mode = mode
         self.domain = domain
         # derived domains:
         # cmv12k_in: sensor's 125MHz DDR bit clock, synchronous to lane input, from delay
@@ -358,11 +366,11 @@ class Cmv12kPhy(Elaboratable):
         self.lanes = Signal(num_lanes+1) # control lane is top lane
 
         # signal outputs
-        self.output = [Signal(12) for _ in range(num_lanes+1)]
+        self.output = [Signal(bits) for _ in range(num_lanes+1)]
         self.output_valid = Signal() # every other cycle
 
         # control inputs
-        self.lane_pattern = Signal(12) # except for control lane
+        self.lane_pattern = Signal(bits) # except for control lane
         self.lane_delay_reset = Signal(num_lanes+1) # reset delay value to 0
         self.lane_delay_inc = Signal(num_lanes+1) # increment delay count by 1
         self.lane_bitslip = Signal(num_lanes+1) # slip serdes by one bit
@@ -431,7 +439,7 @@ class Cmv12kPhy(Elaboratable):
             with m.Else():
                 m.d[dom_hword] += self.output[lane][6:12].eq(iserdes.output)
 
-            monitor = m.submodules["monitor_"+str(lane)] = DomainRenamer(dom_hword)(MatchMonitor(12))
+            monitor = m.submodules["monitor_"+str(lane)] = DomainRenamer(dom_hword)(MatchMonitor(self.bits))
             m.d.comb += [
                 monitor.input.eq(self.output[lane]),
                 monitor.input_valid.eq(self.output_valid),

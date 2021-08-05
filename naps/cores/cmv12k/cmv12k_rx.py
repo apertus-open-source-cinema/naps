@@ -4,19 +4,50 @@ from .s7_phy import HostTrainer, Cmv12kPhy
 __all__ = ["Cmv12kRx"]
 
 class Cmv12kRx(Elaboratable):
-    def __init__(self, sensor, num_lanes=32, bits=12, domain="cmv12k"):
+    def __init__(self, sensor, num_lanes=32, bits=12, freq=250e6, mode="normal", domain="cmv12k"):
+        """Sensor Configuration Options:
+        num_lanes: Total number of sensor LVDS lanes to use.
+            Valid values for the sensor are 64, 32, 16, 8, 4, 2, or 1.
+            Notes: 64 lanes is not supported by the Beta hardware.
+                   1 lane is not supported because one-sided readout is not supported.
+                   Currently, only 32 lanes is supported, but others will be later.
+        bits: Number of bits per pixel.
+            Valid values for the sensor are 12, 10, or 8 bits.
+            Notes: Currently, 10 and 8 bit modes are not supported, but will be later.
+        freq: LVDS clock frequency to drive the sensor, in Hz.
+            Valid values for the sensor are 100e6-600e6.
+            Notes: Frequencies faster than 250e6 are liable to have timing problems.
+                   Currently, only 250e6 is supported, but others might be later.
+        mode: Sensor readout mode.
+            Valid values for the sensor are "normal", "subsampling", "binning", and "onesided".
+            Notes: Currently, only "normal" mode is supported. One-sided mode
+                   will likely never be supported.
+        """
+
+        assert num_lanes in (64, 32, 16, 8, 4, 2, 1), "invalid number of lanes"
+        assert bits in (12, 10, 8), "invalid bit depth"
+        assert 100e6 < freq < 600e6, "invalid frequency"
+        assert mode in ("normal", "subsampling", "binning", "onesided"), "invalid mode"
+
+        assert num_lanes == 32, "unsupported number of lanes"
+        assert bits == 12, "unsupported bit depth"
+        assert freq == 250e6, "unsupported frequency"
+        assert mode == "normal", "unsupported mode"
+
+        self.num_lanes = num_lanes
+        self.bits = bits
+        self.freq = freq
+        self.mode = mode
         self.domain = domain
+
         self.lvds_outclk = sensor.lvds_outclk
-        # NOTE: only two sided readout mode is supported
-        assert num_lanes in (2, 4, 8, 16, 32, 64)
         # 32 lane mode uses every 2nd lane, 16 lane mode uses every 4th, etc...
         lane_nums = range(1, 65, 2**(7-num_lanes.bit_length()))
         self.lanes = Cat(getattr(sensor, f"lvds_{l}") for l in lane_nums)
         self.lane_ctrl = sensor.lvds_ctrl
-        self.bits = bits
 
-        self.trainer = HostTrainer(num_lanes)
-        self.phy = Cmv12kPhy(num_lanes=num_lanes, bits=self.bits, domain=domain)
+        self.trainer = HostTrainer(num_lanes, bits)
+        self.phy = Cmv12kPhy(num_lanes, bits, freq, mode, domain=domain)
 
     def elaborate(self, platform):
         m = Module()

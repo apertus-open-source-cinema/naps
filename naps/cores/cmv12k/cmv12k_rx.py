@@ -1,6 +1,7 @@
 from nmigen import *
-from naps import driver_method
-from .s7_phy import HostTrainer, Cmv12kPhy
+from nmigen.lib.cdc import FFSynchronizer, PulseSynchronizer
+from naps import driver_method, Rose, Fell
+from naps.cores import StreamBuffer, ImageStream
 
 __all__ = ["Cmv12kRx"]
 
@@ -47,6 +48,9 @@ class Cmv12kRx(Elaboratable):
         self.lanes = Cat(getattr(sensor, f"lvds_{l}") for l in lane_nums)
         self.lane_ctrl = sensor.lvds_ctrl
 
+        self.output = ImageStream(num_lanes*bits)
+        self.output_domain = domain
+
         self.trainer = HostTrainer(num_lanes, bits)
         self.phy = Cmv12kPhy(num_lanes, bits, freq, mode, domain=domain)
 
@@ -76,6 +80,58 @@ class Cmv12kRx(Elaboratable):
             trainer.lane_match.eq(phy.lane_match),
             trainer.lane_mismatch.eq(phy.lane_mismatch),
         ]
+
+        # synchronize valid signal to output domain
+        lanes_valid = Signal()
+        valid_sync = m.submodules.valid_sync = PulseSynchronizer(self.domain+"_hword", self.output_domain)
+        trained = Signal()
+        m.submodules += FFSynchronizer(trainer.trained, trained, o_domain=self.domain+"_hword")
+        m.d.comb += [
+            valid_sync.i.eq(phy.output_valid & trained),
+            lanes_valid.eq(valid_sync.o)
+        ]
+
+        # information about the "current" pixel
+        data_lanes = Signal(len(self.lanes)*self.bits)
+        pixel_valid = Signal()
+        line_valid = Signal()
+        frame_valid = Signal()
+
+        # information about the next pixel, i.e. what we grab from the PHY
+        next_data_lanes = Signal(len(self.lanes)*self.bits)
+        next_pixel_valid = Signal()
+        next_line_valid = Signal()
+        next_frame_valid = Signal()
+
+        # on the rising edge of the valid signal, grab the next pixel from the
+        # PHY. this is a clock domain crossing, but since the source clock is in
+        # phase with the output clock, we will be okay without synchronization.
+        # note that the valid signal rises only once every `self.bits/2` clocks.
+        with m.If(lanes_valid):
+            m.d[self.output_domain] += [
+                next_data_lanes.eq(Cat(*phy.output[:-1])),
+                Cat(next_pixel_valid, next_line_valid, next_frame_valid).eq(phy.output[-1]),
+                # move the next pixel to the current pixel
+                data_lanes.eq(next_data_lanes),
+                Cat(pixel_valid, line_valid, frame_valid).eq(Cat(next_pixel_valid, next_line_valid, next_frame_valid))
+            ]
+
+        # once we've got that, generate the output stream information
+        output = ImageStream(len(self.lanes)*self.bits)
+        m.d.comb += output.payload.eq(data_lanes)
+        with m.If(Fell(m, lanes_valid, self.output_domain)):
+            m.d.comb += [
+                output.valid.eq(pixel_valid),
+                # if the next pixel isn't a valid line or frame, this pixel is
+                # the last one of the current line/frame
+                output.line_last.eq(line_valid & ~next_line_valid),
+                output.frame_last.eq(frame_valid & ~next_frame_valid),
+            ]
+
+        # we are naughty and do not respect the ready signal, so add a buffer
+        # to handle that part of the contract for us
+        buffer = m.submodules.buffer = DomainRenamer(self.output_domain)(StreamBuffer(output))
+        m.d.comb += self.output.connect_upstream(buffer.output)
 
         return m
 

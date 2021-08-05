@@ -39,6 +39,7 @@ class Top(Elaboratable):
 
     @driver_method
     def train(self):
+        self.sensor_rx.configure_sensor_defaults(self.sensor_spi)
         self.sensor_rx.trainer.train(self.sensor_spi)
 
 if __name__ == "__main__":

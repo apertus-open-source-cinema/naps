@@ -104,60 +104,13 @@ class Top(Elaboratable):
         return m
 
     @driver_method
-    def train(self):
-        self.sensor_rx.trainer.train(self.sensor_spi)
-
-    @driver_method
-    def configure(self):
-        regs = {
-            # internal exposure mode, default value
-             70: 0,
-             71: 1536,
-             72: 0,
-
-             80: 1, # one frame per request
-
-             81: 1, # two side readout, 16 outputs per side
-
-            # disable unused LVDS channels
-             90: 0b0101010101010101,
-             91: 0b0101010101010101,
-             92: 0b0101010101010101,
-             93: 0b0101010101010101,
-
-            117: 1, # unity digital gain
-
-            122: 3, # enable test pattern
-
-            # 12 bit additional settings, 16 outputs per side, normal mode
-             82: 1822,
-             83: 5897,
-             84: 257,
-             85: 257,
-             86: 257,
-             87: 1910,
-             88: 1910,
-             98: 39433,
-            107: (81 << 7) | 94, # 250MHz
-            109: 14448,
-            113: 542,
-            114: 200,
-
-            # ADC settings for 12 bit at 250MHz
-            116: (3 << 8) | 167,
-            100: 3,
-        }
-
-        for addr, value in regs.items():
-            self.sensor_spi.write_reg(addr, value)
-
-    @driver_method
     def capture_pattern(self):
         print("training link...")
-        self.train()
+        self.sensor_rx.configure_sensor_defaults(self.sensor_spi)
+        self.sensor_rx.trainer.train(self.sensor_spi)
 
         print("capturing pattern...")
-        self.configure()
+        self.sensor_spi.enable_test_pattern(True)
         self.stats.reset = 1
         self.ila.reset = 1
         self.frame_req = 1

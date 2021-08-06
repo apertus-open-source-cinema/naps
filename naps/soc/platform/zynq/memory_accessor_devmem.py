@@ -25,9 +25,8 @@ class DevMemAccessor:
         os.close(self.f)
 
     def read(self, offset):
-        self.mem.seek(offset)
-        return struct.unpack('I', self.mem.read(4))[0]
+        return struct.unpack('I', self.mem[offset:offset + 4])[0]
 
     def write(self, offset, to_write):
-        self.mem.seek(offset)
-        return self.mem.write(struct.pack('I', to_write))
+        self.mem[offset:offset + 4] = struct.pack('I', to_write)
+

@@ -84,10 +84,19 @@ class HardwareProxy:
         if name.startswith("__"):
             return object.__getattribute__(self, name)
 
-        if name in {**self.__dict__, **self.__class__.__dict__}:
+        __class__ = object.__getattribute__(self, "__class__")
+        __dict__ = object.__getattribute__(self, "__dict__")
+
+        if name in __class__.__dict__ or name in __dict__:
             obj = object.__getattribute__(self, name)
 
             if isinstance(obj, Value):
+                memory_accessor = object.__getattribute__(self, "_memory_accessor")
+
+                # fast path if the value is easy to handle
+                if obj.bit_start == 0 and obj.bit_len <= 32:
+                    return memory_accessor.read(obj.address - memory_accessor.base) & (2 ** obj.bit_len - 1)
+
                 to_return = BitwiseAccessibleInteger()
                 read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
                 for i in range(read_bytes):
@@ -99,19 +108,31 @@ class HardwareProxy:
                 return to_return
             else:
                 return obj
-        raise AttributeError("{} has no attribute {}".format(self.__class__.__name__, name))
+        else:
+            raise AttributeError("{} has no attribute {}".format(__class__.__name__, name))
 
     def __setattr__(self, name, value):
         if name.startswith("__"):
             return object.__setattr__(self, name, value)
 
-        if name in self.__class__.__dict__:
+        __class__ = object.__getattribute__(self, "__class__")
+
+        if name in __class__.__dict__:
             obj = object.__getattribute__(self, name)
 
             if not isinstance(obj, (Value, Blob)):
                 return object.__setattr__(self, name, value)
             elif isinstance(obj, Value):
+                memory_accessor = object.__getattribute__(self, "_memory_accessor")
                 assert value < 2 ** obj.bit_len, "you can at maximum assign '{}' to a {} bit value".format((2 ** obj.bit_len - 1), obj.bit_len)
+            
+                # fast path if the value is easy to handle
+                if obj.bit_start == 0 and obj.bit_len <= 32:
+                    old = memory_accessor.read(obj.address - memory_accessor.base)
+                    mask = (2 ** 32 - 1) ^ (2 ** obj.bit_len - 1)
+                    memory_accessor.write(obj.address - memory_accessor.base, old & mask | value)
+                    return
+
                 v = BitwiseAccessibleInteger(value)
                 read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
                 for i in range(read_bytes):
@@ -122,7 +143,7 @@ class HardwareProxy:
                         int(prev_value)
                     )
         else:
-            raise AttributeError("{} has no attribute {}".format(self.__class__.__name__, name))
+            raise AttributeError("{} has no attribute {}".format(__class__.__name__, name))
 
     def __repr__(self, allow_recursive=False):
         if stack()[1].filename == "<console>" or allow_recursive:

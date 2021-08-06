@@ -9,7 +9,7 @@ class MemoryAccessor(ABC):
     base = 0
 
     @abstractmethod
-    def read(self, addr):
+    def read(self, addr, len):
         raise NotImplementedError()
 
     @abstractmethod
@@ -61,12 +61,15 @@ class Value:
     bit_len: int
     decoder: dict
     bit_mask: int = None
-    word_aligned_inverse_bit_mask: int = None
+    byte_aligned_bit_mask: int = None
+    num_bytes: int = None
+    max_value: int = None
 
     def __post_init__(self):
+        self.num_bytes = (((self.bit_start + self.bit_len + 7) // 8 + 3) // 4) * 4
         self.bit_mask = (2**self.bit_len - 1) << self.bit_start
-        num_words = (self.bit_start + self.bit_len + 31) // 32
-        self.word_aligned_inverse_bit_mask = (2**(num_words * 32) - 1) ^ self.bit_mask
+        self.byte_aligned_bit_mask = (2**(self.bit_len + self.bit_start) - 1) ^ self.bit_mask
+        self.max_value = (2**self.bit_len - 1)
 
 
 @dataclass
@@ -93,16 +96,8 @@ class HardwareProxy:
         if isinstance(obj, Value):
             memory_accessor = object.__getattribute__(self, "_memory_accessor")
 
-            # fast path if the value is easy to handle
-            if obj.bit_start == 0 and obj.bit_len <= 32:
-                return memory_accessor.read(obj.address - memory_accessor.base) & obj.bit_mask
-
-            to_return = BitwiseAccessibleInteger()
-            read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
-            for i in range(read_bytes):
-                val = BitwiseAccessibleInteger(memory_accessor.read(obj.address - memory_accessor.base + (i * 4)))
-                to_return[i * 32:(i + 1) * 32] = val[obj.bit_start if i == 0 else 0:(32 if i != read_bytes - 1 else (obj.bit_len + obj.bit_start) % 32)]
-            to_return = int(to_return)
+            by = memory_accessor.read(obj.address - memory_accessor.base, obj.num_bytes)
+            to_return = (int.from_bytes(by, "little") >> obj.bit_start) & obj.bit_mask
             if obj.decoder is not None:
                 to_return = obj.decoder[to_return]
             return to_return
@@ -119,23 +114,12 @@ class HardwareProxy:
                 return object.__setattr__(self, name, value)
             elif isinstance(obj, Value):
                 memory_accessor = object.__getattribute__(self, "_memory_accessor")
-                assert value < 2 ** obj.bit_len, "you can at maximum assign '{}' to a {} bit value".format((2 ** obj.bit_len - 1), obj.bit_len)
-            
-                # fast path if the value is easy to handle
-                if obj.bit_start == 0 and obj.bit_len <= 32:
-                    old = memory_accessor.read(obj.address - memory_accessor.base)
-                    memory_accessor.write(obj.address - memory_accessor.base, old & obj.word_aligned_inverse_bit_mask | value)
-                    return
+                assert value <= obj.max_value, "you can at maximum assign '{}' to a {} bit value".format(obj.max_value, obj.bit_len)
 
-                v = BitwiseAccessibleInteger(value)
-                read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
-                for i in range(read_bytes):
-                    prev_value = BitwiseAccessibleInteger(memory_accessor.read(obj.address - memory_accessor.base + (i * 4)))
-                    prev_value[obj.bit_start if i == 0 else 0:(32 if i != read_bytes - 1 else (obj.bit_len + obj.bit_start) % 32)] = v[i * 32:(i + 1) * 32]
-                    memory_accessor.write(
-                        obj.address - memory_accessor.base + (i * 4),
-                        int(prev_value)
-                    )
+                old_value = int.from_bytes(memory_accessor.read(obj.address - memory_accessor.base, obj.num_bytes), "little")
+                masked = old_value & obj.byte_aligned_bit_mask
+                new_value = masked & (value << obj.bit_start)
+                memory_accessor.write(obj.address - memory_accessor.base, int.to_bytes(obj.num_bytes, "little"))
 
     def __repr__(self, allow_recursive=False):
         if stack()[1].filename == "<console>" or allow_recursive:

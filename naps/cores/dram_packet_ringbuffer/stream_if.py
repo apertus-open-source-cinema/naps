@@ -43,7 +43,8 @@ class DramPacketRingbufferStreamWriter(Elaboratable):
         address_stream = BasicStream(axi.write_address.payload.shape())
         address_offset = Signal.like(axi.write_address.payload)
         is_in_overflow = Signal()
-        stream_transformer(transformer_input, address_stream, m, latency=0, handle_out_of_band=False)
+        stream_transformer(transformer_input, address_stream, m, latency=1, handle_out_of_band=False)
+
         with m.If(transformer_input.ready & transformer_input.valid):
             m.d.sync += self.buffer_level_list[self.current_write_buffer].eq(address_offset + axi.data_bytes)
             with m.If(transformer_input.last):
@@ -59,7 +60,7 @@ class DramPacketRingbufferStreamWriter(Elaboratable):
                     with m.If(~is_in_overflow):
                         m.d.sync += is_in_overflow.eq(1)
                         m.d.sync += self.overflowed_buffers.eq(self.overflowed_buffers + 1)
-        m.d.comb += address_stream.payload.eq(address_offset + self.buffer_base_list[self.current_write_buffer])
+            m.d.sync += address_stream.payload.eq(address_offset + self.buffer_base_list[self.current_write_buffer])
 
         m.submodules.writer = AxiWriter(address_stream, data_stream, axi)
 

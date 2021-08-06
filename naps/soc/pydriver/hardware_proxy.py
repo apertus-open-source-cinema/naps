@@ -92,7 +92,7 @@ class HardwareProxy:
                 read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
                 for i in range(read_bytes):
                     val = BitwiseAccessibleInteger(self._memory_accessor.read(obj.address - self._memory_accessor.base + (i * 4)))
-                    to_return[i * 32:(i + 1) * 32] = val[obj.bit_start:32 + obj.bit_start - (0 if i != read_bytes - 1 else obj.bit_len % 32)]
+                    to_return[i * 32:(i + 1) * 32] = val[obj.bit_start if i == 0 else 0:(32 if i != read_bytes - 1 else (obj.bit_len + obj.bit_start) % 32)]
                 to_return = int(to_return)
                 if obj.decoder is not None:
                     to_return = obj.decoder[to_return]
@@ -116,7 +116,7 @@ class HardwareProxy:
                 read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
                 for i in range(read_bytes):
                     prev_value = BitwiseAccessibleInteger(self._memory_accessor.read(obj.address - self._memory_accessor.base + (i * 4)))
-                    prev_value[obj.bit_start:32 + obj.bit_start - (0 if i != read_bytes - 1 else obj.bit_len % 32)] = v[i * 32:(i + 1) * 32]
+                    prev_value[obj.bit_start if i == 0 else 0:(32 if i != read_bytes - 1 else (obj.bit_len + obj.bit_start) % 32)] = v[i * 32:(i + 1) * 32]
                     self._memory_accessor.write(
                         obj.address - self._memory_accessor.base + (i * 4),
                         int(prev_value)

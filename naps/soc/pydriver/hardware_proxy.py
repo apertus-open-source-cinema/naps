@@ -81,43 +81,31 @@ class HardwareProxy:
             self.init_function()
 
     def __getattribute__(self, name):
-        if name.startswith("__"):
-            return object.__getattribute__(self, name)
+        obj = object.__getattribute__(self, name)
 
-        __class__ = object.__getattribute__(self, "__class__")
-        __dict__ = object.__getattribute__(self, "__dict__")
+        if isinstance(obj, Value):
+            memory_accessor = object.__getattribute__(self, "_memory_accessor")
 
-        if name in __class__.__dict__ or name in __dict__:
-            obj = object.__getattribute__(self, name)
+            # fast path if the value is easy to handle
+            if obj.bit_start == 0 and obj.bit_len <= 32:
+                return memory_accessor.read(obj.address - memory_accessor.base) & (2 ** obj.bit_len - 1)
 
-            if isinstance(obj, Value):
-                memory_accessor = object.__getattribute__(self, "_memory_accessor")
-
-                # fast path if the value is easy to handle
-                if obj.bit_start == 0 and obj.bit_len <= 32:
-                    return memory_accessor.read(obj.address - memory_accessor.base) & (2 ** obj.bit_len - 1)
-
-                to_return = BitwiseAccessibleInteger()
-                read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
-                for i in range(read_bytes):
-                    val = BitwiseAccessibleInteger(self._memory_accessor.read(obj.address - self._memory_accessor.base + (i * 4)))
-                    to_return[i * 32:(i + 1) * 32] = val[obj.bit_start if i == 0 else 0:(32 if i != read_bytes - 1 else (obj.bit_len + obj.bit_start) % 32)]
-                to_return = int(to_return)
-                if obj.decoder is not None:
-                    to_return = obj.decoder[to_return]
-                return to_return
-            else:
-                return obj
+            to_return = BitwiseAccessibleInteger()
+            read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
+            for i in range(read_bytes):
+                val = BitwiseAccessibleInteger(memory_accessor.read(obj.address - memory_accessor.base + (i * 4)))
+                to_return[i * 32:(i + 1) * 32] = val[obj.bit_start if i == 0 else 0:(32 if i != read_bytes - 1 else (obj.bit_len + obj.bit_start) % 32)]
+            to_return = int(to_return)
+            if obj.decoder is not None:
+                to_return = obj.decoder[to_return]
+            return to_return
         else:
-            raise AttributeError("{} has no attribute {}".format(__class__.__name__, name))
+            return obj
 
     def __setattr__(self, name, value):
         if name.startswith("__"):
             return object.__setattr__(self, name, value)
-
-        __class__ = object.__getattribute__(self, "__class__")
-
-        if name in __class__.__dict__:
+        else:
             obj = object.__getattribute__(self, name)
 
             if not isinstance(obj, (Value, Blob)):
@@ -136,14 +124,12 @@ class HardwareProxy:
                 v = BitwiseAccessibleInteger(value)
                 read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
                 for i in range(read_bytes):
-                    prev_value = BitwiseAccessibleInteger(self._memory_accessor.read(obj.address - self._memory_accessor.base + (i * 4)))
+                    prev_value = BitwiseAccessibleInteger(memory_accessor.read(obj.address - memory_accessor.base + (i * 4)))
                     prev_value[obj.bit_start if i == 0 else 0:(32 if i != read_bytes - 1 else (obj.bit_len + obj.bit_start) % 32)] = v[i * 32:(i + 1) * 32]
-                    self._memory_accessor.write(
-                        obj.address - self._memory_accessor.base + (i * 4),
+                    memory_accessor.write(
+                        obj.address - memory_accessor.base + (i * 4),
                         int(prev_value)
                     )
-        else:
-            raise AttributeError("{} has no attribute {}".format(__class__.__name__, name))
 
     def __repr__(self, allow_recursive=False):
         if stack()[1].filename == "<console>" or allow_recursive:

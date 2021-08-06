@@ -57,6 +57,8 @@ class Value:
     bit_start: int
     bit_len: int
     decoder: dict
+    writable: bool
+    readable: bool
     bit_mask: int = None
     word_aligned_inverse_bit_mask: int = None
 
@@ -90,6 +92,7 @@ class HardwareProxy:
         if isinstance(obj, Value):
             memory_accessor = object.__getattribute__(self, "_memory_accessor")
 
+            assert obj.readable, f"cannot read write-only value {name}"
             # fast path if the value is easy to handle
             if obj.bit_start == 0 and obj.bit_len <= 32:
                 return memory_accessor.read(obj.address - memory_accessor.base) & obj.bit_mask
@@ -115,6 +118,8 @@ class HardwareProxy:
             if not isinstance(obj, (Value, Blob)):
                 return object.__setattr__(self, name, value)
             elif isinstance(obj, Value):
+                assert obj.writable, f"cannot write read-only value {name}"
+
                 memory_accessor = object.__getattribute__(self, "_memory_accessor")
                 assert value < 2 ** obj.bit_len, "you can at maximum assign '{}' to a {} bit value".format((2 ** obj.bit_len - 1), obj.bit_len)
             

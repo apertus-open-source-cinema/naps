@@ -60,6 +60,13 @@ class Value:
     bit_start: int
     bit_len: int
     decoder: dict
+    bit_mask: int = None
+    word_aligned_inverse_bit_mask: int = None
+
+    def __post_init__(self):
+        self.bit_mask = (2**self.bit_len - 1) << self.bit_start
+        num_words = (self.bit_start + self.bit_len + 31) // 32
+        self.word_aligned_inverse_bit_mask = (2**(num_words * 32) - 1) ^ self.bit_mask
 
 
 @dataclass
@@ -88,7 +95,7 @@ class HardwareProxy:
 
             # fast path if the value is easy to handle
             if obj.bit_start == 0 and obj.bit_len <= 32:
-                return memory_accessor.read(obj.address - memory_accessor.base) & (2 ** obj.bit_len - 1)
+                return memory_accessor.read(obj.address - memory_accessor.base) & obj.bit_mask
 
             to_return = BitwiseAccessibleInteger()
             read_bytes = ceil((obj.bit_start + obj.bit_len) / 32)
@@ -117,8 +124,7 @@ class HardwareProxy:
                 # fast path if the value is easy to handle
                 if obj.bit_start == 0 and obj.bit_len <= 32:
                     old = memory_accessor.read(obj.address - memory_accessor.base)
-                    mask = (2 ** 32 - 1) ^ (2 ** obj.bit_len - 1)
-                    memory_accessor.write(obj.address - memory_accessor.base, old & mask | value)
+                    memory_accessor.write(obj.address - memory_accessor.base, old & obj.word_aligned_inverse_bit_mask | value)
                     return
 
                 v = BitwiseAccessibleInteger(value)

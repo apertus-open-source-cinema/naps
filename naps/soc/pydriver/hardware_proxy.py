@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
 from textwrap import indent
-from math import ceil, log2
+from math import ceil
 from inspect import stack
 
 
@@ -18,10 +18,6 @@ class MemoryAccessor(ABC):
 
 
 class BitwiseAccessibleInteger:
-    @staticmethod
-    def from_list(*args):
-        pass
-
     def __init__(self, value=0):
         self.value = value
 
@@ -39,14 +35,15 @@ class BitwiseAccessibleInteger:
         if isinstance(key, int):
             assert key >= 0
             assert value <= 1, "you can at maximum assign '1' to a 1 bit value"
-            self.value = self.value & (((2 ** ceil(log2(self.value + 1))) - 1) ^ (1 << key))
+            self.value = self.value & (((1 << (self.value + 1).bit_length()) - 1) ^ (1 << key))
             self.value = self.value | ((value & 1) << key)
         elif isinstance(key, slice):
             assert (key.step == 1) or (key.step is None)
             assert 0 <= key.start <= key.stop
-            bit_mask = (2 ** (key.stop - key.start) - 1)
+            slice_length = key.stop - key.start
+            bit_mask = ((1 << slice_length) - 1)
             assert value <= bit_mask, "you can at maximum assign '{}' to a {} bit value".format(bit_mask, (key.stop - key.start))
-            self.value = self.value & (((2 ** ceil(log2(self.value + 1))) - 1) ^ (bit_mask << key.start))
+            self.value = self.value & (((1 << (self.value + 1).bit_length()) - 1) ^ (bit_mask << key.start))
             self.value = self.value | ((value & bit_mask) << key.start)
 
     def __int__(self):

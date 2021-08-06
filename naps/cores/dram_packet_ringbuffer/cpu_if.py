@@ -33,17 +33,17 @@ class DramPacketRingbufferCpuReader(Elaboratable):
 
         m = Module()
 
-        self.current_write_buffer = StatusSignal(range(writer.n_buffers))
-        m.d.comb += self.current_write_buffer.eq(writer.current_write_buffer)
+        self.num_buffers = writer.n_buffers
+        self.current_write_buffer = StatusSignal(self.num_buffers)
+        m.d.sync += self.current_write_buffer.eq(writer.current_write_buffer)
 
         for i, (base, level) in enumerate(zip(writer.buffer_base_list, writer.buffer_level_list)):
-            print(base, level)
             buffer_base = StatusSignal(range(base + 1))
-            m.d.comb += buffer_base.eq(base)
+            m.d.sync += buffer_base.eq(base)
             setattr(self, f"buffer{i}_base", buffer_base)
 
             buffer_level = StatusSignal(level.shape())
-            m.d.comb += buffer_level.eq(level)
+            m.d.sync += buffer_level.eq(level)
             setattr(self, f"buffer{i}_level", buffer_level)
 
         self.m = m
@@ -53,12 +53,9 @@ class DramPacketRingbufferCpuReader(Elaboratable):
 
     @driver_method
     def read_packet_to_file(self, filename="packet.bin"):
-        from time import sleep
         import os
-        while not self.next_buffer_ready:
-            sleep(0.01)
 
-        self.current_read_buffer = self.current_read_buffer % self.num_buffers
-        os.system("dd if=/dev/mem bs=4096 skip={} count={} iflag=skip_bytes,count_bytes of='{}'"
-                  .format(self.current_buffer_base, self.current_buffer_length, filename))
-
+        buf = (self.current_write_buffer - 1) % self.num_buffers
+        base = getattr(self, f"buffer{buf}_base")
+        length = getattr(self, f"buffer{buf}_level")
+        os.system(f"dd if=/dev/mem bs=4096 skip={base} count={length} iflag=skip_bytes,count_bytes of='{filename}'")

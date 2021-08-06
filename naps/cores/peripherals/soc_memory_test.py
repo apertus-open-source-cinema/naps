@@ -14,8 +14,9 @@ class SocMemoryTest(unittest.TestCase):
             axi = platform.axi_lite_master
             memorymap = platform.memorymap
             for addr in range(128):
-                yield from axil_write(axi, addr + 0x40000000, addr)
-                self.assertEqual(addr, (yield from axil_read(axi, addr + 0x40000000)))
+                yield from axil_write(axi, 4*addr + 0x40000000, addr)
+            for addr in range(128):
+                self.assertEqual(addr, (yield from axil_read(axi, 4*addr + 0x40000000)))
 
         platform.sim(dut, (testbench, "axi_lite"))
 

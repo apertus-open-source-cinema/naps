@@ -189,6 +189,11 @@
 <dt id="naps.cores.cmv12k.cmv12k_rx.Cmv12kRx">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.cmv12k.cmv12k_rx.</span></code><code class="sig-name descname"><span class="pre">Cmv12kRx</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_rx.Cmv12kRx" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
+<dl class="py attribute">
+<dt id="naps.cores.cmv12k.cmv12k_rx.Cmv12kRx.configure_sensor_defaults">
+<code class="sig-name descname"><span class="pre">configure_sensor_defaults</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_rx.Cmv12kRx.configure_sensor_defaults" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="py method">
 <dt id="naps.cores.cmv12k.cmv12k_rx.Cmv12kRx.elaborate">
 <code class="sig-name descname"><span class="pre">elaborate</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="n"><span class="pre">platform</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_rx.Cmv12kRx.elaborate" title="Permalink to this definition">¶</a></dt>
@@ -209,13 +214,33 @@
 <dd></dd></dl>
 
 <dl class="py attribute">
+<dt id="naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.enable_test_pattern">
+<code class="sig-name descname"><span class="pre">enable_test_pattern</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.enable_test_pattern" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.get_spi">
+<code class="sig-name descname"><span class="pre">get_spi</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.get_spi" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
 <dt id="naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.read_reg">
 <code class="sig-name descname"><span class="pre">read_reg</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.read_reg" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
-<dt id="naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_bit_mode">
-<code class="sig-name descname"><span class="pre">set_bit_mode</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_bit_mode" title="Permalink to this definition">¶</a></dt>
+<dt id="naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_exposure_value">
+<code class="sig-name descname"><span class="pre">set_exposure_value</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_exposure_value" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_number_frames">
+<code class="sig-name descname"><span class="pre">set_number_frames</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_number_frames" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_readout_configuration">
+<code class="sig-name descname"><span class="pre">set_readout_configuration</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_readout_configuration" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="py attribute">
@@ -226,6 +251,11 @@
 <dl class="py attribute">
 <dt id="naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.write_reg">
 <code class="sig-name descname"><span class="pre">write_reg</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.write_reg" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="py attribute">
+<dt id="naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.write_regs">
+<code class="sig-name descname"><span class="pre">write_regs</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.write_regs" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
@@ -269,11 +299,6 @@ One Lane always sends adjacent pixels of bust_length out.</p>
 <dt id="naps.cores.cmv12k.s7_phy.HostTrainer">
 <em class="property"><span class="pre">class</span> </em><code class="sig-prename descclassname"><span class="pre">naps.cores.cmv12k.s7_phy.</span></code><code class="sig-name descname"><span class="pre">HostTrainer</span></code><span class="sig-paren">(</span><em class="sig-param"><span class="o"><span class="pre">*</span></span><span class="n"><span class="pre">args</span></span></em>, <em class="sig-param"><span class="n"><span class="pre">src_loc_at</span></span><span class="o"><span class="pre">=</span></span><span class="default_value"><span class="pre">0</span></span></em>, <em class="sig-param"><span class="o"><span class="pre">**</span></span><span class="n"><span class="pre">kwargs</span></span></em><span class="sig-paren">)</span><a class="headerlink" href="#naps.cores.cmv12k.s7_phy.HostTrainer" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">nmigen.hdl.ir.Elaboratable</span></code></p>
-<dl class="py attribute">
-<dt id="naps.cores.cmv12k.s7_phy.HostTrainer.configure_sensor">
-<code class="sig-name descname"><span class="pre">configure_sensor</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.s7_phy.HostTrainer.configure_sensor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="py attribute">
 <dt id="naps.cores.cmv12k.s7_phy.HostTrainer.data_alignment">
 <code class="sig-name descname"><span class="pre">data_alignment</span></code><em class="property"> <span class="pre">=</span> <span class="pre">driver_method()</span></em><a class="headerlink" href="#naps.cores.cmv12k.s7_phy.HostTrainer.data_alignment" title="Permalink to this definition">¶</a></dt>

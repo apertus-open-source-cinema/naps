@@ -480,7 +480,7 @@
 </li>
       <li><a href="naps.soc.html#naps.soc.soc_platform_test.ConcreteSocPlatform">ConcreteSocPlatform (class in naps.soc.soc_platform_test)</a>
 </li>
-      <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.s7_phy.HostTrainer.configure_sensor">configure_sensor (naps.cores.cmv12k.s7_phy.HostTrainer attribute)</a>
+      <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.cmv12k_rx.Cmv12kRx.configure_sensor_defaults">configure_sensor_defaults (naps.cores.cmv12k.cmv12k_rx.Cmv12kRx attribute)</a>
 </li>
       <li><a href="naps.data_structure.html#naps.data_structure.bundle.Bundle.connect_downstream">connect_downstream() (naps.data_structure.bundle.Bundle method)</a>
 </li>
@@ -946,6 +946,8 @@
   <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="naps.cores.video.wavelet.html#naps.cores.video.wavelet.py_compressor.empty_symbol_frequencies_dict">empty_symbol_frequencies_dict() (in module naps.cores.video.wavelet.py_compressor)</a>
 </li>
+      <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.enable_test_pattern">enable_test_pattern (naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi attribute)</a>
+</li>
       <li><a href="naps.cores.compression.html#naps.cores.compression.encoding_space.EncodingSpace">EncodingSpace (class in naps.cores.compression.encoding_space)</a>
 </li>
       <li><a href="naps.cores.mipi.dsi_tx.html#naps.cores.mipi.dsi_tx.types.DsiShortPacketDataType.END_OF_TRANSMISSION_PACKET">END_OF_TRANSMISSION_PACKET (naps.cores.mipi.dsi_tx.types.DsiShortPacketDataType attribute)</a>
@@ -1111,6 +1113,8 @@
       <li><a href="naps.vendor.xilinx_s7.html#naps.vendor.xilinx_s7.ps7.PS7.get_possible_fclk_frequencies">get_possible_fclk_frequencies() (naps.vendor.xilinx_s7.ps7.PS7 static method)</a>
 </li>
       <li><a href="naps.soc.html#naps.soc.tracing_elaborate.ElaboratableSames.get_row">get_row() (naps.soc.tracing_elaborate.ElaboratableSames method)</a>
+</li>
+      <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.get_spi">get_spi (naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi attribute)</a>
 </li>
       <li><a href="naps.util.html#naps.util.yosys.get_verilog_module_ports">get_verilog_module_ports() (in module naps.util.yosys)</a>
 </li>
@@ -3918,8 +3922,6 @@
 </li>
       <li><a href="naps.cores.serdes.html#naps.cores.serdes.serializer.Serializer">Serializer (class in naps.cores.serdes.serializer)</a>
 </li>
-      <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_bit_mode">set_bit_mode (naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi attribute)</a>
-</li>
       <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.s7_phy.HostTrainer.set_clock_delay">set_clock_delay (naps.cores.cmv12k.s7_phy.HostTrainer attribute)</a>
 </li>
       <li><a href="naps.cores.hdmi.rx.html#naps.cores.hdmi.rx.hdmi_rx.HdmiStreamSource.set_delay">set_delay (naps.cores.hdmi.rx.hdmi_rx.HdmiStreamSource attribute)</a>
@@ -3928,7 +3930,13 @@
         <li><a href="naps.vendor.lattice_ecp5.html#naps.vendor.lattice_ecp5.io.DelayF.set_delay">(naps.vendor.lattice_ecp5.io.DelayF attribute)</a>
 </li>
       </ul></li>
+      <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_exposure_value">set_exposure_value (naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi attribute)</a>
+</li>
       <li><a href="naps.cores.mipi.dsi_tx.html#naps.cores.mipi.dsi_tx.types.DsiShortPacketDataType.SET_MAXIMUM_RETURN_PACKET_SIZE">SET_MAXIMUM_RETURN_PACKET_SIZE (naps.cores.mipi.dsi_tx.types.DsiShortPacketDataType attribute)</a>
+</li>
+      <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_number_frames">set_number_frames (naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi attribute)</a>
+</li>
+      <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_readout_configuration">set_readout_configuration (naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi attribute)</a>
 </li>
       <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.set_train_pattern">set_train_pattern (naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi attribute)</a>
 </li>
@@ -3962,10 +3970,10 @@
 </li>
       <li><a href="naps.cores.peripherals.html#naps.cores.peripherals.soc_memory.SocMemory">SocMemory (class in naps.cores.peripherals.soc_memory)</a>
 </li>
-      <li><a href="naps.cores.peripherals.html#naps.cores.peripherals.soc_memory_test.SocMemoryTest">SocMemoryTest (class in naps.cores.peripherals.soc_memory_test)</a>
-</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
+      <li><a href="naps.cores.peripherals.html#naps.cores.peripherals.soc_memory_test.SocMemoryTest">SocMemoryTest (class in naps.cores.peripherals.soc_memory_test)</a>
+</li>
       <li><a href="naps.soc.html#naps.soc.soc_platform.SocPlatform">SocPlatform (class in naps.soc.soc_platform)</a>
 </li>
       <li><a href="naps.soc.html#naps.soc.smoke_test.SocSmokeTest">SocSmokeTest (class in naps.soc.smoke_test)</a>
@@ -4523,6 +4531,8 @@
       <li><a href="naps.cores.peripherals.html#naps.cores.peripherals.soc_memory.SocMemory.write_port">write_port() (naps.cores.peripherals.soc_memory.SocMemory method)</a>
 </li>
       <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.write_reg">write_reg (naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi attribute)</a>
+</li>
+      <li><a href="naps.cores.cmv12k.html#naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi.write_regs">write_regs (naps.cores.cmv12k.cmv12k_spi.Cmv12kSpi attribute)</a>
 </li>
       <li><a href="naps.stream.html#naps.stream.sim_util.write_to_stream">write_to_stream() (in module naps.stream.sim_util)</a>
 </li>

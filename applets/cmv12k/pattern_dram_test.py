@@ -9,6 +9,7 @@
 # 6. run `design.capture_pattern()` function at the prompt
 # 7. `exit()` and check pattern.bin
 
+import os
 from nmigen import *
 from naps import *
 
@@ -18,6 +19,11 @@ class Top(Elaboratable):
         self.frame_req = PulseReg(1)
 
     def elaborate(self, platform: BetaPlatform):
+        # avoid complaining about timing of StatusSignals by marking them as false paths
+        # TODO: find more idiomatic way to do this
+        os.environ["NMIGEN_add_constraints"] = \
+            "set_false_path -from [get_clocks *] -to [get_clocks axi_lite_driving_signal]"
+
         m = Module()
 
         m.submodules += self.frame_req
@@ -52,54 +58,6 @@ class Top(Elaboratable):
         return m
 
     @driver_method
-    def train(self):
-        self.input_cmv12k_rx.trainer.train(self.sensor_spi)
-
-    @driver_method
-    def configure(self):
-        regs = {
-            # internal exposure mode, default value
-             70: 0,
-             71: 1536,
-             72: 0,
-
-             80: 1, # one frame per request
-
-             81: 1, # two side readout, 16 outputs per side
-
-            # disable unused LVDS channels
-             90: 0b0101010101010101,
-             91: 0b0101010101010101,
-             92: 0b0101010101010101,
-             93: 0b0101010101010101,
-
-            117: 1, # unity digital gain
-
-            122: 3, # enable test pattern
-
-            # 12 bit additional settings, 16 outputs per side, normal mode
-             82: 1822,
-             83: 5897,
-             84: 257,
-             85: 257,
-             86: 257,
-             87: 1910,
-             88: 1910,
-             98: 39433,
-            107: (81 << 7) | 94, # 250MHz
-            109: 14448,
-            113: 542,
-            114: 200,
-
-            # ADC settings for 12 bit at 250MHz
-            116: (3 << 8) | 167,
-            100: 3,
-        }
-
-        for addr, value in regs.items():
-            self.sensor_spi.write_reg(addr, value)
-
-    @driver_method
     def capture_pattern(self):
         import time
         print("training link...")
@@ -111,13 +69,14 @@ class Top(Elaboratable):
         self.frame_req = 1
         time.sleep(0.05)
 
-        # make sure we transferred the full image
-        txns = self.input_dram_packet_ringbuffer_stream_writer.writer.info_axi_data.successful_transactions_counter
-        assert txns % (4096*3072*12/64) == 0, "pattern transfer FAILED!!!"
-
         print("downloading pattern...")
         # ../ puts the file outside the extracted zip
         self.input_dram_packet_ringbuffer_cpu_reader.read_packet_to_file("../pattern.bin")
+
+        # make sure we transferred the full image
+        txns = self.input_dram_packet_ringbuffer_stream_writer.writer.info_axi_data.successful_transactions_counter
+        assert txns % (4096*3072*12/64) == 0, "full pattern was not captured!"
+
 
 if __name__ == "__main__":
     cli(Top, runs_on=(BetaPlatform, ), possible_socs=(ZynqSocPlatform, ))

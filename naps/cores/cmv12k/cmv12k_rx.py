@@ -65,12 +65,12 @@ class Cmv12kRx(Elaboratable):
 
         phy = m.submodules.phy = self.phy
         trainer = m.submodules.trainer = self.trainer
+        m.submodules += FFSynchronizer(trainer.lane_pattern, phy.lane_pattern, o_domain=self.domain+"_hword")
 
         m.d.comb += [
             phy.outclk.eq(self.lvds_outclk),
             phy.lanes.eq(Cat(self.lanes, self.lane_ctrl)),
 
-            phy.lane_pattern.eq(trainer.lane_pattern),
             phy.lane_delay_reset.eq(trainer.lane_delay_reset),
             phy.lane_delay_inc.eq(trainer.lane_delay_inc),
             phy.lane_bitslip.eq(trainer.lane_bitslip),

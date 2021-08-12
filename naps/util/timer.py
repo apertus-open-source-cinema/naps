@@ -12,9 +12,10 @@ def print_task_timing(current_task, elapsed):
 
 @atexit.register
 def print_summary_at_end():
-    print(f"### timing summary")
-    for task_timing in task_timings:
-        print_task_timing(*task_timing)
+    if len(task_timings) > 0:
+        print(f"### timing summary")
+        for task_timing in task_timings:
+            print_task_timing(*task_timing)
 
 
 

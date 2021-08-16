@@ -294,6 +294,38 @@ class TestGearbox(unittest.TestCase):
 
 
 class TestSimpleGearbox(unittest.TestCase):
+    def test_simple_gearbox_384_to_64_last(self):
+        input = PacketizedStream(32 * 12)
+        dut = SimpleStreamGearbox(input, 64)
+
+        payload_a = int("".join(reversed([f"{i:03x}" for i in range(32)])), 16)
+        payload_b = int("".join(reversed([f"{i:03x}" for i in range(57, 57 + 32)])), 16)
+
+        print(hex(payload_a))
+        print(hex(payload_b))
+
+        def writer():
+            yield from write_to_stream(input, payload=payload_a, last=1)
+            yield from write_to_stream(input, payload=payload_b, last=0)
+
+        def reader():
+            payload_aa = payload_a
+            for i in range(32 * 12 // 64):
+                self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (payload_aa & 0xffff_ffff_ffff_ffff, 0 if i < 5 else 1))
+                payload_aa = payload_aa >> 64
+
+            payload_bb = payload_b
+            for i in range(32 * 12 // 64):
+                print(i)
+                self.assertEqual((yield from read_from_stream(dut.output, extract=("payload", "last"))), (payload_bb & 0xffff_ffff_ffff_ffff, 0))
+                payload_bb = payload_bb >> 64
+
+        platform = SimPlatform()
+        platform.add_sim_clock("sync", 100e6)
+        platform.add_process(writer, "sync")
+        platform.add_process(reader, "sync")
+        platform.sim(dut)
+
     def test_simple_gearbox_8_to_4_last(self):
         input = PacketizedStream(8)
         dut = SimpleStreamGearbox(input, 4)

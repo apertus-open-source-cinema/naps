@@ -126,7 +126,10 @@ class SimpleStreamGearbox(Elaboratable):
             m.d.comb += self.input.ready.eq(0)
             with m.If(output_write):
                 m.d.sync += reg.eq(reg[self.output_width:])
-                m.d.sync += state.eq(state + 1)
+                with m.If(state == self.division_factor - 1):
+                    m.d.sync += state.eq(0)
+                with m.Else():
+                    m.d.sync += state.eq(state + 1)
             with m.If(state == self.division_factor - 1):
                 for k, v in last_signals.items():
                     m.d.comb += self.output[k].eq(v)

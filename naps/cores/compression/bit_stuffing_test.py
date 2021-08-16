@@ -24,7 +24,7 @@ class BitStufferTest(unittest.TestCase):
         def read_process():
             read = "{:032b}".format((yield from read_from_stream(bit_stuffer.output)))
             print(read)
-            self.assertEquals(read, "".join(reversed(input_data)))
+            self.assertEqual(read, "".join(reversed(input_data)))
 
         platform.add_sim_clock("sync", 100e6)
         platform.add_process(write_process, "sync")

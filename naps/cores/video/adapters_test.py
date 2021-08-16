@@ -17,7 +17,7 @@ class AdaptersTest(unittest.TestCase):
         def read_process():
             for frame in range(10):
                 frame = yield from read_frame_from_stream(dut.output)
-                self.assertEquals(len(frame), 10)
+                self.assertEqual(len(frame), 10)
                 self.assertTrue(all(len(l) == 10 for l in frame))
         platform.add_process(read_process, "sync")
 

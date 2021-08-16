@@ -25,7 +25,7 @@ class TestBuffer(unittest.TestCase):
         def read_process():
             for expected in test_data:
                 read = yield from read_from_stream(dut.output)
-                self.assertEquals(read, expected)
+                self.assertEqual(read, expected)
         platform.add_process(read_process, "sync")
 
         platform.add_sim_clock("sync", 100e6)

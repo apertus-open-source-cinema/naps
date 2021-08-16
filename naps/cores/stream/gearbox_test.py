@@ -198,7 +198,7 @@ class TestGearbox(unittest.TestCase):
                     assert not last
                 if i % 3 == 0:
                     yield from do_nothing()
-            self.assertEquals(last_count, 10)
+            self.assertEqual(last_count, 10)
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
@@ -226,7 +226,7 @@ class TestGearbox(unittest.TestCase):
                 last_count += (yield from read_from_stream(dut.output, extract="last"))
                 if i % 10 == 0:
                     yield from do_nothing()
-            self.assertEquals(last_count, 10)
+            self.assertEqual(last_count, 10)
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)
@@ -358,7 +358,7 @@ class TestSimpleGearbox(unittest.TestCase):
                 last_count += (yield from read_from_stream(dut.output, extract="last"))
                 if i % 10 == 0:
                     yield from do_nothing()
-            self.assertEquals(last_count, 10)
+            self.assertEqual(last_count, 10)
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 100e6)

@@ -72,7 +72,7 @@ class HuffmanTest(unittest.TestCase):
             print(read_bitarray)
             decode_iter = bitarray(read_bitarray).iterdecode({k: bitarray(v[::-1]) for k, v in huffman.table.items()})
             for c, expected in zip(decode_iter, input_data):
-                self.assertEquals(chr(c), expected)
+                self.assertEqual(chr(c), expected)
 
         platform.add_sim_clock("sync", 100e6)
         platform.add_process(write_process, "sync")

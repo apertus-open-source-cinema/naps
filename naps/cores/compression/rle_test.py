@@ -33,7 +33,7 @@ class RleTest(unittest.TestCase):
                     decoded.append(x)
                 else:
                     decoded += ([0] * run_length_options[x - 256])
-            self.assertEquals(input_data, decoded)
+            self.assertEqual(input_data, decoded)
 
         platform.add_sim_clock("sync", 100e6)
         platform.add_process(write_process, "sync")

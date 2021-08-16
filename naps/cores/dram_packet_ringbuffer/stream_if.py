@@ -18,7 +18,8 @@ class DramPacketRingbufferStreamWriter(Elaboratable):
         self.n_buffers = n_buffers
         self.axi = axi
 
-        self.buffer_base_list = Array([base_address + max_packet_size * i for i in range(n_buffers)])
+        self.buffer_base_list_cpu = [base_address + max_packet_size * i for i in range(n_buffers)]
+        self.buffer_base_list = Array(self.buffer_base_list_cpu)
         self.buffer_level_list = Array([Signal(range(max_packet_size), name=f'buffer{i}_level') for i in range(n_buffers)])
         self.current_write_buffer = Signal(range(n_buffers))
 

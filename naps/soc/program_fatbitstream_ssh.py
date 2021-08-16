@@ -1,4 +1,5 @@
 from naps import naps_getenv
+import paramiko
 from paramiko import SSHClient
 from paramiko.py3compat import u
 from pathlib import Path
@@ -59,6 +60,7 @@ def program_fatbitstream_ssh(fatbitstream_file: Path, *, run=False, dir="fatbits
     name = fatbitstream_file.name
     with SSHClient() as client:
         client.load_system_host_keys()
+        client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
         client.connect(hostname=default_host, username=default_user, password=default_password)
 
         with client.open_sftp() as sftp:

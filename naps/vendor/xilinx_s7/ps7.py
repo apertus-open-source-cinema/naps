@@ -178,12 +178,15 @@ class PS7(Elaboratable):
                 f"# clockdomain '{domain_name}':",
                 f"echo 1 > /sys/class/fclk/fclk{i}/enable",
                 f"echo {int(freq)} > /sys/class/fclk/fclk{i}/set_rate"
-            ], CommandPosition.Front)
-        fc += "# set the bit width of all axi hp slaves to 64 bits"
+            ], CommandPosition.BeforeBitstream)
+
+        axi_hp_setup = []
+        axi_hp_setup += ["# set the bit width of all axi hp slaves to 64 bits"]
         for base in [0xF8008000, 0xF8009000, 0xF800A000, 0xF800B000]:
-            fc += f"devmem2 0x{base:x} w 0"
-            fc += f"devmem2 0x{(base + 0x14):x} w 0xF00"
-        fc += "# set urgent to all axi hp slaves"
-        fc += "devmem2 0xF8000600 w 0xcc"
+            axi_hp_setup += [f"devmem2 0x{base:x} w 0"]
+            axi_hp_setup += [f"devmem2 0x{(base + 0x14):x} w 0xF00"]
+        axi_hp_setup += ["# set urgent to all axi hp slaves"]
+        axi_hp_setup += ["devmem2 0xF8000600 w 0xcc"]
+        fc.add_cmds(axi_hp_setup, CommandPosition.BeforeBitstream)
 
         return m

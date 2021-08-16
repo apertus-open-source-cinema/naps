@@ -13,6 +13,7 @@ from nmigen.build.run import BuildProducts
 class CommandPosition(Enum):
     Front = enum.auto()
     Back = enum.auto()
+    BeforeBitstream = enum.auto()
 
 
 class File:
@@ -42,6 +43,7 @@ class FatbitstreamContext:
 
         self._files = {}  # a dict of filename -> contents
         self._init_commands = []
+        self._pre_bitstream_commands = []
 
         self._platform = platform
 
@@ -60,6 +62,8 @@ class FatbitstreamContext:
 
         if new_pos == CommandPosition.Back:
             self._init_commands.extend(new_cmds)
+        elif new_pos == CommandPosition.BeforeBitstream:
+            self._pre_bitstream_commands.extend(new_cmds)
         else:
             self._init_commands[0:0] = new_cmds
 
@@ -109,6 +113,7 @@ class FatbitstreamContext:
         def py_quote(str):
             return str.replace("'''", "\\'\\'\\'")
 
+        main_script += "\n".join(f"system('''{py_quote(cmd)}''')" for cmd in self._pre_bitstream_commands) + "\n"
         for element in self._platform._soc_platform.pack_bitstream_fatbitstream(build_name, build_products):
             if isinstance(element, str):
                 main_script += f"system('''{py_quote(element)}''')\n"

@@ -47,9 +47,8 @@ class Top(Elaboratable):
         ip = Pipeline(m, prefix="input", start_domain="cmv12k")
         ip += sensor_rx
 
-        ip += StreamGearbox(ip.output, 64)
+        ip += SimpleStreamGearbox(ip.output, 64)
         ip += BufferedAsyncStreamFIFO(ip.output, 2048, o_domain="axi_hp")
-        ip += StreamBuffer(ip.output)
         ip += ImageStream2PacketizedStream(ip.output)
         ip += DramPacketRingbufferStreamWriter(ip.output, max_packet_size=0x200_0000, n_buffers=4)
         dram_writer = ip.last

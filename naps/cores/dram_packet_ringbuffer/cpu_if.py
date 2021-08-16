@@ -30,32 +30,36 @@ class DramPacketRingbufferCpuWriter(Elaboratable):
 class DramPacketRingbufferCpuReader(Elaboratable):
     def __init__(self, writer: DramPacketRingbufferStreamWriter):
         self.writer = writer
+        self.n_buffers = writer.n_buffers
 
+        self.current_write_buffer = StatusSignal(range(self.n_buffers))
+
+        # note the base and level StatusSignals generated in elaborate()
+
+    def elaborate(self, platform):
         m = Module()
 
-        self.num_buffers = writer.n_buffers
-        self.current_write_buffer = StatusSignal(self.num_buffers)
-        m.d.sync += self.current_write_buffer.eq(writer.current_write_buffer)
+        m.d.sync += self.current_write_buffer.eq(self.writer.current_write_buffer)
 
-        for i, (base, level) in enumerate(zip(writer.buffer_base_list, writer.buffer_level_list)):
-            buffer_base = StatusSignal(range(base + 1))
-            m.d.sync += buffer_base.eq(base)
-            setattr(self, f"buffer{i}_base", buffer_base)
+        for i, (base, level) in enumerate(zip(self.writer.buffer_base_list, self.writer.buffer_level_list)):
+            setattr(self, f"buffer{i}_base", base) # base addresses are constant
 
             buffer_level = StatusSignal(level.shape())
             m.d.sync += buffer_level.eq(level)
             setattr(self, f"buffer{i}_level", buffer_level)
 
-        self.m = m
-
-    def elaborate(self, platform):
-        return self.m
+        return m
 
     @driver_method
     def read_packet_to_file(self, filename="packet.bin"):
-        import os
+        import os, mmap
 
-        buf = (self.current_write_buffer - 1) % self.num_buffers
+        buf = (self.current_write_buffer - 1) % self.n_buffers
         base = getattr(self, f"buffer{buf}_base")
         length = getattr(self, f"buffer{buf}_level")
-        os.system(f"dd if=/dev/mem bs=4096 skip={base} count={length} iflag=skip_bytes,count_bytes of='{filename}'")
+
+        fd = os.open("/dev/mem", os.O_RDONLY)
+        with mmap.mmap(fd, length, prot=mmap.PROT_READ, offset=base) as mm:
+            with open(filename, "wb") as f:
+                f.write(mm)
+        os.close(fd)

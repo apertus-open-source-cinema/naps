@@ -76,20 +76,21 @@ def cli(top_class, runs_on, possible_socs=(None,)):
         print(f"unable to parse gc interval {gc_age_string}")
     gc_cutoff = (datetime.datetime.now() - gc_interval).timestamp()
 
-    for dir in Path("build").iterdir():
-        gateware_dir = dir / "gateware"
-        if gateware_dir.exists():
-            cache_keys = sorted(
-                [
-                    (cache_key, cache_key.stat().st_atime)
-                    for e in gateware_dir.iterdir()
-                    if e.is_dir() and (cache_key := (e / "cache_key.txt")).exists()
-                ],
-                key = lambda e: e[1],
-            )
-            for c in cache_keys[3:]:
-                if c[1] < gc_cutoff:
-                    rmtree(c[0])
+    if (build_dir := Path("build")).exists():
+        for dir in build_dir.iterdir():
+            gateware_dir = dir / "gateware"
+            if gateware_dir.exists():
+                cache_keys = sorted(
+                    [
+                        (cache_key, cache_key.stat().st_atime)
+                        for e in gateware_dir.iterdir()
+                        if e.is_dir() and (cache_key := (e / "cache_key.txt")).exists()
+                    ],
+                    key = lambda e: e[1],
+                )
+                for c in cache_keys[3:]:
+                    if c[1] < gc_cutoff:
+                        rmtree(c[0])
 
     hardware_platform = platform_choices[args.device]
     if args.soc != 'None':

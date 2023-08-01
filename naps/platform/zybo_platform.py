@@ -9,7 +9,7 @@ class ZyboPlatform(Xilinx7SeriesPlatform):
     package = "clg400"
     speed = "1"
     resources = [
-        Resource("hdmi", "north",
+        Resource("hdmi", 0,
              # high speed serial lanes
              Subsignal("clock", DiffPairs("H16", "H17", dir='o'), Attrs(IOSTANDARD="TMDS_33")),
              Subsignal("b", DiffPairs("D19", "D20", dir='o'), Attrs(IOSTANDARD="TMDS_33")),

@@ -86,8 +86,8 @@ class BetaPlatform(MicroZedZ020Platform):
         # TODO: add ext & shield connectors (but how?)
         #       best would be a way to (transpranetly) handle the routing fabrics
         self.add_resources([
-            Resource("routing", 'east', DiffPairs('29', '31', dir='io', conn=("JX2", 0)), Attrs(IOSTANDARD="LVCMOS33")),
-            Resource("routing", 'west', Pins("56", dir='o', conn=("JX1", 0)), Attrs(IOSTANDARD="LVCMOS33")),
+            Resource("routing", 0, DiffPairs('29', '31', dir='io', conn=("JX2", 0)), Attrs(IOSTANDARD="LVCMOS33")),  # east
+            Resource("routing", 1, Pins("56", dir='o', conn=("JX1", 0)), Attrs(IOSTANDARD="LVCMOS33")),  # west
         ])
 
 

@@ -29,7 +29,7 @@ class Top(Elaboratable):
         p += PacketizedStream2ImageStream(p.output, width=self.width)
         p += BufferedAsyncStreamFIFO(p.output, depth=16 * 1024, o_domain="pix")
 
-        hdmi = platform.request("hdmi", "north")
+        hdmi = platform.request("hdmi")
         p += HdmiStreamSink(p.output, hdmi, generate_modeline(self.width, self.height, 30), pix_domain="pix")
 
         m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x", "axi_hp")

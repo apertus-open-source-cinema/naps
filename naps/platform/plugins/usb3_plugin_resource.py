@@ -8,20 +8,20 @@ from .plugin_connector import PluginDiffPair
 __all__ = ["usb3_plugin_connect"]
 
 
-def usb3_plugin_connect(platform, plugin_number, gpio=True, lvds=True, gpio_attrs=dict(IOSTANDARD="LVCMOS25")):
+def usb3_plugin_connect(platform, plugin_slot, resource_number=0, gpio=True, lvds=True, gpio_attrs=dict(IOSTANDARD="LVCMOS25")):
     if gpio:
         gpio_signals = [
             Subsignal(
                 "jtag",
-                Subsignal("tms", Pins("gpio0", dir="io", conn=("plugin", plugin_number)), Attrs(**gpio_attrs)),
-                Subsignal("tck", Pins("gpio1", dir="io", conn=("plugin", plugin_number)), Attrs(**gpio_attrs)),
-                Subsignal("tdi", Pins("gpio2", dir="io", conn=("plugin", plugin_number)), Attrs(**gpio_attrs)),
-                Subsignal("tdo", Pins("gpio3", dir="io", conn=("plugin", plugin_number)), Attrs(**gpio_attrs)),
+                Subsignal("tms", Pins("gpio0", dir="io", conn=("plugin", plugin_slot)), Attrs(**gpio_attrs)),
+                Subsignal("tck", Pins("gpio1", dir="io", conn=("plugin", plugin_slot)), Attrs(**gpio_attrs)),
+                Subsignal("tdi", Pins("gpio2", dir="io", conn=("plugin", plugin_slot)), Attrs(**gpio_attrs)),
+                Subsignal("tdo", Pins("gpio3", dir="io", conn=("plugin", plugin_slot)), Attrs(**gpio_attrs)),
             ),
-            Subsignal("jtag_enb", Pins("gpio4", dir="io", conn=("plugin", plugin_number)), Attrs(**gpio_attrs)),
-            Subsignal("program", PinsN("gpio5", dir="io", conn=("plugin", plugin_number)), Attrs(**gpio_attrs)),
-            Subsignal("init", PinsN("gpio6", dir="io", conn=("plugin", plugin_number)), Attrs(**gpio_attrs)),
-            Subsignal("done", PinsN("gpio7", dir="io", conn=("plugin", plugin_number)), Attrs(**gpio_attrs)),
+            Subsignal("jtag_enb", Pins("gpio4", dir="io", conn=("plugin", plugin_slot)), Attrs(**gpio_attrs)),
+            Subsignal("program", PinsN("gpio5", dir="io", conn=("plugin", plugin_slot)), Attrs(**gpio_attrs)),
+            Subsignal("init", PinsN("gpio6", dir="io", conn=("plugin", plugin_slot)), Attrs(**gpio_attrs)),
+            Subsignal("done", PinsN("gpio7", dir="io", conn=("plugin", plugin_slot)), Attrs(**gpio_attrs)),
         ]
     else:
         gpio_signals = []
@@ -30,12 +30,12 @@ def usb3_plugin_connect(platform, plugin_number, gpio=True, lvds=True, gpio_attr
         lvds_signals = [
             Subsignal(
                 "lvds",
-                Subsignal("valid", PluginDiffPair(platform, plugin_number, 0, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
-                Subsignal("lane0", PluginDiffPair(platform, plugin_number, 1, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
-                Subsignal("lane1", PluginDiffPair(platform, plugin_number, 2, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
-                Subsignal("lane2", PluginDiffPair(platform, plugin_number, 3, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
-                Subsignal("lane3", PluginDiffPair(platform, plugin_number, 4, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
-                Subsignal("clk_word", PluginDiffPair(platform, plugin_number, 5, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("valid", PluginDiffPair(platform, plugin_slot, 0, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("lane0", PluginDiffPair(platform, plugin_slot, 1, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("lane1", PluginDiffPair(platform, plugin_slot, 2, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("lane2", PluginDiffPair(platform, plugin_slot, 3, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("lane3", PluginDiffPair(platform, plugin_slot, 4, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
+                Subsignal("clk_word", PluginDiffPair(platform, plugin_slot, 5, dir='o', serdes=True), Attrs(IOSTANDARD="LVDS_25")),
             ),
         ]
     else:
@@ -43,7 +43,7 @@ def usb3_plugin_connect(platform, plugin_number, gpio=True, lvds=True, gpio_attr
 
     platform.add_resources([
         Resource(
-            "usb3_plugin", plugin_number,
+            "usb3_plugin", resource_number,
             *lvds_signals,
             *gpio_signals,
         )

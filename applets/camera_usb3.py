@@ -22,7 +22,7 @@ class Top(Elaboratable):
         i2c_pads = platform.request("i2c")
         m.submodules.i2c = BitbangI2c(i2c_pads)
 
-        usb3_plugin = platform.request("usb3_plugin", "south")
+        usb3_plugin = platform.request("usb3_plugin")
         if isinstance(platform, MicroR2Platform):
             m.submodules.mmio_gpio = MmioGpio([
                 usb3_plugin.jtag.tms,

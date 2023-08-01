@@ -53,7 +53,7 @@ class Top(Elaboratable):
 
         op += BufferedAsyncStreamFIFO(op.output, depth=32 * 1024, o_domain="pix")
 
-        hdmi = platform.request("hdmi", "north")
+        hdmi = platform.request("hdmi")
         op += HdmiStreamSink(op.output, hdmi, generate_modeline(2560, 1440, 30), pix_domain="pix")  # TODO: the domain handling here stinks
 
         return m

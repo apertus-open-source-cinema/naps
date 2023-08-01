@@ -16,7 +16,7 @@ class Top(Elaboratable):
 
         m = Module()
 
-        hdmi_resource = platform.request("hdmi", "north")
+        hdmi_resource = platform.request("hdmi")
         hdmi = m.submodules.hdmi = HdmiTx(hdmi_resource, generate_modeline(1920, 1080, 30))
 
         clocking_debug = m.submodules.clocking_debug = ClockingDebug("pix", "pix_5x")

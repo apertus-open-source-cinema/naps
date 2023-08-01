@@ -18,7 +18,7 @@ class Top(Elaboratable):
 
         clocking = m.submodules.clocking = ClockingDebug("fclk_in", "bitclk", "sync")
 
-        usb3_plugin = platform.request("usb3_plugin", "south")
+        usb3_plugin = platform.request("usb3_plugin")
 
         if isinstance(platform, MicroR2Platform):
             m.submodules.mmio_gpio = MmioGpio([

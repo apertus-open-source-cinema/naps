@@ -10,7 +10,7 @@ class Top(Elaboratable):
 
         usb3_plugin_connect(platform, "south", gpio=True, lvds=False, gpio_attrs=dict(IO_TYPE="LVCMOS33", PULLMODE="UP", DRIVE="4"))
 
-        usb3 = platform.request("usb3_plugin", "south")
+        usb3 = platform.request("usb3_plugin")
         pic_io = platform.request("pic_io")
 
         def connect(output, input, invert=False):

@@ -1,4 +1,5 @@
-from multiprocessing import Pipe, Process
+from multiprocessing import Pipe
+from threading import Thread
 from nmigen import Fragment, Module, DomainRenamer
 from nmigen.sim import Passive
 
@@ -75,7 +76,7 @@ class SimSocPlatform(SocPlatform):
         def driver_coroutine():
             from naps import axil_read, axil_write
             conn, child_conn = Pipe()
-            p = Process(target=driver_process, args=(child_conn,))
+            p = Thread(target=driver_process, args=(child_conn,))
             p.start()
 
             while True:

@@ -5,11 +5,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.8
+          python-version: '3.10'
       - name: Install fpga-tools
         run: |
           curl -s https://api.github.com/repos/yosysHQ/fpga-toolchain/releases | grep "browser_download_url.*linux.*gz" | head -n1 | cut -d : -f 2,3 | tr -d "\"" | wget -qi - -O fpga_toolchain.tar.xz
@@ -31,13 +31,13 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
         with:
           fetch-depth: 0
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: '3.10'
       - name: Install deps
         run: |
           pip3 install twine setuptools-scm
@@ -68,11 +68,11 @@ jobs:
       doc_sha: ${{ steps.pages.outputs.dst_sha }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
       - name: Set up Python
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
-          python-version: 3.9
+          python-version: '3.10'
       - name: Install deps
         run: |
           pip3 install -e .[doc,test]

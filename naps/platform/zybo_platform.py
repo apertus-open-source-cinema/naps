@@ -1,10 +1,10 @@
 from amaranth.build import *
-from amaranth.vendor.xilinx_7series import *
+from amaranth.vendor.xilinx import XilinxPlatform
 
 __all__ = ["ZyboPlatform"]
 
 
-class ZyboPlatform(Xilinx7SeriesPlatform):
+class ZyboPlatform(XilinxPlatform):
     device = "xc7z010"
     package = "clg400"
     speed = "1"

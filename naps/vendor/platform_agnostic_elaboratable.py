@@ -6,7 +6,7 @@ from os.path import join, dirname, split
 from amaranth import *
 from amaranth.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
 from amaranth.vendor.lattice_ecp5 import LatticeECP5Platform
-from amaranth.vendor.xilinx_7series import Xilinx7SeriesPlatform
+from amaranth.vendor.xilinx import XilinxPlatform
 
 
 class ImplementationMarkerMetaclass(ABCMeta):
@@ -35,7 +35,7 @@ class PlatformAgnosticElaboratable(Elaboratable, metaclass=ImplementationMarkerM
         raise PrimitiveNotSupportedByPlatformError()
 
     def elaborate(self, platform):
-        if isinstance(platform, Xilinx7SeriesPlatform):
+        if isinstance(platform, XilinxPlatform):
             elaboratable = self._search_in_path("xilinx_s7")
         elif isinstance(platform, LatticeMachXO2Platform):
             elaboratable = self._search_in_path("lattice_machxo2")

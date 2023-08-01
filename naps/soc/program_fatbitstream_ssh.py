@@ -1,7 +1,7 @@
 from naps import naps_getenv
 import paramiko
 from paramiko import SSHClient
-from paramiko.py3compat import u
+from paramiko.util import u
 from pathlib import Path
 import socket
 import sys

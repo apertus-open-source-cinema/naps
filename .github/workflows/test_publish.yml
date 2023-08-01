@@ -11,11 +11,7 @@ jobs:
         with:
           python-version: '3.10'
       - name: Install fpga-tools
-        run: |
-          curl -s https://api.github.com/repos/yosysHQ/fpga-toolchain/releases | grep "browser_download_url.*linux.*gz" | head -n1 | cut -d : -f 2,3 | tr -d "\"" | wget -qi - -O fpga_toolchain.tar.xz
-          sudo mkdir -p /fpga-tools
-          sudo tar -C /fpga-tools --strip-components=1 -xf fpga_toolchain.tar.xz
-          echo "PATH=$PATH:/fpga-tools/bin" >> $GITHUB_ENV
+        uses: YosysHQ/setup-oss-cad-suite@v2
       - name: Install deps
         run: |
          pip3 install -e .[doc,test]

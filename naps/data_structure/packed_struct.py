@@ -98,4 +98,6 @@ def packed_struct(cls):
         last_index += bits
     cls._PACKED_LEN = last_index
 
-    return type(cls.__name__, (PackedStructBaseClass,), dict(cls.__dict__))
+    cls_dict = dict(cls.__dict__)
+    cls_dict.pop('__dict__', None)
+    return type(cls.__name__, (PackedStructBaseClass,), cls_dict)

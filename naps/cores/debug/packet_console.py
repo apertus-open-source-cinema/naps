@@ -1,8 +1,8 @@
 # cores for producing / receiving packets from the console
 
-from nmigen import *
-from nmigen.lib.cdc import FFSynchronizer
-from nmigen.utils import bits_for
+from amaranth import *
+from amaranth.lib.cdc import FFSynchronizer
+from amaranth.utils import bits_for
 
 from naps import PacketizedStream, ControlSignal, driver_method, StatusSignal, Changed
 from ..stream import StreamMemoryReader, StreamBuffer

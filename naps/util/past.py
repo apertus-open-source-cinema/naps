@@ -1,8 +1,8 @@
-# Workarounds for https://github.com/nmigen/nmigen/issues/372
+# Workarounds for https://github.com/amaranth-lang/amaranth/issues/372
 # (DomainRenamer and Sample do not work together)
 
-from nmigen import *
-from .nmigen_misc import delay_by
+from amaranth import *
+from .amaranth_misc import delay_by
 
 
 __all__ = ["Sample", "Rose", "Fell", "Changed", "NewHere"]

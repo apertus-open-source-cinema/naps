@@ -1,5 +1,5 @@
 from itertools import chain
-from nmigen import *
+from amaranth import *
 from naps import ControlSignal, nAbsDifference
 from . import ImageStream, RGB24, ImageConvoluter
 
@@ -55,7 +55,7 @@ if __name__ == "__main__":
     in_stream = ImageStream(len(RGB24()))
     dut = FocusPeeking(in_stream, width=512, height=512)
 
-    from nmigen.back.cxxrtl import convert
+    from amaranth.back.cxxrtl import convert
     from pathlib import Path
 
     cpp_path = (Path(__file__).parent / "focus_peeking_cxxrtl_test" / "focus_peeking_test.cpp")

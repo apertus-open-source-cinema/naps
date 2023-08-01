@@ -1,5 +1,5 @@
 from math import ceil
-from nmigen import *
+from amaranth import *
 
 from naps import iterator_with_if_elif
 from naps.soc import SocPlatform, MemoryMap, Peripheral, Response, driver_method

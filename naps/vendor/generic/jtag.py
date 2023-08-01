@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from ..platform_agnostic_elaboratable import PlatformAgnosticElaboratable
 
 __all__ = ["JTAG"]

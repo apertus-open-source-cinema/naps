@@ -8,8 +8,8 @@
 # 5. load the fatbitstream with `./pattern_test.zip --run`
 # 6. run `pattern = design.capture_pattern()` function at the prompt
 
-from nmigen import *
-from nmigen.lib.cdc import FFSynchronizer, PulseSynchronizer
+from amaranth import *
+from amaranth.lib.cdc import FFSynchronizer, PulseSynchronizer
 from naps import *
 
 class Stats(Elaboratable):

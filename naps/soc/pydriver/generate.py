@@ -4,8 +4,8 @@ from inspect import getsource
 from pathlib import Path
 from textwrap import indent, dedent
 
-from nmigen import Signal
-from nmigen.build import Platform
+from amaranth import Signal
+from amaranth.build import Platform
 
 from .driver_items import DriverMethod, DriverData
 from ..fatbitstream import FatbitstreamContext, File

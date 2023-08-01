@@ -1,5 +1,5 @@
 from enum import IntEnum
-from nmigen import unsigned
+from amaranth import unsigned
 from naps import packed_struct
 
 __all__ = ["DsiShortPacketDataType", "DsiLongPacketDataType", "DsiErrorResponse"]

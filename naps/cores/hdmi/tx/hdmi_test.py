@@ -1,5 +1,5 @@
 import unittest
-from nmigen.build import Clock
+from amaranth.build import Clock
 from naps import SimPlatform
 from .. import generate_modeline, parse_modeline
 from . import HdmiClocking, HdmiTimingGenerator

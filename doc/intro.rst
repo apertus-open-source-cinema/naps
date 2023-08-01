@@ -3,8 +3,8 @@ Introduction
 
 .. todo: find / write a good introduction for fpga design in general
 
-If you are not familiar with nMigen specifically or FPGA design in general, 
-I recommend to start reading the `nMigen documentation <https://nmigen.info/nmigen/latest/intro.html>`__. 
+If you are not familiar with Amaranth HDL specifically or FPGA design in general, 
+I recommend to start reading the `Amaranth HDL documentation <https://amaranth-lang.org/docs/amaranth/>`__. 
 
 Generally I think that image processing is a great way to get started with FPGA
 design and nMigen is especially a good start. Probably you will experience 

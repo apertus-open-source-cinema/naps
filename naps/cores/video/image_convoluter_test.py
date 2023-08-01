@@ -1,6 +1,6 @@
-from nmigen import *
+from amaranth import *
 import unittest
-from nmigen.sim import Passive
+from amaranth.sim import Passive
 from naps import ImageStream, write_to_stream, write_frame_to_stream, read_frame_from_stream, crop, SimPlatform
 from .image_convoluter import ImageProxy, ImageConvoluter
 

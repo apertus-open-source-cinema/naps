@@ -1,5 +1,5 @@
 import unittest
-from nmigen import *
+from amaranth import *
 from naps import SimPlatform, Process, process_delay, do_nothing
 
 

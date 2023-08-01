@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps.soc import ControlSignal, StatusSignal, devicetree_overlay
 
 __all__ = ["MmioGpio"]

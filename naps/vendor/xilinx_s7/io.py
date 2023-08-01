@@ -1,5 +1,5 @@
-from nmigen import *
-from nmigen import Elaboratable, Module, ClockSignal, ResetSignal, Cat
+from amaranth import *
+from amaranth import Elaboratable, Module, ClockSignal, ResetSignal, Cat
 from naps import ControlSignal, StatusSignal, is_signal_inverted
 from ..instance_helper import InstanceHelper
 

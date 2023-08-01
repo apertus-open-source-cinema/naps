@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 
 from naps import ControlSignal, stream_transformer
 from . import ImageStream

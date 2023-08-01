@@ -1,5 +1,5 @@
-from nmigen.build import *
-from nmigen_boards.te0714_03_50_2I import TE0714_03_50_2IPlatform
+from amaranth.build import *
+from amaranth_boards.te0714_03_50_2I import TE0714_03_50_2IPlatform
 
 __all__ = ["HdmiDigitizerPlatform"]
 

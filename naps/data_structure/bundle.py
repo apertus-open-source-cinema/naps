@@ -3,8 +3,8 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import TypeVar
 
-from nmigen import *
-from nmigen import tracer
+from amaranth import *
+from amaranth import tracer
 
 from naps.util.python_misc import camel_to_snake
 
@@ -28,7 +28,7 @@ class Bundle:
             self._directions[key] = Direction.DOWNWARDS
 
         if hasattr(value, "name") and isinstance(value.name, str):
-            if value.name.startswith("$"):  # with @UPWARDS and @DOWNWARDS we are breaking nmigens tracer
+            if value.name.startswith("$"):  # with @UPWARDS and @DOWNWARDS we are breaking amaranths tracer
                 value.name = key
             value.name = format("{}__{}".format(self.name, value.name))
 

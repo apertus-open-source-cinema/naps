@@ -1,6 +1,6 @@
 from itertools import product
-from nmigen import *
-from nmigen.build import Clock
+from amaranth import *
+from amaranth.build import Clock
 from naps import ControlSignal, StatusSignal, max_error_freq
 from naps.cores import RGB24
 from naps.vendor.xilinx_s7 import Mmcm, OSerdes10, PS7

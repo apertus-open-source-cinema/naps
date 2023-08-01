@@ -2,7 +2,7 @@ import re
 import subprocess
 from typing import Dict
 
-from nmigen.back import rtlil
+from amaranth.back import rtlil
 
 
 def get_module_sizes(module, *args, **kwargs):

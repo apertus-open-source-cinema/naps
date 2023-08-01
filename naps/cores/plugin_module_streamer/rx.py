@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import BasicStream, StatusSignal, ControlSignal, driver_method
 from naps.cores import InflexibleSourceDebug
 from naps.vendor.lattice_machxo2 import ISerdes8, Pll, EClkSync, ClkDiv

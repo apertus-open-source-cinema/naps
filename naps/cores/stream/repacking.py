@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import BasicStream, stream_transformer
 
 __all__ = ["Repack12BitStream"]

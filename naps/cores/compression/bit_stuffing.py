@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import PacketizedStream, DOWNWARDS
 
 __all__ = ["VariableWidthStream", "BitStuffer"]

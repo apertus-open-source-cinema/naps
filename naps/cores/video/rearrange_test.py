@@ -1,8 +1,8 @@
 import unittest
 from os.path import join, dirname
 import imageio
-from nmigen import *
-from nmigen.sim import Passive
+from amaranth import *
+from amaranth.sim import Passive
 from naps import SimPlatform, ImageStream, write_frame_to_stream, read_frame_from_stream, write_to_stream, do_nothing
 from naps.cores.video.rearrange import ImageSplitter2
 

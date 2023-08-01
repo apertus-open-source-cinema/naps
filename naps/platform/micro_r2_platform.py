@@ -1,5 +1,5 @@
-from nmigen.build import Resource, Subsignal, Pins, DiffPairs, Connector, Attrs, PinsN, DiffPairsN
-from nmigen_boards.zturn_lite_z010 import ZTurnLiteZ010Platform
+from amaranth.build import Resource, Subsignal, Pins, DiffPairs, Connector, Attrs, PinsN, DiffPairsN
+from amaranth_boards.zturn_lite_z010 import ZTurnLiteZ010Platform
 from .plugins.plugin_connector import add_plugin_connector
 
 __all__ = ["MicroR2Platform"]

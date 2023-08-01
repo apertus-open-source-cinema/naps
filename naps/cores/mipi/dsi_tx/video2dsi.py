@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 
 from naps import PacketizedStream, process_write_to_stream, ControlSignal, Process, StatusSignal
 from naps.cores import ImageStream, StreamGearbox, probe, fsm_probe, trigger, fsm_status_reg, StreamInfo

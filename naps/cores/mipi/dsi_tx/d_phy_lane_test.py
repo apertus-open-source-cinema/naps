@@ -1,7 +1,7 @@
 import unittest
 
-from nmigen import *
-from nmigen.sim import Passive
+from amaranth import *
+from amaranth.sim import Passive
 
 from naps import TristateIo, SimPlatform, write_packet_to_stream, read_packet_from_stream, TristateDdrIo, SimDdr, do_nothing
 from .d_phy_lane import DPhyDataLane

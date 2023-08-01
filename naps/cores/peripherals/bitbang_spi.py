@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 
 from naps.cores.peripherals.mmio_gpio import MmioGpio
 from naps.soc.devicetree_overlay import devicetree_overlay

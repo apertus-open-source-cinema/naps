@@ -1,7 +1,7 @@
 import lzma
 import unittest
 from os.path import dirname, join
-from nmigen import Signal
+from amaranth import Signal
 from naps import SimPlatform
 from .hispi_rx import LaneManager
 

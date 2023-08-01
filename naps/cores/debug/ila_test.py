@@ -1,6 +1,6 @@
 import unittest
 
-from nmigen import *
+from amaranth import *
 from naps import SimPlatform, do_nothing, SimSocPlatform, StatusSignal, probe, trigger, add_ila
 
 

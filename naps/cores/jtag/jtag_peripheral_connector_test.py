@@ -1,5 +1,5 @@
 import unittest
-from nmigen import *
+from amaranth import *
 from naps import Response, SimPlatform
 from naps.vendor import JTAG
 from .jtag_peripheral_connector import JTAGPeripheralConnector

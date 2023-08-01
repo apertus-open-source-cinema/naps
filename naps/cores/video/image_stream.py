@@ -1,4 +1,4 @@
-from nmigen import Signal
+from amaranth import Signal
 from naps import BasicStream, DOWNWARDS
 
 __all__ = ["ImageStream"]

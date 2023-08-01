@@ -1,5 +1,5 @@
 from pprint import pprint
-from nmigen import *
+from amaranth import *
 from naps import StatusSignal
 
 __all__ = ["Pll", "EClkSync", "ClkDiv", "Osc"]

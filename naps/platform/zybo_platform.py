@@ -1,5 +1,5 @@
-from nmigen.build import *
-from nmigen.vendor.xilinx_7series import *
+from amaranth.build import *
+from amaranth.vendor.xilinx_7series import *
 
 __all__ = ["ZyboPlatform"]
 

@@ -5,7 +5,7 @@ from dataclasses import dataclass
 from math import ceil
 from typing import List
 
-from nmigen._unused import MustUse
+from amaranth._unused import MustUse
 
 from .pydriver.driver_items import DriverItem
 

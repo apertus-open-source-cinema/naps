@@ -1,5 +1,5 @@
-from nmigen import *
-from nmigen.hdl.ast import Cover, Assume, Initial, Assert
+from amaranth import *
+from amaranth.hdl.ast import Cover, Assume, Initial, Assert
 
 from .stream import Stream
 from naps.util.formal import assert_formal

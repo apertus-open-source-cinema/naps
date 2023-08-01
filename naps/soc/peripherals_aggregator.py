@@ -1,5 +1,5 @@
 from .peripheral import Response
-from naps.util.nmigen_misc import iterator_with_if_elif
+from naps.util.amaranth_misc import iterator_with_if_elif
 
 __all__ = ["PeripheralsAggregator"]
 

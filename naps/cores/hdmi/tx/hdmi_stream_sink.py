@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 
 from naps import ControlSignal, StatusSignal
 from naps.cores import InflexibleSinkDebug, StreamInfo, ImageStream, RGB24

@@ -9,7 +9,7 @@
 # 6. run the `design.train()` function at the prompt
 # 7. if everything worked, you will see "working channel mask: 0xFFFFFFFF"
 
-from nmigen import *
+from amaranth import *
 from naps import *
 
 class Top(Elaboratable):

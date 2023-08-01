@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from ..generic.jtag import JTAG as GenericJTAG
 
 
@@ -11,7 +11,7 @@ class JTAG(GenericJTAG.implementation):
         cd = ClockDomain(self.jtag_domain)
         m.domains += cd
         clock_signal = Signal()
-        m.d.comb += cd.clk.eq(~clock_signal)  # we do this to avoid using a negedge clockdomain (see: https://github.com/nmigen/nmigen/issues/611)
+        m.d.comb += cd.clk.eq(~clock_signal)  # we do this to avoid using a negedge clockdomain (see: https://github.com/amaranth-lang/amaranth/issues/611)
         platform.add_clock_constraint(clock_signal, 1e6)
 
         shift = Signal()  # for some reason we also have to delay shift

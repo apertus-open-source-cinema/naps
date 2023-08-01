@@ -1,9 +1,9 @@
 from abc import ABC
 from textwrap import dedent
 
-from nmigen.build import *
-from nmigen.vendor.lattice_ecp5 import *
-from nmigen_boards.resources import *
+from amaranth.build import *
+from amaranth.vendor.lattice_ecp5 import *
+from amaranth_boards.resources import *
 
 
 __all__ = ['Colorlight5a75b70Platform']

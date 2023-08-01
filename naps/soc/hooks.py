@@ -1,8 +1,8 @@
 from functools import reduce
 from textwrap import indent
 
-from nmigen import *
-from nmigen.hdl.ast import SignalSet
+from amaranth import *
+from amaranth.hdl.ast import SignalSet
 
 from .csr_types import _Csr, ControlSignal, StatusSignal, EventReg
 from .memorymap import MemoryMap

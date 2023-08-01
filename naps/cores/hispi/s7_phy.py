@@ -1,5 +1,5 @@
-from nmigen import *
-from nmigen.lib.cdc import FFSynchronizer
+from amaranth import *
+from amaranth.lib.cdc import FFSynchronizer
 
 from naps import StatusSignal, ControlSignal, iterator_with_if_elif
 from naps.vendor.xilinx_s7 import Mmcm

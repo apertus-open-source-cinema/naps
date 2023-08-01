@@ -1,6 +1,6 @@
 from functools import reduce
 
-from nmigen import *
+from amaranth import *
 from naps import packed_struct
 
 __all__ = ["DataIdentifier", "calculate_ecc", "PacketHeader"]

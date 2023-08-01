@@ -8,8 +8,8 @@ from shutil import rmtree
 from textwrap import indent
 from datetime import timedelta
 
-from nmigen import Fragment
-from nmigen.build.run import LocalBuildProducts, BuildPlan
+from amaranth import Fragment
+from amaranth.build.run import LocalBuildProducts, BuildPlan
 
 __all__ = ["cli"]
 

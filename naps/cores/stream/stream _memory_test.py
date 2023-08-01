@@ -1,7 +1,7 @@
 import unittest
 
-from nmigen import *
-from nmigen.sim import Passive
+from amaranth import *
+from amaranth.sim import Passive
 
 from naps import SimPlatform, PacketizedStream, write_to_stream, read_from_stream, verify_stream_output_contract, LegalStreamSource
 from naps.cores.stream.stream_memory import StreamMemoryReader

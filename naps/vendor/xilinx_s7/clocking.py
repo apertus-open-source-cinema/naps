@@ -1,5 +1,5 @@
-from nmigen import *
-from nmigen.build import Clock
+from amaranth import *
+from amaranth.build import Clock
 from naps import SocPlatform, StatusSignal
 from naps.cores import DrpBridge, DrpInterface
 from naps.util import decimal_range

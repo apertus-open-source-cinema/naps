@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps.stream import BasicStream, stream_transformer
 
 __all__ = ["StreamBuffer"]

@@ -1,7 +1,7 @@
 from functools import lru_cache
 from json import loads
 
-from nmigen._toolchain.yosys import find_yosys
+from amaranth._toolchain.yosys import find_yosys
 
 
 @lru_cache()

@@ -1,6 +1,6 @@
 from math import floor
 from pprint import pprint
-from nmigen import *
+from amaranth import *
 from naps import StatusSignal, ControlSignal, driver_method
 
 __all__ = ["Pll", "EclkSyncB", "ClkDivF"]

@@ -1,5 +1,5 @@
-from nmigen import *
-from nmigen._unused import MustUse
+from amaranth import *
+from amaranth._unused import MustUse
 
 from naps.soc.memorymap import Address
 from naps.soc.peripheral import Response

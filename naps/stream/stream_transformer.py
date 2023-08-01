@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps.stream import BasicStream
 
 __all__ = ["stream_transformer"]
@@ -16,7 +16,7 @@ def stream_transformer(input_stream: BasicStream, output_stream: BasicStream, m:
     @param allow_partial_out_of_band: allow the out of band signals of the streams to differ
     @param input_stream: the input stream
     @param output_stream: the output stream
-    @param m: a nmigen Module
+    @param m: an amaranth HDL Module
     @param latency: the latency of the transform data path in cycles
     """
     if latency == 0:

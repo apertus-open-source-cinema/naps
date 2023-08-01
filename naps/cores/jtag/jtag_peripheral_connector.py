@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps.vendor import JTAG
 
 __all__ = ["JTAGPeripheralConnector"]

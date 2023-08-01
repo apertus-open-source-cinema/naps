@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps.cores.video import ImageStream
 from .. import PacketHeader
 from .aligner import CsiWordAligner

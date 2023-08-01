@@ -1,7 +1,7 @@
 # The PluginModuleStreamer{Sink,Source} tuple allows us to stream data from the main camera FPGA (Zynq) to some
 # plugin module FPGA (i.e. the usb3 plugin module machxo2)
 
-from nmigen import *
+from amaranth import *
 from naps import BasicStream, ControlSignal
 from naps.cores import InflexibleSinkDebug
 from naps.vendor.xilinx_s7 import DDRSerializer

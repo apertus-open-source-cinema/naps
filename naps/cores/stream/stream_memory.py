@@ -1,5 +1,5 @@
-from nmigen import *
-from nmigen.utils import bits_for
+from amaranth import *
+from amaranth.utils import bits_for
 
 from naps import BasicStream, stream_transformer
 

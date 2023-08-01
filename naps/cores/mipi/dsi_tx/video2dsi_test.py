@@ -1,5 +1,5 @@
 import unittest
-from nmigen import *
+from amaranth import *
 from naps import SimPlatform, read_packet_from_stream, GradientDemoVideoSource, DsiPhy, TristateIo, TristateDdrIo, do_nothing
 from .video2dsi import ImageStream2Dsi
 from .types import DsiShortPacketDataType, DsiLongPacketDataType

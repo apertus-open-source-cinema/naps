@@ -1,7 +1,7 @@
-from nmigen import *
-from nmigen.lib.cdc import FFSynchronizer
+from amaranth import *
+from amaranth.lib.cdc import FFSynchronizer
 from naps import BasicStream
-from ...util.nmigen_misc import fake_differential
+from ...util.amaranth_misc import fake_differential
 from ..stream import BufferedAsyncStreamFIFO
 
 __all__ = ["Serializer"]

@@ -20,7 +20,7 @@ jobs:
         pip3 install -e .[test]
     - name: build
       env:
-        NMIGEN_USE_YOSYS: system
+        AMARANTH_USE_YOSYS: system
         YOSYS: yowasp-yosys
       run:
         python3 ${{ matrix.applet }}

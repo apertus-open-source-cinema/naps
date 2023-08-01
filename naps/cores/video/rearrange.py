@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import nAny, iterator_with_if_elif, StatusSignal
 from . import ImageStream
 

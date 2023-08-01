@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import Stream, StatusSignal, driver_property
 
 __all__ = ["StreamInfo", "InflexibleSinkDebug", "InflexibleSourceDebug"]

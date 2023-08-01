@@ -1,5 +1,5 @@
 from math import ceil
-from nmigen import *
+from amaranth import *
 from naps import BasicStream, PacketizedStream, ControlSignal, StatusSignal
 
 __all__ = ['Ft60xLegalizer']

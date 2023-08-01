@@ -1,8 +1,8 @@
 import sys
 from math import ceil
-from nmigen import *
-from nmigen.hdl.dsl import FSM
-from nmigen.lib.cdc import FFSynchronizer
+from amaranth import *
+from amaranth.hdl.dsl import FSM
+from amaranth.lib.cdc import FFSynchronizer
 
 from naps import StatusSignal, ControlSignal, driver_method, Changed, SocPlatform
 from ..peripherals import SocMemory

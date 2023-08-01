@@ -1,7 +1,7 @@
 import unittest
 import random
-from nmigen import *
-from nmigen.hdl.ast import Assert, Initial, Assume
+from amaranth import *
+from amaranth.hdl.ast import Assert, Initial, Assume
 from naps import SimPlatform, PacketizedStream, BasicStream, assert_formal, write_packet_to_stream, read_packet_from_stream, BufferedSyncStreamFIFO
 from naps.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from . import LastWrapper, GenericMetadataWrapper

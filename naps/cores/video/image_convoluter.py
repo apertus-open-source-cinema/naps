@@ -1,6 +1,6 @@
 from typing import Tuple
-from nmigen import *
-from nmigen.hdl.ast import Operator
+from amaranth import *
+from amaranth.hdl.ast import Operator
 from naps import StatusSignal
 from . import ImageStream
 

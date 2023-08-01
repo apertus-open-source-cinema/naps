@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import StatusSignal, BasicStream, PacketizedStream
 from naps.cores import StreamInfo, BufferedSyncStreamFIFO, StreamTee
 from .axi_endpoint import AxiAddressStream, AxiDataStream, AxiResponse

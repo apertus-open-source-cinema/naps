@@ -1,6 +1,6 @@
 # Pass through gateware to program the usb3 plugin module on the Beta
 # basically a nMigen adaption of http://vserver.13thfloor.at/Stuff/AXIOM/BETA/pass_jtag/
-from nmigen import *
+from amaranth import *
 from naps import *
 
 

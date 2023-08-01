@@ -1,6 +1,6 @@
 # an experiment to test highspeed connectors for data integrity
-from nmigen import *
-from nmigen.build import Resource, Subsignal, DiffPairs, Attrs
+from amaranth import *
+from amaranth.build import Resource, Subsignal, DiffPairs, Attrs
 from naps import *
 from naps.vendor.xilinx_s7.clocking import _Pll, BufG
 from naps.vendor.xilinx_s7.io import _OSerdes, _IDelayCtrl, _IDelay, _ISerdes

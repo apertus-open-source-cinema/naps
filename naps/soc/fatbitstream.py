@@ -7,7 +7,7 @@ from zipfile import ZipFile, ZIP_DEFLATED
 
 __all__ = ["FatbitstreamContext", "File", "CommandPosition"]
 
-from nmigen.build.run import BuildProducts
+from amaranth.build.run import BuildProducts
 
 
 class CommandPosition(Enum):

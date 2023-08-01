@@ -1,5 +1,5 @@
 import unittest
-from nmigen.sim import Passive
+from amaranth.sim import Passive
 from naps import SimPlatform, BasicStream, write_to_stream, read_from_stream
 from naps.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from naps.cores.axi import AxiEndpoint, answer_read_burst

@@ -10,7 +10,7 @@
 # 7. `exit()` and check pattern.bin
 
 import os
-from nmigen import *
+from amaranth import *
 from naps import *
 
 class Top(Elaboratable):
@@ -21,7 +21,7 @@ class Top(Elaboratable):
     def elaborate(self, platform: BetaPlatform):
         # avoid complaining about timing of StatusSignals by marking them as false paths
         # TODO: find more idiomatic way to do this
-        os.environ["NMIGEN_add_constraints"] = \
+        os.environ["AMARANTH_add_constraints"] = \
             "set_false_path -from [get_clocks *] -to [get_clocks axi_lite_driving_signal]"
 
         m = Module()

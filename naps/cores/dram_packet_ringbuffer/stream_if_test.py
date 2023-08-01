@@ -1,5 +1,5 @@
 import unittest
-from nmigen import *
+from amaranth import *
 from naps import SimPlatform
 from naps.cores.axi import axi_ram_sim_model
 from naps.stream import PacketizedStream, write_packet_to_stream, read_packet_from_stream

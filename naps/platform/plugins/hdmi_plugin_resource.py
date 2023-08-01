@@ -1,7 +1,7 @@
 # the 1x hdmi plugin module
 # see: https://wiki.apertus.org/index.php/Beta_HDMI_Plugin_Module
 
-from nmigen.build import Resource, Subsignal, Pins, PinsN, Attrs
+from amaranth.build import Resource, Subsignal, Pins, PinsN, Attrs
 from .plugin_connector import PluginDiffPair
 
 __all__ = ["hdmi_plugin_connect"]

@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import BasicStream, DOWNWARDS
 from . import StreamInfo
 

@@ -1,7 +1,7 @@
 import unittest
 from collections import defaultdict
 from bitarray import bitarray
-from nmigen import *
+from amaranth import *
 from naps import SimPlatform, PacketizedStream, write_to_stream, read_from_stream, LegalStreamSource, verify_stream_output_contract
 from .bit_stuffing import BitStuffer
 from .huffman_encoder import HuffmanEncoder

@@ -1,6 +1,6 @@
 # Provides a linux framebuffer via HDMI
 
-from nmigen import *
+from amaranth import *
 from naps import *
 
 

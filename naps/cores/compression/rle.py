@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps.stream import PacketizedStream
 from .encoding_space import EncodingSpace
 

@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import StatusSignal, ControlSignal
 from naps.cores import StreamCombiner, StreamInfo, InflexibleSourceDebug, ImageStream
 from naps.util import delay_by, ends_with

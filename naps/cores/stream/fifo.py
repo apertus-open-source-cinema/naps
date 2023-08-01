@@ -1,5 +1,5 @@
-from nmigen import *
-from nmigen.lib.fifo import SyncFIFOBuffered, SyncFIFO, AsyncFIFOBuffered, AsyncFIFO
+from amaranth import *
+from amaranth.lib.fifo import SyncFIFOBuffered, SyncFIFO, AsyncFIFOBuffered, AsyncFIFO
 from naps import Stream, StatusSignal
 
 __all__ = ["BufferedAsyncStreamFIFO", "UnbufferedAsyncStreamFIFO", "BufferedSyncStreamFIFO", "UnbufferedSyncStreamFIFO"]

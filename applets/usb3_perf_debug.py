@@ -1,5 +1,5 @@
 # An experiment that allows debugging / diagnosing performance of the FT601 USB3 FIFO ic
-from nmigen import *
+from amaranth import *
 from naps import *
 
 

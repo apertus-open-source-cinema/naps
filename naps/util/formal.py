@@ -3,9 +3,9 @@ import subprocess
 import textwrap
 from pathlib import Path
 
-from nmigen import Fragment
-from nmigen._toolchain import require_tool
-from nmigen.back import rtlil
+from amaranth import Fragment
+from amaranth._toolchain import require_tool
+from amaranth.back import rtlil
 from shutil import rmtree
 
 __all__ = ["assert_formal", "FormalPlatform"]
@@ -39,8 +39,8 @@ def assert_formal(spec, mode="bmc", depth=1):
         rmtree(target_dir / filename)
 
     if mode == "hybrid":
-        # A mix of BMC and k-induction, as per personal communication with Claire Wolf.
-        script = "setattr -unset init w:* a:nmigen.sample_reg %d"
+        # A mix of BMC and k-induction, as per personal communication by the person we coppied the code from with Claire Wolf.
+        script = "setattr -unset init w:* a:amaranth.sample_reg %d"
         mode = "bmc"
     else:
         script = ""

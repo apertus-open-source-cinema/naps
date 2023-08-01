@@ -1,7 +1,7 @@
 from enum import Enum
 from typing import Callable
 
-from nmigen import *
+from amaranth import *
 
 from .memorymap import MemoryMap
 

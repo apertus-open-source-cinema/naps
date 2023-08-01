@@ -3,9 +3,9 @@ from functools import reduce
 from itertools import count
 from typing import Iterator, Iterable
 
-from nmigen import *
-from nmigen import Mux
-from nmigen.build import ResourceError
+from amaranth import *
+from amaranth import Mux
+from amaranth.build import ResourceError
 
 __all__ = ["iterator_with_if_elif", "assert_is_pot", "log2", "nMin", "nMax", "nAny", "nAll",
            "max_error_freq", "delay_by", "ends_with", "connect_leds", "with_reset", "nAvrg",

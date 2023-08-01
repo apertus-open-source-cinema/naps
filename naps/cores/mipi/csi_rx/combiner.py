@@ -1,6 +1,6 @@
 from typing import List
-from nmigen import *
-from nmigen.lib.io import Pin
+from amaranth import *
+from amaranth.lib.io import Pin
 from naps import PacketizedFirstStream, nAny, nAll
 from naps.cores import StreamGearbox
 

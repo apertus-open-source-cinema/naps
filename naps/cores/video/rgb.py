@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import packed_struct
 
 __all__ = ["RGB24", "RGB565"]

@@ -1,6 +1,6 @@
 # reports the clock frequencies of the design using csr infrastructure
 
-from nmigen import *
+from amaranth import *
 from naps import StatusSignal, driver_property
 
 __all__ = ["ClockingDebug", "ClockDebug"]

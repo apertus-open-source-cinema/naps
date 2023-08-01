@@ -1,6 +1,6 @@
 # An experiment that allows to flash the USB3 plugin module via JTAG on the micro via bitbanging and
 # MMIO GPIO.
-from nmigen import *
+from amaranth import *
 from naps import *
 from naps.vendor.xilinx_s7 import Pll
 

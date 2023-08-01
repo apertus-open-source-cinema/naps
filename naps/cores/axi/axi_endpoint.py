@@ -1,7 +1,7 @@
 import math
 from enum import Enum
 
-from nmigen import *
+from amaranth import *
 
 from naps.stream import BasicStream, Stream
 from naps.data_structure import packed_struct, Bundle, UPWARDS, DOWNWARDS

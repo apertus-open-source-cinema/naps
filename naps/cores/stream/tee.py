@@ -1,6 +1,6 @@
 from collections import defaultdict
 from typing import List
-from nmigen import *
+from amaranth import *
 from naps import Stream, DOWNWARDS, nAll, BasicStream
 from . import StreamBuffer
 

@@ -1,8 +1,8 @@
 # An experiment that allows to capture the raw mipi data with 1:8 serdes to feed into the
 # simulation tests
 
-from nmigen import *
-from nmigen.build import Subsignal, Pins, PinsN, Attrs, DiffPairs, Resource
+from amaranth import *
+from amaranth.build import Subsignal, Pins, PinsN, Attrs, DiffPairs, Resource
 from naps import *
 from naps.vendor.xilinx_s7 import IDelayCtrl
 

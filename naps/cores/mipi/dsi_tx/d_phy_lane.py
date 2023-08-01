@@ -1,5 +1,5 @@
-from nmigen import *
-from nmigen.lib.cdc import FFSynchronizer
+from amaranth import *
+from amaranth.lib.cdc import FFSynchronizer
 
 from naps import StatusSignal, PacketizedStream, TristateIo, process_delay, process_block, Process, TristateDdrIo, process_write_to_stream, NewHere, fake_differential
 from naps.cores import StreamBuffer, Serializer, fsm_status_reg, fsm_probe

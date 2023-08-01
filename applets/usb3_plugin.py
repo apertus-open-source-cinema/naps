@@ -1,5 +1,5 @@
 # Experimental gateware for the usb3 plugin module
-from nmigen import *
+from amaranth import *
 from naps import *
 
 

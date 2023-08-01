@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import ImageStream, DOWNWARDS, BufferedSyncStreamFIFO
 from naps.cores.video import ImageSplitter, ImageCombiner, BlackLineGenerator, ImageConvoluter
 

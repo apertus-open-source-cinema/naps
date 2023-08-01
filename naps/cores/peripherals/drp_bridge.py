@@ -1,6 +1,6 @@
 # TODO: add tests
 
-from nmigen import *
+from amaranth import *
 from naps.soc import SocPlatform, Response
 
 

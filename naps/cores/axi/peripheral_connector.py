@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 
 from .axi_endpoint import AxiResponse as AxiResponse, AxiEndpoint
 from naps.soc.peripheral import Response as BusSlaveResponse, Peripheral

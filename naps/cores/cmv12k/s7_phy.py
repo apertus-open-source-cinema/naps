@@ -1,5 +1,5 @@
-from nmigen import *
-from nmigen.lib.cdc import PulseSynchronizer
+from amaranth import *
+from amaranth.lib.cdc import PulseSynchronizer
 
 from naps import PulseReg, StatusSignal, ControlSignal, driver_method
 from naps.vendor.xilinx_s7 import Mmcm

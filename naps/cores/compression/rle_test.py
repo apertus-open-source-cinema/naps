@@ -1,5 +1,5 @@
 import unittest
-from nmigen import *
+from amaranth import *
 from naps import SimPlatform
 from naps.stream import PacketizedStream, verify_stream_output_contract, LegalStreamSource, write_to_stream, read_from_stream
 from . import ZeroRleEncoder, RleEncodingSpace

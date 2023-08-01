@@ -1,6 +1,6 @@
 import unittest
 
-from nmigen import *
+from amaranth import *
 
 from naps.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from naps import BasicStream

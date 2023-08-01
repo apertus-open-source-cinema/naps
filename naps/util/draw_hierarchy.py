@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 
 
 def _opposed_direction(dir):
@@ -9,7 +9,7 @@ def _dir_to_netlistsvg(dir):
     return { "i": "input", "o": "output", "io": "bidirectional" }[dir]
 
 
-def _beautify_nmigen_name(s):
+def _beautify_amaranth_name(s):
     return s.replace("__", "/")
 
 
@@ -21,7 +21,7 @@ def _hierarchy_to_dot_frag(frag: Fragment, hierarchy = ["top"], _bits = [0]):
 
         return bit
 
-    from nmigen.hdl import ir
+    from amaranth.hdl import ir
 
     cells = {}
 
@@ -45,7 +45,7 @@ def _hierarchy_to_dot_frag(frag: Fragment, hierarchy = ["top"], _bits = [0]):
         ports = {}
 
         for sig, dir in frag.ports.items():
-            name =_beautify_nmigen_name(sig.name)
+            name =_beautify_amaranth_name(sig.name)
             dir = _dir_to_netlistsvg(dir)
 
             ports[name] = {}
@@ -103,7 +103,7 @@ def _hierarchy_to_dot_frag(frag: Fragment, hierarchy = ["top"], _bits = [0]):
 
 
 def hierarchy_to_dot(e: Elaboratable, plat = None, **kwargs):
-    from nmigen.hdl import ir
+    from amaranth.hdl import ir
     frag = ir.Fragment.get(e, plat).prepare()
 
     cells, toplevel_ports = _hierarchy_to_dot_frag(frag)

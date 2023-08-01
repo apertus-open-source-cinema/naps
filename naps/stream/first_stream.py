@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from ..data_structure import DOWNWARDS
 from .stream import BasicStream
 

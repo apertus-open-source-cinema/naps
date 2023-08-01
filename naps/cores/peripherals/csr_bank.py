@@ -1,7 +1,7 @@
 # TODO: implement atomic access (and before think about it)
 
-from nmigen import *
-from nmigen import Signal
+from amaranth import *
+from amaranth import Signal
 from naps.soc import MemoryMap, Response, Peripheral
 from naps.soc.csr_types import StatusSignal, ControlSignal, EventReg, _Csr
 

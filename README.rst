@@ -1,13 +1,13 @@
-nMigen Apertus PackageS
-=======================
+naps - The Relaxed Amaranth Packages Collection
+=======================================================
 
-Building Blocks & Tools for FPGA Design with Python & `nMigen <https://github.com/nmigen/nmigen>`__.
+Building Blocks & Tools for FPGA Design with Python & `Amaranth HDL <https://github.com/amaranth-lang/amaranth>`__.
 Mostly a place to experiment and figure out how to build things.
 Also the incubator for the future AXIOM Beta camera gateware & the home of the current AXIOM micro gateware.
 
 This repo contains:
 
--  Prototypes of the upcoming nmigen data types ``PackedStruct`` and ``Interface`` (here called ``Bundle``) (in ``src/lib/data_structure/``)
+-  Prototypes of the upcoming Amaranth data types ``PackedStruct`` and ``Interface`` (here called ``Bundle``) (in ``src/lib/data_structure/``)
 -  A stream Abstraction with various building Blocks: (in ``src/lib/stream/``)
 
    -  FIFOs
@@ -15,7 +15,7 @@ This repo contains:
    -  Helpers for building other Stream cores
    -  Miscellaneous Debug and Inspection tools
 
--  various nMigen cores (in ``src/lib/``) for:
+-  various Amaranth cores (in ``src/lib/``) for:
 
    -  AXI and AXI Lite including a Buffer reader and Writer
    -  A CSR bank that can be wired to an AXI bus
@@ -27,7 +27,7 @@ This repo contains:
 
 -  tools for gluing together SOCs (currently supports the Xilinx Zynq and JTAG based plattoforms) in ``src/soc/``
 
-   -  Making heavy use of nMigen Platform abstractions (wrapping existing plattforms)
+   -  Making heavy use of Amaranth HDL Platform abstractions (wrapping existing plattforms)
    -  Provides a bus agnostic way to describe (low speed) peripherals
    -  Emits Python code that can be used to access the designs CSRs (“pydriver”)
    -  Generate devicetree overlays for loading linux device drivers
@@ -41,3 +41,8 @@ This repo contains:
    -  AXIOM micro camera gateware (wip)
    -  test gateware to test connectors for their ability to transmit high speed data (via a loopback test)
    -  test gateware for the axi writer & reader
+
+Installation
+------------
+
+Installing 

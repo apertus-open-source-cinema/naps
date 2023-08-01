@@ -1,7 +1,7 @@
 import random
 import unittest
-from nmigen import *
-from nmigen.sim import Passive
+from amaranth import *
+from amaranth.sim import Passive
 from naps import SimPlatform, do_nothing, BasicStream, PacketizedStream, read_from_stream, write_to_stream
 from naps.stream import LegalStreamSource, verify_stream_output_contract
 from naps.cores import BufferedSyncStreamFIFO, StreamTee, StreamGearbox, SimpleStreamGearbox

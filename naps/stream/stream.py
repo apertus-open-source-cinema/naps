@@ -1,6 +1,6 @@
 import copy
 from collections import OrderedDict
-from nmigen import *
+from amaranth import *
 from naps import Bundle, UPWARDS, DOWNWARDS
 
 __all__ = ["Stream", "BasicStream", "PacketizedStream"]

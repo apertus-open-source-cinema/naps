@@ -2,7 +2,7 @@
 # (not the platform definition for building gateware for the fpga _on_ the plugin module itself)
 # see: https://wiki.apertus.org/index.php/1x_USB_3.0_Plugin_Module
 
-from nmigen.build import *
+from amaranth.build import *
 from .plugin_connector import PluginDiffPair
 
 __all__ = ["usb3_plugin_connect"]

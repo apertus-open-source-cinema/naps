@@ -1,6 +1,6 @@
 from typing import List
-from nmigen import *
-from naps.util.nmigen_misc import iterator_with_if_elif, nAny
+from amaranth import *
+from naps.util.amaranth_misc import iterator_with_if_elif, nAny
 from . import AxiEndpoint
 
 __all__ = ["AxiInterconnect"]

@@ -1,6 +1,6 @@
 # generates MIPI DSI packets in software that can then be send out
 
-from nmigen import *
+from amaranth import *
 from naps import resolve
 from naps.cores.hdmi import parse_modeline, generate_modeline
 from naps.cores.mipi.dsi_tx import DsiShortPacketDataType, DsiLongPacketDataType

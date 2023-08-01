@@ -1,7 +1,7 @@
 from collections import defaultdict
 from typing import Dict
 
-from nmigen.sim import Passive
+from amaranth.sim import Passive
 from naps import SimPlatform, write_to_stream, read_from_stream
 from .axi_endpoint import AxiEndpoint, AxiResponse, AxiBurstType
 

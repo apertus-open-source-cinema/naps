@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 
 from ..tmds import tmds_control_tokens
 

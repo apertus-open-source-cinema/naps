@@ -3,10 +3,10 @@ from glob import glob
 from importlib import import_module
 from os.path import join, dirname, split
 
-from nmigen import *
-from nmigen.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
-from nmigen.vendor.lattice_ecp5 import LatticeECP5Platform
-from nmigen.vendor.xilinx_7series import Xilinx7SeriesPlatform
+from amaranth import *
+from amaranth.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
+from amaranth.vendor.lattice_ecp5 import LatticeECP5Platform
+from amaranth.vendor.xilinx_7series import Xilinx7SeriesPlatform
 
 
 class ImplementationMarkerMetaclass(ABCMeta):

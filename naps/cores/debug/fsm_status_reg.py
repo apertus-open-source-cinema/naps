@@ -1,7 +1,7 @@
 from enum import Enum
 
-from nmigen import *
-from nmigen.hdl.dsl import FSM
+from amaranth import *
+from amaranth.hdl.dsl import FSM
 
 from naps import StatusSignal, SocPlatform
 

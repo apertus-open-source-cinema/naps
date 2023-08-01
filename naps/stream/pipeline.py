@@ -1,6 +1,6 @@
 from itertools import count
 
-from nmigen import *
+from amaranth import *
 from naps.util.python_misc import camel_to_snake
 
 __all__ = ["Pipeline"]

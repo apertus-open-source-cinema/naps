@@ -1,6 +1,6 @@
 # An experiment that glues everything together and tries to get a full sensor -> usb3 flow working on the micro
 import os
-from nmigen import *
+from amaranth import *
 from naps import *
 from naps.vendor.xilinx_s7 import Pll
 
@@ -42,7 +42,7 @@ class Top(Elaboratable):
         m.d.comb += sensor.clk.eq(ClockSignal("sensor_clk"))
         m.d.comb += sensor.reset.eq(~self.sensor_reset_n)
         # TODO: find more idiomatic way to do this
-        os.environ["NMIGEN_add_constraints"] = \
+        os.environ["AMARANTH_add_constraints"] = \
             "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/input_hispi_rx_sensor_0__lvds_clk__i]"
 
         ip = Pipeline(m, prefix="input")

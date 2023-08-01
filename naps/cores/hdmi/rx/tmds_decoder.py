@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import iterator_with_if_elif
 from ..tmds import tmds_control_tokens
 

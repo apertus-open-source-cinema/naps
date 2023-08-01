@@ -1,6 +1,6 @@
 from pathlib import Path
-from nmigen import Fragment, Module, ClockSignal, DomainRenamer
-from nmigen.build.run import BuildProducts
+from amaranth import Fragment, Module, ClockSignal, DomainRenamer
+from amaranth.build.run import BuildProducts
 
 from ... import *
 

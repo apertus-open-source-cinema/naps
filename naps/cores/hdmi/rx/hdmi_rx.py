@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 
 from naps import ImageStream, StreamGearbox, BufferedAsyncStreamFIFO, StatusSignal, ControlSignal, BasicStream, driver_method, driver_init, StreamBuffer, Rose
 from naps.cores import probe, trigger

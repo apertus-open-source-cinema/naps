@@ -1,5 +1,5 @@
 import unittest
-from nmigen import *
+from amaranth import *
 from naps import ZynqSocPlatform, SimPlatform
 from naps.cores.axi import axil_read
 from naps.cores.hdmi import generate_modeline, HdmiTx

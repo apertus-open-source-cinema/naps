@@ -1,8 +1,8 @@
 from types import MethodType
 
-from nmigen import *
-from nmigen.compat import Module as CompatModule
-from nmigen.hdl.xfrm import TransformedElaboratable
+from amaranth import *
+from amaranth.compat import Module as CompatModule
+from amaranth.hdl.xfrm import TransformedElaboratable
 
 
 class ElaboratableSames:

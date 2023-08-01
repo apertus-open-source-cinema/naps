@@ -1,5 +1,5 @@
-from nmigen import *
-from nmigen.hdl.ast import UserValue
+from amaranth import *
+from amaranth.hdl.ast import UserValue
 from naps.util import yosys
 
 

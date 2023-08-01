@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import driver_method
 from naps.cores.peripherals import BitbangSPI
 

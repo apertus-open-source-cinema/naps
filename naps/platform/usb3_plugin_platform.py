@@ -1,7 +1,7 @@
 from textwrap import dedent
 
-from nmigen.build import *
-from nmigen.vendor.lattice_machxo_2_3l import *
+from amaranth.build import *
+from amaranth.vendor.lattice_machxo_2_3l import *
 
 from naps import program_fatbitstream_ssh
 

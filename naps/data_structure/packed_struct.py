@@ -1,8 +1,8 @@
 from typing import get_type_hints
 
-from nmigen import *
-from nmigen import tracer
-from nmigen.hdl.ast import ValueCastable
+from amaranth import *
+from amaranth import tracer
+from amaranth.hdl.ast import ValueCastable
 
 from naps.util.python_misc import camel_to_snake
 

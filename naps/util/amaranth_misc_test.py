@@ -1,7 +1,7 @@
 import unittest
 
-from nmigen import *
-from .nmigen_misc import nMin, nAny, nAll, nMax, assert_is_pot, log2, ends_with, nAbsDifference
+from amaranth import *
+from .amaranth_misc import nMin, nAny, nAll, nMax, assert_is_pot, log2, ends_with, nAbsDifference
 from .sim import resolve
 
 

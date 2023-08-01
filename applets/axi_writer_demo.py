@@ -1,5 +1,5 @@
 # An experiment to that checks the functionality of the axi writer
-from nmigen import *
+from amaranth import *
 from naps import *
 
 

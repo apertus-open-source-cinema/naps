@@ -1,5 +1,5 @@
 import huffman
-from nmigen import *
+from amaranth import *
 from naps import PacketizedStream, stream_transformer
 from . import VariableWidthStream
 

@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import PacketizedStream, ImageStream, VariableWidthStream
 from naps.cores import BitStuffer, HuffmanEncoder, ZeroRleEncoder, ImageStream2PacketizedStream
 from .wavelet import MultiStageWavelet2D

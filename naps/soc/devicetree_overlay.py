@@ -1,7 +1,7 @@
 # utility functions for generating and loading devicetree overlays
 from textwrap import dedent, indent
 
-from nmigen import Fragment
+from amaranth import Fragment
 from . import FatbitstreamContext, CommandPosition
 
 __all__ = ["devicetree_overlay"]

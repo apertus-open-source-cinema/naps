@@ -1,6 +1,6 @@
 import unittest
 
-from nmigen import *
+from amaranth import *
 
 from naps import SimPlatform, verify_stream_output_contract, do_nothing, SimSocPlatform
 from naps.cores.debug.packet_console import ConsolePacketSource, ConsolePacketSink

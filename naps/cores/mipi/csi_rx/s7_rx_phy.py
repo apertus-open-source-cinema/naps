@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import ControlSignal
 from naps.vendor.xilinx_s7 import BufIO, ClockDivider, IDelay, DDRDeserializer
 

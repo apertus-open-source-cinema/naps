@@ -1,5 +1,5 @@
 import unittest
-from nmigen import *
+from amaranth import *
 from .packed_struct import packed_struct
 
 
@@ -11,7 +11,7 @@ class DummyStruct:
 
 
 class PackedStructTest(unittest.TestCase):
-    def test_non_nmigen(self):
+    def test_plain_python(self):
         ts = DummyStruct(0b0101)
         assert ts.a == 1
         assert ts.b == 0

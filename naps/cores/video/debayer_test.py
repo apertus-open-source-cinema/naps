@@ -1,8 +1,8 @@
 import unittest
 from os.path import join, dirname
 import imageio
-from nmigen import *
-from nmigen.sim import Passive
+from amaranth import *
+from amaranth.sim import Passive
 from naps import SimPlatform
 from naps.stream import write_to_stream
 from naps.cores.video import ImageStream, RecoloringDebayerer, SimpleInterpolatingDebayerer, write_frame_to_stream, read_frame_from_stream, to_8bit_rgb, crop

@@ -1,6 +1,6 @@
 import unittest
 import random
-from nmigen import *
+from amaranth import *
 from naps import SimPlatform
 from naps.cores.hdmi.tx.tmds_encoder import TmdsEncoder
 from naps.cores.hdmi.rx.tmds_decoder import TmdsDecoder

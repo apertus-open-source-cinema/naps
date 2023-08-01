@@ -2,10 +2,10 @@ import inspect
 from os.path import join, dirname
 from pathlib import Path
 
-from nmigen import *
-from nmigen import Signal
-from nmigen.hdl.ast import UserValue
-from nmigen.sim import Simulator
+from amaranth import *
+from amaranth import Signal
+from amaranth.hdl.ast import UserValue
+from amaranth.sim import Simulator
 
 __all__ = ["SimPlatform", "FakeResource", "TristateIo", "TristateDdrIo", "SimDdr", "wait_for", "pulse", "do_nothing", "resolve"]
 

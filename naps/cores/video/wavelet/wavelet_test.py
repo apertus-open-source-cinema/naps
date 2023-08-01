@@ -1,8 +1,8 @@
 import unittest
 from collections import defaultdict
 from os.path import join, dirname
-from nmigen import *
-from nmigen.sim import Passive
+from amaranth import *
+from amaranth.sim import Passive
 from naps import write_to_stream, ImageStream, write_frame_to_stream, read_frame_from_stream, ImageSplitter, SimPlatform
 from .wavelet import Wavelet2D, MultiStageWavelet2D
 import imageio

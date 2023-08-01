@@ -1,4 +1,4 @@
-from nmigen import Elaboratable, Module, Signal, Array
+from amaranth import Elaboratable, Module, Signal, Array
 
 from naps.cores import AxiReader, AxiWriter, if_none_get_zynq_hp_port, StreamInfo, LastWrapper, StreamTee
 from naps import PacketizedStream, BasicStream, stream_transformer, StatusSignal

@@ -1,7 +1,7 @@
 from multiprocessing import Pipe
 from threading import Thread
-from nmigen import Fragment, Module, DomainRenamer
-from nmigen.sim import Passive
+from amaranth import Fragment, Module, DomainRenamer
+from amaranth.sim import Passive
 
 from naps import SimPlatform
 from ... import *
@@ -63,7 +63,7 @@ class SimSocPlatform(SocPlatform):
                 while True:
                     try:
                         cmd = d.send(response)
-                        conn.send(('nmigen', cmd))
+                        conn.send(('amaranth', cmd))
                         response = conn.recv()
                     except StopIteration:
                         break
@@ -95,7 +95,7 @@ class SimSocPlatform(SocPlatform):
                     elif cmd == "write":
                         address, data = rest
                         yield from axil_write(self.axi_lite_master, address, data)
-                    elif cmd == 'nmigen':
+                    elif cmd == 'amaranth':
                         payload, = rest
                         conn.send((yield payload))
                     elif cmd == 'exception':

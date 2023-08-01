@@ -1,5 +1,5 @@
 # a helper to generate the plugin connector *on the camera side*
-from nmigen.build import Connector, DiffPairs
+from amaranth.build import Connector, DiffPairs
 from naps.util.sim import SimPlatform
 
 __all__ = ["add_plugin_connector", "PluginDiffPair", "is_resource_pin_inverted", "is_connector_pin_inverted", "is_signal_inverted"]

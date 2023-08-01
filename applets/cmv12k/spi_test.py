@@ -1,6 +1,6 @@
 # set up and demonstrate SPI connection to CMV12k control pins
 
-from nmigen import *
+from amaranth import *
 from naps import *
 
 class Top(Elaboratable):

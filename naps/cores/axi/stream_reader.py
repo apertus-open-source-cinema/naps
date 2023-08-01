@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import BasicStream, StatusSignal
 from .axi_endpoint import AxiResponse, AxiAddressStream, AxiBurstType
 from .zynq_util import if_none_get_zynq_hp_port

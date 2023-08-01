@@ -1,6 +1,6 @@
 # a helper for interfacing the ft601 usb3 fifo bridge in 245 Synchronous FIFO mode
 
-from nmigen import *
+from amaranth import *
 from naps import Stream
 from naps.cores import BufferedAsyncStreamFIFO
 

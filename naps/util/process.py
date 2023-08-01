@@ -1,8 +1,8 @@
 # utilities for describing sequential processes in nMigen
 from contextlib import contextmanager
 
-from nmigen.utils import bits_for
-from nmigen import *
+from amaranth.utils import bits_for
+from amaranth import *
 
 from .past import NewHere
 

@@ -1,6 +1,6 @@
 # a helper for diagnosing ft601 performance
 
-from nmigen import *
+from amaranth import *
 
 __all__ = ["FT601PerfDebug"]
 

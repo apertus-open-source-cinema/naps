@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import ControlSignal, StatusSignal, driver_method
 from .stream_if import DramPacketRingbufferStreamWriter
 

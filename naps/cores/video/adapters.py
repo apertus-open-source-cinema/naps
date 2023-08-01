@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from naps import StatusSignal, PacketizedStream
 from . import ImageStream
 

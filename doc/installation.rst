@@ -1,4 +1,4 @@
 Installation
 ============
 
-.. todo: explain the setup of vivado & nmigen & pipenv
+.. todo: explain the setup of vivado & amaranth & pipenv

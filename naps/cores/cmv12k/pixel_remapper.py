@@ -3,7 +3,7 @@
 
 from typing import List
 
-from nmigen import *
+from amaranth import *
 from naps import BasicStream, packed_struct
 from naps.cores import ImageStream, BufferedSyncStreamFIFO
 

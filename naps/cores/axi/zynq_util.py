@@ -1,4 +1,4 @@
-from nmigen import *
+from amaranth import *
 from . import AxiEndpoint
 
 __all__ = ["if_none_get_zynq_hp_port"]

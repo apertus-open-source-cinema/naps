@@ -1,5 +1,5 @@
 from unittest import TestCase
-from nmigen import *
+from amaranth import *
 from naps import CounterStreamSource, FT601StreamSink, SimPlatform, TristateIo
 
 

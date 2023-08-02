@@ -1,6 +1,6 @@
 import unittest
 from os.path import join, dirname
-import imageio
+import imageio.v2 as imageio
 from amaranth import *
 from amaranth.sim import Passive
 from naps import SimPlatform

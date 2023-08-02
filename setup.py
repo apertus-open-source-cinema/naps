@@ -53,7 +53,7 @@ setup(
             'pytest-github-actions-annotate-failures',
 
             'PiDNG',
-            'imageio',
+            'imageio>=2.16.2',
             'rawpy',
 
             'bitarray',

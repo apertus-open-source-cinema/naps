@@ -5,7 +5,7 @@ from amaranth import *
 from amaranth.sim import Passive
 from naps import write_to_stream, ImageStream, write_frame_to_stream, read_frame_from_stream, ImageSplitter, SimPlatform
 from .wavelet import Wavelet2D, MultiStageWavelet2D
-import imageio
+import imageio.v2 as imageio
 import numpy as np
 
 

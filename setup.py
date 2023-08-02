@@ -33,8 +33,9 @@ setup(
     install_requires=[
         'huffman',
         'paramiko',
-        'amaranth',
+        'amaranth==0.3',
         'amaranth-boards @ git+https://github.com/amaranth-lang/amaranth-boards',
+        'markupsafe<=2.0.1',  # we cannot handle newer versions of markupsafe because it does not have soft_unicode anymore
     ],
     keywords='amaranth apertus fpga gateware video camera',
     project_urls={

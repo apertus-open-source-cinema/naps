@@ -32,6 +32,7 @@ This repo contains:
    -  Emits Python code that can be used to access the designs CSRs (“pydriver”)
    -  Generate devicetree overlays for loading linux device drivers
    -  pack “fatbitstreams” that bundle setup logic, drivers and the bitstream
+   -  there is a `Poster about the naps soc infrastructure <doc/NapsPosterFPGAIgnite2023.pdf>`__.
 
 -  platform definitions for both the AXIOM Beta and the AXIOM Micro in ``src/devices/``
 -  a variety of other smaller half-working experiments in ``src/experiments/``

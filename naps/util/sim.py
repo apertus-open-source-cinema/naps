@@ -4,7 +4,7 @@ from pathlib import Path
 
 from amaranth import *
 from amaranth import Signal
-from amaranth.hdl.ast import UserValue
+from amaranth.hdl.ast import ValueCastable
 from amaranth.sim import Simulator
 
 __all__ = ["SimPlatform", "FakeResource", "TristateIo", "TristateDdrIo", "SimDdr", "wait_for", "pulse", "do_nothing", "resolve"]
@@ -101,13 +101,17 @@ class SimPlatform:
             simulator.run()
 
 
-class FakeResource(UserValue):
+class FakeResource(ValueCastable):
     def __init__(self, name, handed_out_resources):
         super().__init__()
         self.handed_out_resources = handed_out_resources
         self.name = name
 
-    def lower(self):
+    def shape(self):
+        return unsigned(1)
+
+    @ValueCastable.lowermethod
+    def as_value(self):
         return Signal(name=self.name)
 
     def __getattr__(self, item):

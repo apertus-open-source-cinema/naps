@@ -1,12 +1,20 @@
 from naps import naps_getenv
 import paramiko
 from paramiko import SSHClient
-from paramiko.util import u
 from pathlib import Path
 import socket
 import sys
 import termios
 import tty
+
+def u(s, encoding="utf8"):
+    """cast bytes or unicode to unicode"""
+    if isinstance(s, bytes):
+        return s.decode(encoding)
+    elif isinstance(s, str):
+        return s
+    else:
+        raise TypeError(f"Expected unicode or bytes, got {type(s)}")
 
 __all__ = ["program_fatbitstream_ssh"]
 

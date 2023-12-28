@@ -1,5 +1,5 @@
 from amaranth import *
-from amaranth.hdl.ast import UserValue
+from amaranth.hdl.ast import ValueCastable
 from naps.util import yosys
 
 
@@ -47,7 +47,7 @@ class HelperedInstance(Elaboratable):
         return m
 
 
-class SignalProxy(UserValue):
+class SignalProxy(ValueCastable):
     def __init__(self, ports, path=""):
         super().__init__()
 
@@ -57,7 +57,17 @@ class SignalProxy(UserValue):
         self._used_ports = {}
         self.children = {}
 
-    def lower(self):
+    def eq(self, other):
+        return self.as_value().eq(other)
+
+    def shape(self):
+        if self.path in self.ports:
+            return unsigned(self.ports[self.path]["width"])
+        else:
+            raise PortNotFoundException()
+
+    @ValueCastable.lowermethod
+    def as_value(self):
         if self.path in self.ports:
             if self.path not in self._used_ports:
                 self._used_ports[self.path] = Signal(self.ports[self.path]["width"], name=self.path)
@@ -74,7 +84,7 @@ class SignalProxy(UserValue):
 
     def __getitem__(self, item):
         try:
-            return self.lower()[item]
+            return self.as_value()[item]
         except PortNotFoundException:
             return self.__getattr__(str(item))
 

@@ -1,7 +1,7 @@
 from pathlib import Path
 from amaranth import Fragment, Signal
 from amaranth.build.run import BuildProducts
-from amaranth.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
+from amaranth.vendor import LatticeMachXO2Platform
 
 from ... import SocPlatform, Address, PeripheralsAggregator
 

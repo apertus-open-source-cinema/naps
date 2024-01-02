@@ -2,6 +2,8 @@ import argparse
 import datetime
 import inspect
 import sys
+import os
+import shlex
 import hashlib
 from pathlib import Path
 from shutil import rmtree
@@ -158,7 +160,15 @@ def cli(top_class, runs_on, possible_socs=(None,)):
 
             # build the gateware
             timer.start_task("vendor toolchain build")
-            build_products = build_plan.execute_local(gateware_build_dir)
+            
+            if "NAPS_BUILD_DOCKER_IMAGE" in os.environ:
+                docker_image = os.environ["NAPS_BUILD_DOCKER_IMAGE"]
+                docker_args = shlex.split(os.environ["NAPS_BUILD_DOCKER_ARGS"])
+                build_products = build_plan.execute_local_docker(
+                    root=gateware_build_dir, image=docker_image, docker_args=docker_args
+                )
+            else:
+                build_products = build_plan.execute_local(gateware_build_dir)                
 
             # we write the cache key file in the end also as a marking that the build was successful
             cache_key_path.write_text(elaborated_repr)

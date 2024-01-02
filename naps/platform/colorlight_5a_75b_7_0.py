@@ -2,7 +2,7 @@ from abc import ABC
 from textwrap import dedent
 
 from amaranth.build import *
-from amaranth.vendor.lattice_ecp5 import *
+from amaranth.vendor import LatticeECP5Platform
 from amaranth_boards.resources import *
 
 

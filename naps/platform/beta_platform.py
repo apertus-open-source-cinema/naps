@@ -1,5 +1,5 @@
 from amaranth.build import Resource, Pins, PinsN, DiffPairs, DiffPairsN, Attrs, Subsignal
-from amaranth.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
+from amaranth.vendor import LatticeMachXO2Platform
 from amaranth_boards.microzed_z020 import MicroZedZ020Platform
 
 from .plugins import add_plugin_connector

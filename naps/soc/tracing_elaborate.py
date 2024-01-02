@@ -1,7 +1,6 @@
 from types import MethodType
 
 from amaranth import *
-from amaranth.compat import Module as CompatModule
 from amaranth.hdl.xfrm import TransformedElaboratable
 
 
@@ -74,10 +73,6 @@ def inject_elaborate_wrapper(obj, sames):
 
     if isinstance(obj, Module):
         submodules = [*obj._named_submodules.values(), *obj._anon_submodules]
-        for elab in submodules:
-            inject_elaborate_wrapper(elab, sames)
-    elif isinstance(obj, CompatModule):
-        submodules = [submod for name, submod in obj.submodules._cm._submodules]
         for elab in submodules:
             inject_elaborate_wrapper(elab, sames)
     elif isinstance(obj, TransformedElaboratable):

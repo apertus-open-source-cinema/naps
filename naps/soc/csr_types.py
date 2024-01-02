@@ -1,5 +1,7 @@
+from typing import Any
 from amaranth import *
 from amaranth._unused import MustUse
+from amaranth.hdl.ast import ValueCastable
 
 from naps.soc.memorymap import Address
 from naps.soc.peripheral import Response
@@ -18,32 +20,120 @@ class _Csr(MustUse):
     _address = None
 
 
-class ControlSignal(Signal, _Csr):
+class ControlSignal(ValueCastable, _Csr):
     """ Just a Signal. Indicator, that it is for controlling some parameter (i.e. can be written from the outside)
     Is mapped as a CSR in case the design is build with a SocPlatform.
     """
 
     def __init__(self, shape=None, *, address=None, read_strobe=None, write_strobe=None, src_loc_at=0, **kwargs):
-        super().__init__(shape, src_loc_at=src_loc_at + 1, **kwargs)
-        self.src_loc_at = src_loc_at
-        self._shape = shape
-        self._kwargs = kwargs
+        super.__init__(super())
+        self._signal = Signal(shape, src_loc_at=src_loc_at+1, **kwargs, )
 
         self._address = Address.parse(address)
         self._write_strobe = write_strobe
         self._read_strobe = read_strobe
 
 
-class StatusSignal(Signal, _Csr):
+    @ValueCastable.lowermethod
+    def as_value(self):
+        return self._signal
+
+    def shape(self):
+        return self._signal.shape()
+    
+    def __getattr__(self, name):
+        return getattr(self._signal, name)
+    
+    def __bool__(self): return self._signal.__bool__()
+    def __pos__(self): return self._signal.__pos__()
+    def __invert__(self): return self._signal.__invert__()
+    def __neg__(self): return self._signal.__neg__()
+    def __add__(self, other): return self._signal.__add__(other)
+    def __radd__(self, other): return self._signal.__radd__(other)
+    def __sub__(self, other): return self._signal.__sub__(other)
+    def __rsub__(self, other): return self._signal.__rsub__(other)
+    def __mul__(self, other): return self._signal.__mul__(other)
+    def __rmul__(self, other): return self._signal.__rmul__(other)
+    def __mod__(self, other): return self._signal.__mod__(other)
+    def __rmod__(self, other): return self._signal.__rmod__(other)
+    def __floordiv__(self, other): return self._signal.__floordiv__(other)
+    def __rfloordiv__(self, other): return self._signal.__rfloordiv__(other)
+    def __lshift__(self, other): return self._signal.__lshift__(other)
+    def __rlshift__(self, other): return self._signal.__rlshift__(other)
+    def __rshift__(self, other): return self._signal.__rshift__(other)
+    def __rrshift__(self, other): return self._signal.__rrshift__(other)
+    def __and__(self, other): return self._signal.__and__(other)
+    def __rand__(self, other): return self._signal.__rand__(other)
+    def __xor__(self, other): return self._signal.__xor__(other)
+    def __rxor__(self, other): return self._signal.__rxor__(other)
+    def __or__(self, other): return self._signal.__or__(other)
+    def __ror__(self, other): return self._signal.__ror__(other)
+    def __eq__(self, other): return self._signal.__eq__(other)
+    def __ne__(self, other): return self._signal.__ne__(other)
+    def __lt__(self, other): return self._signal.__lt__(other)
+    def __le__(self, other): return self._signal.__le__(other)
+    def __gt__(self, other): return self._signal.__gt__(other)
+    def __ge__(self, other): return self._signal.__ge__(other)
+    def __abs__(self): return self._signal.__abs__()
+    def __len__(self): return self._signal.__len__()
+    def __getitem__(self, key): return self._signal.__getitem__(key)
+
+
+class StatusSignal(ValueCastable, _Csr):
     """ Just a Signal. Indicator, that it is for communicating the state to the outside world (i.e. can be read but not written from the outside)
         Is mapped as a CSR in case the design is build with a SocPlatform.
     """
 
     def __init__(self, shape=None, *, address=None, read_strobe=None, src_loc_at=0, **kwargs):
-        super().__init__(shape, src_loc_at=src_loc_at + 1, **kwargs)
+        self._signal = Signal(shape, src_loc_at=src_loc_at+1, **kwargs, )
 
         self._address = Address.parse(address)
         self._read_strobe = read_strobe
+
+    @ValueCastable.lowermethod
+    def as_value(self):
+        return self._signal
+    
+    def shape(self):
+        return self._signal.shape()
+    
+    def __getattr__(self, name):
+        return getattr(self._signal, name)
+    
+    def __bool__(self): return self._signal.__bool__()
+    def __pos__(self): return self._signal.__pos__()
+    def __invert__(self): return self._signal.__invert__()
+    def __neg__(self): return self._signal.__neg__()
+    def __add__(self, other): return self._signal.__add__(other)
+    def __radd__(self, other): return self._signal.__radd__(other)
+    def __sub__(self, other): return self._signal.__sub__(other)
+    def __rsub__(self, other): return self._signal.__rsub__(other)
+    def __mul__(self, other): return self._signal.__mul__(other)
+    def __rmul__(self, other): return self._signal.__rmul__(other)
+    def __mod__(self, other): return self._signal.__mod__(other)
+    def __rmod__(self, other): return self._signal.__rmod__(other)
+    def __floordiv__(self, other): return self._signal.__floordiv__(other)
+    def __rfloordiv__(self, other): return self._signal.__rfloordiv__(other)
+    def __lshift__(self, other): return self._signal.__lshift__(other)
+    def __rlshift__(self, other): return self._signal.__rlshift__(other)
+    def __rshift__(self, other): return self._signal.__rshift__(other)
+    def __rrshift__(self, other): return self._signal.__rrshift__(other)
+    def __and__(self, other): return self._signal.__and__(other)
+    def __rand__(self, other): return self._signal.__rand__(other)
+    def __xor__(self, other): return self._signal.__xor__(other)
+    def __rxor__(self, other): return self._signal.__rxor__(other)
+    def __or__(self, other): return self._signal.__or__(other)
+    def __ror__(self, other): return self._signal.__ror__(other)
+    def __eq__(self, other): return self._signal.__eq__(other)
+    def __ne__(self, other): return self._signal.__ne__(other)
+    def __lt__(self, other): return self._signal.__lt__(other)
+    def __le__(self, other): return self._signal.__le__(other)
+    def __gt__(self, other): return self._signal.__gt__(other)
+    def __ge__(self, other): return self._signal.__ge__(other)
+    def __abs__(self): return self._signal.__abs__()
+    def __len__(self): return self._signal.__len__()
+    def __getitem__(self, key): return self._signal.__getitem__(key)
+
 
 
 class EventReg(_Csr):  # TODO: bikeshed name

@@ -4,14 +4,13 @@ from inspect import getsource
 from pathlib import Path
 from textwrap import indent, dedent
 
-from amaranth import Signal
 from amaranth.build import Platform
 
 from .driver_items import DriverMethod, DriverData
 from ..fatbitstream import FatbitstreamContext, File
 from ..memorymap import MemoryMap
 from ..tracing_elaborate import ElaboratableSames
-from ..csr_types import EventReg, StatusSignal
+from ..csr_types import EventReg, StatusSignal, ControlSignal
 from ...util.py_serialize import py_serialize
 
 
@@ -21,7 +20,7 @@ def gen_hardware_proxy_python_code(mmap: MemoryMap, name="design", superclass=""
     to_return = "class {}({}):\n".format(class_name, superclass)
     for row in mmap.direct_children:
         address = mmap.own_offset.translate(row.address)
-        if isinstance(row.obj, Signal):
+        if isinstance(row.obj, (ControlSignal, StatusSignal)):
             if isinstance(row.obj.decoder, type) and issubclass(row.obj.decoder, Enum):
                 decoder = {entry.name: entry.value for entry in row.obj.decoder}
             elif callable(row.obj.decoder):

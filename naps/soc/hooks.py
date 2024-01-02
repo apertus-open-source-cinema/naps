@@ -102,7 +102,7 @@ def address_assignment_hook(platform, top_fragment: Fragment, sames: Elaboratabl
         def get_child_bits(memorymap: MemoryMap):
             bits = 0
             for row in memorymap.direct_children:
-                if isinstance(row.obj, Signal):
+                if isinstance(row.obj, (ControlSignal, StatusSignal, EventReg)):
                     bits += row.address.bit_len
             for row in memorymap.subranges:
                 bits += get_child_bits(row.obj)

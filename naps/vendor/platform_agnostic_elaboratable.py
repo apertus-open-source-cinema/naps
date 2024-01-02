@@ -4,9 +4,7 @@ from importlib import import_module
 from os.path import join, dirname, split
 
 from amaranth import *
-from amaranth.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
-from amaranth.vendor.lattice_ecp5 import LatticeECP5Platform
-from amaranth.vendor.xilinx import XilinxPlatform
+from amaranth.vendor import LatticeMachXO2Platform, LatticeECP5Platform, XilinxPlatform
 
 
 class ImplementationMarkerMetaclass(ABCMeta):

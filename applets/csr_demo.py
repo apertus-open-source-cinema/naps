@@ -1,6 +1,6 @@
 # A simple experiment that demonstrates basic CSR / SOC functionality
 from amaranth import *
-from amaranth.vendor.lattice_machxo_2_3l import LatticeMachXO2Platform
+from amaranth.vendor import LatticeMachXO2Platform
 from naps import *
 from naps.vendor.lattice_machxo2 import Osc
 

@@ -16,14 +16,14 @@ class PrjSlothPlatform(ZTurnLiteZ010Platform):
                         Subsignal("lclk", DiffPairs("26", "28", dir='i', conn=("expansion", 0)), Attrs(IOSTANDARD="LVDS_25", DIFF_TERM="TRUE")),
                         Subsignal("fclk", DiffPairs("46", "48", dir='i', conn=("expansion", 0)), Attrs(IOSTANDARD="LVDS_25", DIFF_TERM="TRUE")),
                         Subsignal("clk", DiffPairs("56", "58", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVDS_25", DIFF_TERM="TRUE")),
-                        Subsignal("reset", PinsN("3", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS_25")),
-                        Subsignal("power_down", Pins("9", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS_25")),
+                        Subsignal("reset", PinsN("3", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS25")),
+                        Subsignal("power_down", Pins("9", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS25")),
                      ),
 
             # hmcad
-            SPIResource(0,
+            SPIResource("hmcad1511_spi", 0,
                         cs_n="13", clk="5", copi="11", cipo="35",
-                        attrs=Attrs(IOSTANDARD="LVCMOS33"),
+                        attrs=Attrs(IOSTANDARD="LVCMOS25"),
                         conn=("expansion", 0)
             ),
             Resource("power_ctl", 0,
@@ -49,21 +49,21 @@ class PrjSlothPlatform(ZTurnLiteZ010Platform):
         ),
             Resource("sensors_digital", 0,
                      # D6
-                     Subsignal("px_clk_top", Pins("62", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS_33")),
+                     Subsignal("px_clk_top", Pins("62", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # J5
-                     Subsignal("px_clk_bot", Pins("100", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS_33")),
+                     Subsignal("px_clk_bot", Pins("100", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # C5
-                     Subsignal("frame_rst", Pins("80", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS_33")),
+                     Subsignal("frame_rst", Pins("80", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # C3 C6 C17 J8 (J9 line_exp) J10 J11 J12 J15 J16 J17 J18 (J21 line_rst)
-                     Subsignal("line", Pins("76 84 73 104 106 108 98 109 89 95 105 103 93", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS_33")),
+                     Subsignal("line", Pins("76 84 73 104 106 108 98 109 89 95 105 103 93", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # C13 C8 C4 D3 D4 J3 J14 J22
-                     Subsignal("zero", Pins("75 86 78 74 64 110 85 87", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS_33")),
+                     Subsignal("zero", Pins("75 86 78 74 64 110 85 87", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # C14
-                     Subsignal("s_data", Pins("61", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS_33")),
+                     Subsignal("s_data", Pins("61", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # C15
-                     Subsignal("s_clk", Pins("63", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS_33")),
+                     Subsignal("s_clk", Pins("63", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # C16
-                     Subsignal("s_cs", Pins("71", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS_33")),
+                     Subsignal("s_cs", Pins("71", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      )
 
         ])

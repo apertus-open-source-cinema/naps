@@ -47,7 +47,7 @@ class BitStuffer(Elaboratable):
             with m.If(self.input.last):
                 m.d.sync += flush.eq(1)
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register + self.input.current_width - output_width)
-            m.d.sync += shift_register.eq((self.input.payload << (current_bits_in_shift_register - output_width)) | (shift_register >> output_width))
+            m.d.sync += shift_register.eq((self.input.payload << (current_bits_in_shift_register - output_width).as_unsigned()) | (shift_register >> output_width))
 
         with m.If(flush & (current_bits_in_shift_register <= output_width)):
             m.d.comb += self.output.last.eq(1)

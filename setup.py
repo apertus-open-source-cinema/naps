@@ -33,7 +33,7 @@ setup(
     install_requires=[
         'huffman',
         'paramiko',
-        'amaranth==0.3',
+        'amaranth==0.4',
         'amaranth-boards @ git+https://github.com/amaranth-lang/amaranth-boards',
         'markupsafe<=2.0.1',  # we cannot handle newer versions of markupsafe because it does not have soft_unicode anymore
     ],

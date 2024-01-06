@@ -71,6 +71,9 @@ class PackedStructBaseClass(ValueCastable):
     def fields(self):
         return list(self._PACKED_SLICES.keys())
 
+    def shape(self):
+        return self._backing_signal.shape
+
     @ValueCastable.lowermethod
     def as_value(self):
         return self._backing_signal

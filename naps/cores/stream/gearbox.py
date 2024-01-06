@@ -68,7 +68,7 @@ class StreamGearbox(Elaboratable):
         with m.Elif(input_read & output_write):
             m.d.sync += current_bits_in_shift_register.eq(current_bits_in_shift_register + input_width - output_width)
             for reg, payload in shift_registers:
-                m.d.sync += reg.eq((payload << (current_bits_in_shift_register - output_width)) | (reg >> output_width))
+                m.d.sync += reg.eq((payload << (current_bits_in_shift_register - output_width).as_unsigned()) | (reg >> output_width))
 
         m.d.comb += self.output.payload.eq(shift_register[:output_width])
         m.d.comb += self.output.valid.eq(current_bits_in_shift_register >= output_width)

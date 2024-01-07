@@ -55,9 +55,13 @@ class HMCAD1511Phy(Elaboratable):
         self.reset = 1
         self.reset = 0
         self.power_down = 1
-        #self.spi.write_word(0x31, 0x0204) # operating mode = quad
-        #self.spi.write_word(0x53, 0b1000) # set low frequency mode
         self.power_down = 0
+
+        self.spi.set_test_pattern("sync")
+        for i in range(8):
+            lane = getattr(self, f"lane_{i}")
+            print(f"training lane {i}...")
+            lane.train()
 
 class HMCAD1511Lane(Elaboratable):
     def __init__(self, input: Signal):
@@ -117,9 +121,17 @@ class HMCAD1511Lane(Elaboratable):
             iserdes.bitslip.eq(bitslip_syncronizer.o), # synchronous to frame_clk
         ]
 
-        m.submodules.pattern_match_counter = PatternMatchCounter(self.output)
+        self.pattern_match_counter = m.submodules.pattern_match_counter = PatternMatchCounter(self.output)
 
         return m
+
+    @driver_method
+    def train(self, timeout=20):
+        for _ in range(timeout):
+            if self.pattern_match_counter.current == 0b11110000:
+                return
+            self.bitslip = 1
+        raise TimeoutError("lane did not train")
 
 
 class PatternMatchCounter(Elaboratable):

@@ -21,12 +21,20 @@ class Top(Elaboratable):
             setattr(self, name, cs)
             m.d.comb += power_control[name].o.eq(cs)
 
-        adc = m.submodules.adc = HMCAD1511Phy()
-
-        # DramPacketRingbufferStreamWriter(adc.output, max_packet_size=0x800000, n_buffers=4)
-
+        p = Pipeline(m)
+        self.phy = HMCAD1511Phy()
+        p += self.phy
+        p += StreamPacketizer(p.output)
+        p += DramPacketRingbufferStreamWriter(p.output, max_packet_size=0x800000, n_buffers=1)
+        p += DramPacketRingbufferCpuReader(p.last)
 
         return m
+
+    @driver_method
+    def init(self):
+        self.en_adc_1v8 = 11
+        self.phy.init
+
 
 if __name__ == "__main__":
     cli(Top, runs_on=(PrjSlothPlatform,), possible_socs=(ZynqSocPlatform, ))

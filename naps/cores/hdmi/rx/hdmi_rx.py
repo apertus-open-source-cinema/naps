@@ -87,9 +87,9 @@ class HdmiStreamSource(Elaboratable):
 
                 m.d.comb += output.valid.eq(self.stable | self.always_valid)
                 m.d.comb += output.payload.eq(Cat(
-                    self.lane_r.data & Repl(~self.blank_r, 8),
-                    self.lane_g.data & Repl(~self.blank_g, 8),
-                    self.lane_b.data & Repl(~self.blank_b, 8),
+                    self.lane_r.data & ~self.blank_r.replicate(8),
+                    self.lane_g.data & ~self.blank_g.replicate(8),
+                    self.lane_b.data & ~self.blank_b.replicate(8),
                 ))
 
                 m.d.comb += output.line_last.eq(x_ctr == self.width - 1)
@@ -174,7 +174,7 @@ class HdmiRxLane(Elaboratable):
             m.d.sync += self.not_valid_cnt.eq(self.not_valid_cnt + 1)
 
         m.d.comb += self.raw_word.eq(select.output.payload)
-        tmds = m.submodules.tmds = TmdsDecoder(self.raw_word ^ Repl(self.invert, 10))
+        tmds = m.submodules.tmds = TmdsDecoder(self.raw_word ^ self.invert.replicate(10))
         m.d.comb += self.data.eq(tmds.data)
         m.d.comb += self.data_enable.eq(tmds.data_enable)
         m.d.comb += self.control.eq(tmds.control)

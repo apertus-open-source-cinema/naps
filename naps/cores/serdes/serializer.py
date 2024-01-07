@@ -37,7 +37,7 @@ class Serializer(Elaboratable):
                     if i == 3:
                         with m.If(hs_fifo.output.valid):
                             m.d[self.ddr_domain] += hs_payload.eq(hs_fifo.output.payload)
-                            m.d[self.ddr_domain] += self.idle.eq(Repl(hs_fifo.output.payload[7], 8))
+                            m.d[self.ddr_domain] += self.idle.eq(hs_fifo.output.payload[7].replicate(8))
                             m.d[self.ddr_domain] += was_valid.eq(1)
                         with m.Else():
                             m.d[self.ddr_domain] += hs_payload.eq(self.idle)

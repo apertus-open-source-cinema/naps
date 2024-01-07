@@ -2,7 +2,7 @@ from amaranth import *
 from amaranth.hdl.ast import Cover, Assume, Initial, Assert
 
 from .stream import Stream
-from naps.util.formal import assert_formal
+from naps.util.formal import FormalPlatform, assert_formal
 
 __all__ = ["verify_stream_output_contract", "LegalStreamSource"]
 
@@ -28,12 +28,11 @@ class StreamOutputCoverSpec(Elaboratable):
 
 
 def verify_stream_output_contract_cover(module, stream_output, support_modules=()):
-    m = Module()
+    dut = module.elaborate(FormalPlatform)
     for s in support_modules:
-        m.submodules += s
-    m.submodules.dut = module
-    m.submodules.spec = StreamOutputCoverSpec(stream_output)
-    assert_formal(m, mode="cover", depth=10)
+        dut.submodules += s
+    dut.submodules.spec = StreamOutputCoverSpec(stream_output)
+    assert_formal(dut, mode="cover", depth=10)
 
 
 class StreamOutputAssertSpec(Elaboratable):
@@ -70,12 +69,11 @@ class StreamOutputAssertSpec(Elaboratable):
 
 
 def verify_stream_output_contract_assert(module, stream_output, support_modules=()):
-    m = Module()
+    dut = module.elaborate(FormalPlatform)
     for s in support_modules:
-        m.submodules += s
-    m.submodules.dut = module
-    m.submodules.spec = StreamOutputAssertSpec(stream_output)
-    assert_formal(m, mode="hybrid", depth=10)
+        dut.submodules += s
+    dut.submodules.spec = StreamOutputAssertSpec(stream_output)
+    assert_formal(dut, mode="hybrid", depth=10)
 
 
 class LegalStreamSource(Elaboratable):

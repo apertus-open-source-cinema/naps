@@ -46,18 +46,23 @@ class StreamTee(Elaboratable):
     def __init__(self, input: Stream):
         self.input = input
         self.outputs: List[Stream] = []
-        self.m = Module()
+        self.output_fifos: List[StreamBuffer] = []
+
 
     def get_output(self):
         n = len(self.outputs)
         output_before_buffer = self.input.clone(name=f"output{n}_before_fifo")
         self.outputs.append(output_before_buffer)
         output_fifo = StreamBuffer(output_before_buffer)
-        self.m.submodules[f"output{n}_fifo"] = output_fifo
+        self.output_fifos.append(output_fifo)
+
         return output_fifo.output
 
     def elaborate(self, platform):
-        m = self.m
+        m = Module()
+
+        for n, fifo in enumerate(self.output_fifos):
+            m.submodules[f"output{n}_fifo"] = fifo
 
         m.d.comb += self.input.ready.eq(nAll(output.ready for output in self.outputs))
         for output in self.outputs:

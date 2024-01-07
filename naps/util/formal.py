@@ -64,7 +64,7 @@ def assert_formal(spec, mode="bmc", depth=1):
         mode=mode,
         depth=depth,
         script=script,
-        rtlil=rtlil.convert_fragment(Fragment.get(spec, platform=FormalPlatform).prepare())[0]
+        rtlil=rtlil.convert_fragment(fragment.prepare())[0]
     )
     with subprocess.Popen([require_tool("sby"), "-f", "-d", filename], cwd=str(target_dir),
                           universal_newlines=True,

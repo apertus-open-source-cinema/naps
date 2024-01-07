@@ -5,6 +5,7 @@ from os.path import join, dirname, split
 
 from amaranth import *
 from amaranth.vendor import LatticeMachXO2Platform, LatticeECP5Platform, XilinxPlatform
+from naps import SimPlatform
 
 
 class ImplementationMarkerMetaclass(ABCMeta):
@@ -39,6 +40,8 @@ class PlatformAgnosticElaboratable(Elaboratable, metaclass=ImplementationMarkerM
             elaboratable = self._search_in_path("lattice_machxo2")
         elif isinstance(platform, LatticeECP5Platform):
             elaboratable = self._search_in_path("lattice_ecp5")
+        elif isinstance(platform, SimPlatform):
+            return Module()
         else:
             raise PlatformNotSupportedError()
 

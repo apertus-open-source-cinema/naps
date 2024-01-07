@@ -17,7 +17,7 @@ class ISerdes8(Elaboratable):
         m = Module()
 
         iddr_output = Signal(8)
-        m.d.comb += self.output.eq(iddr_output ^ Repl(self.invert, 8))
+        m.d.comb += self.output.eq(iddr_output ^ Const(self.invert).replicate(8))
         m.submodules.iddr = Instance(
             "IDDRX4B",
 

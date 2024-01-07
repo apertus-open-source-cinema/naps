@@ -93,8 +93,8 @@ class DPhyDataLane(Elaboratable):
                     p += delay_lp(3)
                     m.d.sync += self.is_hs.eq(1)
                     p += delay_lp(4)  # we are in HS-ZERO now and wait the constant part (150ns)
-                    p += send_hs(Repl(0, 8))
-                    p += send_hs(Repl(0, 8))
+                    p += send_hs(Const(0, 8))
+                    p += send_hs(Const(0, 8))
                     p += send_hs(Const(0b10111000, 8))
 
                 with m.State("HS_SEND"):
@@ -106,8 +106,8 @@ class DPhyDataLane(Elaboratable):
                             m.d.comb += self.hs_input.ready.eq(1)
 
                 with Process(m, name="HS_END", to="IDLE") as p:
-                    p += send_hs(Repl(~self.hs_input.payload[7], 8))
-                    p += send_hs(Repl(~self.hs_input.payload[7], 8))
+                    p += send_hs(~self.hs_input.payload[7].replicate(8))
+                    p += send_hs(~self.hs_input.payload[7].replicate(8))
                     with m.If(NewHere(m)):
                         m.d.comb += self.hs_input.ready.eq(1)
                     p += m.If(serializer.is_idle)

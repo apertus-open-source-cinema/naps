@@ -48,7 +48,7 @@ class DemoVideoSource(Elaboratable):
 def BlinkDemoVideoSource(payload_shape, *args, **kwargs):
     def generator_function(m, self, x, y, frame_ctr):
         self.speed = ControlSignal(16, reset=1)
-        return Repl((frame_ctr % self.speed) > (self.speed // 2), len(self.output.payload))
+        return ((frame_ctr % self.speed) > (self.speed // 2)).replicate(len(self.output.payload))
 
     return DemoVideoSource(generator_function, payload_shape, *args, **kwargs)
 

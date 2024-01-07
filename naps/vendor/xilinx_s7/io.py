@@ -26,7 +26,7 @@ class OSerdes10(Elaboratable):
         self.invert = ControlSignal(reset=is_signal_inverted(platform, self.pad))
 
         data = Signal.like(self.input)
-        m.d[self.domain] += data.eq(self.input ^ Repl(self.invert, len(self.input)))
+        m.d[self.domain] += data.eq(self.input ^ self.invert.replicate(len(self.input)))
 
         ce = Signal()
         m.d.comb += ce.eq(~ResetSignal(self.domain))

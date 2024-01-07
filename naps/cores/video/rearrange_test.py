@@ -5,6 +5,7 @@ from amaranth import *
 from amaranth.sim import Passive
 from naps import SimPlatform, ImageStream, write_frame_to_stream, read_frame_from_stream, write_to_stream, do_nothing
 from naps.cores.video.rearrange import ImageSplitter2
+import numpy as np
 
 
 class TestImageSplitter2(unittest.TestCase):
@@ -29,7 +30,7 @@ class TestImageSplitter2(unittest.TestCase):
                 def read_process():
                     for n in range(2):
                         frame = (yield from read_frame_from_stream(transformer.outputs[i], timeout=1000, pause=False))
-                        imageio.imsave(platform.output_filename_base + f"_{i}_{n}.png", frame)
+                        imageio.imsave(platform.output_filename_base + f"_{i}_{n}.png", np.array(frame, dtype=np.uint8))
                 return read_process
             platform.add_process(makefunc(i), "sync")
 

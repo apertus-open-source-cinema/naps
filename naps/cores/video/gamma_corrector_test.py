@@ -4,8 +4,8 @@ import imageio.v2 as imageio
 from amaranth import *
 from amaranth.sim import Passive
 from naps import SimPlatform
-from naps.stream import write_to_stream
 from naps.cores.video import ImageStream, TableGammaCorrector, write_frame_to_stream, read_frame_from_stream
+import numpy as np
 
 
 class GammaCorrectorTest(unittest.TestCase):
@@ -32,7 +32,7 @@ class GammaCorrectorTest(unittest.TestCase):
 
         def read_process():
             result = yield from read_frame_from_stream(transformer.output, timeout=1000, pause=False)
-            imageio.imsave(platform.output_filename_base + "_result.png", result)
+            imageio.imsave(platform.output_filename_base + "_result.png", np.array(result, dtype=np.uint8))
             self.assertEqual(result, image_corrected)
 
         platform.add_sim_clock("sync", 100e6)

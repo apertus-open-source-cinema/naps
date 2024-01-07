@@ -45,6 +45,7 @@ def assert_formal(spec, mode="bmc", depth=1):
     else:
         script = ""
 
+    spec._MustUse__used = True
     fragment = Fragment.get(spec, platform=FormalPlatform)
 
     config = textwrap.dedent("""\

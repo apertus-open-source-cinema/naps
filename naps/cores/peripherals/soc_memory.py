@@ -76,6 +76,8 @@ class SocMemory(Elaboratable):
             memorymap
         )
 
+        m.submodules.memory = self.memory
+
         return m
 
     def read_port(self, domain="sync", **kwargs):

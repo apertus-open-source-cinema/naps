@@ -10,7 +10,7 @@ __all__ = ["axil_read", "axil_write", "answer_read_burst", "answer_write_burst",
 
 def axil_read(axi, addr, timeout=100):
     yield from write_to_stream(axi.read_address, payload=addr)
-    value, response = (yield from read_from_stream(axi.read_data, extract=("payload", "resp"), timeout=timeout))
+    value, response = yield from read_from_stream(axi.read_data, extract=("payload", "resp"), timeout=timeout)
     assert AxiResponse.OKAY.value == response
     return value
 
@@ -18,7 +18,7 @@ def axil_read(axi, addr, timeout=100):
 def axil_write(axi, addr, data, timeout=100):
     yield from write_to_stream(axi.write_address, payload=addr)
     yield from write_to_stream(axi.write_data, payload=data)
-    response = (yield from read_from_stream(axi.write_response, extract="resp", timeout=timeout))
+    response = yield from read_from_stream(axi.write_response, extract="resp", timeout=timeout)
     assert AxiResponse.OKAY.value == response
 
 

@@ -55,12 +55,14 @@ class TestJTAGPeripheralConnectorFSM(unittest.TestCase):
     def check_read_write(self, tdi_delay=0, tdo_delay=0):
         platform = SimPlatform()
 
-        jtag_device = JTAG()
         m = Module()
+        m.submodules.jtag_device = jtag_device = JTAG()
+
         test_peripheral = m.submodules.test_peripheral = DummyPeripheral()
         m.submodules.jtag = JTAGPeripheralConnector(test_peripheral, jtag_device, jtag_domain="sync")
 
-        jtag_testbench = JTAG()
+        m.submodules.jtag_testbench = jtag_testbench = JTAG()
+
         jtag_device.shift_tdi = jtag_testbench.shift_tdi
         jtag_device.shift_tdo = jtag_testbench.shift_tdi
         if tdi_delay == 0:
@@ -97,7 +99,7 @@ class TestJTAGPeripheralConnectorFSM(unittest.TestCase):
             yield from shift_word(value, width=1)
 
         def testbench():
-            fsm = platform.fragment.subfragments[1][0].find_generated("fsm")
+            fsm = platform.fragment.subfragments[2][0].find_generated("fsm")
             global result
 
             def assert_state(desired_state):

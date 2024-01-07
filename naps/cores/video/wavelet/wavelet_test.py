@@ -32,7 +32,7 @@ class WaveletTest(unittest.TestCase):
             for y, row in enumerate(image):
                 for x, px in enumerate(row):
                     target_image[y // 2 + ((y % 2) * len(image) // 2)][x // 2 + ((x % 2) * len(row) // 2)] = px
-            imageio.imsave(platform.output_filename_base + ".png", target_image)
+            imageio.imsave(platform.output_filename_base + ".png", np.array(target_image, np.uint8))
         platform.add_process(read_process, "sync")
 
         platform.add_sim_clock("sync", 1000e6)
@@ -62,7 +62,7 @@ class WaveletTest(unittest.TestCase):
                 stream_captured = stream
                 def read_process():
                     image = (yield from read_frame_from_stream(stream_captured, timeout=1000, pause=False))
-                    imageio.imsave(platform.output_filename_base + "_output_{}.png".format(i_captured), image)
+                    imageio.imsave(platform.output_filename_base + "_output_{}.png".format(i_captured), np.array(image, np.uint8))
                 return read_process
             platform.add_process(gen_read_process(), "sync")
 
@@ -103,7 +103,7 @@ class WaveletTest(unittest.TestCase):
         def read_process():
             for i in range(2):
                 image = (yield from read_frame_from_stream(wavelet.output, timeout=1000, pause=False))
-                imageio.imsave(platform.output_filename_base + str(i) + ".png", image)
+                imageio.imsave(platform.output_filename_base + str(i) + ".png", np.array(image, np.uint8))
         platform.add_process(read_process, "sync")
 
         platform.add_sim_clock("sync", 100e6)

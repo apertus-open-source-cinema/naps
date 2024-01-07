@@ -6,6 +6,7 @@ from amaranth.sim import Passive
 from naps import SimPlatform
 from naps.stream import write_to_stream
 from naps.cores.video import ImageStream, RecoloringDebayerer, SimpleInterpolatingDebayerer, write_frame_to_stream, read_frame_from_stream, to_8bit_rgb, crop
+import numpy as np
 
 
 class DebayerTest(unittest.TestCase):
@@ -29,8 +30,8 @@ class DebayerTest(unittest.TestCase):
             (yield from read_frame_from_stream(transformer.output, timeout=1000, pause=False))
             first = crop(to_8bit_rgb((yield from read_frame_from_stream(transformer.output, timeout=1000, pause=False))), 1, 1, 1, 1)
             second = crop(to_8bit_rgb((yield from read_frame_from_stream(transformer.output, timeout=1000, pause=False))), 1, 1, 1, 1)
-            imageio.imsave(platform.output_filename_base + "_first.png", first)
-            imageio.imsave(platform.output_filename_base + "_second.png", second)
+            imageio.imsave(platform.output_filename_base + "_first.png", np.array(first, dtype=np.uint8))
+            imageio.imsave(platform.output_filename_base + "_second.png", np.array(second, dtype=np.uint8))
             self.assertEqual(first, second)
 
         platform.add_sim_clock("sync", 100e6)

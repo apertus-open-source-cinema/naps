@@ -16,3 +16,5 @@ analyze/
 *.dng
 doc/_build
 naps.egg-info/
+.pdm-python
+dist/

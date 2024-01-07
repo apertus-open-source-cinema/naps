@@ -98,7 +98,7 @@ class ConsolePacketSink(Elaboratable):
                     m.d.sync += self.packet_done.eq(1)
 
         reset = Signal()
-        m.submodules += FFSynchronizer(self.reset, reset)
+        m.submodules.reset_sync = FFSynchronizer(self.reset, reset)
         with m.If(Changed(m, reset)):
             m.d.sync += self.write_pointer.eq(0)
             m.d.sync += self.packet_done.eq(0)

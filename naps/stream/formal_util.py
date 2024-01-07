@@ -103,6 +103,7 @@ class LegalStreamSource(Elaboratable):
 
 
 def verify_stream_output_contract(module, stream_output=None, support_modules=()):
+    module._MustUse__used = True
     if stream_output is None:
         stream_output = module.output
 

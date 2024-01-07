@@ -15,13 +15,6 @@ class PacketConsoleTest(unittest.TestCase):
         source = m.submodules.source = ConsolePacketSource()
         sink = m.submodules.sink = ConsolePacketSink(source.output)
 
-        read = Signal()
-        read_ = Signal()
-        m.d.comb += read_.eq(read)
-        write = Signal()
-        write_ = Signal()
-        m.d.comb += write_.eq(write)
-
         def driver(design):
 
             design.source.write_packet(test_packet)

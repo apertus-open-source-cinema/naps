@@ -90,7 +90,7 @@ class SimSocPlatform(SocPlatform):
                         yield Passive()
                     elif cmd == "read":
                         address, = rest
-                        result = (yield from axil_read(self.axi_lite_master, address))
+                        result = yield from axil_read(self.axi_lite_master, address)
                         conn.send(result)
                     elif cmd == "write":
                         address, data = rest

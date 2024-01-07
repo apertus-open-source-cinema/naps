@@ -19,6 +19,7 @@ class DummyPeripheral(Elaboratable):
 
     def elaborate(self, platform):
         m = Module()
+        m.submodules.mem = self.mem
         m.submodules.read_port = self.read_port
         m.submodules.write_port = self.write_port
 

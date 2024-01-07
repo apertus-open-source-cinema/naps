@@ -23,6 +23,7 @@ class TestHdmi(unittest.TestCase):
         platform.add_sim_clock("sync", 100e6)
         platform.sim(dut, testbench)
 
+    # amaranth: UnnusedElaboratable=no
     def test_mmcm_calculation(self):
         clocking = HdmiClocking(Clock(79.75e6), pix_domain="pix")
         clocking.find_valid_config()

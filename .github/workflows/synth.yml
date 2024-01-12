@@ -1,6 +1,9 @@
 name: Vivado Builds
 
-on: [push, pull_request]
+on:
+  workflow_dispatch:
+  schedule:
+    - cron:  '0 0 * * 0'
 
 jobs:
   build_applet:
@@ -14,16 +17,26 @@ jobs:
         - applets/hdmi_framebuffer.py -b -d Zybo -s Zynq
     runs-on: vivado
     steps:
-    - uses: actions/checkout@v2
-    - name: Install dependecies
+    - name: Checkout
+      uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v4
+      with:
+        python-version: '3.10'
+    - name: Setup PDM
+      uses: pdm-project/setup-pdm@v3
+      with:
+        python-version: '3.10'
+    - name: Install solver
+      run: |
+        sudo add-apt-repository ppa:sri-csl/formal-methods
+        sudo apt-get update
+        sudo apt-get install yices2
+    - name: Install dependencies
+      run: pdm install -G test -G ci_test
+    - name: Run test suite
       run:
-        pip3 install -e .[test]
-    - name: build
-      env:
-        AMARANTH_USE_YOSYS: system
-        YOSYS: yowasp-yosys
-      run:
-        python3 ${{ matrix.applet }}
+        SMTBMC=yowasp-yosys-smtbmc SBY=yowasp-sby YOSYS=yowasp-yosys pdm run ${{ matrix.applet }}
     - name: upload
       uses: actions/upload-artifact@v2
       with:

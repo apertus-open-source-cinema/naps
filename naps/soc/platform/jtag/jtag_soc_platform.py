@@ -38,7 +38,7 @@ class JTAGSocPlatform(SocPlatform):
         else:
             yield File("bitstream_jtag.svf", build_products.get(f"{name}.svf"))
         yield from self._wrapped_platform.generate_openocd_conf()
-        yield "openocd -f openocd.cfg -c 'svf -tap dut.tap -quiet -progress bitstream_jtag.svf; shutdown'"
+        yield 'openocd -f openocd.cfg -c "svf -tap dut.tap -quiet -progress bitstream_jtag.svf; shutdown"'
 
     def pydriver_memory_accessor(self, _memorymap):
         return (Path(__file__).parent / "memory_accessor_openocd.py").read_text()

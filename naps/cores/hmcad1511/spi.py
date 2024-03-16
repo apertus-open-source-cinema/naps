@@ -47,3 +47,5 @@ class HMCAD1511SPI(Elaboratable):
             self.write_word(0x45, 0b10)
         elif mode == "deskew":
             self.write_word(0x45, 0b01)
+        else:
+            raise ValueError(f"{mode} is not a valid testpattern mode")

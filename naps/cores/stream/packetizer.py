@@ -1,6 +1,6 @@
 from amaranth import *
 from naps.data_structure import DOWNWARDS
-from naps.soc.csr_types import PulseReg
+from naps.soc.csr_types import PulseReg, ControlSignal
 from naps.stream import BasicStream
 
 __all__ = ["StreamPacketizer"]
@@ -13,13 +13,20 @@ class StreamPacketizer(Elaboratable):
         self.output = input.clone()
         self.output.last = Signal() @ DOWNWARDS
 
-        self.new_packet = PulseReg(1)
+        self.length = ControlSignal(32)
+        self.start = PulseReg(1)
 
     def elaborate(self, platform):
         m = Module()
 
-        m.submodules += self.new_packet
-        m.d.comb += self.output.connect_upstream(self.input, exclude=["last"])
-        m.d.comb += self.output.last.eq(self.new_packet.pulse)
+        m.submodules += self.start
+
+        counter = Signal(32)
+        with m.If((counter > 0) & (counter <= self.length) & self.output.ready & self.input.valid):
+            m.d.sync += counter.eq(counter + 1)
+            m.d.comb += self.output.last.eq(counter == self.length - 1)
+            m.d.comb += self.output.connect_upstream(self.input, exclude=["last"])
+        with m.If(self.start.pulse):
+            m.d.sync += counter.eq(1)
 
         return m

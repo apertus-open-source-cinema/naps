@@ -31,7 +31,7 @@ class HMCAD1511Phy(Elaboratable):
         m.domains.bit_clk = ClockDomain(local=True)
         m.d.comb += ClockSignal("bit_clk").eq(adc.lclk.i)
 
-        m.domains.frame_clk = ClockDomain(local=True)
+        m.domains.frame_clk = ClockDomain()
         m.d.comb += ClockSignal("frame_clk").eq(adc.fclk.i)
 
         platform.ps7.fck_domain(62.5e6, "output_clk")

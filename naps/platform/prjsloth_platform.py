@@ -47,15 +47,17 @@ class PrjSlothPlatform(ZTurnLiteZ010Platform):
                     attrs=Attrs(IOSTANDARD="LVCMOS33"),
                         conn=("expansion", 0)
         ),
-            Resource("sensors_digital", 0,
+            Resource("sensor_digital", 0,
                      # D6
                      Subsignal("px_clk_top", Pins("62", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # J5
                      Subsignal("px_clk_bot", Pins("100", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # C5
                      Subsignal("frame_rst", Pins("80", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
-                     # C3 C6 C17 J8 (J9 line_exp) J10 J11 J12 J15 J16 J17 J18 (J21 line_rst)
-                     Subsignal("line", Pins("76 84 73 104 106 108 98 109 89 95 105 103 93", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
+                     # J9
+                     Subsignal("frame_exp", Pins("106", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
+                     # C3 C6 C17 J8 J10 J11 J12 J15 J16 J17 J18 (J21 line_rst)
+                     Subsignal("line", Pins("76 84 73 104 108 98 109 89 95 105 103 93", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # C13 C8 C4 D3 D4 J3 J14 J22
                      Subsignal("zero", Pins("75 86 78 74 64 110 85 87", dir='o', conn=("expansion", 0)), Attrs(IOSTANDARD="LVCMOS33")),
                      # C14

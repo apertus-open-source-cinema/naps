@@ -2,6 +2,7 @@ from itertools import count
 
 from amaranth import *
 from naps.util.python_misc import camel_to_snake
+from naps.util.amaranth_misc import get_elaboratable_name
 
 __all__ = ["Pipeline"]
 
@@ -25,7 +26,7 @@ class Pipeline:
             self.next_domain = value.output_domain
 
     def __iadd__(self, other):
-        name = camel_to_snake(other.__class__.__name__)
+        name = camel_to_snake(get_elaboratable_name(other))
         for i in count():
             n = name if i == 0 else f'{name}_{i}'
             if n not in self.pipeline_members:

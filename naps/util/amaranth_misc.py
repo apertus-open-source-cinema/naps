@@ -6,6 +6,7 @@ from typing import Iterator, Iterable
 from amaranth import *
 from amaranth import Mux
 from amaranth.build import ResourceError
+from amaranth.hdl.xfrm import TransformedElaboratable
 
 __all__ = ["iterator_with_if_elif", "assert_is_pot", "log2", "nMin", "nMax", "nAny", "nAll",
            "max_error_freq", "delay_by", "ends_with", "connect_leds", "with_reset", "nAvrg",
@@ -110,3 +111,10 @@ def nAbsDifference(a, b):
 
 def fake_differential(v):
     return Mux(v, 0b01, 0b10)
+
+
+def get_elaboratable_name(elaboratable):
+    if isinstance(elaboratable, TransformedElaboratable):
+        return get_elaboratable_name(elaboratable._elaboratable_)
+    else:
+        return elaboratable.__class__.__name__

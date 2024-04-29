@@ -405,7 +405,7 @@ class Cmv12kPhy(Elaboratable):
         ]
 
         # generate the derived clocks with a PLL
-        pll = m.submodules.pll = Mmcm(125e6, 6, 1, input_domain=self.domain+"_in")
+        pll = m.submodules.pll = Mmcm(125e6, 6, 1, input_domain=dom_in)
         pll.output_domain(dom_bit, 3)
         pll.output_domain(self.domain, 6)
         pll.output_domain(dom_hword, 18)

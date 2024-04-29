@@ -24,7 +24,8 @@ class SimPlatform:
         caller_path = ""
         stack = inspect.stack()
         for frame in stack[1:]:
-            if "unittest" in frame.filename:
+            print(frame, frame.filename)
+            if "unittest" in frame.filename or "pytest" in frame.filename:
                 if not filename:
                     filename = "__".join(reversed(functions))
                     if test_class:

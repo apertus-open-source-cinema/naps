@@ -30,9 +30,6 @@ Documentation = "https://apertus-open-source-cinema.github.io/naps/"
 publish = [
     "twine>=4.0.2",
 ]
-ci_test = [
-    "yowasp-yosys>=0.36.0.8.post620",
-]
 [tool.pdm.dev-dependencies]
 test = [
     "PiDNG",

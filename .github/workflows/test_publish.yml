@@ -14,16 +14,12 @@ jobs:
         uses: pdm-project/setup-pdm@v3
         with:
           python-version: '3.10'
-      - name: Install solver
-        run: |
-          sudo add-apt-repository ppa:sri-csl/formal-methods
-          sudo apt-get update
-          sudo apt-get install yices2
+      - uses: YosysHQ/setup-oss-cad-suite@v3
       - name: Install dependencies
-        run: pdm install -G test -G ci_test
+        run: pdm install -G test
       - name: Run test suite
         run:
-          SMTBMC=yowasp-yosys-smtbmc SBY=yowasp-sby YOSYS=yowasp-yosys pdm test
+          pdm test
 
   publish_pypi:
     if: github.ref == 'refs/heads/main'

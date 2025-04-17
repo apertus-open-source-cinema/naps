@@ -9,7 +9,7 @@ def get_module_sizes(module, *args, **kwargs):
     rtlil_text = rtlil.convert(module, *args, **kwargs)
 
     script = """
-        read_ilang <<rtlil
+        read_rtlil <<rtlil
         {}
         rtlil
         

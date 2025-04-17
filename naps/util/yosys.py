@@ -8,10 +8,7 @@ from amaranth._toolchain.yosys import find_yosys
 def parse_yosys_json(verilog_paths):
     if isinstance(verilog_paths, str):
         verilog_paths = [verilog_paths]
-    json = yosys_script([
-        "\n".join("read_verilog {}".format(path) for path in verilog_paths),
-        "write_json"
-    ])
+    json = yosys_script(["read_verilog {}".format(path) for path in verilog_paths] + ["write_json"])
     return loads(json)
 
 
@@ -56,4 +53,4 @@ def yosys_script(commands):
     :return: the stdout of yosys
     """
 
-    return find_yosys(lambda ver: ver >= (0, 9)).run(["-q", "-p {}".format(";\n".join(commands))])
+    return find_yosys(lambda ver: ver >= (0, 9)).run(["-q", "-p {}".format("; ".join(commands))])

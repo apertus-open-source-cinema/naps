@@ -4,8 +4,9 @@ from .hooks import csr_and_driver_item_hook, address_assignment_hook, peripheral
 from .pydriver.generate import pydriver_hook
 from .tracing_elaborate import fragment_get_with_elaboratable_trace
 
-__all__ = ["SocPlatform", "soc_platform_name"]
+__all__ = ["SocPlatform", "soc_platform_name", "PERIPHERAL_DOMAIN"]
 
+PERIPHERAL_DOMAIN = "peripheral_domain"
 
 class SocPlatform(ABC):
     base_address = None

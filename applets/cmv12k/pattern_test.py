@@ -36,7 +36,7 @@ class Stats(Elaboratable):
 
         m.submodules += self.reset
 
-        reset_sync = m.submodules.reset_sync = PulseSynchronizer(platform.csr_domain, "sync")
+        reset_sync = m.submodules.reset_sync = PulseSynchronizer(PERIPHERAL_DOMAIN, "sync")
         m.d.comb += reset_sync.i.eq(self.reset.pulse)
 
         with m.If(reset_sync.o):

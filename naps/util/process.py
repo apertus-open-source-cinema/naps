@@ -19,7 +19,7 @@ class Process:
         self.name = name
         self.to = to
         self.stage = 0
-        self.last_stage = Const(0, 0)
+        self.last_stage = Signal(32)
         self.current_conditional = m.State(name)
 
     def __enter__(self):
@@ -44,8 +44,7 @@ class Process:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self.current_conditional.__exit__(exc_type, exc_val, exc_tb)
 
-        self.last_stage.width = bits_for(self.stage)
-        self.last_stage.value = self.stage
+        self.m.d.comb += self.last_stage.eq(self.stage)
 
 
 def process_block(function):

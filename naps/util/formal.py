@@ -1,12 +1,15 @@
 import inspect
 import subprocess
 import textwrap
+from typing import Iterable
 from pathlib import Path
 
-from amaranth import Fragment
+from amaranth import Fragment, ValueCastable, Value
 from amaranth._toolchain import require_tool
 from amaranth.back import rtlil
 from shutil import rmtree
+
+from naps.data_structure import Bundle
 
 __all__ = ["assert_formal", "FormalPlatform"]
 
@@ -14,13 +17,12 @@ __all__ = ["assert_formal", "FormalPlatform"]
 class FormalPlatform:
     pass
 
-
-def assert_formal(spec, mode="bmc", depth=1):
+def get_artifacts_location():
     functions = []
     test_class = None
     caller_path = ""
     stack = inspect.stack()
-    for frame in stack[1:]:
+    for frame in stack[2:]:
         if "unittest" in frame.filename:
             filename = "__".join(reversed(functions))
             if test_class:
@@ -37,6 +39,12 @@ def assert_formal(spec, mode="bmc", depth=1):
     target_dir.mkdir(exist_ok=True)
     if (target_dir / filename).exists():
         rmtree(target_dir / filename)
+    return target_dir, filename
+
+def assert_formal(spec, mode="bmc", depth=1, submodules=()):
+    target_dir, filename = get_artifacts_location()
+    import sys
+    print(target_dir, filename, file=sys.stderr)
 
     if mode == "hybrid":
         # A mix of BMC and k-induction, as per personal communication by the person we coppied the code from with Claire Wolf.
@@ -46,7 +54,34 @@ def assert_formal(spec, mode="bmc", depth=1):
         script = ""
 
     spec._MustUse__used = True
-    fragment = Fragment.get(spec, platform=FormalPlatform)
+
+    spec_module = spec.elaborate(FormalPlatform)
+    for injected in submodules:
+        spec_module.submodules += injected
+
+    def flat_entry(entry):
+        if isinstance(entry, Bundle):
+            res = []
+            for sig in entry.signals:
+                if isinstance(sig, Bundle):
+                    res += flat_entry(sig)
+                else:
+                    res.append(sig)
+            return res
+        elif isinstance(entry, ValueCastable):
+            return [Value.cast(entry)]
+        elif isinstance(entry, (list, tuple)):
+            ports = []
+            for e in entry:
+                print(e, type(entry), file=sys.stderr)
+                ports += flat_entry(e)
+            return ports
+        else:
+            return []
+    
+
+    ports = flat_entry(list(spec.__dict__.values()))
+    print(ports, file=sys.stderr)
 
     config = textwrap.dedent("""\
         [options]
@@ -65,7 +100,7 @@ def assert_formal(spec, mode="bmc", depth=1):
         mode=mode,
         depth=depth,
         script=script,
-        rtlil=rtlil.convert_fragment(fragment.prepare())[0]
+        rtlil=rtlil.convert(spec_module, ports=ports)
     )
     with subprocess.Popen([require_tool("sby"), "-f", "-d", filename], cwd=str(target_dir),
                           universal_newlines=True,

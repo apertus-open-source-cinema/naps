@@ -28,11 +28,8 @@ class StreamOutputCoverSpec(Elaboratable):
 
 
 def verify_stream_output_contract_cover(module, stream_output, support_modules=()):
-    dut = module.elaborate(FormalPlatform)
-    for s in support_modules:
-        dut.submodules += s
-    dut.submodules.spec = StreamOutputCoverSpec(stream_output)
-    assert_formal(dut, mode="cover", depth=10)
+    spec = StreamOutputCoverSpec(stream_output)
+    assert_formal(module, mode="cover", depth=10, submodules=[*support_modules, spec])
 
 
 class StreamOutputAssertSpec(Elaboratable):
@@ -69,11 +66,8 @@ class StreamOutputAssertSpec(Elaboratable):
 
 
 def verify_stream_output_contract_assert(module, stream_output, support_modules=()):
-    dut = module.elaborate(FormalPlatform)
-    for s in support_modules:
-        dut.submodules += s
-    dut.submodules.spec = StreamOutputAssertSpec(stream_output)
-    assert_formal(dut, mode="hybrid", depth=10)
+    spec = StreamOutputAssertSpec(stream_output)
+    assert_formal(module, mode="hybrid", depth=10, submodules=[*support_modules, spec])
 
 
 class LegalStreamSource(Elaboratable):

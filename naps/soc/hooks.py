@@ -3,6 +3,7 @@ from textwrap import indent
 
 from amaranth import *
 from amaranth.hdl.ast import SignalSet
+from amaranth.hdl._ast import Assign, Property, Switch, Print, Operator, Slice, Part, Concat, SwitchValue, ClockSignal, ResetSignal, Initial, ValueCastable
 
 from .csr_types import _Csr, ControlSignal, StatusSignal, EventReg
 from .memorymap import MemoryMap
@@ -20,7 +21,59 @@ def csr_and_driver_item_hook(platform, top_fragment: Fragment, sames: Elaboratab
         if elaboratable:
             class_members = [(s, getattr(elaboratable, s)) for s in dir(elaboratable)]
             csr_signals = [(name, member) for name, member in class_members if isinstance(member, _Csr)]
-            fragment_signals = reduce(lambda a, b: a | b, fragment.drivers.values(), SignalSet())
+            
+            def get_statement_csrs(stmt):
+                csrs = set()
+                if stmt is None:
+                    pass
+                # statements
+                elif isinstance(stmt, Assign):
+                    csrs |= get_statement_csrs(stmt.lhs)
+                    csrs |= get_statement_csrs(stmt.rhs)
+                elif isinstance(stmt, Property):
+                    csrs |= get_statement_csrs(stmt.message)
+                    csrs |= get_statement_csrs(stmt.test)
+                elif isinstance(stmt, Switch):
+                    csrs |= get_statement_csrs(stmt.test)
+                    for _patterns, statements, _src_loc  in stmt.cases:
+                        for statement in statements:
+                            csrs |= get_statement_csrs(statement)
+                elif isinstance(stmt, Print):
+                    for chunk in stmt.message._chunks:
+                        if isinstance(chunk, tuple):
+                            value, _format_spec = chunk
+                            csrs |= get_statement_csrs(value)
+                # Values
+                elif isinstance(stmt, Operator):
+                    for operand in stmt.operands:
+                        csrs |= get_statement_csrs(operand)
+                elif isinstance(stmt, Slice):
+                    csrs |= get_statement_csrs(stmt.value)
+                elif isinstance(stmt, Part):
+                    csrs |= get_statement_csrs(stmt.value)
+                    csrs |= get_statement_csrs(stmt.offset)
+                elif isinstance(stmt, Concat):
+                    for part in stmt.parts:
+                        csrs |= get_statement_csrs(part)
+                elif isinstance(stmt, SwitchValue):
+                    csrs |= get_statement_csrs(stmt.test)
+                    for pattern, value in stmt.cases:
+                        csrs |= get_statement_csrs(value)
+                elif isinstance(stmt, (ClockSignal, ResetSignal, Initial)):
+                    pass
+                elif isinstance(stmt, _Csr):
+                    csrs.add(stmt)
+                elif isinstance(stmt, (Signal, Const, ValueCastable)):
+                    pass
+                else:
+                    raise AssertionError("unknown object {} of type {} in statement", stmt, type(stmt))
+                return csrs
+
+            fragment_signals = set()
+            for _domain, statements in fragment.statements.items():
+                for stmt in statements:
+                    fragment_signals |= get_statement_csrs(stmt)
+
             csr_signals += [
                 (signal.name, signal) for signal in fragment_signals
                 if isinstance(signal, _Csr)
@@ -62,7 +115,7 @@ def csr_and_driver_item_hook(platform, top_fragment: Fragment, sames: Elaboratab
             for name, driver_item in driver_items:
                 fragment.memorymap.add_driver_item(name, driver_item)
 
-        for subfragment, name in fragment.subfragments:
+        for subfragment, name, _src_loc in fragment.subfragments:
             inner(subfragment)
     inner(top_fragment)
 
@@ -75,14 +128,14 @@ def address_assignment_hook(platform, top_fragment: Fragment, sames: Elaboratabl
             return
 
         # depth first recursion is important so that all the subfragments have a fully populated memorymap later on
-        for sub_fragment, sub_name in fragment.subfragments:
+        for sub_fragment, sub_name, _src_loc in fragment.subfragments:
             if sub_name != "ignore":
                 inner(sub_fragment)
 
         # add everything to the own memorymap
         if not hasattr(fragment, "memorymap"):
             fragment.memorymap = MemoryMap()
-        for sub_fragment, sub_name in fragment.subfragments:
+        for sub_fragment, sub_name, _src_loc in fragment.subfragments:
             if sub_name != "ignore":
                 assert hasattr(sub_fragment, "memorymap")  # this holds because we did depth first recursion
                 fragment.memorymap.allocate_subrange(sub_fragment.memorymap, sub_name)
@@ -125,7 +178,7 @@ def peripherals_collect_hook(platform, top_fragment: Fragment, sames: Elaboratab
         if module:
             if hasattr(module, "peripheral"):
                 platform.peripherals.append(module.peripheral)
-        for (f, name) in fragment.subfragments:
+        for f, name, _src_loc in fragment.subfragments:
             collect_peripherals(platform, f, sames)
 
     collect_peripherals(platform, top_fragment, sames)

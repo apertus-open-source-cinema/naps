@@ -22,10 +22,11 @@ class TestFt601StreamSink(TestCase):
 
         platform = SimPlatform()
         platform.add_sim_clock("sync", 50e6)
-        platform.add_sim_clock("ft601", 100e6)
+        platform.add_sim_clock("ft601_outer", 100e6)
 
         ft601 = Ft601FakeResource()
         stream_counter = m.submodules.stream_counter = CounterStreamSource(32, count_if_not_ready=True)
+        m.d.comb += ft601.clk.eq(ClockSignal("ft601_outer"))
         m.submodules.dut = FT601StreamSink(ft601, stream_counter.output)
 
         def testbench():

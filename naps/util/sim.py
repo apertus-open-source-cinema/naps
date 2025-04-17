@@ -54,6 +54,8 @@ class SimPlatform:
     def prepare(self, top_fragment, name="top", *args, **kwargs):
         if hasattr(self, '_soc_platform'):
             top_fragment = self._soc_platform.prepare_soc(top_fragment)
+        else:
+            top_fragment = Fragment.get(top_fragment, platform=self)
 
         return top_fragment
 
@@ -68,6 +70,8 @@ class SimPlatform:
         self.fragment = dut
         simulator = Simulator(dut, engine=engine)
         for name, (frequency, phase) in self.clocks.items():
+            import sys
+            print(name, self.clocks, file=sys.stderr)
             simulator.add_clock(1 / frequency, domain=name, phase=phase)
 
         if isinstance(testbench, tuple):

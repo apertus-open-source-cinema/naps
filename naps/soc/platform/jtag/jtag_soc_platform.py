@@ -29,7 +29,7 @@ class JTAGSocPlatform(SocPlatform):
                 m = Module()
                 m.submodules.jtag_controller = JTAGPeripheralConnector(aggregator, jtag_domain="jtag")
 
-                m.d.comb += ClockSignal(PERIPHERAL_DOMAIN).eq("jtag")
+                m.d.comb += ClockSignal(PERIPHERAL_DOMAIN).eq(ClockSignal("jtag"))
 
                 platform.to_inject_subfragments.append((m, "jtag"))
 

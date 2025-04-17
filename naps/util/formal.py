@@ -56,7 +56,7 @@ def assert_formal(spec, mode="bmc", depth=1):
         [engines]
         smtbmc
         [script]
-        read_ilang top.il
+        read_rtlil top.il
         prep
         {script}
         [file top.il]

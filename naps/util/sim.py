@@ -55,18 +55,6 @@ class SimPlatform:
         if hasattr(self, '_soc_platform'):
             top_fragment = self._soc_platform.prepare_soc(top_fragment)
 
-        # we filter all the instances out, because they give wired behaviour; TODO: this doesnt work :(
-        top_fragment: Fragment = Fragment.get(top_fragment, self)
-
-        def filter_instances(top_fragment):
-            top_fragment.subfragments = [
-                (filter_instances(subfragment), name)
-                for subfragment, name in top_fragment.subfragments
-                if not (isinstance(subfragment, Instance) and not subfragment.type.startswith('$'))
-            ]
-            return top_fragment
-
-        filter_instances(top_fragment)
         return top_fragment
 
     def add_process(self, generator, domain=None):

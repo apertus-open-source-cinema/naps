@@ -164,7 +164,7 @@ def wait_for(expr, timeout=100, must_clock=True):
     i = 0
     while True:
         if timeout != -1 and i >= timeout:
-            raise TimeoutError("{} did not become '1' within {} cycles".format(expr, timeout))
+            raise TimeoutError("{!r} did not become '1' within {} cycles".format(expr, timeout))
         i += 1
 
         if (yield expr):

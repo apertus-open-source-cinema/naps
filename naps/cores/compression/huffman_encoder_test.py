@@ -32,7 +32,7 @@ class HuffmanTest(unittest.TestCase):
                 if last:
                     break
             print(read)
-            decode_iter = bitarray(read).iterdecode({k: bitarray(v[::-1]) for k, v in huffman.table.items()})
+            decode_iter = bitarray(read).decode({k: bitarray(v[::-1]) for k, v in huffman.table.items()})
             decoded = ""
             try:
                 for c in decode_iter:
@@ -70,7 +70,7 @@ class HuffmanTest(unittest.TestCase):
                     break
             read_bitarray = "".join(x[::-1] for x in read)
             print(read_bitarray)
-            decode_iter = bitarray(read_bitarray).iterdecode({k: bitarray(v[::-1]) for k, v in huffman.table.items()})
+            decode_iter = bitarray(read_bitarray).decode({k: bitarray(v[::-1]) for k, v in huffman.table.items()})
             for c, expected in zip(decode_iter, input_data):
                 self.assertEqual(chr(c), expected)
 

@@ -30,7 +30,7 @@ class ConsolePacketSource(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        memory = m.submodules.memory = self.memory
+        memory = self.memory
 
         address_stream = PacketizedStream(bits_for(self.max_packet_size))
         with m.If(~self.done):
@@ -50,6 +50,7 @@ class ConsolePacketSource(Elaboratable):
         reader = m.submodules.reader = StreamMemoryReader(address_stream, memory)
         buffer = m.submodules.buffer = StreamBuffer(reader.output)
         m.d.comb += self.output.connect_upstream(buffer.output)
+        m.submodules.memory = memory
 
         return m
 
@@ -86,7 +87,7 @@ class ConsolePacketSink(Elaboratable):
         m = Module()
 
         memory = m.submodules.memory = self.memory
-        write_port = m.submodules.write_port = memory.write_port(domain="sync")
+        write_port = memory.write_port(domain="sync")
         with m.If(~self.packet_done & (self.write_pointer < self.max_packet_size)):
             m.d.comb += self.input.ready.eq(1)
             with m.If(self.input.valid):

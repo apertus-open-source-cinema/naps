@@ -11,12 +11,12 @@ authors = [
     {name = "Jaro Habiger", email = "jarohabiger@googlemail.com"},
 ]
 dependencies = [
-    "amaranth-boards @ git+https://github.com/amaranth-lang/amaranth-boards",
-    "amaranth @ git+https://github.com/amaranth-lang/amaranth",
+    "amaranth-boards @ git+https://github.com/amaranth-lang/amaranth-boards@c26a72e59c786b38e0e989ae64c6c2560ca7c29c",
+    "amaranth @ git+https://github.com/amaranth-lang/amaranth@31459d5e6b27bc6678589e64ee90b80a6d07b7fb",
     "huffman",
     "paramiko",
 ]
-requires-python = "~=3.8"
+requires-python = ">=3.11"
 readme = "README.rst"
 license = {file = "LICENSE"}
 keywords = ["amaranth apertus fpga gateware video camera"]
@@ -45,17 +45,15 @@ test = [
     "pytest-xdist",
     "rawpy",
     "scipy",
-    "spidev",
 ]
 doc = [
     "sphinx<4",
     "sphinx_rtd_theme",
 ]
+
 [build-system]
 requires = ["pdm-backend"]
 build-backend = "pdm.backend"
-
-
 
 [tool.pdm.build]
 excludes = ["**/.sim_results"]

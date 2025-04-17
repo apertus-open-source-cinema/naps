@@ -73,7 +73,7 @@ def inject_elaborate_wrapper(obj, sames):
 
     if isinstance(obj, Module):
         submodules = [*obj._named_submodules.values(), *obj._anon_submodules]
-        for elab in submodules:
+        for elab, _src in submodules:
             inject_elaborate_wrapper(elab, sames)
     elif isinstance(obj, TransformedElaboratable):
         inject_elaborate_wrapper(obj._elaboratable_, sames)

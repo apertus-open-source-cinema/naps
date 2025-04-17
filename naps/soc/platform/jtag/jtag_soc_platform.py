@@ -1,9 +1,9 @@
 from pathlib import Path
-from amaranth import Fragment, Signal
+from amaranth import Fragment, Signal, Module, ClockSignal
 from amaranth.build.run import BuildProducts
 from amaranth.vendor import LatticeMachXO2Platform
 
-from ... import SocPlatform, Address, PeripheralsAggregator
+from ... import SocPlatform, Address, PeripheralsAggregator, PERIPHERAL_DOMAIN
 
 __all__ = ["JTAGSocPlatform"]
 
@@ -12,7 +12,6 @@ from ...fatbitstream import File
 
 class JTAGSocPlatform(SocPlatform):
     base_address = Address(address=0x0000_0000, bit_offset=0, bit_len=0xFFFF_FFFF * 8)
-    csr_domain = "jtag"
 
     def __init__(self, platform):
         super().__init__(platform)
@@ -27,8 +26,12 @@ class JTAGSocPlatform(SocPlatform):
                 for peripheral in platform.peripherals:
                     aggregator.add_peripheral(peripheral)
 
-                jtag_controller = JTAGPeripheralConnector(aggregator, jtag_domain=self.csr_domain)
-                platform.to_inject_subfragments.append((jtag_controller, "jtag_controller"))
+                m = Module()
+                m.submodules.jtag_controller = JTAGPeripheralConnector(aggregator, jtag_domain="jtag")
+
+                m.d.comb += ClockSignal(PERIPHERAL_DOMAIN).eq("jtag")
+
+                platform.to_inject_subfragments.append((m, "jtag"))
 
         self.prepare_hooks.append(peripherals_connect_hook)
 

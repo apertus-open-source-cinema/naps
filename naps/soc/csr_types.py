@@ -165,6 +165,7 @@ class EventReg(_Csr):  # TODO: bikeshed name
             return self._address.bit_len
         return self._bits
 
+# TODO: make this not Elaboratable, but instead add API to _Csr to add statements to the peripheral connector module
 class PulseReg(EventReg, Elaboratable):  # TODO: replace with _write_strobe?
     """A register that generates one cycle wide pulses when ones are written. The pulses happen in the CSR domain.
     Use a PulseSynchronizer to get one cycle wide pulses in another domain, so long as its clock speed is not slower than the CSR domain.
@@ -190,6 +191,7 @@ class PulseReg(EventReg, Elaboratable):  # TODO: replace with _write_strobe?
     def elaborate(self, platform):
         m = Module()
 
-        m.d[platform.csr_domain] += self.pulse.eq(self._write_val)
+        from ..soc import PERIPHERAL_DOMAIN
+        m.d[PERIPHERAL_DOMAIN] += self.pulse.eq(self._write_val)
 
         return m

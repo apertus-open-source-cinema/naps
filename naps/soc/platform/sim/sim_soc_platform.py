@@ -1,6 +1,6 @@
 from multiprocessing import Pipe
 from threading import Thread
-from amaranth import Fragment, Module, DomainRenamer
+from amaranth import Fragment, Module, DomainRenamer, ClockDomain, ClockSignal
 from amaranth.sim import Passive
 
 from naps import SimPlatform
@@ -11,7 +11,6 @@ __all__ = ["SimSocPlatform"]
 
 class SimSocPlatform(SocPlatform):
     base_address = Address(0, 0, 0xFFFF_FFFF * 8)
-    csr_domain = "axi_lite"
 
     def __init__(self, platform):
         assert isinstance(platform, SimPlatform)
@@ -29,11 +28,13 @@ class SimSocPlatform(SocPlatform):
                 aggregator = PeripheralsAggregator()
                 for peripheral in platform.peripherals:
                     aggregator.add_peripheral(peripheral)
-                connector = DomainRenamer(self.csr_domain)(AxiLitePeripheralConnector(aggregator))
+                connector = DomainRenamer(PERIPHERAL_DOMAIN)(AxiLitePeripheralConnector(aggregator))
+                m.domains += ClockDomain(PERIPHERAL_DOMAIN)
+                m.d.comb += ClockSignal(PERIPHERAL_DOMAIN).eq(ClockSignal("axi_lite"))
                 m.d.comb += axi_lite_master.connect_downstream(connector.axi)
                 m.submodules.connector = connector
 
-                platform.to_inject_subfragments.append((m, self.csr_domain))
+                platform.to_inject_subfragments.append((m, PERIPHERAL_DOMAIN))
         self.prepare_hooks.append(peripherals_connect_hook)
 
     def prepare_soc(self, fragment):

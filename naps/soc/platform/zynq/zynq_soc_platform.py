@@ -1,5 +1,5 @@
 from pathlib import Path
-from amaranth import Fragment, Module, ClockSignal, DomainRenamer
+from amaranth import ClockDomain, Fragment, Module, ClockSignal, DomainRenamer
 from amaranth.build.run import BuildProducts
 
 from ... import *
@@ -11,7 +11,6 @@ from ...fatbitstream import File
 
 class ZynqSocPlatform(SocPlatform):
     base_address = Address(0x4000_0000, 0, (0x7FFF_FFFF - 0x4000_0000) * 8)
-    csr_domain = "axi_lite"
 
     def __init__(self, platform, use_axi_interconnect=False):
         from naps.vendor.xilinx_s7 import PS7
@@ -27,31 +26,34 @@ class ZynqSocPlatform(SocPlatform):
                 m = Module()
                 platform.ps7.fck_domain(domain_name="axi_lite", requested_frequency=10e6)
                 if not hasattr(platform, "is_sim"):  # we are not in a simulation platform
-                    axi_full_port: AxiEndpoint = platform.ps7.get_axi_gp_master(ClockSignal(self.csr_domain))
-                    axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer(self.csr_domain)(
+                    axi_full_port: AxiEndpoint = platform.ps7.get_axi_gp_master(ClockSignal("axi_lite"))
+                    axi_lite_bridge = m.submodules.axi_lite_bridge = DomainRenamer("axi_lite")(
                         AxiFullToLiteBridge(axi_full_port)
                     )
                     axi_lite_master = axi_lite_bridge.lite_master
                 else:  # we are in a simulation platform
                     axi_lite_master = AxiEndpoint(addr_bits=32, data_bits=32, lite=True)
                     self.axi_lite_master = axi_lite_master
+                
+                m.domains += ClockDomain(PERIPHERAL_DOMAIN)
+                m.d.comb += ClockSignal(PERIPHERAL_DOMAIN).eq(ClockSignal("axi_lite"))
 
                 if use_axi_interconnect:
-                    interconnect = m.submodules.interconnect = DomainRenamer(self.csr_domain)(
+                    interconnect = m.submodules.interconnect = DomainRenamer("axi_lite")(
                         AxiInterconnect(axi_lite_master)
                     )
                     for peripheral in platform.peripherals:
-                        connector = DomainRenamer(self.csr_domain)(AxiLitePeripheralConnector(peripheral))
+                        connector = DomainRenamer(PERIPHERAL_DOMAIN)(AxiLitePeripheralConnector(peripheral))
                         m.d.comb += interconnect.get_port().connect_downstream(connector.axi)
                         m.submodules += connector
                 else:
                     aggregator = PeripheralsAggregator()
                     for peripheral in platform.peripherals:
                         aggregator.add_peripheral(peripheral)
-                    connector = DomainRenamer(self.csr_domain)(AxiLitePeripheralConnector(aggregator))
+                    connector = DomainRenamer(PERIPHERAL_DOMAIN)(AxiLitePeripheralConnector(aggregator))
                     m.d.comb += axi_lite_master.connect_downstream(connector.axi)
                     m.submodules.connector = connector
-                platform.to_inject_subfragments.append((m, self.csr_domain))
+                platform.to_inject_subfragments.append((m, "axi_lite"))
         self.prepare_hooks.append(peripherals_connect_hook)
 
     def pack_bitstream_fatbitstream(self, name: str, build_products: BuildProducts):

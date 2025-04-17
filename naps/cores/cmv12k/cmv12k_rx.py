@@ -2,6 +2,7 @@ from amaranth import *
 from amaranth.lib.cdc import FFSynchronizer, PulseSynchronizer
 from naps import driver_method, Rose, Fell
 from naps.cores import StreamBuffer, ImageStream
+from naps.soc import PERIPHERAL_DOMAIN
 from .s7_phy import HostTrainer, Cmv12kPhy
 
 __all__ = ["Cmv12kRx"]
@@ -61,7 +62,7 @@ class Cmv12kRx(Elaboratable):
         # temp clock setup
         platform.ps7.fck_domain(200e6, self.domain+"_delay_ref")
         m.domains += ClockDomain(self.domain+"_ctrl")
-        m.d.comb += ClockSignal(self.domain+"_ctrl").eq(ClockSignal(platform.csr_domain))
+        m.d.comb += ClockSignal(self.domain+"_ctrl").eq(ClockSignal(PERIPHERAL_DOMAIN))
 
         phy = m.submodules.phy = self.phy
         trainer = m.submodules.trainer = self.trainer

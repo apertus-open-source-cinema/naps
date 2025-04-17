@@ -13,8 +13,9 @@ class StreamMemoryTest(unittest.TestCase):
         m = Module()
 
         address_stream = PacketizedStream(8)
-        mem = m.submodules.memory = Memory(width=32, depth=128, init=[i + 2 for i in range(128)])
+        mem = Memory(width=32, depth=128, init=[i + 2 for i in range(128)])
         reader = m.submodules.reader = StreamMemoryReader(address_stream, mem)
+        m.submodules.memory = mem
 
         def write_process():
             for i in range(128):

@@ -19,7 +19,7 @@ class StreamMemoryReader(Elaboratable):
         m = Module()
 
         stream_transformer(self.address_input, self.output, m, latency=1, allow_partial_out_of_band=True)
-        port = m.submodules.port = self.memory.read_port(domain="sync", transparent=False)
+        port = self.memory.read_port(domain="sync", transparent=False)
         m.d.comb += port.en.eq(self.address_input.ready & self.address_input.valid)
         m.d.comb += port.addr.eq(self.address_input.payload)
         m.d.comb += self.output.payload.eq(port.data)

@@ -14,7 +14,7 @@ class Top(Elaboratable):
         m = Module()
         m.submodules.osc = Osc(freq=53.2e6)
         m.d.sync += self.counter.eq(self.counter + 1)
-        m.d.comb += platform.request("led", 0).eq(self.counter[24])
+        m.d.comb += platform.request("led", 0).o.eq(self.counter[24])
 
         debug_stream_source = BasicStream(32)
         m.d.comb += debug_stream_source.valid.eq(1)

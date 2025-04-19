@@ -1,6 +1,6 @@
 import unittest
 from amaranth import *
-from naps import ZynqSocPlatform, SimPlatform
+from naps import ZynqSocPlatform, SimPlatform, OutputIo
 from naps.cores.axi import axil_read
 from naps.cores.hdmi import generate_modeline, HdmiTx
 from naps.soc.pydriver.driver_items import DriverItem
@@ -12,10 +12,10 @@ class SocSmokeTest(unittest.TestCase):
 
         class Pins:
             def __init__(self):
-                self.r = Signal()
-                self.g = Signal()
-                self.b = Signal()
-                self.clock = Signal()
+                self.r = OutputIo()
+                self.g = OutputIo()
+                self.b = OutputIo()
+                self.clock = OutputIo()
 
         dut = HdmiTx(Pins(), generate_clocks=False, modeline=generate_modeline(640, 480, 60))
 

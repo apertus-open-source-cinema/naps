@@ -125,8 +125,8 @@ class LaneManager(Elaboratable):
 class HispiRx(Elaboratable):
     def __init__(self, sensor, bits=12, hispi_domain="hispi"):
         self.hispi_domain = hispi_domain
-        self.lvds_clk = sensor.lvds_clk
-        self.lvds = sensor.lvds
+        self.lvds_clk = sensor.lvds_clk.i
+        self.lvds = sensor.lvds.i
         self.lanes = len(self.lvds)
         self.bits = bits
 

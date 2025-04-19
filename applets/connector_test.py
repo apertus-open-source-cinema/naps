@@ -58,7 +58,7 @@ class Top(Elaboratable):
         m.d.comb += oserdes.clkdiv.eq(ClockSignal("serdes"))
         m.d.comb += oserdes.rst.eq(ResetSignal("serdes"))
         m.d.comb += Cat(oserdes.d[i] for i in reversed(range(1, 9))).eq(to_oserdes)  # reversed is needed!!1
-        m.d.comb += loopback.tx.eq(oserdes.oq)
+        m.d.comb += loopback.tx.o.eq(oserdes.oq)
 
         ## reciver side
         bufg_idelay_refclk = m.submodules.bufg_idelay_refclk = BufG(pll.clk.out[1])
@@ -85,7 +85,7 @@ class Top(Elaboratable):
         m.d.comb += idelay.inc.eq(0)
         m.d.comb += idelay.cntvalue.in_.eq(ControlSignal(5, name="idelay_cntvaluein"))
         m.d.comb += StatusSignal(5, name="idelay_cntvalueout").eq(idelay.cntvalue.out)
-        m.d.comb += idelay.idatain.eq(loopback.rx)
+        m.d.comb += idelay.idatain.eq(loopback.rx.i)
         idelay_out = Signal()
         m.d.comb += idelay_out.eq(idelay.data.out)
 

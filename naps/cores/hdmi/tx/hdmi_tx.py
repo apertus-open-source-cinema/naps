@@ -45,10 +45,10 @@ class HdmiTx(Elaboratable):
         encoder_g = m.submodules.encoder_g = in_pix_domain(TmdsEncoder(self.rgb.g, control_char, timing.active))
         encoder_b = m.submodules.encoder_b = in_pix_domain(TmdsEncoder(self.rgb.b, control_char, timing.active))
 
-        serializer_clock = m.submodules.serializer_clock = OSerdes10(self.clock_pattern, self.resource.clock, **domain_args)
-        serializer_b = m.submodules.serializer_b = OSerdes10(encoder_b.out, self.resource.b, **domain_args)
-        serializer_g = m.submodules.serializer_g = OSerdes10(encoder_g.out, self.resource.g, **domain_args)
-        serializer_r = m.submodules.serializer_r = OSerdes10(encoder_r.out, self.resource.r, **domain_args)
+        serializer_clock = m.submodules.serializer_clock = OSerdes10(self.clock_pattern, self.resource.clock.o, **domain_args)
+        serializer_b = m.submodules.serializer_b = OSerdes10(encoder_b.out, self.resource.b.o, **domain_args)
+        serializer_g = m.submodules.serializer_g = OSerdes10(encoder_g.out, self.resource.g.o, **domain_args)
+        serializer_r = m.submodules.serializer_r = OSerdes10(encoder_r.out, self.resource.r.o, **domain_args)
 
         m.submodules.lowspeed = HdmiPluginLowspeedController(self.resource)
 
@@ -184,8 +184,8 @@ class HdmiPluginLowspeedController(Elaboratable):
             setattr(self, name, csr_signal)
             io = getattr(self.plugin, name)
             if signal_type == ControlSignal:
-                m.d.comb += io.eq(csr_signal)
+                m.d.comb += io.o.eq(csr_signal)
             else:
-                m.d.comb += csr_signal.eq(io)
+                m.d.comb += csr_signal.eq(io.i)
 
         return m

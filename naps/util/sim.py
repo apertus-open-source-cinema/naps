@@ -4,10 +4,10 @@ from pathlib import Path
 
 from amaranth import *
 from amaranth import Signal
-from amaranth.hdl.ast import ValueCastable
+from amaranth.hdl import ValueCastable
 from amaranth.sim import Simulator
 
-__all__ = ["SimPlatform", "FakeResource", "TristateIo", "TristateDdrIo", "SimDdr", "wait_for", "pulse", "do_nothing", "resolve"]
+__all__ = ["SimPlatform", "FakeResource", "OutputIo", "InputIo", "TristateIo", "TristateDdrIo", "SimDdr", "wait_for", "pulse", "do_nothing", "resolve"]
 
 
 class SimPlatform:
@@ -103,7 +103,6 @@ class FakeResource(ValueCastable):
     def shape(self):
         return self._signal.shape()
 
-    @ValueCastable.lowermethod
     def as_value(self):
         return self._signal
 
@@ -124,12 +123,19 @@ class FakeResource(ValueCastable):
         return self.handed_out_resources[string]
 
 
+class OutputIo:
+    def __init__(self, shape=None):
+        self.o = Signal(shape)
+
+class InputIo:
+    def __init__(self, shape=None):
+        self.i = Signal(shape)
+
 class TristateIo:
     def __init__(self, shape=None):
         self.i = Signal(shape)
         self.o = Signal(shape)
         self.oe = Signal()
-
 
 class TristateDdrIo:
     def __init__(self, shape=None):

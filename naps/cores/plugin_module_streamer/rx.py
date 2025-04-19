@@ -24,7 +24,7 @@ class PluginModuleStreamerRx(Elaboratable):
         domain_ddr_eclk = domain + "_ddr_eclk"
 
         m.domains += ClockDomain(domain_in)
-        m.d.comb += ClockSignal(domain_in).eq(self.plugin.clk_word)
+        m.d.comb += ClockSignal(domain_in).eq(self.plugin.clk_word.i)
 
         pll = m.submodules.pll = Pll(input_freq=50e6, vco_mul=4, vco_div=1, input_domain=domain_in)
         pll.output_domain(domain_ddr, 1)
@@ -35,7 +35,7 @@ class PluginModuleStreamerRx(Elaboratable):
         bitslip_signal = Signal()
         for i in range(4):
             lane = m.submodules["lane{}".format(i)] = LaneBitAligner(
-                input=self.plugin["lvds{}".format(i)],
+                input=getattr(self.plugin, "lvds{}".format(i)).i,
                 in_testpattern_mode=~self.valid,
                 bitslip_signal=bitslip_signal,
                 ddr_domain=domain_ddr_eclk,
@@ -44,7 +44,7 @@ class PluginModuleStreamerRx(Elaboratable):
         word_aligner = m.submodules.word_aligner = WordAligner(domain_ddr_eclk, lanes[0].output)
         m.d.comb += bitslip_signal.eq(word_aligner.bitslip)
 
-        valid_iserdes = m.submodules.valid_iserdes = ISerdes8(self.plugin.valid, domain_ddr_eclk, word_domain="sync", invert=True)
+        valid_iserdes = m.submodules.valid_iserdes = ISerdes8(self.plugin.valid.i, domain_ddr_eclk, word_domain="sync", invert=True)
         m.d.comb += valid_iserdes.bitslip.eq(bitslip_signal)
         m.d.comb += self.valid.eq(valid_iserdes.output[4])
 

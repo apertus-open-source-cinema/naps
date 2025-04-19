@@ -26,11 +26,11 @@ class PluginModuleStreamerTx(Elaboratable):
 
         valid = Signal()
         m.d.comb += valid.eq(self.input.valid & ~self.do_training)
-        m.submodules.lane_clock = DDRSerializer(0b00001111, self.plugin_resource.clk_word, ddr_domain=self.bitclk_domain, msb_first=True)
-        m.submodules.lane_valid = DDRSerializer(valid.replicate(8), self.plugin_resource.valid, ddr_domain=self.bitclk_domain, msb_first=True)
+        m.submodules.lane_clock = DDRSerializer(0b00001111, self.plugin_resource.clk_word.o, ddr_domain=self.bitclk_domain, msb_first=True)
+        m.submodules.lane_valid = DDRSerializer(valid.replicate(8), self.plugin_resource.valid.o, ddr_domain=self.bitclk_domain, msb_first=True)
         for i in range(4):
             value = Signal(8)
-            m.submodules["lane{}".format(i)] = DDRSerializer(value, self.plugin_resource["lane{}".format(i)], ddr_domain=self.bitclk_domain, msb_first=True)
+            m.submodules["lane{}".format(i)] = DDRSerializer(value, getattr(self.plugin_resource, "lane{}".format(i)).o, ddr_domain=self.bitclk_domain, msb_first=True)
             with m.If(valid):
                 m.d.comb += value.eq(self.input.payload[0+(i*8):8+(i*8)])
             with m.Else():

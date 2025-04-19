@@ -37,16 +37,16 @@ class Top(Elaboratable):
         ])
         sensor = platform.request("sensor2")
         platform.ps7.fck_domain(24e6, "sensor_clk")
-        m.d.comb += sensor.clk.eq(ClockSignal("sensor_clk"))
-        m.d.comb += sensor.reset.eq(~self.sensor_reset_n)
+        m.d.comb += sensor.clk.o.eq(ClockSignal("sensor_clk"))
+        m.d.comb += sensor.reset.o.eq(~self.sensor_reset_n)
 
         # this experiment requires bodging the MicroR2 in a way to connect the mipi lanes of the ar0330
         # to the pins where normally the hispi would be connected. the normal hispi traces must be cut.
-        mipi_clock = sensor.lvds[0]
-        mipi_lane4 = sensor.lvds[1]
-        mipi_lane3 = sensor.lvds_clk
-        mipi_lane2 = sensor.lvds[2]
-        mipi_lane1 = sensor.lvds[3]
+        mipi_clock = sensor.lvds.i[0]
+        mipi_lane4 = sensor.lvds.i[1]
+        mipi_lane3 = sensor.lvds_clk.i
+        mipi_lane2 = sensor.lvds.i[2]
+        mipi_lane1 = sensor.lvds.i[3]
 
         m.domains.sync = ClockDomain()
         m.submodules.clock_rx = MipiClockRxPhy(mipi_clock, ddr_domain="ddr")

@@ -23,8 +23,8 @@ class Top(Elaboratable):
         # Input Pipeline
         sensor = platform.request("sensor")
         platform.ps7.fck_domain(24e6, "sensor_clk")
-        m.d.comb += sensor.clk.eq(ClockSignal("sensor_clk"))
-        m.d.comb += sensor.reset.eq(~self.sensor_reset_n)
+        m.d.comb += sensor.clk.o.eq(ClockSignal("sensor_clk"))
+        m.d.comb += sensor.reset.o.eq(~self.sensor_reset_n)
         # TODO: find more idiomatic way to do this
         os.environ["AMARANTH_add_constraints"] = \
             "set_property CLOCK_DEDICATED_ROUTE FALSE [get_nets pin_sensor_0__lvds_clk/input_hispi_rx_sensor_0__lvds_clk__i]"

@@ -1,5 +1,7 @@
 # a helper to generate the plugin connector *on the camera side*
 from amaranth.build import Connector, DiffPairs
+from amaranth.build.res import PortGroup
+from amaranth.lib.wiring import FlippedInterface, flipped
 from naps.util.sim import SimPlatform
 
 __all__ = ["add_plugin_connector", "PluginDiffPair", "is_resource_pin_inverted", "is_connector_pin_inverted", "is_signal_inverted"]
@@ -97,6 +99,10 @@ def is_resource_pin_inverted(platform, resource, path):
     assert len(subsignal.ios[0].p.names) == 1
     return is_connector_pin_inverted(platform, subsignal.ios[0].p.names[0])
 
+def strip_flipped(signal):
+    if type(signal) is FlippedInterface:
+        signal = flipped(signal)
+    return signal
 
 def is_signal_inverted(platform, signal):
     if isinstance(platform, SimPlatform):
@@ -104,10 +110,14 @@ def is_signal_inverted(platform, signal):
 
     for res_name, res in platform._requested.items():
         def recurse_fields(x, path):
-            if hasattr(x, "fields"):
-                for pin, field in x.fields.items():
-                    if field is signal:
-                        return is_resource_pin_inverted(platform, res_name, [*path, pin])
+            if isinstance(x, PortGroup):
+                for pin, field in x.__dict__.items():
+                    field = strip_flipped(field)
+                    to_try = [field]
+                    to_try += [getattr(field, direction) for direction in "io" if hasattr(field, direction)]
+                    for candidate in to_try:
+                        if candidate is strip_flipped(signal):
+                            return is_resource_pin_inverted(platform, res_name, [*path, pin])
                     result = recurse_fields(field, path=[*path, pin])
                     if result is not None:
                         return result
@@ -117,4 +127,4 @@ def is_signal_inverted(platform, signal):
             break
     if result is not None:
         return result
-    raise KeyError("signal {} was not found in platform. could not determine if it should be inverted".format(signal))
+    raise KeyError("signal {!r} was not found in platform. could not determine if it should be inverted".format(signal))

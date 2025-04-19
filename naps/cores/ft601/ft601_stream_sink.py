@@ -21,21 +21,21 @@ class FT601StreamSinkNoCDC(Elaboratable):
 
         m.d.comb += ft.be.o.eq(0b1111)  # everything we write is valid
 
-        m.d.comb += ft.oe.eq(0)  # we are driving the data bits all the time
+        m.d.comb += ft.oe.o.eq(0)  # we are driving the data bits all the time
 
         if self.safe_to_begin_new_transaction is None:
             m.d.comb += ft.data.o.eq(self.input.payload)
-            m.d.comb += self.input.ready.eq(ft.txe)
-            m.d.comb += ft.write.eq(self.input.valid)
+            m.d.comb += self.input.ready.eq(ft.txe.i)
+            m.d.comb += ft.write.o.eq(self.input.valid)
         else:
             in_transaction = Signal()
-            m.d.sync += in_transaction.eq(ft.write)
+            m.d.sync += in_transaction.eq(ft.write.o)
             with m.If(in_transaction):
-                m.d.comb += ft.write.eq(self.input.valid & ft.txe)
-                m.d.comb += self.input.ready.eq(ft.txe)
+                m.d.comb += ft.write.o.eq(self.input.valid & ft.txe.i)
+                m.d.comb += self.input.ready.eq(ft.txe.i)
             with m.Else():
-                m.d.comb += self.input.ready.eq(ft.txe & self.safe_to_begin_new_transaction)
-                m.d.comb += ft.write.eq(self.input.valid & self.safe_to_begin_new_transaction)
+                m.d.comb += self.input.ready.eq(ft.txe.i & self.safe_to_begin_new_transaction)
+                m.d.comb += ft.write.o.eq(self.input.valid & self.safe_to_begin_new_transaction)
             m.d.comb += ft.data.o.eq(self.input.payload)
 
         return m
@@ -52,7 +52,7 @@ class FT601StreamSink(Elaboratable):
         m = Module()
 
         m.domains += ClockDomain(self.domain_name)
-        m.d.comb += ClockSignal(self.domain_name).eq(self.ft601_resource.clk)
+        m.d.comb += ClockSignal(self.domain_name).eq(self.ft601_resource.clk.i)
 
         cdc_fifo = m.submodules.cdc_fifo = BufferedAsyncStreamFIFO(
             self.input_stream, self.begin_transactions_at_level + 1, i_domain="sync", o_domain=self.domain_name

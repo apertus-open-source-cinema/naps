@@ -26,9 +26,7 @@ class ImageConvoluter(Elaboratable):
         self.height = height
 
         self.delay_needed = self.shift_x + (width * self.shift_y)
-        # explicit Shape.cast to avoid a warning about the reset value not being valid for the specified range
-        # revisit after https://github.com/amaranth-lang/amaranth/issues/1019 is resolved
-        self.delayed_cycles = StatusSignal(Shape.cast(range(self.delay_needed)))
+        self.delayed_cycles = StatusSignal(range(self.delay_needed + 2))
 
         self.output = ImageStream(Value.cast(self.output_payload).shape(), name="image_convoluter_output")
 
@@ -48,13 +46,11 @@ class ImageConvoluter(Elaboratable):
                     memory = Memory(width=len(self.input.payload), depth=self.width)
                     m.submodules += memory
                     write_port = memory.write_port()
-                    m.submodules += write_port
                     with m.If(read_input):
                         m.d.comb += write_port.addr.eq(self.input_x)
                         m.d.comb += write_port.data.eq(available_pixels[0, y-1])
                         m.d.comb += write_port.en.eq(1)
                     read_port = memory.read_port(transparent=False)
-                    m.submodules += read_port
                     m.d.comb += read_port.en.eq(1)
                     with m.If(read_input):
                         m.d.comb += read_port.addr.eq((self.input_x + 1) % self.width)

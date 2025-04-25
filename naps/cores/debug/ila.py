@@ -89,7 +89,7 @@ class Ila(Elaboratable):
             width=ceil(probe_bits / 32) * 32, depth=self.trace_length,
             soc_write=False, attrs=dict(syn_ramstyle="block_ram")
         )
-        write_port = m.submodules.write_port = self.mem.write_port(domain="sync")
+        write_port = self.mem.write_port(domain="sync")
 
         since_reset = Signal(range(self.trace_length + 1))
         with m.If(self.running):

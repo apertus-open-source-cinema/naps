@@ -1,7 +1,7 @@
 import unittest
 import random
 from amaranth import *
-from amaranth.hdl.ast import Assert, Initial, Assume
+from amaranth.hdl.ast import Assert, Assume
 from naps import SimPlatform, PacketizedStream, BasicStream, assert_formal, write_packet_to_stream, read_packet_from_stream, BufferedSyncStreamFIFO
 from naps.stream.formal_util import verify_stream_output_contract, LegalStreamSource
 from . import LastWrapper, GenericMetadataWrapper
@@ -20,8 +20,6 @@ class LastWrapperContract(Elaboratable):
 
         lw_input = self.last_wrapper.input
         lw_output = self.last_wrapper.output
-        with m.If(Initial()):
-            m.d.comb += Assume(ResetSignal())
 
         write_ctr = Signal(range(len(self.last_data)))
         with m.If(write_ctr < len(self.last_data) - 1):
@@ -35,8 +33,7 @@ class LastWrapperContract(Elaboratable):
             m.d.comb += lw_output.ready.eq(1)
             with m.If(lw_output.valid):
                 m.d.sync += read_ctr.eq(read_ctr + 1)
-                with m.If(~Initial()):
-                    m.d.comb += Assert(lw_output.last == self.last_data[read_ctr])
+                m.d.comb += Assert(lw_output.last == self.last_data[read_ctr])
 
         return m
 
@@ -114,7 +111,7 @@ class LastWrapperTest(unittest.TestCase):
 
     def test_last_wrapper_contract(self):
         dut = LastWrapperContract(LastWrapper(PacketizedStream(32), lambda i: BufferedSyncStreamFIFO(i, 10)))
-        assert_formal(dut, mode="hybrid", depth=10)
+        assert_formal(dut, mode="bmc", depth=10)
 
     def test_output_stream_contract(self):
         input_stream = PacketizedStream(32)

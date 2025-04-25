@@ -5,7 +5,7 @@
 groups = ["default", "doc", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:54c4166f2acfb4f6d2fcef0560bd54489cd072ef10c5048177489120be5f07a1"
+content_hash = "sha256:f37821cce9d23f2111db79327f223f3c35a0788160081ff0d3f690b080ab9f58"
 
 [[metadata.targets]]
 requires_python = ">=3.11"
@@ -401,13 +401,13 @@ files = [
 
 [[package]]
 name = "docutils"
-version = "0.16"
-requires_python = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
+version = "0.21.2"
+requires_python = ">=3.9"
 summary = "Docutils -- Python Documentation Utilities"
 groups = ["doc"]
 files = [
-    {file = "docutils-0.16-py2.py3-none-any.whl", hash = "sha256:0c5b78adfbf7762415433f5515cd5c9e762339e23369dbe8000d84a4bf4ab3af"},
-    {file = "docutils-0.16.tar.gz", hash = "sha256:c2de3a60e9e7d07be26b7f2b00ca0309c207e06c100f9cc2a94931fc75a478fc"},
+    {file = "docutils-0.21.2-py3-none-any.whl", hash = "sha256:dafca5b9e384f0e419294eb4d2ff9fa826435bf15f15b7bd45723e8ad76811b2"},
+    {file = "docutils-0.21.2.tar.gz", hash = "sha256:3a6b18732edf182daa3cd12775bbb338cf5691468f91eeeb109deff6ebfa986f"},
 ]
 
 [[package]]
@@ -1133,6 +1133,17 @@ files = [
 ]
 
 [[package]]
+name = "roman-numerals-py"
+version = "3.1.0"
+requires_python = ">=3.9"
+summary = "Manipulate well-formed Roman numerals"
+groups = ["doc"]
+files = [
+    {file = "roman_numerals_py-3.1.0-py3-none-any.whl", hash = "sha256:9da2ad2fb670bcf24e81070ceb3be72f6c11c440d73bd579fbeca1e9f330954c"},
+    {file = "roman_numerals_py-3.1.0.tar.gz", hash = "sha256:be4bf804f083a4ce001b5eb7e3c0862479d10f94c936f6c4e5f250aa5ff5bd2d"},
+]
+
+[[package]]
 name = "scipy"
 version = "1.15.2"
 requires_python = ">=3.10"
@@ -1204,48 +1215,48 @@ files = [
 
 [[package]]
 name = "sphinx"
-version = "4.5.0"
-requires_python = ">=3.6"
+version = "8.2.3"
+requires_python = ">=3.11"
 summary = "Python documentation generator"
 groups = ["doc"]
 dependencies = [
-    "Jinja2>=2.3",
-    "Pygments>=2.0",
-    "alabaster<0.8,>=0.7",
-    "babel>=1.3",
-    "colorama>=0.3.5; sys_platform == \"win32\"",
-    "docutils<0.18,>=0.14",
-    "imagesize",
-    "importlib-metadata>=4.4; python_version < \"3.10\"",
-    "packaging",
-    "requests>=2.5.0",
-    "snowballstemmer>=1.1",
-    "sphinxcontrib-applehelp",
-    "sphinxcontrib-devhelp",
-    "sphinxcontrib-htmlhelp>=2.0.0",
-    "sphinxcontrib-jsmath",
-    "sphinxcontrib-qthelp",
-    "sphinxcontrib-serializinghtml>=1.1.5",
+    "Jinja2>=3.1",
+    "Pygments>=2.17",
+    "alabaster>=0.7.14",
+    "babel>=2.13",
+    "colorama>=0.4.6; sys_platform == \"win32\"",
+    "docutils<0.22,>=0.20",
+    "imagesize>=1.3",
+    "packaging>=23.0",
+    "requests>=2.30.0",
+    "roman-numerals-py>=1.0.0",
+    "snowballstemmer>=2.2",
+    "sphinxcontrib-applehelp>=1.0.7",
+    "sphinxcontrib-devhelp>=1.0.6",
+    "sphinxcontrib-htmlhelp>=2.0.6",
+    "sphinxcontrib-jsmath>=1.0.1",
+    "sphinxcontrib-qthelp>=1.0.6",
+    "sphinxcontrib-serializinghtml>=1.1.9",
 ]
 files = [
-    {file = "Sphinx-4.5.0-py3-none-any.whl", hash = "sha256:ebf612653238bcc8f4359627a9b7ce44ede6fdd75d9d30f68255c7383d3a6226"},
-    {file = "Sphinx-4.5.0.tar.gz", hash = "sha256:7bf8ca9637a4ee15af412d1a1d9689fec70523a68ca9bb9127c2f3eeb344e2e6"},
+    {file = "sphinx-8.2.3-py3-none-any.whl", hash = "sha256:4405915165f13521d875a8c29c8970800a0141c14cc5416a38feca4ea5d9b9c3"},
+    {file = "sphinx-8.2.3.tar.gz", hash = "sha256:398ad29dee7f63a75888314e9424d40f52ce5a6a87ae88e7071e80af296ec348"},
 ]
 
 [[package]]
 name = "sphinx-rtd-theme"
-version = "1.3.0"
-requires_python = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,!=3.4.*,!=3.5.*,>=2.7"
+version = "3.0.2"
+requires_python = ">=3.8"
 summary = "Read the Docs theme for Sphinx"
 groups = ["doc"]
 dependencies = [
-    "docutils<0.19",
-    "sphinx<8,>=1.6",
+    "docutils<0.22,>0.18",
+    "sphinx<9,>=6",
     "sphinxcontrib-jquery<5,>=4",
 ]
 files = [
-    {file = "sphinx_rtd_theme-1.3.0-py2.py3-none-any.whl", hash = "sha256:46ddef89cc2416a81ecfbeaceab1881948c014b1b6e4450b815311a89fb977b0"},
-    {file = "sphinx_rtd_theme-1.3.0.tar.gz", hash = "sha256:590b030c7abb9cf038ec053b95e5380b5c70d61591eb0b552063fbe7c41f0931"},
+    {file = "sphinx_rtd_theme-3.0.2-py2.py3-none-any.whl", hash = "sha256:422ccc750c3a3a311de4ae327e82affdaf59eb695ba4936538552f3b00f4ee13"},
+    {file = "sphinx_rtd_theme-3.0.2.tar.gz", hash = "sha256:b7457bc25dda723b20b086a670b9953c859eab60a2a03ee8eb2bb23e176e5f85"},
 ]
 
 [[package]]

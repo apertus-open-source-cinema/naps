@@ -21,8 +21,8 @@ class ConsolePacketSource(Elaboratable):
         self.read_ptr = StatusSignal(range(max_packet_size))
         self.done = StatusSignal(init=1)
         self.memory = SocMemory(
-            width=data_width, depth=self.max_packet_size,
-            soc_read=False,  attrs=dict(syn_ramstyle="block_ram")
+            shape=data_width, depth=self.max_packet_size,
+            soc_read=False, init=[], attrs=dict(syn_ramstyle="block_ram")
         )
 
         self.output = PacketizedStream(data_width)
@@ -77,8 +77,8 @@ class ConsolePacketSink(Elaboratable):
         self.write_pointer = StatusSignal(range(self.max_packet_size))
         self.packet_done = StatusSignal()
         self.memory = SocMemory(
-            width=len(input.payload), depth=self.max_packet_size,
-            soc_write=False, attrs=dict(syn_ramstyle="block_ram")
+            shape=len(input.payload), depth=self.max_packet_size,
+            soc_write=False, init=[], attrs=dict(syn_ramstyle="block_ram")
         )
 
         self.input = input

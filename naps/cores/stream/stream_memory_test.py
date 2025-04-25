@@ -2,6 +2,7 @@ import unittest
 
 from amaranth import *
 from amaranth.sim import Passive
+from amaranth.lib.memory import Memory
 
 from naps import SimPlatform, PacketizedStream, write_to_stream, read_from_stream, verify_stream_output_contract, LegalStreamSource
 from naps.cores.stream.stream_memory import StreamMemoryReader
@@ -13,7 +14,7 @@ class StreamMemoryTest(unittest.TestCase):
         m = Module()
 
         address_stream = PacketizedStream(8)
-        mem = Memory(width=32, depth=128, init=[i + 2 for i in range(128)])
+        mem = Memory(shape=32, depth=128, init=[i + 2 for i in range(128)])
         reader = m.submodules.reader = StreamMemoryReader(address_stream, mem)
         m.submodules.memory = mem
 

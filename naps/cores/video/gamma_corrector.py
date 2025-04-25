@@ -1,4 +1,5 @@
 from amaranth import *
+from amaranth.lib.memory import Memory
 
 from naps import ControlSignal, stream_transformer
 from . import ImageStream
@@ -26,8 +27,8 @@ class TableGammaCorrector(Elaboratable):
         max_pix = 2**self.bpp - 1
         lut = list(int(max_pix*((v/max_pix)**self.gamma)+0.5) for v in range(max_pix+1))
 
-        lut_mem = m.submodules.lut_mem = Memory(width=self.bpp, depth=2**self.bpp, init=lut)
-        lut_port = lut_mem.read_port(domain="sync", transparent=False)
+        lut_mem = m.submodules.lut_mem = Memory(shape=self.bpp, depth=2**self.bpp, init=lut)
+        lut_port = lut_mem.read_port(domain="sync")
 
         m.d.comb += lut_port.en.eq(input_transaction)
         m.d.comb += lut_port.addr.eq(self.input.payload)

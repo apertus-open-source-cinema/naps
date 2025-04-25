@@ -13,13 +13,13 @@ class StreamMemoryReader(Elaboratable):
         self.memory = memory
 
         self.output = address_input.clone()
-        self.output.payload = Signal(memory.width)
+        self.output.payload = Signal(memory.shape)
 
     def elaborate(self, platform):
         m = Module()
 
         stream_transformer(self.address_input, self.output, m, latency=1, allow_partial_out_of_band=True)
-        port = self.memory.read_port(domain="sync", transparent=False)
+        port = self.memory.read_port(domain="sync")
         m.d.comb += port.en.eq(self.address_input.ready & self.address_input.valid)
         m.d.comb += port.addr.eq(self.address_input.payload)
         m.d.comb += self.output.payload.eq(port.data)

@@ -17,7 +17,7 @@ class Tracer(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        mem = SocMemory(width=len(self.fsm.state), depth=self.trace_length, soc_write=False)
+        mem = SocMemory(shape=len(self.fsm.state), depth=self.trace_length, soc_write=False)
         write_port = mem.write_port(domain="sync")
         with m.If(Changed(m, self.fsm.state)):
             m.d.comb += write_port.en.eq(1)

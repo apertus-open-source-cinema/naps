@@ -1,6 +1,7 @@
 from typing import Tuple
 from amaranth import *
 from amaranth.hdl.ast import Operator
+from amaranth.lib.memory import Memory
 from naps import StatusSignal
 from . import ImageStream
 
@@ -43,14 +44,14 @@ class ImageConvoluter(Elaboratable):
                 if y == 0:
                     available_pixels[(0, y)] = self.input.payload
                 else:
-                    memory = Memory(width=len(self.input.payload), depth=self.width)
+                    memory = Memory(shape=len(self.input.payload), depth=self.width, init=[])
                     m.submodules += memory
                     write_port = memory.write_port()
                     with m.If(read_input):
                         m.d.comb += write_port.addr.eq(self.input_x)
                         m.d.comb += write_port.data.eq(available_pixels[0, y-1])
                         m.d.comb += write_port.en.eq(1)
-                    read_port = memory.read_port(transparent=False)
+                    read_port = memory.read_port()
                     m.d.comb += read_port.en.eq(1)
                     with m.If(read_input):
                         m.d.comb += read_port.addr.eq((self.input_x + 1) % self.width)

@@ -1,8 +1,6 @@
-from functools import reduce
 from textwrap import indent
 
 from amaranth import *
-from amaranth.hdl.ast import SignalSet
 from amaranth.hdl._ast import Assign, Property, Switch, Print, Operator, Slice, Part, Concat, SwitchValue, ClockSignal, ResetSignal, Initial, ValueCastable
 from amaranth.hdl._ir import RequirePosedge
 

@@ -1,7 +1,7 @@
 from types import MethodType
 
 from amaranth import *
-from amaranth.hdl.xfrm import TransformedElaboratable
+from naps.util.amaranth_private import TransformedElaboratable
 
 
 class ElaboratableSames:

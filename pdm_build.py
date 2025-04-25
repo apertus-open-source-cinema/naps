@@ -5,11 +5,12 @@ from pdm.backend.hooks.version import SCMVersion
 from pdm.backend._vendor.packaging.version import Version
 
 def format_version(version: SCMVersion) -> str:
-    major, minor, patch = (int(n) for n in str(version.version).split(".")[:3])
+    print(version.version)
+    major, minor = (int(n) for n in str(version.version).split(".")[:3])
     if version.distance is None:
-        return f"{major}.{minor}.{patch}"
+        return f"{major}.{minor}"
     else:
-        return f"{major}.{minor}.{patch}.dev{version.distance}"
+        return f"{major}.{minor}.dev{version.distance}"
 
 def pdm_build_initialize(context):
     if "DOC_SHA" in os.environ:

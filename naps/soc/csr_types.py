@@ -1,7 +1,7 @@
 from typing import Any
 from amaranth import *
 from amaranth._unused import MustUse
-from amaranth.hdl.ast import ValueCastable
+from amaranth.hdl import ValueCastable
 
 from naps.soc.memorymap import Address
 from naps.soc.peripheral import Response
@@ -33,8 +33,6 @@ class ControlSignal(ValueCastable, _Csr):
         self._write_strobe = write_strobe
         self._read_strobe = read_strobe
 
-
-    @ValueCastable.lowermethod
     def as_value(self):
         return self._signal
 
@@ -90,7 +88,6 @@ class StatusSignal(ValueCastable, _Csr):
         self._address = Address.parse(address)
         self._read_strobe = read_strobe
 
-    @ValueCastable.lowermethod
     def as_value(self):
         return self._signal
     

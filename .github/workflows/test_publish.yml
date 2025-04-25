@@ -82,19 +82,19 @@ jobs:
       - name: Install deps
         run: |
           pdm install -G doc
-      - name: Run sphinx autodoc
+      - name: Run sphinx apidoc
         run: |
-          pdm run sphinx-apidoc  -o doc naps
+          pdm run sphinx-apidoc -o doc naps
       - name: Build docs
         run: |
-          make -C doc html
+          pdm run sphinx-build doc/ doc/_build/ -W --keep-going
       - name: Deploy
         id: pages
         uses: peaceiris/actions-gh-pages@7e55c73ee896b01b8b8668370794b96f1bc9c759 #514
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
           publish_branch: gh-pages
-          publish_dir: ./doc/_build/html
+          publish_dir: ./doc/_build
           allow_empty_commit: true
       - name: Update docs server
         run: |

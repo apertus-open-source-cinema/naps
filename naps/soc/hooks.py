@@ -4,6 +4,7 @@ from textwrap import indent
 from amaranth import *
 from amaranth.hdl.ast import SignalSet
 from amaranth.hdl._ast import Assign, Property, Switch, Print, Operator, Slice, Part, Concat, SwitchValue, ClockSignal, ResetSignal, Initial, ValueCastable
+from amaranth.hdl._ir import RequirePosedge
 
 from .csr_types import _Csr, ControlSignal, StatusSignal, EventReg
 from .memorymap import MemoryMap
@@ -116,6 +117,8 @@ def csr_and_driver_item_hook(platform, top_fragment: Fragment, sames: Elaboratab
                 fragment.memorymap.add_driver_item(name, driver_item)
 
         for subfragment, name, _src_loc in fragment.subfragments:
+            if isinstance(subfragment, RequirePosedge):
+                continue
             inner(subfragment)
     inner(top_fragment)
 
@@ -129,16 +132,18 @@ def address_assignment_hook(platform, top_fragment: Fragment, sames: Elaboratabl
 
         # depth first recursion is important so that all the subfragments have a fully populated memorymap later on
         for sub_fragment, sub_name, _src_loc in fragment.subfragments:
-            if sub_name != "ignore":
-                inner(sub_fragment)
+            if isinstance(sub_fragment, RequirePosedge) or sub_name == "ignore":
+                continue
+            inner(sub_fragment)
 
         # add everything to the own memorymap
         if not hasattr(fragment, "memorymap"):
             fragment.memorymap = MemoryMap()
         for sub_fragment, sub_name, _src_loc in fragment.subfragments:
-            if sub_name != "ignore":
-                assert hasattr(sub_fragment, "memorymap")  # this holds because we did depth first recursion
-                fragment.memorymap.allocate_subrange(sub_fragment.memorymap, sub_name)
+            if isinstance(sub_fragment, RequirePosedge) or sub_name == "ignore":
+                continue
+            assert hasattr(sub_fragment, "memorymap")  # this holds because we did depth first recursion
+            fragment.memorymap.allocate_subrange(sub_fragment.memorymap, sub_name)
     inner(top_fragment)
 
     # prepare and finalize the memorymap
@@ -179,6 +184,8 @@ def peripherals_collect_hook(platform, top_fragment: Fragment, sames: Elaboratab
             if hasattr(module, "peripheral"):
                 platform.peripherals.append(module.peripheral)
         for f, name, _src_loc in fragment.subfragments:
+            if isinstance(f, RequirePosedge):
+                continue
             collect_peripherals(platform, f, sames)
 
     collect_peripherals(platform, top_fragment, sames)

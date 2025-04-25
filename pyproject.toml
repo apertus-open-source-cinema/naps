@@ -47,7 +47,7 @@ test = [
     "scipy",
 ]
 doc = [
-    "sphinx<4",
+    "sphinx<5",
     "sphinx_rtd_theme",
 ]
 

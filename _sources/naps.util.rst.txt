@@ -20,6 +20,14 @@ naps.util.amaranth\_misc\_test module
    :show-inheritance:
    :undoc-members:
 
+naps.util.amaranth\_private module
+----------------------------------
+
+.. automodule:: naps.util.amaranth_private
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 naps.util.draw\_hierarchy module
 --------------------------------
 

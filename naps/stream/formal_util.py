@@ -1,5 +1,6 @@
 from amaranth import *
-from amaranth.hdl.ast import Cover, Assume, Initial, Assert
+from amaranth.hdl import Cover, Assume, Assert
+from amaranth.hdl.ast import Initial
 
 from .stream import Stream
 from naps.util.formal import FormalPlatform, assert_formal

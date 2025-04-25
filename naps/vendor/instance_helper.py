@@ -1,5 +1,5 @@
 from amaranth import *
-from amaranth.hdl.ast import ValueCastable
+from amaranth.hdl import ValueCastable
 from naps.util import yosys
 
 
@@ -66,7 +66,6 @@ class SignalProxy(ValueCastable):
         else:
             raise PortNotFoundException()
 
-    @ValueCastable.lowermethod
     def as_value(self):
         if self.path in self.ports:
             if self.path not in self._used_ports:

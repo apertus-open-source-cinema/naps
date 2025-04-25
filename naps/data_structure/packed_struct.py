@@ -2,7 +2,7 @@ from typing import get_type_hints
 
 from amaranth import *
 from amaranth import tracer
-from amaranth.hdl.ast import ValueCastable
+from amaranth.hdl import ValueCastable
 
 from naps.util.python_misc import camel_to_snake
 
@@ -74,7 +74,6 @@ class PackedStructBaseClass(ValueCastable):
     def shape(self):
         return self._backing_signal.shape
 
-    @ValueCastable.lowermethod
     def as_value(self):
         return self._backing_signal
 

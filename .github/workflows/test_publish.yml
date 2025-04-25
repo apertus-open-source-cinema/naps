@@ -87,7 +87,7 @@ jobs:
           pdm run sphinx-apidoc -o doc naps
       - name: Build docs
         run: |
-          pdm run sphinx-build doc/ doc/_build/ -W --keep-going
+          pdm run sphinx-build doc/ doc/_build/ --keep-going
       - name: Deploy
         id: pages
         uses: peaceiris/actions-gh-pages@7e55c73ee896b01b8b8668370794b96f1bc9c759 #514

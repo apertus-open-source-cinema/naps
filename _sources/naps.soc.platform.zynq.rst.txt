@@ -9,29 +9,29 @@ naps.soc.platform.zynq.memory\_accessor\_devmem module
 
 .. automodule:: naps.soc.platform.zynq.memory_accessor_devmem
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.platform.zynq.to\_raw\_bitstream module
 ------------------------------------------------
 
 .. automodule:: naps.soc.platform.zynq.to_raw_bitstream
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.platform.zynq.zynq\_soc\_platform module
 -------------------------------------------------
 
 .. automodule:: naps.soc.platform.zynq.zynq_soc_platform
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.soc.platform.zynq
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

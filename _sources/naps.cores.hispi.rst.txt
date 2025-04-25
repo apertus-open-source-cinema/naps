@@ -9,29 +9,29 @@ naps.cores.hispi.hispi\_rx module
 
 .. automodule:: naps.cores.hispi.hispi_rx
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hispi.hispi\_rx\_test module
 ---------------------------------------
 
 .. automodule:: naps.cores.hispi.hispi_rx_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hispi.s7\_phy module
 -------------------------------
 
 .. automodule:: naps.cores.hispi.s7_phy
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.hispi
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -18,117 +18,117 @@ naps.soc.cli module
 
 .. automodule:: naps.soc.cli
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.csr\_types module
 --------------------------
 
 .. automodule:: naps.soc.csr_types
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.devicetree\_overlay module
 -----------------------------------
 
 .. automodule:: naps.soc.devicetree_overlay
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.fatbitstream module
 ----------------------------
 
 .. automodule:: naps.soc.fatbitstream
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.hooks module
 ---------------------
 
 .. automodule:: naps.soc.hooks
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.memorymap module
 -------------------------
 
 .. automodule:: naps.soc.memorymap
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.peripheral module
 --------------------------
 
 .. automodule:: naps.soc.peripheral
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.peripherals\_aggregator module
 ---------------------------------------
 
 .. automodule:: naps.soc.peripherals_aggregator
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.program\_fatbitstream\_local module
 --------------------------------------------
 
 .. automodule:: naps.soc.program_fatbitstream_local
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.program\_fatbitstream\_ssh module
 ------------------------------------------
 
 .. automodule:: naps.soc.program_fatbitstream_ssh
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.smoke\_test module
 ---------------------------
 
 .. automodule:: naps.soc.smoke_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.soc\_platform module
 -----------------------------
 
 .. automodule:: naps.soc.soc_platform
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.soc\_platform\_test module
 -----------------------------------
 
 .. automodule:: naps.soc.soc_platform_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.tracing\_elaborate module
 ----------------------------------
 
 .. automodule:: naps.soc.tracing_elaborate
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.soc
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

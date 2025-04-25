@@ -9,21 +9,21 @@ naps.cores.plugin\_module\_streamer.rx module
 
 .. automodule:: naps.cores.plugin_module_streamer.rx
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.plugin\_module\_streamer.tx module
 ---------------------------------------------
 
 .. automodule:: naps.cores.plugin_module_streamer.tx
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.plugin_module_streamer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

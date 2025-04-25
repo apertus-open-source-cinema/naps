@@ -9,21 +9,21 @@ naps.cores.hdmi.rx.hdmi\_rx module
 
 .. automodule:: naps.cores.hdmi.rx.hdmi_rx
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hdmi.rx.tmds\_decoder module
 ---------------------------------------
 
 .. automodule:: naps.cores.hdmi.rx.tmds_decoder
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.hdmi.rx
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

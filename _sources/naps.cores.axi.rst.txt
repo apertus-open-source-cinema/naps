@@ -9,85 +9,85 @@ naps.cores.axi.axi\_endpoint module
 
 .. automodule:: naps.cores.axi.axi_endpoint
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.axi.full\_to\_lite module
 ------------------------------------
 
 .. automodule:: naps.cores.axi.full_to_lite
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.axi.interconnect module
 ----------------------------------
 
 .. automodule:: naps.cores.axi.interconnect
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.axi.peripheral\_connector module
 -------------------------------------------
 
 .. automodule:: naps.cores.axi.peripheral_connector
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.axi.sim\_util module
 -------------------------------
 
 .. automodule:: naps.cores.axi.sim_util
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.axi.stream\_reader module
 ------------------------------------
 
 .. automodule:: naps.cores.axi.stream_reader
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.axi.stream\_reader\_test module
 ------------------------------------------
 
 .. automodule:: naps.cores.axi.stream_reader_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.axi.stream\_writer module
 ------------------------------------
 
 .. automodule:: naps.cores.axi.stream_writer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.axi.stream\_writer\_test module
 ------------------------------------------
 
 .. automodule:: naps.cores.axi.stream_writer_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.axi.zynq\_util module
 --------------------------------
 
 .. automodule:: naps.cores.axi.zynq_util
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.axi
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

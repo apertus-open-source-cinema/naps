@@ -17,53 +17,53 @@ naps.platform.beta\_platform module
 
 .. automodule:: naps.platform.beta_platform
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.platform.colorlight\_5a\_75b\_7\_0 module
 ----------------------------------------------
 
 .. automodule:: naps.platform.colorlight_5a_75b_7_0
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.platform.hdmi\_digitizer\_platform module
 ----------------------------------------------
 
 .. automodule:: naps.platform.hdmi_digitizer_platform
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.platform.micro\_r2\_platform module
 ----------------------------------------
 
 .. automodule:: naps.platform.micro_r2_platform
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.platform.usb3\_plugin\_platform module
 -------------------------------------------
 
 .. automodule:: naps.platform.usb3_plugin_platform
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.platform.zybo\_platform module
 -----------------------------------
 
 .. automodule:: naps.platform.zybo_platform
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.platform
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

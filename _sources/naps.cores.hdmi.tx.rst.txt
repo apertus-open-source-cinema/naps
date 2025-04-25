@@ -9,45 +9,45 @@ naps.cores.hdmi.tx.hdmi\_stream\_sink module
 
 .. automodule:: naps.cores.hdmi.tx.hdmi_stream_sink
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hdmi.tx.hdmi\_test module
 ------------------------------------
 
 .. automodule:: naps.cores.hdmi.tx.hdmi_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hdmi.tx.hdmi\_tx module
 ----------------------------------
 
 .. automodule:: naps.cores.hdmi.tx.hdmi_tx
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hdmi.tx.pattern\_generator module
 --------------------------------------------
 
 .. automodule:: naps.cores.hdmi.tx.pattern_generator
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hdmi.tx.tmds\_encoder module
 ---------------------------------------
 
 .. automodule:: naps.cores.hdmi.tx.tmds_encoder
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.hdmi.tx
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -9,61 +9,61 @@ naps.cores.compression.bit\_stuffing module
 
 .. automodule:: naps.cores.compression.bit_stuffing
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.compression.bit\_stuffing\_test module
 -------------------------------------------------
 
 .. automodule:: naps.cores.compression.bit_stuffing_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.compression.encoding\_space module
 ---------------------------------------------
 
 .. automodule:: naps.cores.compression.encoding_space
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.compression.huffman\_encoder module
 ----------------------------------------------
 
 .. automodule:: naps.cores.compression.huffman_encoder
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.compression.huffman\_encoder\_test module
 ----------------------------------------------------
 
 .. automodule:: naps.cores.compression.huffman_encoder_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.compression.rle module
 ---------------------------------
 
 .. automodule:: naps.cores.compression.rle
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.compression.rle\_test module
 ---------------------------------------
 
 .. automodule:: naps.cores.compression.rle_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.compression
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

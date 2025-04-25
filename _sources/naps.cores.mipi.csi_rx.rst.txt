@@ -9,45 +9,45 @@ naps.cores.mipi.csi\_rx.aligner module
 
 .. automodule:: naps.cores.mipi.csi_rx.aligner
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.mipi.csi\_rx.combiner module
 ---------------------------------------
 
 .. automodule:: naps.cores.mipi.csi_rx.combiner
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.mipi.csi\_rx.packet module
 -------------------------------------
 
 .. automodule:: naps.cores.mipi.csi_rx.packet
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.mipi.csi\_rx.s7\_rx\_phy module
 ------------------------------------------
 
 .. automodule:: naps.cores.mipi.csi_rx.s7_rx_phy
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.mipi.csi\_rx.types module
 ------------------------------------
 
 .. automodule:: naps.cores.mipi.csi_rx.types
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.mipi.csi_rx
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -9,21 +9,21 @@ naps.soc.platform.jtag.jtag\_soc\_platform module
 
 .. automodule:: naps.soc.platform.jtag.jtag_soc_platform
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.soc.platform.jtag.memory\_accessor\_openocd module
 -------------------------------------------------------
 
 .. automodule:: naps.soc.platform.jtag.memory_accessor_openocd
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.soc.platform.jtag
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

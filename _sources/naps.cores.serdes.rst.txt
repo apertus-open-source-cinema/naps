@@ -9,21 +9,21 @@ naps.cores.serdes.inputgearbox module
 
 .. automodule:: naps.cores.serdes.inputgearbox
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.serdes.serializer module
 -----------------------------------
 
 .. automodule:: naps.cores.serdes.serializer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.serdes
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

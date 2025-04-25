@@ -9,69 +9,69 @@ naps.cores.debug.blink\_debug module
 
 .. automodule:: naps.cores.debug.blink_debug
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.debug.clocking\_debug module
 ---------------------------------------
 
 .. automodule:: naps.cores.debug.clocking_debug
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.debug.fsm\_status\_reg module
 ----------------------------------------
 
 .. automodule:: naps.cores.debug.fsm_status_reg
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.debug.ila module
 ---------------------------
 
 .. automodule:: naps.cores.debug.ila
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.debug.ila\_test module
 ---------------------------------
 
 .. automodule:: naps.cores.debug.ila_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.debug.packet\_console module
 ---------------------------------------
 
 .. automodule:: naps.cores.debug.packet_console
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.debug.packet\_console\_test module
 ---------------------------------------------
 
 .. automodule:: naps.cores.debug.packet_console_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.debug.tracer module
 ------------------------------
 
 .. automodule:: naps.cores.debug.tracer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.debug
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

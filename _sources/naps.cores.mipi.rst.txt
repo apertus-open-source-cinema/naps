@@ -18,13 +18,13 @@ naps.cores.mipi.common module
 
 .. automodule:: naps.cores.mipi.common
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.mipi
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

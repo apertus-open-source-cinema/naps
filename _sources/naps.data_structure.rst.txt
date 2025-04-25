@@ -9,29 +9,29 @@ naps.data\_structure.bundle module
 
 .. automodule:: naps.data_structure.bundle
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.data\_structure.packed\_struct module
 ------------------------------------------
 
 .. automodule:: naps.data_structure.packed_struct
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.data\_structure.packed\_struct\_test module
 ------------------------------------------------
 
 .. automodule:: naps.data_structure.packed_struct_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.data_structure
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

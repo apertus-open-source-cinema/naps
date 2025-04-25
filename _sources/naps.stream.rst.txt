@@ -9,61 +9,61 @@ naps.stream.first\_stream module
 
 .. automodule:: naps.stream.first_stream
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.stream.formal\_util module
 -------------------------------
 
 .. automodule:: naps.stream.formal_util
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.stream.formal\_util\_test module
 -------------------------------------
 
 .. automodule:: naps.stream.formal_util_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.stream.pipeline module
 ---------------------------
 
 .. automodule:: naps.stream.pipeline
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.stream.sim\_util module
 ----------------------------
 
 .. automodule:: naps.stream.sim_util
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.stream.stream module
 -------------------------
 
 .. automodule:: naps.stream.stream
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.stream.stream\_transformer module
 --------------------------------------
 
 .. automodule:: naps.stream.stream_transformer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.stream
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

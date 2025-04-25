@@ -9,29 +9,29 @@ naps.vendor.lattice\_machxo2.clocking module
 
 .. automodule:: naps.vendor.lattice_machxo2.clocking
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.vendor.lattice\_machxo2.io module
 --------------------------------------
 
 .. automodule:: naps.vendor.lattice_machxo2.io
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.vendor.lattice\_machxo2.jtag module
 ----------------------------------------
 
 .. automodule:: naps.vendor.lattice_machxo2.jtag
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.vendor.lattice_machxo2
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

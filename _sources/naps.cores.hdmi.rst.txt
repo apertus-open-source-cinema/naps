@@ -18,53 +18,53 @@ naps.cores.hdmi.InfoFrame module
 
 .. automodule:: naps.cores.hdmi.InfoFrame
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hdmi.cvt\_python module
 ----------------------------------
 
 .. automodule:: naps.cores.hdmi.cvt_python
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hdmi.cvt\_subprocess module
 --------------------------------------
 
 .. automodule:: naps.cores.hdmi.cvt_subprocess
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hdmi.parse\_modeline module
 --------------------------------------
 
 .. automodule:: naps.cores.hdmi.parse_modeline
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hdmi.tmds module
 ---------------------------
 
 .. automodule:: naps.cores.hdmi.tmds
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.hdmi.tmds\_test module
 ---------------------------------
 
 .. automodule:: naps.cores.hdmi.tmds_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.hdmi
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

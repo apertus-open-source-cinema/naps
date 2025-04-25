@@ -4,130 +4,130 @@ naps.util package
 Submodules
 ----------
 
+naps.util.amaranth\_misc module
+-------------------------------
+
+.. automodule:: naps.util.amaranth_misc
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
+naps.util.amaranth\_misc\_test module
+-------------------------------------
+
+.. automodule:: naps.util.amaranth_misc_test
+   :members:
+   :show-inheritance:
+   :undoc-members:
+
 naps.util.draw\_hierarchy module
 --------------------------------
 
 .. automodule:: naps.util.draw_hierarchy
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.env module
 --------------------
 
 .. automodule:: naps.util.env
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.formal module
 -----------------------
 
 .. automodule:: naps.util.formal
    :members:
-   :undoc-members:
    :show-inheritance:
-
-naps.util.nmigen\_misc module
------------------------------
-
-.. automodule:: naps.util.nmigen_misc
-   :members:
    :undoc-members:
-   :show-inheritance:
-
-naps.util.nmigen\_misc\_test module
------------------------------------
-
-.. automodule:: naps.util.nmigen_misc_test
-   :members:
-   :undoc-members:
-   :show-inheritance:
 
 naps.util.past module
 ---------------------
 
 .. automodule:: naps.util.past
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.plot\_util module
 ---------------------------
 
 .. automodule:: naps.util.plot_util
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.process module
 ------------------------
 
 .. automodule:: naps.util.process
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.process\_test module
 ------------------------------
 
 .. automodule:: naps.util.process_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.py\_serialize module
 ------------------------------
 
 .. automodule:: naps.util.py_serialize
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.python\_misc module
 -----------------------------
 
 .. automodule:: naps.util.python_misc
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.sim module
 --------------------
 
 .. automodule:: naps.util.sim
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.size\_estimation module
 ---------------------------------
 
 .. automodule:: naps.util.size_estimation
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.timer module
 ----------------------
 
 .. automodule:: naps.util.timer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.util.yosys module
 ----------------------
 
 .. automodule:: naps.util.yosys
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.util
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -9,37 +9,37 @@ naps.vendor.xilinx\_s7.clocking module
 
 .. automodule:: naps.vendor.xilinx_s7.clocking
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.vendor.xilinx\_s7.io module
 --------------------------------
 
 .. automodule:: naps.vendor.xilinx_s7.io
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.vendor.xilinx\_s7.jtag module
 ----------------------------------
 
 .. automodule:: naps.vendor.xilinx_s7.jtag
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.vendor.xilinx\_s7.ps7 module
 ---------------------------------
 
 .. automodule:: naps.vendor.xilinx_s7.ps7
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.vendor.xilinx_s7
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

@@ -9,29 +9,29 @@ naps.cores.dram\_packet\_ringbuffer.cpu\_if module
 
 .. automodule:: naps.cores.dram_packet_ringbuffer.cpu_if
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.dram\_packet\_ringbuffer.stream\_if module
 -----------------------------------------------------
 
 .. automodule:: naps.cores.dram_packet_ringbuffer.stream_if
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 naps.cores.dram\_packet\_ringbuffer.stream\_if\_test module
 -----------------------------------------------------------
 
 .. automodule:: naps.cores.dram_packet_ringbuffer.stream_if_test
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Module contents
 ---------------
 
 .. automodule:: naps.cores.dram_packet_ringbuffer
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

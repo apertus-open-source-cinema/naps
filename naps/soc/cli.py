@@ -22,7 +22,7 @@ from ..util import timer
 
 def fragment_repr(original: Fragment):
     attrs_str = "\n"
-    for attr in ['ports', 'drivers', 'statements', 'attrs', 'generated', 'flatten']:
+    for attr in ['statements', 'attrs', 'generated']:
         attrs_str += f"{attr}={repr(getattr(original, attr))},\n"
 
     domains_str = "\n"
@@ -32,7 +32,7 @@ def fragment_repr(original: Fragment):
     attrs_str += f"domains={{{indent(domains_str, '  ')}}},\n"
 
     children_str = "\n"
-    for child, name in original.subfragments:
+    for child, name, _src_loc in original.subfragments:
         children_str += f"[{name}, {fragment_repr(child)}]\n"
     attrs_str += f"children=[{indent(children_str, '  ')}],\n"
 

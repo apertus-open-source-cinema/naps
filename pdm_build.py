@@ -7,6 +7,8 @@ from pdm.backend._vendor.packaging.version import Version
 def format_version(version: SCMVersion) -> str:
     print(version.version)
     major, minor = (int(n) for n in str(version.version).split(".")[:3])
+    if minor == 0:
+        minor = 1
     if version.distance is None:
         return f"{major}.{minor}"
     else:

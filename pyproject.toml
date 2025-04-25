@@ -1,5 +1,6 @@
 [tool.pdm.version]
 source = "scm"
+version_format = "pdm_build:format_version"
 
 [project]
 dynamic = ["version"]

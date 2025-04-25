@@ -77,11 +77,11 @@ class VideoTransformerTest(unittest.TestCase):
         platform.sim(m, read_process)
 
     def test_passthrough_transformer(self):
-        testdata = [[x * y for x in range(10)] for y in range(10)]
+        testdata = [[x + 16 * y for x in range(10)] for y in range(10)]
         self.check_move_transformer((0, 0), testdata, testdata)
 
     def test_shift_1x_negative_transformer(self):
-        testdata = [[x * y for x in range(10)] for y in range(10)]
+        testdata = [[x + 16 * y for x in range(10)] for y in range(10)]
         self.check_move_transformer(
             (-1, 0),
             testdata,
@@ -90,27 +90,30 @@ class VideoTransformerTest(unittest.TestCase):
         )
 
     def test_shift_1y_negative_transformer(self):
-        testdata = [[x * y for x in range(10)] for y in range(10)]
+        testdata = [[x + 16 * y for x in range(10)] for y in range(10)]
         self.check_move_transformer(
             (0, -1),
             testdata,
-            [[0] * 10] + [[px for px in line] for line in testdata[:-1]]
+            [[px for px in line] for line in testdata[:-1]],
+            crop_top=1
         )
 
     def test_shift_1x_positive_transformer(self):
-        testdata = [[x * y for x in range(10)] for y in range(10)]
+        testdata = [[x + 16 * y for x in range(10)] for y in range(10)]
         self.check_move_transformer(
             (+1, 0),
             testdata,
-            [[px for px in line[1:]] + [0] for line in testdata]
+            [[px for px in line[1:]] for line in testdata],
+            crop_right=1
         )
 
     def test_shift_1y_positive_transformer(self):
-        testdata = [[x * y for x in range(10)] for y in range(10)]
+        testdata = [[x + 16 * y for x in range(10)] for y in range(10)]
         self.check_move_transformer(
             (0, +1),
             testdata,
-            [[px for px in line] for line in testdata[1:] + [[0] * 10]]
+            [[px for px in line] for line in testdata[1:]],
+            crop_bottom=1
         )
 
     def check_non_moving_xy(self, transformer_function, crop_top=0, crop_left=0, crop_bottom=0, crop_right=0):

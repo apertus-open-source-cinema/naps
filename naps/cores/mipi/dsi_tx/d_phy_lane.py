@@ -45,7 +45,7 @@ class DPhyDataLane(Elaboratable):
         self.hs_input = PacketizedStream(8)
 
         self.is_hs = StatusSignal()
-        self.is_driving = StatusSignal(reset=initial_driving) if can_lp else True
+        self.is_driving = StatusSignal(init=initial_driving) if can_lp else True
         self.bta_timeout = 1023
         self.bta_timeouts = StatusSignal(16)
 
@@ -231,7 +231,7 @@ class DPhyDataLane(Elaboratable):
 
                     # we keep track if we have already sent the currently or last received bit over our output stream.
                     # we send it either on the first bit of the next word or during the stop condition
-                    outboxed = Signal(reset=1)
+                    outboxed = Signal(init=1)
 
                     def maybe_finish_escape():
                         with m.If(lp == STOP):

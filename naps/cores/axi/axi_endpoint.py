@@ -37,7 +37,7 @@ class AxiAddressStream(BasicStream):
             self.id = Signal(id_bits)
             self.burst_type = Signal(AxiBurstType)
             self.burst_len = Signal(range(16))  # in axi3 a burst can have a length of 16 as a hardcoded maximum
-            self.beat_size_bytes = Signal(3, reset=int(math.log2(data_bytes)))  # this is 2**n encoded
+            self.beat_size_bytes = Signal(3, init=int(math.log2(data_bytes)))  # this is 2**n encoded
             self.protection_type = Signal(AxiProtectionType().as_value().shape())
 
 

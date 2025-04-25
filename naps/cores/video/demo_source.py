@@ -10,9 +10,9 @@ class DemoVideoSource(Elaboratable):
     def __init__(self, generator_function, payload_shape, width, height, startup_enable=True):
         self.payload_shape = payload_shape
         self.generator_function = generator_function
-        self.enable = ControlSignal(reset=startup_enable)
-        self.width = ControlSignal(16, reset=width)
-        self.height = ControlSignal(16, reset=height)
+        self.enable = ControlSignal(init=startup_enable)
+        self.width = ControlSignal(16, init=width)
+        self.height = ControlSignal(16, init=height)
         self.frame_counter = StatusSignal(32)
 
         self.output = ImageStream(payload_shape, name="demo_video_source_output")
@@ -47,7 +47,7 @@ class DemoVideoSource(Elaboratable):
 
 def BlinkDemoVideoSource(payload_shape, *args, **kwargs):
     def generator_function(m, self, x, y, frame_ctr):
-        self.speed = ControlSignal(16, reset=1)
+        self.speed = ControlSignal(16, init=1)
         return ((frame_ctr % self.speed) > (self.speed // 2)).replicate(len(self.output.payload))
 
     return DemoVideoSource(generator_function, payload_shape, *args, **kwargs)
@@ -66,9 +66,9 @@ def BertlDemoVideoSource(*args, **kwargs):
 
 def SolidColorDemoVideoSource(r=0, g=0, b=0, *args, **kwargs):
     def generator_function(m, self, x, y, frame_ctr):
-        self.r = ControlSignal(8, reset=r)
-        self.g = ControlSignal(8, reset=g)
-        self.b = ControlSignal(8, reset=b)
+        self.r = ControlSignal(8, init=r)
+        self.g = ControlSignal(8, init=g)
+        self.b = ControlSignal(8, init=b)
 
         return RGB24(r=self.r, g=self.g, b=self.b)
 
@@ -77,7 +77,7 @@ def SolidColorDemoVideoSource(r=0, g=0, b=0, *args, **kwargs):
 
 def GradientDemoVideoSource(direction_y=True, divider=2, *args, **kwargs):
     def generator_function(m, self, x, y, frame_ctr):
-        self.direction_y = ControlSignal(1, reset=direction_y)
+        self.direction_y = ControlSignal(1, init=direction_y)
         v = Signal(8)
         m.d.comb += v.eq(Mux(self.direction_y, y, x) // divider)
         return RGB24(r=v, g=v, b=v)

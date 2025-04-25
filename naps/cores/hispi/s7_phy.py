@@ -18,7 +18,7 @@ class HispiPhy(Elaboratable):
         self.out = [Signal(12) for _ in range(num_lanes)]
 
         self.hispi_x6_in_domain_counter = StatusSignal(32)
-        self.enable_bitslip = ControlSignal(reset=1)
+        self.enable_bitslip = ControlSignal(init=1)
         self.word_reverse = ControlSignal()
 
     def elaborate(self, platform):

@@ -7,7 +7,7 @@ from naps.vendor.xilinx_s7 import Pll
 
 class Top(Elaboratable):
     def __init__(self):
-        self.sensor_reset_n = ControlSignal(name='sensor_reset', reset=1)
+        self.sensor_reset_n = ControlSignal(name='sensor_reset', init=1)
 
     def elaborate(self, platform):
         usb3_plugin_connect(platform, "south", gpio=isinstance(platform, MicroR2Platform))

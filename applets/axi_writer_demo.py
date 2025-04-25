@@ -6,7 +6,7 @@ from naps import *
 class Top(Elaboratable):
     def __init__(self):
         self.reset = ControlSignal()
-        self.to_write = ControlSignal(reset=32 * 1024 * 1024)
+        self.to_write = ControlSignal(init=32 * 1024 * 1024)
         self.data_counter = StatusSignal(32)
         self.data_valid = ControlSignal()
         self.data_ready = StatusSignal()

@@ -89,7 +89,7 @@ class MultiStageWavelet2D(Elaboratable):
         transformer = m.submodules.transformer = Wavelet2D(self.input, self.width, self.height)
         splitter = m.submodules.splitter = ImageSplitter(transformer.output, self.width, self.height)
         for i, output in enumerate(splitter.outputs):
-            output.is_hf = Signal(reset=(i != 0)) @ DOWNWARDS
+            output.is_hf = Signal(init=(i != 0)) @ DOWNWARDS
 
         lf_output = splitter.outputs[0]
         lf_processed = splitter.outputs[0].clone()
@@ -104,7 +104,7 @@ class MultiStageWavelet2D(Elaboratable):
 
             n_preroll_lines = 5 # TODO(robin): why is it exactly this value
             preroll_lines = Signal(range(n_preroll_lines + 1))
-            even_odd = Signal(reset = 1)
+            even_odd = Signal(init = 1)
             output_counting_stream = lf_processed
             new_line = output_counting_stream.line_last & output_counting_stream.valid & output_counting_stream.ready
             with m.If(preroll_lines < n_preroll_lines):

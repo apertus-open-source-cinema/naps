@@ -16,7 +16,7 @@ class Ft60xLegalizer(Elaboratable):
         aligned_len = ceil((packet_len + blanking) / buffer_size) * buffer_size
         print("ft60x paddnig:", (aligned_len - packet_len), (aligned_len - packet_len) // 4)
 
-        self.padding = ControlSignal(16, reset=(aligned_len - packet_len) // 4)
+        self.padding = ControlSignal(16, init=(aligned_len - packet_len) // 4)
         self.frame_len = StatusSignal(32)
         self.frame_len_changed = StatusSignal(32)
 

@@ -34,8 +34,8 @@ class HdmiStreamAligner(Elaboratable):
         self.hdmi = hdmi
         self.input = input
 
-        self.allow_slip_h = ControlSignal(reset=1)
-        self.allow_slip_v = ControlSignal(reset=1)
+        self.allow_slip_h = ControlSignal(init=1)
+        self.allow_slip_v = ControlSignal(init=1)
         self.slipped_v = StatusSignal(32)
         self.slipped_h = StatusSignal(32)
 

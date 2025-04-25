@@ -14,13 +14,13 @@ class HdmiStreamSource(Elaboratable):
     def __init__(self, resource):
         self.resource = resource
 
-        self.blanking_threshold = ControlSignal(16, reset=(480 * 16))
+        self.blanking_threshold = ControlSignal(16, init=(480 * 16))
 
         self.measured_width = StatusSignal(16)
         self.measured_height = StatusSignal(16)
 
-        self.width = ControlSignal(16, reset=1440)
-        self.height = ControlSignal(16, reset=480)
+        self.width = ControlSignal(16, init=1440)
+        self.height = ControlSignal(16, init=480)
 
         self.blank_r = ControlSignal()
         self.blank_g = ControlSignal()
@@ -145,11 +145,11 @@ class HdmiRxLane(Elaboratable):
 
         self.not_valid_cnt = StatusSignal(16)
 
-        self.blanking_threshold = ControlSignal(16, reset=(480 * 16))  # 128 is dvi spec, for hdmi this should be 8
+        self.blanking_threshold = ControlSignal(16, init=(480 * 16))  # 128 is dvi spec, for hdmi this should be 8
         self.blankings_hit = StatusSignal(32)
 
         self.raw_word = StatusSignal(10)
-        self.invert = StatusSignal(reset=1)
+        self.invert = StatusSignal(init=1)
 
         self.data = StatusSignal(8)
         self.data_enable = StatusSignal()

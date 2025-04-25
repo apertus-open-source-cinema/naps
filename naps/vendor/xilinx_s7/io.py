@@ -23,7 +23,7 @@ class OSerdes10(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        self.invert = ControlSignal(reset=is_signal_inverted(platform, self.pad))
+        self.invert = ControlSignal(init=is_signal_inverted(platform, self.pad))
 
         data = Signal.like(self.input)
         m.d[self.domain] += data.eq(self.input ^ self.invert.replicate(len(self.input)))
@@ -133,7 +133,7 @@ class DDRSerializer(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        self.invert = ControlSignal(reset=is_signal_inverted(platform, self.pad))
+        self.invert = ControlSignal(init=is_signal_inverted(platform, self.pad))
 
         oserdes = m.submodules.oserdes = _OSerdes(
             data_width=self.bit_width,

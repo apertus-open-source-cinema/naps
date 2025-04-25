@@ -6,7 +6,7 @@ from naps import *
 
 class Top(Elaboratable):
     def __init__(self):
-        self.sensor_reset_n = ControlSignal(name='sensor_reset', reset=1)
+        self.sensor_reset_n = ControlSignal(name='sensor_reset', init=1)
 
     def elaborate(self, platform):
         from naps.platform.plugins.hdmi_plugin_resource import hdmi_plugin_connect

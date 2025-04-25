@@ -117,7 +117,7 @@ class LaneBitAligner(Elaboratable):
         self.ddr_domain = ddr_domain
         self.testpattern = testpattern
 
-        self.delay = ControlSignal(5, reset=15)
+        self.delay = ControlSignal(5, init=15)
         self.error = StatusSignal(32)
 
         self.output = StatusSignal(8)

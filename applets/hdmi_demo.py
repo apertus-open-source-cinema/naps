@@ -6,9 +6,9 @@ from naps import *
 
 class Top(Elaboratable):
     def __init__(self):
-        self.r = ControlSignal(8, reset=0xFA)
-        self.g = ControlSignal(8, reset=0x87)
-        self.b = ControlSignal(8, reset=0x56)
+        self.r = ControlSignal(8, init=0xFA)
+        self.g = ControlSignal(8, init=0x87)
+        self.b = ControlSignal(8, init=0x56)
 
     def elaborate(self, platform: ZynqSocPlatform):
         if not isinstance(platform, ZyboPlatform):

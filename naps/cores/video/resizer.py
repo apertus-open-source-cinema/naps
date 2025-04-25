@@ -12,8 +12,8 @@ class VideoResizer(Elaboratable):
         self.input = input
         self.output = input.clone(name="resized")
 
-        self.output_width = ControlSignal(16, reset=desired_width)
-        self.output_height = ControlSignal(16, reset=desired_height)
+        self.output_width = ControlSignal(16, init=desired_width)
+        self.output_height = ControlSignal(16, init=desired_height)
         self.shift_x = ControlSignal(signed(16))
         self.shift_y = ControlSignal(signed(16))
 

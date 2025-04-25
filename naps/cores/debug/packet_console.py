@@ -19,7 +19,7 @@ class ConsolePacketSource(Elaboratable):
         self.reset = ControlSignal()
         self.packet_length = ControlSignal(range(max_packet_size))
         self.read_ptr = StatusSignal(range(max_packet_size))
-        self.done = StatusSignal(reset=1)
+        self.done = StatusSignal(init=1)
         self.memory = SocMemory(
             width=data_width, depth=self.max_packet_size,
             soc_read=False,  attrs=dict(syn_ramstyle="block_ram")

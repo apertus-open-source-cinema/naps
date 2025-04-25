@@ -53,11 +53,11 @@ class Ila(Elaboratable):
     def __init__(self, trace_length=2048, after_trigger=None):
         self.trace_length = trace_length
 
-        self.after_trigger = ControlSignal(range(trace_length), reset=(trace_length // 2 if after_trigger is None else after_trigger))
+        self.after_trigger = ControlSignal(range(trace_length), init=(trace_length // 2 if after_trigger is None else after_trigger))
         self.reset = ControlSignal()
 
         # Yosys cannot handle a signal named `initial` (bug #2914)
-        self.initial_ = StatusSignal(reset=1)
+        self.initial_ = StatusSignal(init=1)
         self.running = StatusSignal()
         self.write_ptr = StatusSignal(range(trace_length))
         self.trigger_since = StatusSignal(range(trace_length + 1))

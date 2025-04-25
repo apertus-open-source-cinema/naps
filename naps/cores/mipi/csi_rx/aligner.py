@@ -14,7 +14,7 @@ class CsiWordAligner(Elaboratable):
         self.ddr_domain = ddr_domain
         self.pin = pin
 
-        self.enable_train_logic = Signal(reset=1)  # input; enables or disables the train logic; this is needed in multi lane setups to be able to find a training for all lanes
+        self.enable_train_logic = Signal(init=1)  # input; enables or disables the train logic; this is needed in multi lane setups to be able to find a training for all lanes
         self.in_packet = in_packet  # input; indicates if the upper layer is in a valid packet
         self.output = Signal(8)  # output
         self.maybe_first_packet_byte = Signal()  # indicates, that the current output word was preceded by the start of packet preamble

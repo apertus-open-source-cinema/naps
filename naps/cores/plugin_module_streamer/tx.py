@@ -15,8 +15,8 @@ class PluginModuleStreamerTx(Elaboratable):
         self.plugin_resource = plugin_resource
         self.input = input
 
-        self.training_pattern = ControlSignal(8, reset=training_pattern)
-        self.do_training = ControlSignal(reset=1)
+        self.training_pattern = ControlSignal(8, init=training_pattern)
+        self.do_training = ControlSignal(init=1)
 
     def elaborate(self, platform):
         m = Module()

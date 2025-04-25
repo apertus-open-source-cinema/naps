@@ -1,6 +1,5 @@
 from amaranth import *
 from amaranth.hdl import Cover, Assume, Assert
-from amaranth.hdl.ast import Initial
 
 from .stream import Stream
 from naps.util.formal import FormalPlatform, assert_formal
@@ -18,12 +17,8 @@ class StreamOutputCoverSpec(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        with m.If(Initial()):
-            m.d.comb += Assume(ResetSignal())
-        with m.Else():
-            m.d.comb += Assume(~ResetSignal())
-            m.d.comb += Assume(~self.stream_output.ready)
-            m.d.comb += Cover(self.stream_output.valid)
+        m.d.comb += Assume(~self.stream_output.ready)
+        m.d.comb += Cover(self.stream_output.valid)
 
         return m
 
@@ -44,31 +39,27 @@ class StreamOutputAssertSpec(Elaboratable):
     def elaborate(self, platform):
         m = Module()
 
-        with m.If(Initial()):
-            m.d.comb += Assume(ResetSignal())
-        with m.Else():
-            m.d.comb += Assume(~ResetSignal())
-            unfinished_transaction = Signal()
-            with m.If(self.stream_output.ready & self.stream_output.valid):
-                m.d.sync += unfinished_transaction.eq(0)
-            with m.Elif(self.stream_output.valid):
-                m.d.sync += unfinished_transaction.eq(1)
-            m.d.comb += Assert(unfinished_transaction.implies(self.stream_output.valid))
+        unfinished_transaction = Signal()
+        with m.If(self.stream_output.ready & self.stream_output.valid):
+            m.d.sync += unfinished_transaction.eq(0)
+        with m.Elif(self.stream_output.valid):
+            m.d.sync += unfinished_transaction.eq(1)
+        m.d.comb += Assert(~unfinished_transaction | self.stream_output.valid)
 
-            last_payload_signals = [Signal.like(s, name=f"{name}_last") for name, s in self.stream_output.payload_signals.items()]
+        last_payload_signals = [Signal.like(s, name=f"{name}_last") for name, s in self.stream_output.payload_signals.items()]
+        for l, s in zip(last_payload_signals, self.stream_output.payload_signals.values()):
+            m.d.sync += l.eq(s)
+
+        with m.If(unfinished_transaction):
             for l, s in zip(last_payload_signals, self.stream_output.payload_signals.values()):
-                m.d.sync += l.eq(s)
-
-            with m.If(unfinished_transaction):
-                for l, s in zip(last_payload_signals, self.stream_output.payload_signals.values()):
-                    m.d.comb += Assert(l == s)
+                m.d.comb += Assert(l == s)
 
         return m
 
 
 def verify_stream_output_contract_assert(module, stream_output, support_modules=()):
     spec = StreamOutputAssertSpec(stream_output)
-    assert_formal(module, mode="hybrid", depth=10, submodules=[*support_modules, spec])
+    assert_formal(module, mode="bmc", depth=10, submodules=[*support_modules, spec])
 
 
 class LegalStreamSource(Elaboratable):

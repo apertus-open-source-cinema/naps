@@ -42,17 +42,11 @@ def get_artifacts_location():
     return target_dir, filename
 
 def assert_formal(spec, mode="bmc", depth=1, submodules=()):
+    assert mode in ["bmc", "cover"]
+
     target_dir, filename = get_artifacts_location()
     import sys
     print(target_dir, filename, file=sys.stderr)
-
-    if mode == "hybrid":
-        # A mix of BMC and k-induction, as per personal communication by the person we coppied the code from with Claire Wolf.
-        script = "setattr -unset init w:* a:amaranth.sample_reg %d"
-        mode = "bmc"
-    else:
-        script = ""
-
     spec._MustUse__used = True
 
     spec_module = spec.elaborate(FormalPlatform)
@@ -83,7 +77,7 @@ def assert_formal(spec, mode="bmc", depth=1, submodules=()):
     ports = flat_entry(list(spec.__dict__.values()))
     print(ports, file=sys.stderr)
 
-    config = textwrap.dedent("""\
+    config = textwrap.dedent(f"""\
         [options]
         mode {mode}
         depth {depth}
@@ -93,15 +87,9 @@ def assert_formal(spec, mode="bmc", depth=1, submodules=()):
         [script]
         read_rtlil top.il
         prep
-        {script}
         [file top.il]
-        {rtlil}
-    """).format(
-        mode=mode,
-        depth=depth,
-        script=script,
-        rtlil=rtlil.convert(spec_module, ports=ports)
-    )
+        {rtlil.convert(spec_module, ports=ports)}
+    """)
     with subprocess.Popen([require_tool("sby"), "-f", "-d", filename], cwd=str(target_dir),
                           universal_newlines=True,
                           stdin=subprocess.PIPE, stdout=subprocess.PIPE) as proc:

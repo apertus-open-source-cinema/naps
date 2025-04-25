@@ -88,12 +88,21 @@ class LegalStreamSource(Elaboratable):
         return m
 
 
-def verify_stream_output_contract(module, stream_output=None, support_modules=()):
-    module._MustUse__used = True
-    if stream_output is None:
-        stream_output = module.output
+def verify_stream_output_contract(module, stream_output=None, support_modules=[]):
+    if callable(module):
+        module_generator = module
+    else:
+        def module_generator():
+            output = stream_output
+            if output is None:
+                output = module.output
+            return (module, output, support_modules)
 
-    print("testing that valid does not depend on ready...")
-    verify_stream_output_contract_cover(module, stream_output, support_modules)
-    print("testing hold unacknowledged transactions...")
-    verify_stream_output_contract_assert(module, stream_output, support_modules)
+    for text, check in [
+        ("that valid does not depend on ready", verify_stream_output_contract_cover),
+        ("hold unacknowledged transactions", verify_stream_output_contract_assert),
+    ]:
+        elab, stream_output, support_modules = module_generator()
+        elab._MustUse__used = True
+        print(f"testing {text}...")
+        check(elab, stream_output, support_modules)

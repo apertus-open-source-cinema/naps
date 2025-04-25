@@ -35,7 +35,10 @@ class StreamMemoryTest(unittest.TestCase):
         platform.sim(m, read_process)
 
     def test_output_stream_contract(self):
-        input_stream = PacketizedStream(8)
-        mem = Memory(width=32, depth=128, init=[i + 2 for i in range(128)])
-        dut = StreamMemoryReader(input_stream, mem)
-        verify_stream_output_contract(dut, support_modules=(LegalStreamSource(input_stream), mem))
+        def dut():
+            input_stream = PacketizedStream(8)
+            mem = Memory(shape=32, depth=128, init=[i + 2 for i in range(128)])
+            dut = StreamMemoryReader(input_stream, mem)
+            return (dut, dut.output, [LegalStreamSource(input_stream), mem])
+
+        verify_stream_output_contract(dut)

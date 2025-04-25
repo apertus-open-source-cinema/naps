@@ -36,5 +36,7 @@ class PacketConsoleTest(unittest.TestCase):
         self.check_roundtrip_complex(test_packet=[0x42])
 
     def test_source_output_stream_contract(self):
-        dut = ConsolePacketSource()
+        def dut():
+            dut = ConsolePacketSource()
+            return (dut, dut.output, [])
         verify_stream_output_contract(dut)

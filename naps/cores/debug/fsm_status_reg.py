@@ -1,14 +1,13 @@
 from enum import Enum
 
 from amaranth import *
-from amaranth.hdl.dsl import FSM
 
 from naps import StatusSignal, SocPlatform
 
 __all__ = ["fsm_status_reg"]
 
 
-def fsm_status_reg(platform, m, fsm: FSM):
+def fsm_status_reg(platform, m, fsm):
     if isinstance(platform, SocPlatform):
         fsm_state = StatusSignal(name=f"{fsm.state.name}_reg")  # TODO: use meaningful shape value here (needs deferring)
         def signal_fixup_hook(platform, top_fragment: Fragment, sames):

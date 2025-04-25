@@ -1,7 +1,7 @@
 from typing import Tuple
 from amaranth import *
-from amaranth.hdl.ast import Operator
 from amaranth.lib.memory import Memory
+from naps.util.amaranth_private import Operator
 from naps import StatusSignal
 from . import ImageStream
 

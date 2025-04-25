@@ -1,5 +1,4 @@
 from amaranth import *
-from amaranth.hdl.dsl import FSM
 
 from naps import driver_method, StatusSignal, Changed
 from ..peripherals import SocMemory
@@ -8,7 +7,7 @@ __all__ = ["Tracer"]
 
 
 class Tracer(Elaboratable):
-    def __init__(self, fsm: FSM, trace_length=128):
+    def __init__(self, fsm, trace_length=128):
         self.fsm = fsm
         self.trace_length = trace_length
         self.write_ptr = StatusSignal(range(trace_length))

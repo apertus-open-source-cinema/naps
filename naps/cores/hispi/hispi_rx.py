@@ -33,8 +33,8 @@ class LaneManager(Elaboratable):
 
         self.is_aligned = StatusSignal()
 
-        self.timeout = ControlSignal(32, reset=10000)
-        self.timeouts_to_resync = ControlSignal(32, reset=10000)
+        self.timeout = ControlSignal(32, init=10000)
+        self.timeouts_to_resync = ControlSignal(32, init=10000)
 
         self.since_last_sync_pattern_or_bitslip = StatusSignal(32)
         self.performed_bitslips = StatusSignal(32)

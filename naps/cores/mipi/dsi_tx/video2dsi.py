@@ -17,13 +17,13 @@ class ImageStream2Dsi(Elaboratable):
         assert len(input.payload) == 24
         self.input = input
         self.num_lanes = num_lanes
-        self.image_width = ControlSignal(16, reset=image_width * 3)
+        self.image_width = ControlSignal(16, init=image_width * 3)
         self.debug = debug
 
-        self.vbp = ControlSignal(16, reset=18)
-        self.vfp = ControlSignal(16, reset=4)
-        self.hbp = ControlSignal(16, reset=68 * 3)
-        self.hfp = ControlSignal(16, reset=20 * 3)
+        self.vbp = ControlSignal(16, init=18)
+        self.vfp = ControlSignal(16, init=4)
+        self.hbp = ControlSignal(16, init=68 * 3)
+        self.hfp = ControlSignal(16, init=20 * 3)
 
         self.gearbox_not_ready = StatusSignal(32)
 

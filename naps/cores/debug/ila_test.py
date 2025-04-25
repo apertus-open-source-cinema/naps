@@ -11,7 +11,7 @@ class IlaTest(unittest.TestCase):
         class Top(Elaboratable):
             def __init__(self):
                 self.up_counter = StatusSignal(16)
-                self.down_counter = StatusSignal(16, reset=1000)
+                self.down_counter = StatusSignal(16, init=1000)
 
             def elaborate(self, platform):
                 m = Module()

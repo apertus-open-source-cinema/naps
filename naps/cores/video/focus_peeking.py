@@ -16,8 +16,8 @@ class FocusPeeking(Elaboratable):
         self.width = width
         self.height = height
 
-        self.threshold = ControlSignal(16, reset=255)
-        self.highlight_r = ControlSignal(8, reset=255)
+        self.threshold = ControlSignal(16, init=255)
+        self.highlight_r = ControlSignal(8, init=255)
         self.highlight_g = ControlSignal(8)
         self.highlight_b = ControlSignal(8)
 

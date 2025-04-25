@@ -23,7 +23,7 @@ class HdmiTx(Elaboratable):
         self.hsync_polarity = ControlSignal()
         self.vsync_polarity = ControlSignal()
 
-        self.clock_pattern = ControlSignal(10, name="hdmi_clock_pattern", reset=0b1111100000)
+        self.clock_pattern = ControlSignal(10, name="hdmi_clock_pattern", init=0b1111100000)
 
         self.timing_generator = HdmiTimingGenerator(self.initial_video_timing)
 
@@ -116,14 +116,14 @@ class HdmiClocking(Elaboratable):
 
 class HdmiTimingGenerator(Elaboratable):
     def __init__(self, video_timing, vertical_signals_shape=range(8000), horizontal_signals_shape=range(4000)):
-        self.hscan = ControlSignal(horizontal_signals_shape, reset=video_timing.hscan)
-        self.vscan = ControlSignal(vertical_signals_shape, reset=video_timing.vscan)
-        self.width = ControlSignal(horizontal_signals_shape, reset=video_timing.hres)
-        self.height = ControlSignal(vertical_signals_shape, reset=video_timing.vres)
-        self.hsync_start = ControlSignal(horizontal_signals_shape, reset=video_timing.hsync_start)
-        self.hsync_end = ControlSignal(horizontal_signals_shape, reset=video_timing.hsync_end)
-        self.vsync_start = ControlSignal(vertical_signals_shape, reset=video_timing.vsync_start)
-        self.vsync_end = ControlSignal(vertical_signals_shape, reset=video_timing.vsync_end)
+        self.hscan = ControlSignal(horizontal_signals_shape, init=video_timing.hscan)
+        self.vscan = ControlSignal(vertical_signals_shape, init=video_timing.vscan)
+        self.width = ControlSignal(horizontal_signals_shape, init=video_timing.hres)
+        self.height = ControlSignal(vertical_signals_shape, init=video_timing.vres)
+        self.hsync_start = ControlSignal(horizontal_signals_shape, init=video_timing.hsync_start)
+        self.hsync_end = ControlSignal(horizontal_signals_shape, init=video_timing.hsync_end)
+        self.vsync_start = ControlSignal(vertical_signals_shape, init=video_timing.vsync_start)
+        self.vsync_end = ControlSignal(vertical_signals_shape, init=video_timing.vsync_end)
 
         self.x = StatusSignal(horizontal_signals_shape,)
         self.y = StatusSignal(vertical_signals_shape)
@@ -180,7 +180,7 @@ class HdmiPluginLowspeedController(Elaboratable):
 
         # generate low speed CSR signals
         for name, signal_type, width, default in sigs:
-            csr_signal = signal_type(width, reset=default)
+            csr_signal = signal_type(width, init=default)
             setattr(self, name, csr_signal)
             io = getattr(self.plugin, name)
             if signal_type == ControlSignal:

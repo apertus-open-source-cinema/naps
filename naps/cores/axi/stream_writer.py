@@ -95,8 +95,10 @@ class AxiWriterBurster(Elaboratable):
         data_fifo = m.submodules.data_fifo = BufferedSyncStreamFIFO(self.data_input, self.data_fifo_depth)
         stream_packetizer = m.submodules.stream_packetizer = StreamPacketizer(packet_length_stream, data_fifo.output)
         m.d.comb += self.data_output.connect_upstream(stream_packetizer.output, allow_partial=True)
-        m.d.comb += self.data_output.id.eq(self.data_output.id.reset)
         m.d.comb += self.data_output.byte_strobe.eq(-1)
+
+        # Without this formal fails. This makes this an output port
+        m.d.comb += self.data_output.id.eq(self.data_output.id.init)
 
         return m
 

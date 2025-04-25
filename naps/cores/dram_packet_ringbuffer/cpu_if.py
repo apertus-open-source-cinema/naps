@@ -15,7 +15,7 @@ class DramPacketRingbufferCpuWriter(Elaboratable):
         self.n_buffers = n_buffers
 
         self.buffer_base_list = Array([base_address + max_packet_size * i for i in range(n_buffers)])
-        self.buffer_level_list = Array([ControlSignal(range(max_packet_size), reset=default_packet_size) for _ in range(n_buffers)])
+        self.buffer_level_list = Array([ControlSignal(range(max_packet_size), init=default_packet_size) for _ in range(n_buffers)])
         self.current_write_buffer = ControlSignal(range(n_buffers))
 
         for i, signal in enumerate(self.buffer_level_list):

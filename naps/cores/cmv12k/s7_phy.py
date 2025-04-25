@@ -259,7 +259,7 @@ class IDelayIncremental(Elaboratable):
         # synchronous to "sync" domain
         self.reset = Signal() # set delay to 0
         self.step = Signal() # apply below change
-        self.inc = Signal(reset=1) # 1 = add 1 to delay, 0 = subtract 1 from delay
+        self.inc = Signal(init=1) # 1 = add 1 to delay, 0 = subtract 1 from delay
 
         self.output = Signal()
 

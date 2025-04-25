@@ -9,7 +9,7 @@ from naps.vendor.xilinx_s7 import IDelayCtrl
 
 class Top(Elaboratable):
     def __init__(self):
-        self.sensor_reset_n = ControlSignal(name='sensor_reset', reset=1)
+        self.sensor_reset_n = ControlSignal(name='sensor_reset', init=1)
         self.enable_write = ControlSignal()
         self.change_packet = ControlSignal()
 

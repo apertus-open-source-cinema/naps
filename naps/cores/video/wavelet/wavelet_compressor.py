@@ -26,7 +26,7 @@ class WaveletCompressor(Elaboratable):
         wavelet = m.submodules.wavelet = MultiStageWavelet2D(self.input, self.width, self.height, stages=3)
         packetizer = m.submodules.packetizer = ImageStream2PacketizedStream(wavelet.output)
 
-        bit_stuffing_input = VariableWidthStream(self.input.payload.shape(), reset_width=len(self.input.payload))
+        bit_stuffing_input = VariableWidthStream(self.input.payload.shape(), init_width=len(self.input.payload))
         with m.If(packetizer.output.is_hf):
             rle_input = PacketizedStream()
             m.d.comb += rle_input.connect_upstream(packetizer.output)

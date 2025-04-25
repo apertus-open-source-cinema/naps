@@ -8,7 +8,7 @@ class SocMemoryTest(unittest.TestCase):
     def test_smoke(self):
         platform = ZynqSocPlatform(SimPlatform())
         memory_depth = 128
-        dut = SocMemory(width=32, depth=memory_depth)
+        dut = SocMemory(shape=32, init=[], depth=memory_depth)
 
         def testbench():
             axi = platform.axi_lite_master
@@ -24,7 +24,7 @@ class SocMemoryTest(unittest.TestCase):
         platform = SimSocPlatform(SimPlatform())
 
         memory_depth = 128
-        dut = SocMemory(width=64, depth=memory_depth)
+        dut = SocMemory(shape=64, depth=memory_depth, init=[])
 
         def driver(design):
             for i in range(memory_depth):
@@ -42,7 +42,7 @@ class SocMemoryTest(unittest.TestCase):
         platform = SimSocPlatform(SimPlatform())
 
         memory_depth = 2
-        dut = SocMemory(width=32, depth=memory_depth)
+        dut = SocMemory(shape=32, depth=memory_depth, init=[])
 
         def driver(design):
             for i in range(memory_depth):

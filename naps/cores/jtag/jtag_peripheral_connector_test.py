@@ -1,5 +1,6 @@
 import unittest
 from amaranth import *
+from amaranth.lib.memory import Memory
 from naps import Response, SimPlatform
 from naps.vendor import JTAG
 from .jtag_peripheral_connector import JTAGPeripheralConnector
@@ -10,7 +11,7 @@ class DummyPeripheral(Elaboratable):
         return range(0, 1024)
 
     def __init__(self):
-        self.mem = Memory(width=32, depth=1024, init=list(range(1024)))
+        self.mem = Memory(shape=32, depth=1024, init=list(range(1024)))
         self.read_port = self.mem.read_port()
         self.write_port = self.mem.write_port()
 

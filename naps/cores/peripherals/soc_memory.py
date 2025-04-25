@@ -1,5 +1,6 @@
 from math import ceil
 from amaranth import *
+from amaranth.lib.memory import Memory
 
 from naps import iterator_with_if_elif
 from naps.soc import SocPlatform, MemoryMap, Peripheral, Response, driver_method, PERIPHERAL_DOMAIN
@@ -12,17 +13,18 @@ from naps.util.past import Rose
 class SocMemory(Elaboratable):
     """A memory that can be read / written to by the soc"""
 
-    def __init__(self, *, width, depth, init=None, name=None, soc_read=True, soc_write=True, **kwargs):
-        self.memory = Memory(width=width, depth=depth, init=init, name=name, **kwargs)
+    def __init__(self, data=None, *, shape=None, depth=None, init=None, soc_read=True, soc_write=True, **kwargs):
+        self.memory = Memory(data, shape=shape, depth=depth, init=init, **kwargs)
+        width = Shape.cast(self.memory.shape).width
         if soc_read:
-            self.read_port = self.memory.read_port(domain=PERIPHERAL_DOMAIN, transparent=False)
+            self.read_port = self.memory.read_port(domain=PERIPHERAL_DOMAIN)
         if soc_write:
             self.write_port = self.memory.write_port(domain=PERIPHERAL_DOMAIN, granularity=min(width, 32))
         self.soc_read = soc_read
         self.soc_write = soc_write
-        self.depth = depth
-        self.width = width
-        self.split_stages = int(ceil(self.width / 32))
+        self.depth = self.memory.depth
+        self.shape = self.memory.shape
+        self.split_stages = int(ceil(width / 32))
 
     def handle_read(self, m, addr, data, read_done):
         addr = addr[2:]
@@ -59,11 +61,10 @@ class SocMemory(Elaboratable):
             write_done(Response.ERR)
 
     def elaborate(self, platform):
-        m = Module()
-
         if not isinstance(platform, SocPlatform):
-            return m
+            return self.memory
 
+        m = Module()
         memorymap = MemoryMap()
         assert memorymap.bus_word_width == 32
         memorymap.allocate("memory", writable=True, bits=self.depth * self.split_stages * memorymap.bus_word_width)
@@ -72,8 +73,7 @@ class SocMemory(Elaboratable):
             self.handle_write,
             memorymap
         )
-
-        m.submodules.memory = self.memory
+        m.submodules.backing = self.memory
 
         return m
 

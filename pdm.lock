@@ -5,7 +5,7 @@
 groups = ["default", "doc", "publish", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:f37821cce9d23f2111db79327f223f3c35a0788160081ff0d3f690b080ab9f58"
+content_hash = "sha256:4c61ab646d0aab89f493ecdb171a0edb915c216c77938d68e77b2ae34e41b630"
 
 [[metadata.targets]]
 requires_python = ">=3.11"
@@ -23,11 +23,8 @@ files = [
 
 [[package]]
 name = "amaranth"
-version = "0.5.4.dev2"
+version = "0.5.4"
 requires_python = "~=3.8"
-git = "https://github.com/amaranth-lang/amaranth"
-ref = "31459d5e6b27bc6678589e64ee90b80a6d07b7fb"
-revision = "31459d5e6b27bc6678589e64ee90b80a6d07b7fb"
 summary = "Amaranth hardware definition language"
 groups = ["default"]
 dependencies = [
@@ -35,6 +32,10 @@ dependencies = [
     "importlib-resources; python_version < \"3.9\"",
     "jschon~=0.11.1",
     "pyvcd<0.5,>=0.2.2",
+]
+files = [
+    {file = "amaranth-0.5.4-py3-none-any.whl", hash = "sha256:ce7473b4220acc78474474fd132177ca545fb144d4e69e1c7dbfc2ed7d32bcf3"},
+    {file = "amaranth-0.5.4.tar.gz", hash = "sha256:a0ea7ffe358ab00d5524b53c43277d279723437be146c8250e26f6b349b8a4fd"},
 ]
 
 [[package]]

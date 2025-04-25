@@ -15,3 +15,6 @@ def format_version(version: SCMVersion) -> str:
 def pdm_build_initialize(context):
     if "DOC_SHA" in os.environ:
         context.config.metadata["urls"]["Documentation"] = f"https://docs.niemo.de/naps/commit/{os.environ['DOC_SHA']}".strip()
+    
+    # we cannot depend on git dependencies for pypi so we filter out amaranth-boards as it is not published at the time I write this
+    context.config.metadata["dependencies"] = [dep for dep in context.config.metadata["dependencies"] if "git" not in dep]

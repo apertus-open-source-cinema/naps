@@ -12,8 +12,8 @@ authors = [
     {name = "Jaro Habiger", email = "jarohabiger@googlemail.com"},
 ]
 dependencies = [
+    "amaranth==0.5.4",
     "amaranth-boards @ git+https://github.com/amaranth-lang/amaranth-boards@c26a72e59c786b38e0e989ae64c6c2560ca7c29c",
-    "amaranth @ git+https://github.com/amaranth-lang/amaranth@31459d5e6b27bc6678589e64ee90b80a6d07b7fb",
     "huffman",
     "paramiko",
 ]

@@ -16,7 +16,7 @@ class Top(Elaboratable):
         m = Module()
 
         cpu_writer = m.submodules.cpu_writer = DramPacketRingbufferCpuWriter(
-            max_packet_size=0x1000000, n_buffers=1,
+            max_packet_size=0x1000000, n_buffers=2,
             default_packet_size=self.width * self.height * 4
         )
 

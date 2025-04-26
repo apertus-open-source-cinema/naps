@@ -45,7 +45,7 @@ class JTAGSocPlatform(SocPlatform):
         self.prepare_hooks.append(peripherals_connect_hook)
 
     def pack_bitstream_fatbitstream(self, name: str, build_products: BuildProducts):
-        if isinstance(self, LatticeMachXO2Platform):
+        if isinstance(self, LatticePlatform) and self.toolchain == "Diamond":
             yield File("bitstream_jtag.svf", build_products.get(f"{name}_sram.svf"))
         else:
             yield File("bitstream_jtag.svf", build_products.get(f"{name}.svf"))

@@ -5,6 +5,7 @@ import subprocess
 from importlib import import_module
 from pathlib import Path
 import unittest
+import amaranth
 
 from naps.soc.platform import JTAGSocPlatform, ZynqSocPlatform
 
@@ -35,6 +36,8 @@ for path in Path(__file__).parent.glob("**/*.py"):
                 soc_platform = soc(hardware_platform)
             
             build = hardware_platform.toolchain == "Trellis"
+            if amaranth.__version__ == "0.5.4":
+                build = False  # TODO: remove, once https://github.com/amaranth-lang/amaranth/commit/7664a00f4d3033e353b2f3a00802abb7403c0b68 is released
             def make_run(path, device, soc_name, build):
                 def run(self):
                     command = ['python', str(path), '-e', '--no_cache', '-d', device, '-s', soc_name]

@@ -5,11 +5,10 @@ from amaranth.build import *
 from amaranth.vendor import LatticeECP5Platform
 from amaranth_boards.resources import *
 
+from naps.soc.fatbitstream import File
+
 
 __all__ = ['Colorlight5a75b70Platform']
-
-from naps import FatbitstreamContext, program_fatbitstream_local
-from naps.soc.fatbitstream import File
 
 
 class Colorlight5a75b70Platform(LatticeECP5Platform, ABC):
@@ -118,5 +117,3 @@ class Colorlight5a75b70Platform(LatticeECP5Platform, ABC):
             scan_chain
         """))
 
-    def program_fatbitstream(self, name, **kwargs):
-        program_fatbitstream_local(name, **kwargs)

@@ -3,7 +3,7 @@ from amaranth import Fragment, Signal, Module, ClockSignal, ClockDomain
 from amaranth.build.run import BuildProducts
 from amaranth.vendor import LatticePlatform, XilinxPlatform
 
-from ... import SocPlatform, Address, PeripheralsAggregator, PERIPHERAL_DOMAIN
+from ... import SocPlatform, Address, PeripheralsAggregator, PERIPHERAL_DOMAIN, program_fatbitstream_local
 
 __all__ = ["JTAGSocPlatform"]
 
@@ -50,7 +50,10 @@ class JTAGSocPlatform(SocPlatform):
         else:
             yield File("bitstream_jtag.svf", build_products.get(f"{name}.svf"))
         yield from self._wrapped_platform.generate_openocd_conf()
-        yield "openocd -f openocd.cfg -c 'svf -tap dut.tap -quiet -progress bitstream_jtag.svf; shutdown'"
+        yield 'openocd -f openocd.cfg -c "svf -tap dut.tap -quiet -progress bitstream_jtag.svf; shutdown"'
+
+    def program_fatbitstream(self, name, **kwargs):
+        program_fatbitstream_local(name, **kwargs)
 
     def pydriver_memory_accessor(self, _memorymap):
         return (Path(__file__).parent / "memory_accessor_openocd.py").read_text()

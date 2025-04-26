@@ -3,11 +3,10 @@ from textwrap import dedent
 from amaranth.build import *
 from amaranth.vendor import LatticeMachXO2Platform
 
-from naps import program_fatbitstream_ssh
+from naps.soc.fatbitstream import File
+
 
 __all__ = ["Usb3PluginPlatform"]
-
-from naps.soc.fatbitstream import File
 
 
 class Usb3PluginPlatform(LatticeMachXO2Platform):
@@ -77,6 +76,3 @@ class Usb3PluginPlatform(LatticeMachXO2Platform):
             scan_chain
         """))
         yield "[ $(cat /etc/hostname) == 'beta' ] && cp openocd_beta.cfg openocd.cfg || cp openocd_micro.cfg openocd.cfg"
-
-    def program_fatbitstream(self, name, **kwargs):
-        program_fatbitstream_ssh(name, **kwargs)

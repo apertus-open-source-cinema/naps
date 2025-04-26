@@ -75,6 +75,9 @@ class Stats(Elaboratable):
         return m
 
 class Top(Elaboratable):
+    runs_on = [BetaPlatform]
+    soc_platform = ZynqSocPlatform
+
     def __init__(self):
         self.sensor_reset = ControlSignal()
         self.frame_req = PulseReg(1)
@@ -230,4 +233,4 @@ class Top(Elaboratable):
         return pattern
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(BetaPlatform, ), possible_socs=(ZynqSocPlatform, ))
+    cli(Top)

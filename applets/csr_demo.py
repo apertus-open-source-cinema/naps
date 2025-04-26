@@ -1,11 +1,13 @@
 # A simple experiment that demonstrates basic CSR / SOC functionality
 from amaranth import *
-from amaranth.vendor import LatticeMachXO2Platform
+from amaranth.vendor import LatticePlatform
 from naps import *
 from naps.vendor.lattice_machxo2 import Osc
 
 
 class Top(Elaboratable):
+    runs_on = [Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform, BetaRFWPlatform, Colorlight5a75b70Platform]
+
     def __init__(self):
         self.counter = StatusSignal(32)
         self.test_reg32 = ControlSignal(32)
@@ -17,7 +19,7 @@ class Top(Elaboratable):
         if isinstance(platform, ZynqSocPlatform):
             platform.ps7.fck_domain(requested_frequency=100e6)
             has_clk = True
-        elif isinstance(platform, LatticeMachXO2Platform):
+        elif isinstance(platform, LatticePlatform) and platform.family == "machxo2":
             m.submodules.osc = Osc()
             has_clk = True
         elif isinstance(platform, Colorlight5a75b70Platform):
@@ -33,8 +35,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(
-        Top,
-        runs_on=(Usb3PluginPlatform, MicroR2Platform, ZyboPlatform, BetaPlatform, HdmiDigitizerPlatform, BetaRFWPlatform, Colorlight5a75b70Platform),
-        possible_socs=(JTAGSocPlatform, ZynqSocPlatform)
-    )
+    cli(Top)

@@ -8,6 +8,9 @@ from naps.vendor.xilinx_s7 import IDelayCtrl
 
 
 class Top(Elaboratable):
+    runs_on = [MicroR2Platform]
+    soc_platform = ZynqSocPlatform
+
     def __init__(self):
         self.sensor_reset_n = ControlSignal(name='sensor_reset', init=1)
         self.enable_write = ControlSignal()
@@ -76,4 +79,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(MicroR2Platform,), possible_socs=(ZynqSocPlatform,))
+    cli(Top)

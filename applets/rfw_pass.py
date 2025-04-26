@@ -5,6 +5,8 @@ from naps import *
 
 
 class Top(Elaboratable):
+    runs_on = [BetaRFWPlatform]
+
     def elaborate(self, platform):
         m = Module()
 
@@ -31,4 +33,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(BetaRFWPlatform,))
+    cli(Top)

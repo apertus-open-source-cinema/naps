@@ -6,6 +6,9 @@ from naps.vendor.xilinx_s7 import Pll
 
 
 class Top(Elaboratable):
+    runs_on = [MicroR2Platform]
+    soc_platform = ZynqSocPlatform
+
     def elaborate(self, platform: ZynqSocPlatform):
         usb3_plugin_connect(platform, "south")
 
@@ -40,4 +43,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(MicroR2Platform,), possible_socs=(ZynqSocPlatform,))
+    cli(Top)

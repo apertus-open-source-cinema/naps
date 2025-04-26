@@ -4,6 +4,8 @@ from naps import *
 
 
 class Top(Elaboratable):
+    runs_on = [Usb3PluginPlatform, HdmiDigitizerPlatform]
+
     def __init__(self):
         pass
 
@@ -18,4 +20,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(Usb3PluginPlatform, HdmiDigitizerPlatform), possible_socs=(JTAGSocPlatform, ZynqSocPlatform))
+    cli(Top)

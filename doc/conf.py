@@ -30,6 +30,7 @@ author = 'Robin Heinemann, Jaro Habiger'
 extensions = [
     "sphinx.ext.todo",
     "sphinx.ext.autodoc",
+    "sphinx.ext.autosectionlabel",
     "sphinx_rtd_theme",
 ]
 

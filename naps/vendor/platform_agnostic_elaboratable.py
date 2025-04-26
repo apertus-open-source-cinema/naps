@@ -4,7 +4,7 @@ from importlib import import_module
 from os.path import join, dirname, split
 
 from amaranth import *
-from amaranth.vendor import LatticeMachXO2Platform, LatticeECP5Platform, XilinxPlatform
+from amaranth.vendor import LatticePlatform, XilinxPlatform
 from naps import SimPlatform
 
 
@@ -34,11 +34,11 @@ class PlatformAgnosticElaboratable(Elaboratable, metaclass=ImplementationMarkerM
         raise PrimitiveNotSupportedByPlatformError()
 
     def elaborate(self, platform):
-        if isinstance(platform, XilinxPlatform):
+        if isinstance(platform, XilinxPlatform) and platform.family == "series7":
             elaboratable = self._search_in_path("xilinx_s7")
-        elif isinstance(platform, LatticeMachXO2Platform):
+        elif isinstance(platform, LatticePlatform) and platform.family == "machxo2":
             elaboratable = self._search_in_path("lattice_machxo2")
-        elif isinstance(platform, LatticeECP5Platform):
+        elif isinstance(platform, LatticePlatform) and platform.family == "ecp5":
             elaboratable = self._search_in_path("lattice_ecp5")
         elif isinstance(platform, SimPlatform):
             return Module()

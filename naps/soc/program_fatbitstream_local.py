@@ -6,4 +6,6 @@ __all__ = ["program_fatbitstream_local"]
 
 def program_fatbitstream_local(fatbitstream, run=False):
     os.chdir(Path(fatbitstream).parent)
-    os.system(f"{fatbitstream} {'--run' if run else ''}")
+    ret = os.system(f"./{Path(fatbitstream).name} {'--run' if run else ''}")
+    if ret != 0:
+        raise RuntimeError(f"Failed to program fatbitstream {fatbitstream}")

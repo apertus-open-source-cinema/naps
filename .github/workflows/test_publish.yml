@@ -82,9 +82,6 @@ jobs:
       - name: Install deps
         run: |
           pdm install -G doc
-      - name: Run sphinx apidoc
-        run: |
-          pdm run sphinx-apidoc -o doc naps
       - name: Build docs
         run: |
           pdm run sphinx-build doc/ doc/_build/ --keep-going

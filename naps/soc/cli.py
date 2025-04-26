@@ -147,7 +147,7 @@ def cli(top_class):
                 needs_rebuild = False
             else:
                 if old_repr == elaborated_repr:
-                    print("gateware build is up to date")
+                    print("\n### skipping build - gateware build is up to date")
                     needs_rebuild = False
                 else:
                     print("gateware changed. rebuilding...")

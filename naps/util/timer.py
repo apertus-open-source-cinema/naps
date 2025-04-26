@@ -13,7 +13,7 @@ def print_task_timing(current_task, elapsed):
 @atexit.register
 def print_summary_at_end():
     if len(task_timings) > 0:
-        print(f"### timing summary")
+        print(f"\n### naps finished - timing summary")
         for task_timing in task_timings:
             print_task_timing(*task_timing)
 

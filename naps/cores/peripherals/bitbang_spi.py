@@ -18,8 +18,8 @@ class BitbangSPI(Elaboratable):
         # for some reason, despite CS being specified as active high in the
         # device tree, linux and/or the python spidev module treat it as active
         # low. thus we invert CS here to make the pin active high as defined
-        ncs = Record.like(self.pins.cs)
-        m.d.comb += self.pins.cs.eq(~ncs)
+        ncs = Signal.like(self.pins.cs.o)
+        m.d.comb += self.pins.cs.o.eq(~ncs)
 
         self.mmio_gpio = MmioGpio(pads=(self.pins.clk, self.pins.copi, self.pins.cipo, ncs), name_suffix="_" + self.devicetree_name)
         m.submodules.mmio_gpio = self.mmio_gpio

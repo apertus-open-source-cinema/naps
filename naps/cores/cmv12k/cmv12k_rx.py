@@ -44,11 +44,11 @@ class Cmv12kRx(Elaboratable):
         self.mode = mode
         self.domain = domain
 
-        self.lvds_outclk = sensor.lvds_outclk
+        self.lvds_outclk = sensor.lvds_outclk.i
         # 32 lane mode uses every 2nd lane, 16 lane mode uses every 4th, etc...
         lane_nums = range(1, 65, 2**(7-num_lanes.bit_length()))
-        self.lanes = Cat(getattr(sensor, f"lvds_{l}") for l in lane_nums)
-        self.lane_ctrl = sensor.lvds_ctrl
+        self.lanes = Cat(getattr(sensor, f"lvds_{l}").i for l in lane_nums)
+        self.lane_ctrl = sensor.lvds_ctrl.i
 
         self.output = ImageStream(num_lanes*bits)
         self.output_domain = domain

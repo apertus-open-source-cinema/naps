@@ -6,6 +6,9 @@ from naps.vendor.lattice_machxo2 import Osc
 
 
 class Top(Elaboratable):
+    runs_on = [Usb3PluginPlatform]
+    soc_platform = JTAGSocPlatform
+
     def __init__(self):
         self.counter = StatusSignal(32)
         self.test_reg32 = ControlSignal(32)
@@ -27,4 +30,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(Usb3PluginPlatform,), possible_socs=(JTAGSocPlatform,))
+    cli(Top)

@@ -1,6 +1,7 @@
 from pathlib import Path
 from amaranth import ClockDomain, Fragment, Module, ClockSignal, DomainRenamer
 from amaranth.build.run import BuildProducts
+from amaranth.vendor import XilinxPlatform
 
 from ... import *
 
@@ -11,6 +12,10 @@ from ...fatbitstream import File
 
 class ZynqSocPlatform(SocPlatform):
     base_address = Address(0x4000_0000, 0, (0x7FFF_FFFF - 0x4000_0000) * 8)
+
+    @staticmethod
+    def can_wrap(platform):
+        return isinstance(platform, XilinxPlatform) and platform.device.startswith("xc7z")
 
     def __init__(self, platform, use_axi_interconnect=False):
         from naps.vendor.xilinx_s7 import PS7

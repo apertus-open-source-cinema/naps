@@ -11,12 +11,14 @@ from textwrap import indent
 from datetime import timedelta
 
 from amaranth import Fragment
+from amaranth.vendor import LatticePlatform
 from amaranth.build.run import LocalBuildProducts, BuildPlan
 
 __all__ = ["cli"]
 
 from . import FatbitstreamContext
-from .soc_platform import soc_platform_name
+from .soc_platform import SocPlatform, soc_platform_name
+from .platform import JTAGSocPlatform, ZynqSocPlatform
 from ..util import timer
 
 
@@ -39,29 +41,25 @@ def fragment_repr(original: Fragment):
     return f"Fragment({indent(attrs_str, '  ')})"
 
 
-def cli(top_class, runs_on, possible_socs=(None,)):
+def cli(top_class):
     parser = argparse.ArgumentParser()
     parser.add_argument('-e', '--elaborate', help='Elaborates the experiment', action="store_true")
     parser.add_argument('-b', '--build', help='builds the gateware & assembles a fatbitstream; implies -e',
                         action="store_true")
     parser.add_argument('--force_cache', help='forces caching of the gateware even if it changed', action="store_true")
+    parser.add_argument('--no_cache', help='forces caching of the gateware even if it changed', action="store_true")
     parser.add_argument('-p', '--program', help='programs the board; programs the last build if used without -b',
                         action="store_true")
     parser.add_argument('-r', '--run', help='run the pydriver shell after programming', action="store_true")
     parser.add_argument('-g', '--gc', help='oldest cached bitstream to keep', type=str, default="14d",
                         dest="gc_interval")
 
-    platform_choices = {plat.__name__.replace("Platform", ""): plat for plat in runs_on}
+    platform_choices = {plat.__name__.replace("Platform", ""): plat for plat in top_class.runs_on}
     default = list(platform_choices.keys())[0] if len(platform_choices) == 1 else None
     parser.add_argument('-d', '--device', help='specify the device to build for', choices=platform_choices.keys(),
                         default=default, required=default is None)
 
-    default = None
-    if len(possible_socs) == 1:
-        default = soc_platform_name(possible_socs[0])
-
-    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for',
-                        choices=list(map(soc_platform_name, possible_socs)), default=default, required=default is None)
+    parser.add_argument('-s', '--soc', help='specifies the soc platform to build for')
 
     args = parser.parse_args()
 
@@ -95,16 +93,25 @@ def cli(top_class, runs_on, possible_socs=(None,)):
                         rmtree(c[0])
 
     hardware_platform = platform_choices[args.device]
-    if args.soc != 'None':
-        for soc in possible_socs:
-            if soc_platform_name(soc) == args.soc:
-                soc_platform = soc
-                break
-        platform = soc_platform(hardware_platform())
-    else:
-        platform = hardware_platform()
-    top_class = top_class
+    hardware_platform_args = {}
+    platform = hardware_platform(**hardware_platform_args)
 
+    if args.soc == "None" or args.soc == "Plain" or args.soc is None:
+        pass
+    else:
+        socs = {"Zynq": ZynqSocPlatform, "JTAG": JTAGSocPlatform}
+        if args.soc not in socs:
+            print(f"{args.soc} is not a known SoC type")
+            exit(-1)
+        soc = socs[args.soc]
+        if not soc.can_wrap(platform):
+            print(f"{args.soc} cannot wrap platform {hardware_platform.__name__}")
+            exit(-1)
+        if hasattr(top_class, "soc_platform") and top_class.soc_platform != soc:
+            print(f"applet needs {top_class.soc_platform.__name__}")
+            exit(-1)
+        platform = soc(platform)
+    
     caller_file = Path(inspect.stack()[1].filename)
     name = caller_file.stem
     build_dir = "build" / Path(f"{name}_{args.device}_{args.soc}")
@@ -117,7 +124,7 @@ def cli(top_class, runs_on, possible_socs=(None,)):
 
     if args.elaborate or args.build:
         timer.start_task("elaboration")
-        if args.soc != 'None':
+        if isinstance(platform, SocPlatform):
             elaborated = platform.prepare_soc(top_class())
         else:
             elaborated = Fragment.get(top_class(), platform)
@@ -146,6 +153,9 @@ def cli(top_class, runs_on, possible_socs=(None,)):
                     print("gateware changed. rebuilding...")
         else:
             print("no previous build. rebuilding...")
+
+        if args.no_cache:
+            needs_rebuild = True
 
         if needs_rebuild:
             if gateware_build_dir.exists():
@@ -178,7 +188,8 @@ def cli(top_class, runs_on, possible_socs=(None,)):
         # we always rebuild the fatbitstream
         with open(fatbitstream_name, "wb") as f:
             fc = FatbitstreamContext.get(platform)
-            fc.generate_fatbitstream(f, name, build_products)
+            if isinstance(platform, SocPlatform):
+                fc.generate_fatbitstream(f, name, build_products)
         Path(fatbitstream_name).chmod(0o700)
 
     timer.end_task()

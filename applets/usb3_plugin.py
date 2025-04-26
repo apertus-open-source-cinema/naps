@@ -4,6 +4,8 @@ from naps import *
 
 
 class Top(Elaboratable):
+    runs_on = [Usb3PluginPlatform]
+
     def elaborate(self, platform):
         m = Module()
 
@@ -19,4 +21,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(Usb3PluginPlatform,), possible_socs=(JTAGSocPlatform,))
+    cli(Top)

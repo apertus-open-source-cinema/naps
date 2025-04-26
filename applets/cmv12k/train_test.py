@@ -13,6 +13,9 @@ from amaranth import *
 from naps import *
 
 class Top(Elaboratable):
+    runs_on = [BetaPlatform]
+    soc_platform = ZynqSocPlatform
+
     def __init__(self):
         self.sensor_reset = ControlSignal()
 
@@ -43,4 +46,4 @@ class Top(Elaboratable):
         self.sensor_rx.trainer.train(self.sensor_spi)
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(BetaPlatform, ), possible_socs=(ZynqSocPlatform, ))
+    cli(Top)

@@ -5,6 +5,9 @@ from naps import *
 
 
 class Top(Elaboratable):
+    runs_on = [MicroR2Platform, BetaPlatform, ZyboPlatform]
+    soc_platform = ZynqSocPlatform
+
     def __init__(self):
         self.r = ControlSignal(8, init=0xFA)
         self.g = ControlSignal(8, init=0x87)
@@ -29,4 +32,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform), possible_socs=(ZynqSocPlatform, ))
+    cli(Top)

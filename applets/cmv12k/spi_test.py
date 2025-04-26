@@ -4,6 +4,9 @@ from amaranth import *
 from naps import *
 
 class Top(Elaboratable):
+    runs_on = [BetaPlatform]
+    soc_platform = ZynqSocPlatform
+
     def __init__(self):
         self.sensor_reset = ControlSignal()
 
@@ -22,4 +25,4 @@ class Top(Elaboratable):
         return m
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(BetaPlatform, ), possible_socs=(ZynqSocPlatform, ))
+    cli(Top)

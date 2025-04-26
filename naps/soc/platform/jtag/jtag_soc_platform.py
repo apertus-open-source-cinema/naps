@@ -1,7 +1,7 @@
 from pathlib import Path
 from amaranth import Fragment, Signal, Module, ClockSignal, ClockDomain
 from amaranth.build.run import BuildProducts
-from amaranth.vendor import LatticeMachXO2Platform
+from amaranth.vendor import LatticePlatform, XilinxPlatform
 
 from ... import SocPlatform, Address, PeripheralsAggregator, PERIPHERAL_DOMAIN
 
@@ -12,6 +12,14 @@ from ...fatbitstream import File
 
 class JTAGSocPlatform(SocPlatform):
     base_address = Address(address=0x0000_0000, bit_offset=0, bit_len=0xFFFF_FFFF * 8)
+
+    @staticmethod
+    def can_wrap(platform):
+        return (
+            isinstance(platform, LatticePlatform) and platform.family == "ecp5" or
+            isinstance(platform, LatticePlatform) and platform.family == "machxo2" or
+            isinstance(platform, XilinxPlatform) and platform.family == "series7"
+        )
 
     def __init__(self, platform):
         super().__init__(platform)

@@ -12,6 +12,10 @@ __all__ = ["SimSocPlatform"]
 class SimSocPlatform(SocPlatform):
     base_address = Address(0, 0, 0xFFFF_FFFF * 8)
 
+    @staticmethod
+    def can_wrap(platform):
+        return isinstance(platform, SimPlatform)
+
     def __init__(self, platform):
         assert isinstance(platform, SimPlatform)
         super().__init__(platform)

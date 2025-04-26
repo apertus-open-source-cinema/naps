@@ -5,6 +5,9 @@ from naps import *
 
 
 class Top(Elaboratable):
+    runs_on = [MicroR2Platform, BetaPlatform, ZyboPlatform]
+    soc_platform = ZynqSocPlatform
+
     def __init__(self):
         self.width = 1280
         self.height = 720
@@ -54,4 +57,4 @@ class Top(Elaboratable):
 
 
 if __name__ == "__main__":
-    cli(Top, runs_on=(MicroR2Platform, BetaPlatform, ZyboPlatform), possible_socs=(ZynqSocPlatform, ))
+    cli(Top)

@@ -1,5 +1,5 @@
 from pathlib import Path
-from amaranth import Fragment, Signal, Module, ClockSignal
+from amaranth import Fragment, Signal, Module, ClockSignal, ClockDomain
 from amaranth.build.run import BuildProducts
 from amaranth.vendor import LatticeMachXO2Platform
 
@@ -29,6 +29,7 @@ class JTAGSocPlatform(SocPlatform):
                 m = Module()
                 m.submodules.jtag_controller = JTAGPeripheralConnector(aggregator, jtag_domain="jtag")
 
+                m.domains += ClockDomain(PERIPHERAL_DOMAIN)
                 m.d.comb += ClockSignal(PERIPHERAL_DOMAIN).eq(ClockSignal("jtag"))
 
                 platform.to_inject_subfragments.append((m, "jtag"))

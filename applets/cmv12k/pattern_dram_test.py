@@ -36,13 +36,13 @@ class Top(Elaboratable):
 
         sensor = platform.request("sensor")
         platform.ps7.fck_domain(250e6, "sensor_clk")
-        m.d.comb += sensor.lvds_clk.eq(ClockSignal("sensor_clk"))
-        m.d.comb += sensor.reset.eq(self.sensor_reset)
+        m.d.comb += sensor.lvds_clk.o.eq(ClockSignal("sensor_clk"))
+        m.d.comb += sensor.reset.o.eq(self.sensor_reset)
 
         m.d.comb += [
-            sensor.frame_req.eq(self.frame_req.pulse),
-            sensor.t_exp1.eq(0),
-            sensor.t_exp2.eq(0),
+            sensor.frame_req.o.eq(self.frame_req.pulse),
+            sensor.t_exp1.o.eq(0),
+            sensor.t_exp2.o.eq(0),
         ]
 
         m.submodules.sensor_spi = Cmv12kSpi(platform.request("sensor_spi"))

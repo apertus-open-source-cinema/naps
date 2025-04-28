@@ -34,7 +34,7 @@ class RecoloringDebayerer(Elaboratable):
         x = x_odd ^ self.shift_x
         y = y_odd ^ self.shift_y
 
-        rgb = RGB24()
+        rgb = Signal(RGB24)
         with m.If(x & ~y):
             m.d.comb += rgb.r.eq(self.input.payload)
         with m.Elif(~x & y):
@@ -68,7 +68,7 @@ class SimpleInterpolatingDebayerer(Elaboratable):
             y_even = Signal()
             m.d.comb += y_even.eq((y + self.shift_y) % 2 == 0)
 
-            rgb = RGB24()
+            rgb = Signal(RGB24)
             with m.If(x_even & ~y_even):  # we are a red pixel
                 m.d.comb += rgb.r.eq(image_proxy[x, y])
                 m.d.comb += rgb.g.eq(nAvrg(

@@ -98,7 +98,7 @@ class AxiWriterBurster(Elaboratable):
         m.d.comb += self.data_output.byte_strobe.eq(-1)
 
         # Without this formal fails. This makes this an output port
-        m.d.comb += self.data_output.id.eq(self.data_output.id.init)
+        m.d.comb += self.data_output.id.eq(0)
 
         return m
 

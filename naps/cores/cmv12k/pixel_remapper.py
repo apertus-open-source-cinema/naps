@@ -4,19 +4,19 @@
 from typing import List
 
 from amaranth import *
-from naps import BasicStream, packed_struct
+from amaranth.lib import data
+from naps import BasicStream
 from naps.cores import ImageStream, BufferedSyncStreamFIFO
 
 __all__ = ["Cmv12kPixelRemapper"]
 
-@packed_struct
-class ControlChannelWord:
-    data_valid: unsigned(1)
-    line_valid: unsigned(1)
-    frame_valid: unsigned(1)
-    fot: unsigned(1)
-    integration_1: unsigned(1)
-    integration_2: unsigned(1)
+class ControlChannelWord(data.Struct):
+    data_valid: 1
+    line_valid: 1
+    frame_valid: 1
+    fot: 1
+    integration_1: 1
+    integration_2: 1
 
 
 class Cmv12kPixelRemapper(Elaboratable):

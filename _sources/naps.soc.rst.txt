@@ -1,134 +1,99 @@
-naps.soc package
-================
+naps.soc
+========
 
-Subpackages
------------
+The naps.soc package contains mainly infrastructure for accessing stuff in the FPGA at runtime
+via a CPU. That CPU can currently be either the Zynq ARM CPU or a host computer via JTAG.
+This is especially handy for debugging but also for runtime configuration of the FPGA.
+There is also `a poster motivating and explaining the naps.soc functionality <https://raw.githubusercontent.com/apertus-open-source-cinema/naps/main/doc/NapsPosterFPGAIgnite2023.pdf>`__.
 
-.. toctree::
-   :maxdepth: 4
 
-   naps.soc.platform
-   naps.soc.pydriver
+Control and Status Registers (CSRs)
+-----------------------------------
 
-Submodules
+The most striking part of the naps.soc package is the CSR infrastructure.
+naps chooses a very easy to use approach to CSRs: The special types
+``ContolSignal`` and ``StatusSignal`` beahve like normal Amaranth signals
+but are wired up so that their values can be read (``StatusSignal``) or written (``ControlSignal``)
+by the CPU. The CSRs are automatically collected during elaboration, 
+assigned addresses, and connected to a bus.
+
+If we change our blinky example to use CSRs, we can do the following::
+    
+    from amaranth import *
+    from naps import *
+
+    class Top(Elaboratable):
+        runs_on = [Colorlight5a75b70Platform]
+
+        def __init__(self):
+            self.led = ControlSignal()
+
+        def elaborate(self, platform):
+            m = Module()
+            m.d.comb += platform.request("user_led").o.eq(self.led)
+            return m
+
+    if __name__ == "__main__":
+        cli(Top)
+
+Thats all we have to do.
+
+"Pydriver"
 ----------
 
-naps.soc.cli module
--------------------
+If we now run our design with the additional ``--run`` flag, we are dropped into a
+python shell that runs on the CPU side.
+In this shell we can access all CSRs as normal python attributes on the
+``design`` object. For example, we can do::
 
-.. automodule:: naps.soc.cli
-   :members:
-   :show-inheritance:
-   :undoc-members:
+    >>> design.led = 1  # turn on the LED
+    >>> design.led  # read the LED state
+    1
 
-naps.soc.csr\_types module
---------------------------
+If we now want to bring back the blinking LED, we can add a method annotated with 
+``@pydriver`` to our design. This method could then toggle the LED every second::
 
-.. automodule:: naps.soc.csr_types
-   :members:
-   :show-inheritance:
-   :undoc-members:
+    from amaranth import *
+    from naps import *
 
-naps.soc.devicetree\_overlay module
------------------------------------
+    class Top(Elaboratable):
+        runs_on = [Colorlight5a75b70Platform]
 
-.. automodule:: naps.soc.devicetree_overlay
-   :members:
-   :show-inheritance:
-   :undoc-members:
+        def __init__(self):
+            self.led = ControlSignal()
 
-naps.soc.fatbitstream module
-----------------------------
+        def elaborate(self, platform):
+            m = Module()
+            m.d.comb += platform.request("user_led").o.eq(self.led)
+            return m
 
-.. automodule:: naps.soc.fatbitstream
-   :members:
-   :show-inheritance:
-   :undoc-members:
+        @pydriver
+        def blink(self):
+            from time import sleep
+            while True:
+                self.led = 1
+                sleep(1)
+                self.led = 0
+                sleep(1)
 
-naps.soc.hooks module
----------------------
+    if __name__ == "__main__":
+        cli(Top)
 
-.. automodule:: naps.soc.hooks
-   :members:
-   :show-inheritance:
-   :undoc-members:
+If we now run our design and enter ``design.blink()`` in the python shell, we can see the LED blink again.
 
-naps.soc.memorymap module
--------------------------
+During the elaboration phase, all functions with the ``@pydriver`` decorator are collected and added to the fatbitstream.
 
-.. automodule:: naps.soc.memorymap
-   :members:
-   :show-inheritance:
-   :undoc-members:
 
-naps.soc.peripheral module
---------------------------
+.. todo:: 
+    explain the more general concept of peripherals and the handle_read and handle_write methods
 
-.. automodule:: naps.soc.peripheral
-   :members:
-   :show-inheritance:
-   :undoc-members:
 
-naps.soc.peripherals\_aggregator module
----------------------------------------
+Fatbitstreams
+-------------
 
-.. automodule:: naps.soc.peripherals_aggregator
-   :members:
-   :show-inheritance:
-   :undoc-members:
+These functionalities are enabled by what we call "fatbitstreams".
+Fatbitstreams bundle a bitstream for the FPGA with code to program the FPGA and python
+driver code to interact with the design.
 
-naps.soc.program\_fatbitstream\_local module
---------------------------------------------
-
-.. automodule:: naps.soc.program_fatbitstream_local
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-naps.soc.program\_fatbitstream\_ssh module
-------------------------------------------
-
-.. automodule:: naps.soc.program_fatbitstream_ssh
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-naps.soc.smoke\_test module
----------------------------
-
-.. automodule:: naps.soc.smoke_test
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-naps.soc.soc\_platform module
------------------------------
-
-.. automodule:: naps.soc.soc_platform
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-naps.soc.soc\_platform\_test module
------------------------------------
-
-.. automodule:: naps.soc.soc_platform_test
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-naps.soc.tracing\_elaborate module
-----------------------------------
-
-.. automodule:: naps.soc.tracing_elaborate
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: naps.soc
-   :members:
-   :show-inheritance:
-   :undoc-members:
+.. todo::
+    elaborate what a fatbitsteam is

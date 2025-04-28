@@ -1,69 +1,12 @@
-naps.platform package
-=====================
+naps.platform
+-------------
 
-Subpackages
------------
+The naps.platform package contains board descriptions for various boards.
+The board descriptions are plain ``amaranth-boards`` descriptions with sometimes extra functionality.
 
-.. toctree::
-   :maxdepth: 4
+``JTAGSoc`` requires platform classes to implement the ``generate_jtag_conf`` method 
+(an `example can be found here <https://github.com/apertus-open-source-cinema/naps/blob/main/naps/platform/colorlight_5a_75b_7_0.py#L110>`__).
 
-   naps.platform.plugins
-
-Submodules
-----------
-
-naps.platform.beta\_platform module
------------------------------------
-
-.. automodule:: naps.platform.beta_platform
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-naps.platform.colorlight\_5a\_75b\_7\_0 module
-----------------------------------------------
-
-.. automodule:: naps.platform.colorlight_5a_75b_7_0
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-naps.platform.hdmi\_digitizer\_platform module
-----------------------------------------------
-
-.. automodule:: naps.platform.hdmi_digitizer_platform
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-naps.platform.micro\_r2\_platform module
-----------------------------------------
-
-.. automodule:: naps.platform.micro_r2_platform
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-naps.platform.usb3\_plugin\_platform module
--------------------------------------------
-
-.. automodule:: naps.platform.usb3_plugin_platform
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-naps.platform.zybo\_platform module
------------------------------------
-
-.. automodule:: naps.platform.zybo_platform
-   :members:
-   :show-inheritance:
-   :undoc-members:
-
-Module contents
----------------
-
-.. automodule:: naps.platform
-   :members:
-   :show-inheritance:
-   :undoc-members:
+If you have a board that is not supported at the moment, you can create a file that is similiar
+to one of the existing ones - possibly also by just inheriting from one of the boards from
+`amaranth-boards <https://github.com/amaranth-lang/amaranth-boards>`__.

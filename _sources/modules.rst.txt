@@ -1,7 +1,0 @@
-naps
-====
-
-.. toctree::
-   :maxdepth: 4
-
-   naps

@@ -18,7 +18,7 @@ class HdmiTx(Elaboratable):
         self.initial_video_timing = parse_modeline(modeline)
         self.pix_freq = Clock(self.initial_video_timing.pxclk * 1e6)
 
-        self.rgb = RGB24()
+        self.rgb = Signal(RGB24)
 
         self.hsync_polarity = ControlSignal()
         self.vsync_polarity = ControlSignal()

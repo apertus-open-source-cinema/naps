@@ -99,8 +99,8 @@ class AxiReaderBurster(Elaboratable):
                         m.d.sync += burst_ctr.eq(0)
 
         # Without this formal fails. This makes them output ports
-        m.d.comb += self.output.id.eq(self.output.id.init)
+        m.d.comb += self.output.id.eq(0)
         m.d.comb += self.output.beat_size_bytes.eq(self.output.beat_size_bytes.init)
-        m.d.comb += self.output.protection_type.eq(self.output.protection_type.init)
+        m.d.comb += self.output.protection_type.eq(0)
 
         return m

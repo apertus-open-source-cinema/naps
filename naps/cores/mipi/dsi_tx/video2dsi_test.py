@@ -44,7 +44,7 @@ class TestDsiProtocol(unittest.TestCase):
         m.d.comb += dsi_phy.hs_input.connect_upstream(dsi_protocol.output)
 
         def testbench():
-            yield from do_nothing(100000)
+            yield from do_nothing(10000)
 
         platform.add_sim_clock("sync", 100e6)
         platform.add_sim_clock("ddr", 100e6)

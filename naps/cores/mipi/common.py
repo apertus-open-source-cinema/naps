@@ -1,15 +1,14 @@
 from functools import reduce
 
 from amaranth import *
-from naps import packed_struct
+from amaranth.lib import data
 
 __all__ = ["DataIdentifier", "calculate_ecc", "PacketHeader"]
 
 
-@packed_struct
-class DataIdentifier:
-    data_type: unsigned(6)
-    virtual_channel_identifier: unsigned(2)
+class DataIdentifier(data.Struct):
+    data_type: 6
+    virtual_channel_identifier: 2
 
     def is_long_packet(self):
         return self.data_type <= 0x0F
@@ -30,11 +29,10 @@ def calculate_ecc(header):
 
 
 
-@packed_struct
-class PacketHeader:
+class PacketHeader(data.Struct):
     data_id: DataIdentifier
-    word_count: unsigned(16)
-    ecc: unsigned(8)
+    word_count: 16
+    ecc: 8
 
     def calculate_ecc(self):
         return calculate_ecc(self.as_value())

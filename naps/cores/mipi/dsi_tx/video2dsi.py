@@ -3,7 +3,7 @@ from amaranth import *
 from naps import PacketizedStream, process_write_to_stream, ControlSignal, Process, StatusSignal
 from naps.cores import ImageStream, StreamGearbox, probe, fsm_probe, trigger, fsm_status_reg, StreamInfo
 from .types import DsiShortPacketDataType, DsiLongPacketDataType
-from .. import PacketHeader, DataIdentifier
+from .. import PacketHeader
 
 __all__ = ["ImageStream2Dsi"]
 
@@ -30,7 +30,9 @@ class ImageStream2Dsi(Elaboratable):
         self.output = PacketizedStream(num_lanes * 8)
 
     def elaborate(self, platform):
+        m_always_on = Module()
         m = Module()
+        m.submodules.always_on = m_always_on
 
         gearbox = m.submodules.gearbox = StreamGearbox(self.input, target_width=len(self.output.payload))
 
@@ -50,9 +52,17 @@ class ImageStream2Dsi(Elaboratable):
             return [(v, i == len(values) - 1) for i, v in enumerate(values)]
 
         def short_packet_words(type, payload=Const(0, 16)):
-            data_id = DataIdentifier(data_type=type, virtual_channel_identifier=0)
-            packet_prelim = PacketHeader(data_id=data_id, word_count=payload, ecc=0)
-            packet = PacketHeader(data_id=data_id, word_count=payload, ecc=packet_prelim.calculate_ecc())
+            packet_prelim = Signal(PacketHeader)
+            m_always_on.d.comb += [
+                packet_prelim.data_id.data_type.eq(type),
+                packet_prelim.word_count.eq(payload),
+            ]
+            packet = Signal(PacketHeader)
+            m_always_on.d.comb += [
+                packet.data_id.data_type.eq(type),
+                packet.word_count.eq(payload),
+                packet.ecc.eq(packet_prelim.calculate_ecc()),
+            ]
             return repack_to_lanes(packet.as_value())
 
         def send_short_packet(p, type, payload=Const(0, 16), lp_after=False):

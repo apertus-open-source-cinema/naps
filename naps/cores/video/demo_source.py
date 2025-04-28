@@ -55,11 +55,11 @@ def BlinkDemoVideoSource(payload_shape, *args, **kwargs):
 
 def BertlDemoVideoSource(*args, **kwargs):
     def generator_function(m, self, x, y, frame_ctr):
-        return RGB24(
-            r=x[0:8],
-            g=y[0:8],
-            b=Cat(Signal(3), y[8:10], x[8:11])
-        )
+        res = Signal(RGB24)
+        m.d.comb += res.r.eq(x[0:8])
+        m.d.comb += res.g.eq(y[0:8])
+        m.d.comb += res.b.eq(Cat(Signal(3), y[8:10], x[8:11]))
+        return res
 
     return DemoVideoSource(generator_function, 24, *args, **kwargs)
 
@@ -70,7 +70,13 @@ def SolidColorDemoVideoSource(r=0, g=0, b=0, *args, **kwargs):
         self.g = ControlSignal(8, init=g)
         self.b = ControlSignal(8, init=b)
 
-        return RGB24(r=self.r, g=self.g, b=self.b)
+        res = Signal(RGB24)
+        m.d.comb += [
+            res.r.eq(self.r),
+            res.g.eq(self.g),
+            res.b.eq(self.b)
+        ]
+        return res
 
     return DemoVideoSource(generator_function, 24, *args, **kwargs)
 
@@ -80,6 +86,13 @@ def GradientDemoVideoSource(direction_y=True, divider=2, *args, **kwargs):
         self.direction_y = ControlSignal(1, init=direction_y)
         v = Signal(8)
         m.d.comb += v.eq(Mux(self.direction_y, y, x) // divider)
-        return RGB24(r=v, g=v, b=v)
+
+        res = Signal(RGB24)
+        m.d.comb += [
+            res.r.eq(v),
+            res.g.eq(v),
+            res.b.eq(v)
+        ]
+        return res
 
     return DemoVideoSource(generator_function, 24, *args, **kwargs)

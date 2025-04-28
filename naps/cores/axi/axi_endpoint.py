@@ -2,9 +2,10 @@ import math
 from enum import Enum
 
 from amaranth import *
+from amaranth.lib import data
 
 from naps.stream import BasicStream, Stream
-from naps.data_structure import packed_struct, Bundle, UPWARDS, DOWNWARDS
+from naps.data_structure import Bundle, UPWARDS, DOWNWARDS
 
 __all__ = ["AxiResponse", "AxiBurstType", "AxiProtectionType", "AxiAddressStream", "AxiDataStream", "AxiWriteResponseStream", "AxiEndpoint"]
 
@@ -22,11 +23,10 @@ class AxiBurstType(Enum):
     WRAP = 0b10
 
 
-@packed_struct
-class AxiProtectionType:
-    privileged: unsigned(1)
-    secure: unsigned(1)
-    is_instruction: unsigned(1)
+class AxiProtectionType(data.Struct):
+    privileged: 1
+    secure: 1
+    is_instruction: 1
 
 
 class AxiAddressStream(BasicStream):
@@ -38,7 +38,7 @@ class AxiAddressStream(BasicStream):
             self.burst_type = Signal(AxiBurstType)
             self.burst_len = Signal(range(16))  # in axi3 a burst can have a length of 16 as a hardcoded maximum
             self.beat_size_bytes = Signal(3, init=int(math.log2(data_bytes)))  # this is 2**n encoded
-            self.protection_type = Signal(AxiProtectionType().as_value().shape())
+            self.protection_type = Signal(AxiProtectionType)
 
 
 class AxiDataStream(BasicStream):

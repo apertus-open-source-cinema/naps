@@ -1,6 +1,6 @@
 from enum import IntEnum
 from amaranth import unsigned
-from naps import packed_struct
+from amaranth.lib import data
 
 __all__ = ["DsiShortPacketDataType", "DsiLongPacketDataType", "DsiErrorResponse"]
 
@@ -43,21 +43,20 @@ class DsiLongPacketDataType(IntEnum):
     LOOSELY_PACKET_PIXEL_STREAM_18_BIT_RGB_6_6_6 = 0x2E
     PACKED_PIXEL_STREAM_24_BIT_RGB_8_8_8 = 0x3E
 
-@packed_struct
-class DsiErrorResponse:
-    SOT_ERROR: unsigned(1)
-    SOT_SYNC_ERROR: unsigned(1)
-    EOT_SYNC_ERROR: unsigned(1)
-    ESCAPE_MODE_ENTRY_COMMAND_ERROR: unsigned(1)
-    LOW_POWER_TRANSMIT_SYNC_ERROR: unsigned(1)
-    PERIPHERAL_TIMEOUT_ERROR: unsigned(1)
-    FALSE_CONTROL_ERROR: unsigned(1)
-    CONTENTION_DETECTED: unsigned(1)
-    ECC_ERROR_SINGLE_BIT_CORRECTED: unsigned(1)
-    ECC_ERROR_MULTI_BIT_NOT_CORRECTED: unsigned(1)
-    CHECKSUM_ERROR: unsigned(1)
-    DSI_DATA_TYPE_NOT_RECOGNIZED: unsigned(1)
-    DSI_VC_ID_INVALID: unsigned(1)
-    INVALID_TRANSMISSION_LENGTH: unsigned(1)
-    RESERVED: unsigned(1)
-    DSI_PROTOCOL_VIOLATION: unsigned(1)
+class DsiErrorResponse(data.Struct):
+    SOT_ERROR: 1
+    SOT_SYNC_ERROR: 1
+    EOT_SYNC_ERROR: 1
+    ESCAPE_MODE_ENTRY_COMMAND_ERROR: 1
+    LOW_POWER_TRANSMIT_SYNC_ERROR: 1
+    PERIPHERAL_TIMEOUT_ERROR: 1
+    FALSE_CONTROL_ERROR: 1
+    CONTENTION_DETECTED: 1
+    ECC_ERROR_SINGLE_BIT_CORRECTED: 1
+    ECC_ERROR_MULTI_BIT_NOT_CORRECTED: 1
+    CHECKSUM_ERROR: 1
+    DSI_DATA_TYPE_NOT_RECOGNIZED: 1
+    DSI_VC_ID_INVALID: 1
+    INVALID_TRANSMISSION_LENGTH: 1
+    RESERVED: 1
+    DSI_PROTOCOL_VIOLATION: 1

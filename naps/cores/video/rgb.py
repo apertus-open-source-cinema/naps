@@ -1,21 +1,23 @@
 from amaranth import *
-from naps import packed_struct
+from amaranth.lib import data
 
 __all__ = ["RGB24", "RGB565"]
 
 
-def gen_rgb_n(r_bits, g_bits, b_bits):
-    @packed_struct
-    class RGB:
-        r: unsigned(r_bits)
-        g: unsigned(g_bits)
-        b: unsigned(b_bits)
+class RGB(data.StructLayout):
+    r: Signal
+    b: Signal
+    g: Signal
 
-        def brightness(self):
-            return self.r + self.g + self.b
+    def __init__(self, r_bits, g_bits, b_bits):
+        super().__init__({
+            "r": r_bits,
+            "g": g_bits,
+            "b": b_bits,
+        })
 
-    return RGB
+    def brightness(self):
+        return self.r + self.g + self.b
 
-
-RGB24 = gen_rgb_n(8, 8, 8)
-RGB565 = gen_rgb_n(5, 6, 5)
+RGB24 = RGB(8, 8, 8)
+RGB565 = RGB(5, 6, 5)

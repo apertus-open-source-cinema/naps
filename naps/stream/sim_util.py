@@ -6,27 +6,17 @@ from naps.util.sim import wait_for, do_nothing
 __all__ = ["write_to_stream", "read_from_stream", "read_packet_from_stream", "write_packet_to_stream"]
 
 
-def write_to_stream(stream: Stream, timeout=100, **kwargs):
-    for k, v in kwargs.items():
-        yield stream[k].eq(v)
+def write_to_stream(stream: Stream, payload, timeout=100):
+    yield stream.p.eq(payload)
     yield stream.valid.eq(1)
     yield from wait_for(stream.ready, timeout)
     yield stream.valid.eq(0)
 
 
-def read_from_stream(stream: Stream, extract="payload", timeout=100):
+def read_from_stream(stream: Stream, timeout=100):
     yield stream.ready.eq(1)
     yield from wait_for(stream.valid, timeout)
-    if isinstance(extract, str):
-        read = (yield stream[extract])
-    elif isinstance(extract, Iterable):
-        read = []
-        for x in extract:
-            read.append((yield stream[x]))
-        read = tuple(read)
-    else:
-        raise TypeError("extract must be either a string or an iterable of strings")
-
+    read = yield stream.payload
     yield stream.ready.eq(0)
     return read
 

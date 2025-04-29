@@ -3,19 +3,18 @@ import unittest
 import pytest
 
 from naps import SimPlatform, do_nothing
-from naps.stream import BasicStream, verify_stream_output_contract, write_to_stream, read_from_stream
+from naps.stream import verify_stream_output_contract, write_to_stream, read_from_stream
 from . import UnbufferedAsyncStreamFIFO, BufferedAsyncStreamFIFO, UnbufferedSyncStreamFIFO, \
     BufferedSyncStreamFIFO
 
 
 class TestFifo(unittest.TestCase):
     def check_fifo_basic(self, fifo_generator):
-        input = BasicStream(32)
-        fifo = fifo_generator(input, 1024)
+        fifo = fifo_generator(32, 1024)
 
         def testbench():
             for i in range(10):
-                yield from write_to_stream(input, payload=i)
+                yield from write_to_stream(fifo.input, i)
 
             # async fifos need some time due to cdc
             yield from do_nothing()
@@ -47,17 +46,13 @@ class TestFifo(unittest.TestCase):
 
     @pytest.mark.skip("this can not be proven at the moment because a FFSyncronizer in the async FIFO is resetless")
     def test_async_stream_fifo_output_properties(self):
-        input = BasicStream(32)
-        verify_stream_output_contract(UnbufferedAsyncStreamFIFO(input, 10, o_domain="sync", i_domain="sync"))
+        verify_stream_output_contract(UnbufferedAsyncStreamFIFO(32, 10, o_domain="sync", i_domain="sync"))
 
     def test_async_stream_fifo_buffered_output_properties(self):
-        input = BasicStream(32)
-        verify_stream_output_contract(BufferedAsyncStreamFIFO(input, 10, o_domain="sync", i_domain="sync"))
+        verify_stream_output_contract(BufferedAsyncStreamFIFO(32, 10, o_domain="sync", i_domain="sync"))
 
     def test_sync_stream_fifo_output_properties(self):
-        input = BasicStream(32)
-        verify_stream_output_contract(UnbufferedSyncStreamFIFO(input, 10))
+        verify_stream_output_contract(UnbufferedSyncStreamFIFO(32, 10))
 
     def test_sync_stream_fifo_buffered_output_properties(self):
-        input = BasicStream(32)
-        verify_stream_output_contract(BufferedSyncStreamFIFO(input, 10))
+        verify_stream_output_contract(BufferedSyncStreamFIFO(32, 10))

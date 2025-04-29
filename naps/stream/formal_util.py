@@ -46,13 +46,11 @@ class StreamOutputAssertSpec(Elaboratable):
             m.d.sync += unfinished_transaction.eq(1)
         m.d.comb += Assert(~unfinished_transaction | self.stream_output.valid)
 
-        last_payload_signals = [Signal.like(s, name=f"{name}_last") for name, s in self.stream_output.payload_signals.items()]
-        for l, s in zip(last_payload_signals, self.stream_output.payload_signals.values()):
-            m.d.sync += l.eq(s)
+        last_payload = Signal.like(self.stream_output.p, name=f"payload_last")
+        m.d.sync += last_payload.eq(self.stream_output.p)
 
         with m.If(unfinished_transaction):
-            for l, s in zip(last_payload_signals, self.stream_output.payload_signals.values()):
-                m.d.comb += Assert(l == s)
+            m.d.comb += Assert(last_payload == self.stream_output.p)
 
         return m
 
@@ -71,19 +69,18 @@ class LegalStreamSource(Elaboratable):
         m = Module()
 
         unfinished_transaction = Signal()
-        last_payload_signals = [Signal.like(s, name=f"{name}_last") for name, s in self.output.payload_signals.items()]
+        last_payload = Signal.like(self.stream_output.p, name=f"payload_last")
+
         with m.If(self.output.ready & self.output.valid):
             m.d.sync += unfinished_transaction.eq(0)
         with m.Elif(self.output.valid):
             m.d.sync += unfinished_transaction.eq(1)
             with m.If(~unfinished_transaction):
-                for l, s in zip(last_payload_signals, self.output.payload_signals.values()):
-                    m.d.sync += l.eq(s)
+                m.d.sync += last_payload.eq(self.stream_output.p)
 
         with m.If(unfinished_transaction):
             m.d.comb += Assume(self.output.valid)
-            for l, s in zip(last_payload_signals, self.output.payload_signals.values()):
-                m.d.comb += Assume(l == s)
+            m.d.comb += Assume(last_payload == self.output.p)
 
         return m
 

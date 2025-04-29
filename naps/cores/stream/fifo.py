@@ -1,39 +1,45 @@
 from amaranth import *
 from amaranth.lib.fifo import SyncFIFOBuffered, SyncFIFO, AsyncFIFOBuffered, AsyncFIFO
+from amaranth.lib.wiring import Component, In, Out
+from amaranth.lib.data import ShapeCastable
+from amaranth.lib import stream, wiring
 from naps import Stream, StatusSignal
 
 __all__ = ["BufferedAsyncStreamFIFO", "UnbufferedAsyncStreamFIFO", "BufferedSyncStreamFIFO", "UnbufferedSyncStreamFIFO"]
 
+class StreamFIFO(Component):
+    def __init__(self, payload_shape, fifo_type, *, depth, **fifo_args):
+        if isinstance(payload_shape, wiring.FlippedInterface):
+            payload_shape = wiring.flipped(payload_shape)
+        if isinstance(payload_shape, stream.Interface):
+            payload_shape = payload_shape.payload
 
-class StreamFIFO(Elaboratable):
-    def __init__(self, input: Stream, fifo_type, output_stream_name="fifo_out", **fifo_args):
-        self.input = input
-        self.output = input.clone(name=output_stream_name)
-        if "r_domain" in fifo_args:
-            self.output_domain = fifo_args["r_domain"]
-        self.fifo = fifo_type(width=len(Cat(self.input.payload_signals.values())), **fifo_args)
-        self.depth = fifo_args['depth']
+        self.fifo_type = fifo_type
+        self.fifo_args = fifo_args
+        self.depth = depth
+        status_shape = range(depth + 1)
 
-        self.r_level = StatusSignal(range(self.fifo.depth + 1))
-        self.w_level = StatusSignal(range(self.fifo.depth + 1))
+        super().__init__(wiring.Signature({
+            "input": In(stream.Signature(payload_shape)),
+            "output": Out(stream.Signature(payload_shape)),
+            "r_level": Out(status_shape),
+            "w_level": Out(status_shape)
+        }))
 
-    def elaborate(self, platform):
+        self.r_level = StatusSignal(status_shape)
+        self.w_level = StatusSignal(status_shape)
+
+
+    def elaborate(self, _):
         m = Module()
-        fifo = m.submodules.fifo = self.fifo
-
         if self.depth == 0:
-            m.d.comb += self.output.connect_upstream(self.input)
+            wiring.connect(m, wiring.flipped(self.output), wiring.flipped(self.input))
         else:
+            fifo = m.submodules.fifo = self.fifo_type(width=len(Value.cast(self.output.p)), depth=self.depth, **self.fifo_args)
+            wiring.connect(m, wiring.flipped(self.input), fifo.w_stream)
+            wiring.connect(m, wiring.flipped(self.output), fifo.r_stream)
             m.d.comb += self.r_level.eq(fifo.r_level)
             m.d.comb += self.w_level.eq(fifo.w_level)
-
-            m.d.comb += self.input.ready.eq(fifo.w_rdy)
-            m.d.comb += fifo.w_data.eq(Cat(self.input.payload_signals.values()))
-            m.d.comb += fifo.w_en.eq(self.input.valid)
-
-            m.d.comb += Cat(self.output.payload_signals.values()).eq(fifo.r_data)
-            m.d.comb += self.output.valid.eq(fifo.r_rdy)
-            m.d.comb += fifo.r_en.eq(self.output.ready)
 
         return m
 

@@ -11,7 +11,6 @@ except ImportError:
     __version__ = "unknown"  # :nocov:
 
 from .util import *
-from .data_structure import *
 from .stream import *
 from .vendor import *
 from .soc import *

@@ -1,6 +1,5 @@
 if __name__ == "__main__":
     import os, atexit, code, readline
-    readline.parse_and_bind("tab: complete")
 
     class PydriverConsole(code.InteractiveConsole):
         def __init__(self, locals=None, filename="<console>",
@@ -9,7 +8,8 @@ if __name__ == "__main__":
             self.init_history(histfile)
 
         def init_history(self, histfile):
-            readline.parse_and_bind("tab: complete")
+            readline.parse_and_bind("tab: complete")  # readline
+            readline.parse_and_bind("bind ^I rl_complete")  # editline (on macOS)
             if hasattr(readline, "read_history_file"):
                 try:
                     readline.read_history_file(histfile)

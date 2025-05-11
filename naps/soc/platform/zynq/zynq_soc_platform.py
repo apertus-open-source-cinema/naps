@@ -24,7 +24,7 @@ class ZynqSocPlatform(SocPlatform):
         self.ps7 = PS7(here_is_the_only_place_that_instanciates_ps7=True)
         self.final_to_inject_subfragments.append((self.ps7, "ps7"))
 
-        def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
+        def peripherals_connect_hook(platform, top_fragment: Fragment):
             from naps.cores.axi import AxiEndpoint, AxiLitePeripheralConnector, AxiFullToLiteBridge, AxiInterconnect
 
             if platform.peripherals:

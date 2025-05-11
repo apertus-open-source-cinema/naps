@@ -17,7 +17,7 @@ def devicetree_overlay(platform, overlay_name, overlay_content, placeholder_subs
     if not hasattr(platform, "devicetree_overlays"):
         platform.devicetree_overlays = dict()
 
-        def overlay_hook(platform, top_fragment: Fragment, sames):
+        def overlay_hook(platform, top_fragment: Fragment):
             assert hasattr(top_fragment, "memorymap")
             memorymap = top_fragment.memorymap
 

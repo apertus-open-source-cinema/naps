@@ -5,7 +5,7 @@ from naps import AxiEndpoint, axil_read, axil_write, CsrBank, ControlSignal, Zyn
 class TestAxiSlave(unittest.TestCase):
     def check_csr_bank(self, num_csr=10, testdata=0x12345678, use_axi_interconnect=False):
         platform = ZynqSocPlatform(SimPlatform(), use_axi_interconnect)
-        csr_bank = CsrBank()
+        csr_bank = CsrBank("test")
         for i in range(num_csr):
             csr_bank.reg("csr#{}".format(i), ControlSignal(32))
 
@@ -26,7 +26,7 @@ class TestAxiSlave(unittest.TestCase):
 
     def test_simple_test_csr_bank(self):
         platform = ZynqSocPlatform(SimPlatform())
-        csr_bank = CsrBank()
+        csr_bank = CsrBank("test")
         csr_bank.reg("csr", ControlSignal(32))
 
         def testbench():

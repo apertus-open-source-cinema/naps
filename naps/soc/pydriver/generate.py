@@ -9,7 +9,6 @@ from amaranth.build import Platform
 from .driver_items import DriverMethod, DriverData
 from ..fatbitstream import FatbitstreamContext, File
 from ..memorymap import MemoryMap
-from ..tracing_elaborate import ElaboratableSames
 from ..csr_types import EventReg, StatusSignal, ControlSignal
 from ...util.py_serialize import py_serialize
 
@@ -84,7 +83,7 @@ def generate_pydriver(top_memorymap, memory_accessor):
     return pycode
 
 
-def pydriver_hook(platform: Platform, top_fragment, sames: ElaboratableSames):
+def pydriver_hook(platform: Platform, top_fragment):
     if hasattr(platform, "pydriver_memory_accessor"):
         memorymap = top_fragment.memorymap
         pydriver = generate_pydriver(memorymap, platform.pydriver_memory_accessor(memorymap))

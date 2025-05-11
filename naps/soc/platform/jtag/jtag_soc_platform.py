@@ -27,7 +27,7 @@ class JTAGSocPlatform(SocPlatform):
         self.jtag_active = Signal()
         self.jtag_debug_signals = Signal(32)
 
-        def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
+        def peripherals_connect_hook(platform, top_fragment: Fragment):
             from naps import JTAGPeripheralConnector
             if platform.peripherals:
                 aggregator = PeripheralsAggregator()

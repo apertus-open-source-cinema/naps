@@ -9,8 +9,9 @@ __all__ = ["CsrBank"]
 
 
 class CsrBank(Elaboratable):
-    def __init__(self):
+    def __init__(self, names):
         self.memorymap = MemoryMap()
+        self.name = ".".join(names)
 
     def reg(self, name: str, signal: _Csr):
         assert isinstance(signal, _Csr)
@@ -67,5 +68,5 @@ class CsrBank(Elaboratable):
                 write_done(Response.ERR)
 
         m = Module()
-        m.submodules += Peripheral(handle_read, handle_write, self.memorymap)
+        m.submodules += Peripheral(handle_read, handle_write, self.memorymap, self.name)
         return m

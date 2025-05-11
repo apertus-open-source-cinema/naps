@@ -1,4 +1,5 @@
 from amaranth import *
+from amaranth.lib.memory import Memory
 from amaranth.utils import bits_for
 
 from naps import BasicStream, stream_transformer

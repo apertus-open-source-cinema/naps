@@ -20,7 +20,7 @@ class SimSocPlatform(SocPlatform):
         assert isinstance(platform, SimPlatform)
         super().__init__(platform)
 
-        def peripherals_connect_hook(platform, top_fragment: Fragment, sames):
+        def peripherals_connect_hook(platform, top_fragment: Fragment):
             from naps.cores.axi import AxiEndpoint, AxiLitePeripheralConnector
 
             if platform.peripherals:

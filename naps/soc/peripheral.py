@@ -22,7 +22,8 @@ class Peripheral(Elaboratable):
             self,
             handle_read: HandleRead,
             handle_write: HandleWrite,
-            memorymap: MemoryMap
+            memorymap: MemoryMap,
+            name: str | None = None
     ):
         """
         A `Peripheral` is a thing that is memorymaped in the SOC.
@@ -38,6 +39,7 @@ class Peripheral(Elaboratable):
         self.handle_read = handle_read
         self.handle_write = handle_write
         self.memorymap = memorymap
+        self.name = name
 
     def range(self):
         return self.memorymap.absolute_range_of_direct_children.range()

@@ -5,7 +5,7 @@
 groups = ["default", "doc", "publish", "test"]
 strategy = ["inherit_metadata"]
 lock_version = "4.5.0"
-content_hash = "sha256:4c61ab646d0aab89f493ecdb171a0edb915c216c77938d68e77b2ae34e41b630"
+content_hash = "sha256:6105d0af438f3301de20c7a087fde728d7b9d84318c4fe90454043ac785109a8"
 
 [[metadata.targets]]
 requires_python = ">=3.11"
@@ -23,7 +23,7 @@ files = [
 
 [[package]]
 name = "amaranth"
-version = "0.5.4"
+version = "0.5.5"
 requires_python = "~=3.8"
 summary = "Amaranth hardware definition language"
 groups = ["default"]
@@ -34,8 +34,8 @@ dependencies = [
     "pyvcd<0.5,>=0.2.2",
 ]
 files = [
-    {file = "amaranth-0.5.4-py3-none-any.whl", hash = "sha256:ce7473b4220acc78474474fd132177ca545fb144d4e69e1c7dbfc2ed7d32bcf3"},
-    {file = "amaranth-0.5.4.tar.gz", hash = "sha256:a0ea7ffe358ab00d5524b53c43277d279723437be146c8250e26f6b349b8a4fd"},
+    {file = "amaranth-0.5.5-py3-none-any.whl", hash = "sha256:b0dc1c75d0d7dcdf1df0c1f8e310ab87891d374ca6566ffa8aebde72a6fed77b"},
+    {file = "amaranth-0.5.5.tar.gz", hash = "sha256:5b32c03e889e4b84d0c5ef38fda9c9dabd5ffeba53297d8df26e334dcd3dff15"},
 ]
 
 [[package]]

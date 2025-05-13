@@ -5,11 +5,12 @@ from typing import Iterable
 from pathlib import Path
 
 from amaranth import Fragment, ValueCastable, Value
+from amaranth.lib import wiring
+from amaranth.lib.wiring import FlippedInterface
 from amaranth._toolchain import require_tool
 from amaranth.back import rtlil
+from naps.util.amaranth_private import PortDirection
 from shutil import rmtree
-
-from naps.data_structure import Bundle
 
 __all__ = ["assert_formal", "FormalPlatform"]
 
@@ -53,29 +54,17 @@ def assert_formal(spec, mode="bmc", depth=1, submodules=()):
     for injected in submodules:
         spec_module.submodules += injected
 
-    def flat_entry(entry):
-        if isinstance(entry, Bundle):
-            res = []
-            for sig in entry.signals:
-                if isinstance(sig, Bundle):
-                    res += flat_entry(sig)
-                else:
-                    res.append(sig)
-            return res
-        elif isinstance(entry, ValueCastable):
-            return [Value.cast(entry)]
-        elif isinstance(entry, (list, tuple)):
-            ports = []
-            for e in entry:
-                print(e, type(entry), file=sys.stderr)
-                ports += flat_entry(e)
-            return ports
-        else:
-            return []
-    
-
-    ports = flat_entry(list(spec.__dict__.values()))
-    print(ports, file=sys.stderr)
+    # stolen from rtlil.convert 
+    ports = {}
+    for path, member, value in spec.signature.flatten(spec):
+        if isinstance(value, ValueCastable):
+            value = value.as_value()
+        if isinstance(value, Value):
+            if member.flow == wiring.In:
+                dir = PortDirection.Input
+            else:
+                dir = PortDirection.Output
+            ports["__".join(map(str, path))] = (value, dir)
 
     config = textwrap.dedent(f"""\
         [options]

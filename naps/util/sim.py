@@ -177,6 +177,7 @@ def wait_for(expr, timeout=100, must_clock=True):
             raise TimeoutError("{!r} did not become '1' within {} cycles".format(expr, timeout))
         i += 1
 
+        print(i, (yield expr))
         if (yield expr):
             return
         yield

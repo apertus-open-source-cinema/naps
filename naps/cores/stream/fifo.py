@@ -3,7 +3,7 @@ from amaranth.lib.fifo import SyncFIFOBuffered, SyncFIFO, AsyncFIFOBuffered, Asy
 from amaranth.lib.wiring import Component, In, Out
 from amaranth.lib.data import ShapeCastable
 from amaranth.lib import stream, wiring
-from naps import Stream, StatusSignal
+from naps import StatusSignal
 
 __all__ = ["BufferedAsyncStreamFIFO", "UnbufferedAsyncStreamFIFO", "BufferedSyncStreamFIFO", "UnbufferedSyncStreamFIFO"]
 
@@ -44,23 +44,23 @@ class StreamFIFO(Component):
         return m
 
 
-def BufferedSyncStreamFIFO(input: Stream, depth, **kwargs):
-    return StreamFIFO(input, SyncFIFOBuffered, depth=depth, **kwargs)
+def BufferedSyncStreamFIFO(shape, depth, **kwargs):
+    return StreamFIFO(shape, SyncFIFOBuffered, depth=depth, **kwargs)
 
 
-def UnbufferedSyncStreamFIFO(input: Stream, depth, **kwargs):
-    return StreamFIFO(input, SyncFIFO, depth=depth, **kwargs)
+def UnbufferedSyncStreamFIFO(shape, depth, **kwargs):
+    return StreamFIFO(shape, SyncFIFO, depth=depth, **kwargs)
 
 
-def BufferedAsyncStreamFIFO(input, depth, i_domain="sync", o_domain="sync", exact_depth=False, **kwargs):
+def BufferedAsyncStreamFIFO(shape, depth, i_domain="sync", o_domain="sync", exact_depth=False, **kwargs):
     return StreamFIFO(
-        input, AsyncFIFOBuffered, depth=depth, r_domain=o_domain, w_domain=i_domain, exact_depth=exact_depth,
+        shape, AsyncFIFOBuffered, depth=depth, r_domain=o_domain, w_domain=i_domain, exact_depth=exact_depth,
         **kwargs
     )
 
 
-def UnbufferedAsyncStreamFIFO(input, depth, i_domain="sync", o_domain="sync", exact_depth=False, **kwargs):
+def UnbufferedAsyncStreamFIFO(shape, depth, i_domain="sync", o_domain="sync", exact_depth=False, **kwargs):
     return StreamFIFO(
-        input, AsyncFIFO, depth=depth, r_domain=o_domain, w_domain=i_domain, exact_depth=exact_depth,
+        shape, AsyncFIFO, depth=depth, r_domain=o_domain, w_domain=i_domain, exact_depth=exact_depth,
         **kwargs
     )

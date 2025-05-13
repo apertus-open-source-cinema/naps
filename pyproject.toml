@@ -64,6 +64,6 @@ test = "pytest"
 
 [tool.pytest.ini_options]
 python_files = ["*_test.py"]
-addopts = ["-n", "auto" ]
+# addopts = ["-n", "auto" ]
 testpaths = ["naps", "applets"]
 filterwarnings = ["ignore::cryptography.utils.CryptographyDeprecationWarning"]

@@ -1,11 +1,14 @@
 import unittest
 
 from amaranth import *
+from amaranth.lib import wiring
 from amaranth.sim import Passive
 from amaranth.lib.memory import Memory
 
-from naps import SimPlatform, PacketizedStream, write_to_stream, read_from_stream, verify_stream_output_contract, LegalStreamSource
+from naps import SimPlatform, write_to_stream, read_from_stream, verify_stream_output_contract, LegalStreamSource, \
+    Packet
 from naps.cores.stream.stream_memory import StreamMemoryReader
+from naps.stream.formal_util import stream_contract_test
 
 
 class StreamMemoryTest(unittest.TestCase):
@@ -13,19 +16,20 @@ class StreamMemoryTest(unittest.TestCase):
         platform = SimPlatform()
         m = Module()
 
-        address_stream = PacketizedStream(8)
         mem = Memory(shape=32, depth=128, init=[i + 2 for i in range(128)])
-        reader = m.submodules.reader = StreamMemoryReader(address_stream, mem)
-        m.submodules.memory = mem
+        reader = m.submodules.reader = StreamMemoryReader(mem, address_shape=Packet(7))
+        m.submodules.mem = mem
 
         def write_process():
             for i in range(128):
-                yield from write_to_stream(address_stream, payload=i, last=(i % 8) == 0)
+                yield from write_to_stream(reader.input, reader.input.p.shape().const({"p": i, "last": (i % 8) == 0}))
             yield Passive()
 
         def read_process():
             for i in range(128):
-                data, last = (yield from read_from_stream(reader.output, extract=("payload", "last")))
+                yield from read_from_stream(reader.output)
+                data = yield reader.output.p.p
+                last = yield reader.output.p.last
                 assert data == i + 2
                 assert last == ((i % 8) == 0)
             yield Passive()
@@ -34,11 +38,9 @@ class StreamMemoryTest(unittest.TestCase):
         platform.add_process(write_process, "sync")
         platform.sim(m, read_process)
 
-    def test_output_stream_contract(self):
-        def dut():
-            input_stream = PacketizedStream(8)
-            mem = Memory(shape=32, depth=128, init=[i + 2 for i in range(128)])
-            dut = StreamMemoryReader(input_stream, mem)
-            return (dut, dut.output, [LegalStreamSource(input_stream), mem])
-
-        verify_stream_output_contract(dut)
+    @stream_contract_test
+    def test_output_stream_contract(self, plat, m):
+        mem = Memory(shape=32, depth=128, init=[i + 2 for i in range(128)])
+        m.submodules.reader = reader = StreamMemoryReader(mem)
+        wiring.connect(m, reader.input, plat.request_port(reader.input))
+        return reader.output

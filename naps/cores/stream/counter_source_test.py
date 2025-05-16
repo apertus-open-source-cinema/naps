@@ -1,9 +1,11 @@
 import unittest
 
 from . import CounterStreamSource
-from naps import verify_stream_output_contract
+from ...stream.formal_util import stream_contract_test
 
 
 class CounterStreamSourceTest(unittest.TestCase):
-    def test_stream_contract(self):
-        verify_stream_output_contract(CounterStreamSource(32))
+    @stream_contract_test
+    def test_stream_contract(self, plat, m):
+        m.submodules.counter_src = src = CounterStreamSource(32)
+        return src.output

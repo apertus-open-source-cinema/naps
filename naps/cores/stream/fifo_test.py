@@ -1,11 +1,13 @@
 import unittest
 
 import pytest
+from amaranth.lib import wiring
 
-from naps import SimPlatform, do_nothing
-from naps.stream import verify_stream_output_contract, write_to_stream, read_from_stream
+from naps import SimPlatform, do_nothing, FormalPlatform
+from naps.stream import write_to_stream, read_from_stream
 from . import UnbufferedAsyncStreamFIFO, BufferedAsyncStreamFIFO, UnbufferedSyncStreamFIFO, \
     BufferedSyncStreamFIFO
+from naps.stream.formal_util import StreamOutputCoverSpec, stream_contract_test
 
 
 class TestFifo(unittest.TestCase):
@@ -45,14 +47,26 @@ class TestFifo(unittest.TestCase):
         self.check_fifo_basic(fifo_gen)
 
     @pytest.mark.skip("this can not be proven at the moment because a FFSyncronizer in the async FIFO is resetless")
-    def test_async_stream_fifo_output_properties(self):
-        verify_stream_output_contract(UnbufferedAsyncStreamFIFO(32, 10, o_domain="sync", i_domain="sync"))
+    @stream_contract_test
+    def test_async_stream_fifo_output_properties(self, plat, m):
+        m.submodules.fifo = fifo = UnbufferedAsyncStreamFIFO(32, 10, o_domain="sync", i_domain="sync")
+        wiring.connect(m, fifo.input, plat.request_port(fifo.input))
+        return fifo.output
 
-    def test_async_stream_fifo_buffered_output_properties(self):
-        verify_stream_output_contract(BufferedAsyncStreamFIFO(32, 10, o_domain="sync", i_domain="sync"))
+    @stream_contract_test
+    def test_async_stream_fifo_buffered_output_properties(self, plat, m):
+        m.submodules.fifo = fifo = BufferedAsyncStreamFIFO(32, 10, o_domain="sync", i_domain="sync")
+        wiring.connect(m, fifo.input, plat.request_port(fifo.input))
+        return fifo.output
 
-    def test_sync_stream_fifo_output_properties(self):
-        verify_stream_output_contract(UnbufferedSyncStreamFIFO(32, 10))
+    @stream_contract_test
+    def test_sync_stream_fifo_output_properties(self, plat, m):
+        m.submodules.fifo = fifo = UnbufferedSyncStreamFIFO(32, 10)
+        wiring.connect(m, fifo.input, plat.request_port(fifo.input))
+        return fifo.output
 
-    def test_sync_stream_fifo_buffered_output_properties(self):
-        verify_stream_output_contract(BufferedSyncStreamFIFO(32, 10))
+    @stream_contract_test
+    def test_sync_stream_fifo_buffered_output_properties(self, plat, m):
+        m.submodules.fifo = fifo = BufferedSyncStreamFIFO(32, 10)
+        wiring.connect(m, fifo.input, plat.request_port(fifo.input))
+        return fifo.output

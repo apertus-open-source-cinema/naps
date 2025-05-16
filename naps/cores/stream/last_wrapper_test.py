@@ -6,7 +6,7 @@ from amaranth.lib.wiring import Component, Out, In
 
 from naps import SimPlatform, write_packet_to_stream, read_packet_from_stream, BufferedSyncStreamFIFO, \
     Packet, FormalPlatform
-from naps.stream.formal_util import verify_stream_output_contract, LegalStreamSource, StreamOutputAssertSpec
+from naps.stream.formal_util import LegalStreamSource, stream_contract_test
 from . import LastWrapper
 
 
@@ -129,11 +129,10 @@ class LastWrapperTest(unittest.TestCase):
         wiring.connect(m, contract.to_last_wrapper, last_wrapper.input)
         wiring.connect(m, contract.from_last_wrapper, last_wrapper.output)
 
-        plat.run_formal(m, mode="bmc", depth=10)
+        plat.run_formal(self, m)
 
-    def test_output_stream_contract(self):
-        plat = FormalPlatform()
-        m = Module()
+    @stream_contract_test
+    def test_output_stream_contract(self, plat, m):
         m.submodules.legal_input = legal_stream_source = LegalStreamSource(Packet(32))
 
         m.submodules.fifo = fifo = BufferedSyncStreamFIFO(32, 10)
@@ -143,24 +142,12 @@ class LastWrapperTest(unittest.TestCase):
 
         wiring.connect(m, last_wrapper.input, legal_stream_source.output)
 
-        #m.submodules.output = stream_spec = StreamOutputAssertSpec(Packet(32))
-       # wiring.connect(m, last_wrapper.output, stream_spec.input)
+        return last_wrapper.output
 
-        m.submodules.output = stream_spec = StreamOutputCoverSpec(Packet(32))
-        wiring.connect(m, last_wrapper.output, stream_spec.input)
+    @stream_contract_test
+    def test_core_output_stream_contract(self, plat, m):
+        m.submodules.legal_input = legal_stream_source = LegalStreamSource(Packet(32))
+        m.submodules.last_wrapper = last_wrapper = LastWrapper(32, 32, last_rle_bits=3)
+        wiring.connect(m, last_wrapper.input, legal_stream_source.output)
 
-        plat.run_formal(m)
-
-    def test_core_output_stream_contract(self):
-        m = Module()
-
-
-
-        input_stream = PacketizedStream(32)
-        device_input_stream: BasicStream
-        def core_producer(i):
-            nonlocal device_input_stream
-            device_input_stream = i
-            return LegalStreamSource(i.clone())
-        dut = LastWrapper(input_stream, core_producer, last_rle_bits=3)
-        verify_stream_output_contract(dut, stream_output=device_input_stream, support_modules=(LegalStreamSource(input_stream),))
+        return last_wrapper.to_core

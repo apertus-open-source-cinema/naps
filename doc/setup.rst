@@ -51,12 +51,9 @@ yosys internally, it is best to install the full version (not amaranth-yowasp). 
 easiest way to do that is to install `oss-cad-suite <https://github.com/YosysHQ/oss-cad-suite-build>`__.
 If you only want to develop for Lattice ECP5, you are now done.
 
-If you want to develop for Xilinx Zynq, you additionally need to install Vivado.
-The naps cli can handle Vivado inside docker, which is handy for example on macOS
-(see `this repo <https://github.com/ichi4096/vivado-on-silicon-mac>`_ for an example on how to do this).
-For this, you need to supply the environment variable ``NAPS_BUILD_DOCKER_IMAGE``
-and ``NAPS_BUILD_DOCKER_ARGS``. If you have vivado installed natively, you have to supply
-the environment variable ``AMARANTH_ENV_VIVADO``.
+If you want to develop for Xilinx Zynq, you need Vivado. If amaranth cant find a Vivado installation
+naps will download and use a docker container containing Vivado. Note that this container is very large
+(>15GB extracted; >5GB download) and downloading it for the first time is very slow.
 
 For using the ``JTAGSoc`` you also need to install openocd. The current platforms
 assume that you use a jlink JTAG probe but that can easily be changed (just search for

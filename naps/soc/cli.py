@@ -11,6 +11,7 @@ from textwrap import indent
 from datetime import timedelta
 
 from amaranth import Fragment
+from amaranth._toolchain import require_tool, ToolNotFound
 from amaranth.vendor import LatticePlatform
 from amaranth.build.run import LocalBuildProducts, BuildPlan
 
@@ -170,15 +171,18 @@ def cli(top_class):
 
             # build the gateware
             timer.start_task("vendor toolchain build")
-            
-            if "NAPS_BUILD_DOCKER_IMAGE" in os.environ:
-                docker_image = os.environ["NAPS_BUILD_DOCKER_IMAGE"]
-                docker_args = shlex.split(os.environ["NAPS_BUILD_DOCKER_ARGS"])
+
+            if platform.toolchain == "Vivado" and not platform.has_required_tools():
+                print("using vivado in docker")
+                docker_image = "siliconbootcamp/xilinx-vivado:stable"
+                docker_args = [
+                    "--entrypoint=",
+                    "-e", "PATH=/tools/Xilinx/Vivado/2021.1/bin:/tools/Xilinx/Vivado/2021.1/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin",
+                    "-e", "LD_PRELOAD=/lib/x86_64-linux-gnu/libudev.so.1"
+                ]
                 build_products = build_plan.execute_local_docker(
                     root=gateware_build_dir, image=docker_image, docker_args=docker_args
                 )
-            else:
-                build_products = build_plan.execute_local(gateware_build_dir)                
 
             # we write the cache key file in the end also as a marking that the build was successful
             cache_key_path.write_text(elaborated_repr)
